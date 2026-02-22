@@ -68,8 +68,8 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
   const glow = percent > 66 ? 'rgba(239,68,68,0.5)' : percent > 33 ? 'rgba(245,158,11,0.4)' : 'rgba(34,197,94,0.3)'
   const label = !active ? 'WAITING' : percent > 66 ? '⚠ CRITICAL' : percent > 33 ? 'WARNING' : 'ACTIVE'
   return (
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(8px, 2.2vw, 10px)', letterSpacing: '0.12em', marginBottom: 5 }}>
+    <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, letterSpacing: '0.14em', marginBottom: 4 }}>
         <span style={{ color: '#3a3a55' }}>WALLS</span>
         <span style={{ color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}>{label}</span>
       </div>
@@ -310,271 +310,16 @@ function Overlay({ status, moves, levelName, onStart, onNext, onMenu, onRetry, s
   return null
 }
 
-<<<<<<< HEAD
-const overlayStyle: React.CSSProperties = {
-  position: 'absolute', inset: 0, borderRadius: 18, zIndex: 10,
-  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-  background: 'rgba(4,4,12,0.88)', backdropFilter: 'blur(6px)',
-  color: '#fff',
-}
-
-const btnPrimary: React.CSSProperties = {
-  padding: '14px 32px', fontSize: 14, fontWeight: 800, letterSpacing: '0.04em',
-  border: 'none', borderRadius: 12, cursor: 'pointer',
-  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-  color: '#fff', boxShadow: '0 4px 20px rgba(34,197,94,0.35)',
-  minHeight: 48, minWidth: 48,
-}
-
-const btnGhost: React.CSSProperties = {
-  padding: '14px 20px', fontSize: 14, fontWeight: 600, borderRadius: 12, cursor: 'pointer',
-  border: '1px solid #1e1e2e', background: 'rgba(255,255,255,0.02)', color: '#555',
-  minHeight: 48, minWidth: 48,
-}
-
-=======
->>>>>>> b4b75f7 (fixes)
 /* ═══════════════════════════════════════════════════════════════════════════
    ICON BUTTON STYLE
 ═══════════════════════════════════════════════════════════════════════════ */
 
-<<<<<<< HEAD
-function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
-  const { addGeneratedLevel, deleteGeneratedLevel, generatedLevels } = useGameStore()
-  const [gridSize, setGridSize] = useState(5)
-  const [nodeCount, setNodeCount] = useState(3)
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
-  const [generating, setGenerating] = useState(false)
-  const [result, setResult] = useState<{ level: Level; valid: boolean; minMoves: number } | null>(null)
-  const [tab, setTab] = useState<'gen' | 'saved'>('gen')
-  const [decoysOverride, setDecoysOverride] = useState<boolean | null>(null)
-
-  const maxNodes = Math.min(6, Math.floor((gridSize - 2) * (gridSize - 2) / 2))
-  const diff = { easy: '#22c55e', medium: '#f59e0b', hard: '#ef4444' }
-
-  const handleGenerate = useCallback(async () => {
-    setGenerating(true)
-    setResult(null)
-    
-    // Allow UI to update before heavy computation
-    await new Promise(r => setTimeout(r, 0))
-    await new Promise(r => requestAnimationFrame(r))
-    
-    try {
-      const level = generateLevel({
-        gridSize,
-        nodeCount: Math.min(nodeCount, maxNodes),
-        difficulty,
-        decoys: decoysOverride !== null ? decoysOverride : undefined,
-      })
-      const check = verifyLevel(level)
-      setResult({ level, valid: check.solvable, minMoves: check.minMoves })
-    } catch {
-      setResult(null)
-    }
-    setGenerating(false)
-  }, [gridSize, nodeCount, maxNodes, difficulty, decoysOverride])
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 360 }}>
-      {/* Tab switcher */}
-      <div style={{ display: 'flex', background: '#07070e', borderRadius: 12, padding: 4, border: '1px solid #12122a', gap: 2 }}>
-        {([['gen', '⚡ Generate'], ['saved', `💾 Saved (${generatedLevels.length})`]] as const).map(([t, label]) => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: '12px 8px', borderRadius: 10, border: 'none', cursor: 'pointer',
-            background: tab === t ? '#14142a' : 'transparent',
-            color: tab === t ? '#a5b4fc' : '#3a3a55',
-            fontSize: 'clamp(11px, 3vw, 12px)', fontWeight: 700, letterSpacing: '0.04em',
-            transition: 'all 0.15s',
-            minHeight: 44,
-          }}>{label}</button>
-        ))}
-      </div>
-
-      {tab === 'gen' && (
-        <>
-          <div style={{ background: '#07070e', borderRadius: 16, padding: 'clamp(14px, 4vw, 20px)', border: '1px solid #12122a', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Grid size slider */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', marginBottom: 12 }}>
-                <span style={{ color: '#3a3a55' }}>GRID SIZE</span>
-                <span style={{ color: '#a5b4fc', fontWeight: 800 }}>{gridSize} × {gridSize}</span>
-              </div>
-              <input type="range" min={4} max={7} value={gridSize}
-                onChange={e => { setGridSize(+e.target.value); setResult(null) }}
-                style={{ width: '100%', accentColor: '#6366f1' }} />
-            </div>
-
-            {/* Node count slider */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', marginBottom: 12 }}>
-                <span style={{ color: '#3a3a55' }}>GOAL NODES</span>
-                <span style={{ color: '#22c55e', fontWeight: 800 }}>{Math.min(nodeCount, maxNodes)}</span>
-              </div>
-              <input type="range" min={2} max={maxNodes} value={Math.min(nodeCount, maxNodes)}
-                onChange={e => { setNodeCount(+e.target.value); setResult(null) }}
-                style={{ width: '100%', accentColor: '#22c55e' }} />
-            </div>
-
-            {/* Difficulty selector */}
-            <div>
-              <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', color: '#3a3a55', marginBottom: 10 }}>DIFFICULTY</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {(['easy', 'medium', 'hard'] as const).map(d => (
-                  <button key={d} onClick={() => { setDifficulty(d); setResult(null); setDecoysOverride(null) }} style={{
-                    flex: 1, padding: '12px 8px', borderRadius: 10, cursor: 'pointer',
-                    border: `1.5px solid ${difficulty === d ? diff[d] + '80' : '#1a1a2e'}`,
-                    background: difficulty === d ? `${diff[d]}15` : 'rgba(255,255,255,0.01)',
-                    color: difficulty === d ? diff[d] : '#2a2a3e',
-                    fontSize: 'clamp(10px, 2.8vw, 11px)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
-                    transition: 'all 0.15s',
-                    minHeight: 44,
-                  }}>{d}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Decoys toggle */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', color: '#3a3a55' }}>DECOY TILES</div>
-                  <div style={{ fontSize: 'clamp(9px, 2.5vw, 10px)', color: '#25253a', marginTop: 3 }}>
-                    {(decoysOverride !== null ? decoysOverride : difficulty !== 'easy') ? `${difficulty === 'hard' ? 3 : 2} fake paths` : 'off'}
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    if (decoysOverride === null) setDecoysOverride(true)
-                    else if (decoysOverride === true) setDecoysOverride(false)
-                    else setDecoysOverride(null)
-                    setResult(null)
-                  }}
-                  style={{
-                    padding: '10px 16px', borderRadius: 10, cursor: 'pointer', 
-                    fontSize: 'clamp(10px, 2.8vw, 11px)', fontWeight: 700,
-                    border: `1.5px solid ${decoysOverride === null ? '#3a3a55' : decoysOverride ? '#f59e0b80' : '#2a2a3e'}`,
-                    background: decoysOverride === null ? 'transparent' : decoysOverride ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.02)',
-                    color: decoysOverride === null ? '#3a3a55' : decoysOverride ? '#f59e0b' : '#2a2a3e',
-                    transition: 'all 0.15s',
-                    minHeight: 44, minWidth: 60,
-                  }}
-                >
-                  {decoysOverride === null ? 'AUTO' : decoysOverride ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Generate button */}
-          <button onClick={handleGenerate} disabled={generating} style={{
-            padding: '16px 0', borderRadius: 14, border: 'none',
-            cursor: generating ? 'wait' : 'pointer',
-            background: generating ? '#0e0e1e' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-            color: generating ? '#333' : '#fff',
-            fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 800, letterSpacing: '0.06em',
-            boxShadow: generating ? 'none' : '0 4px 24px rgba(99,102,241,0.4)',
-            transition: 'all 0.2s',
-            minHeight: 52,
-          }}>
-            {generating ? '⟳  GENERATING...' : '⚡  GENERATE LEVEL'}
-          </button>
-
-          {/* Result display */}
-          {result && (
-            <div style={{
-              background: '#07070e', borderRadius: 14, padding: 'clamp(14px, 4vw, 18px)',
-              border: `1.5px solid ${result.valid ? '#22c55e25' : '#ef444425'}`,
-            }}>
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 800, color: result.valid ? '#22c55e' : '#ef4444' }}>
-                  {result.valid ? '✓ Valid & Solvable' : '✗ Unsolvable'}
-                </div>
-                {result.valid && (
-                  <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', color: '#3a3a55', marginTop: 4 }}>
-                    Min {result.minMoves} rotation{result.minMoves !== 1 ? 's' : ''} to solve
-                  </div>
-                )}
-              </div>
-              {result.valid ? (
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button onClick={() => onLoad(result.level)} style={{
-                    flex: 1, padding: '12px 0', borderRadius: 10, cursor: 'pointer',
-                    border: '1.5px solid #6366f180', background: 'rgba(99,102,241,0.1)',
-                    color: '#818cf8', fontSize: 'clamp(12px, 3.2vw, 13px)', fontWeight: 700,
-                    minHeight: 48,
-                  }}>▶ Play Now</button>
-                  <button onClick={() => { addGeneratedLevel(result.level); setResult(null) }} style={{
-                    flex: 1, padding: '12px 0', borderRadius: 10, cursor: 'pointer',
-                    border: '1.5px solid #22c55e80', background: 'rgba(34,197,94,0.08)',
-                    color: '#4ade80', fontSize: 'clamp(12px, 3.2vw, 13px)', fontWeight: 700,
-                    minHeight: 48,
-                  }}>💾 Save</button>
-                </div>
-              ) : (
-                <button onClick={handleGenerate} style={{
-                  width: '100%', padding: '12px 0', borderRadius: 10, cursor: 'pointer',
-                  border: '1.5px solid #6366f180', background: 'rgba(99,102,241,0.1)',
-                  color: '#818cf8', fontSize: 'clamp(12px, 3.2vw, 13px)', fontWeight: 700,
-                  minHeight: 48,
-                }}>Try Again</button>
-              )}
-            </div>
-          )}
-        </>
-      )}
-
-      {tab === 'saved' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {generatedLevels.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '36px 16px', color: '#25253a', fontSize: 'clamp(12px, 3.2vw, 13px)' }}>
-              No saved levels yet.<br />
-              <span style={{ color: '#3a3a55' }}>Generate one and save it!</span>
-            </div>
-          ) : (
-            generatedLevels.map((lvl) => (
-              <div key={lvl.id} style={{
-                background: '#07070e', borderRadius: 14, padding: '14px 16px',
-                border: '1px solid #12122a',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {lvl.name}
-                  </div>
-                  <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', color: '#3a3a55', marginTop: 4 }}>
-                    {lvl.gridSize}×{lvl.gridSize} · {lvl.goalNodes.length} nodes
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                  <button onClick={() => onLoad(lvl)} style={{
-                    padding: '10px 16px', borderRadius: 10, border: '1.5px solid #6366f180',
-                    background: 'rgba(99,102,241,0.1)', color: '#818cf8',
-                    fontSize: 'clamp(11px, 3vw, 12px)', fontWeight: 700, cursor: 'pointer',
-                    minHeight: 44,
-                  }}>Play</button>
-                  <button onClick={() => deleteGeneratedLevel(lvl.id)} style={{
-                    padding: '10px 14px', borderRadius: 10, border: '1.5px solid #ef444440',
-                    background: 'rgba(239,68,68,0.06)', color: '#ef4444',
-                    fontSize: 'clamp(11px, 3vw, 12px)', fontWeight: 700, cursor: 'pointer',
-                    minHeight: 44,
-                  }}>✕</button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  )
-=======
 const iconBtn: React.CSSProperties = {
   width: 44, height: 44, borderRadius: 12,
   border: '1px solid #12122a', background: 'rgba(255,255,255,0.02)',
   color: '#3a3a55', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   transition: 'all 0.15s', flexShrink: 0,
->>>>>>> b4b75f7 (fixes)
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -732,52 +477,6 @@ function MenuScreen() {
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       background: 'radial-gradient(ellipse 80% 60% at 50% -10%, #0f0f28 0%, #06060f 70%)',
       color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif',
-<<<<<<< HEAD
-      overflowY: 'auto', 
-      padding: 'max(24px, env(safe-area-inset-top, 24px)) 16px max(40px, env(safe-area-inset-bottom, 40px))',
-    }}>
-      <StarField />
-
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(20px, 4vh, 36px)', position: 'relative', zIndex: 1 }}>
-        <div style={{
-          fontSize: 'clamp(2.5rem, 12vw, 4.5rem)', fontWeight: 900,
-          letterSpacing: '-0.06em', lineHeight: 0.95,
-          background: 'linear-gradient(135deg, #c4b5fd 0%, #818cf8 35%, #6366f1 65%, #4f46e5 100%)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          marginBottom: 8,
-          filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.3))',
-        }}>PRESSURE</div>
-        <div style={{ fontSize: 'clamp(9px, 2.5vw, 11px)', color: '#2a2a45', letterSpacing: '0.3em', marginBottom: 14 }}>
-          CONNECT · BEFORE · CRUSH
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ width: 'min(200px, 60vw)', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(9px, 2.5vw, 10px)', color: '#2a2a3e', marginBottom: 5 }}>
-            <span>PROGRESS</span><span>{totalDone}/{LEVELS.length}</span>
-          </div>
-          <div style={{ height: 4, background: '#0e0e1c', borderRadius: 2 }}>
-            <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #6366f1, #22c55e)', borderRadius: 2, transition: 'width 1s ease' }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Nav tabs */}
-      <div style={{
-        display: 'flex', background: '#07070e', borderRadius: 14, padding: 4,
-        border: '1px solid #12122a', marginBottom: 'clamp(16px, 3vh, 28px)', gap: 2, position: 'relative', zIndex: 1,
-        width: 'min(100%, 320px)',
-      }}>
-        {([['levels', '📋 Levels'], ['workshop', '⚡ Workshop']] as const).map(([v, label]) => (
-          <button key={v} onClick={() => setView(v as typeof view)} style={{
-            flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-            background: view === v ? '#14142a' : 'transparent',
-            color: view === v ? (v === 'workshop' ? '#a5b4fc' : '#fff') : '#3a3a55',
-            fontSize: 'clamp(11px, 3vw, 13px)', fontWeight: 700, letterSpacing: '0.02em',
-            transition: 'all 0.15s',
-            minHeight: 44,
-=======
       overflow: 'hidden',
     }}>
       <StarField />
@@ -816,89 +515,10 @@ function MenuScreen() {
             fontSize: 13, fontWeight: 700, letterSpacing: '0.04em',
             borderBottom: view === v ? '2px solid #6366f1' : '2px solid transparent',
             transition: 'all 0.15s', minHeight: 48,
->>>>>>> b4b75f7 (fixes)
           }}>{label}</button>
         ))}
       </div>
 
-<<<<<<< HEAD
-      {view === 'levels' && (
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 360, padding: '0 4px' }}>
-          {/* World selector */}
-          <div style={{ display: 'flex', gap: 'clamp(6px, 2vw, 10px)', marginBottom: 'clamp(16px, 3vh, 22px)' }}>
-            {([1, 2, 3] as const).map(w => {
-              const meta = worldMeta[w]
-              const lvls = LEVELS.filter(l => l.world === w)
-              const done = lvls.filter(l => completedLevels.includes(l.id)).length
-              const active = world === w
-              return (
-                <button key={w} onClick={() => setWorld(w)} style={{
-                  flex: 1, padding: 'clamp(10px, 2.5vw, 14px) 6px', borderRadius: 14, cursor: 'pointer',
-                  border: `1.5px solid ${active ? meta.color + '60' : '#12122a'}`,
-                  background: active ? `${meta.color}12` : '#07070e',
-                  transition: 'all 0.2s',
-                  minHeight: 80,
-                }}>
-                  <div style={{ fontSize: 'clamp(16px, 4vw, 20px)', marginBottom: 4, filter: active ? `drop-shadow(0 0 8px ${meta.color}80)` : 'none' }}>
-                    {meta.icon}
-                  </div>
-                  <div style={{ fontSize: 'clamp(11px, 3vw, 13px)', fontWeight: 800, color: active ? meta.color : '#3a3a55' }}>
-                    {meta.name}
-                  </div>
-                  <div style={{ fontSize: 'clamp(9px, 2.5vw, 10px)', color: '#25253a', marginTop: 3 }}>
-                    {done}/{lvls.length}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Level grid - 4 columns on smaller screens, 5 on larger */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', 
-            gap: 'clamp(8px, 2vw, 12px)',
-            maxWidth: '100%',
-          }}>
-            {LEVELS.filter(l => l.world === world).map(level => {
-              const done = completedLevels.includes(level.id)
-              const best = bestMoves[level.id]
-              const w = worldMeta[world]
-              return (
-                <button key={level.id} onClick={() => loadLevel(level)} style={{
-                  aspectRatio: '1', borderRadius: 14, cursor: 'pointer',
-                  border: `1.5px solid ${done ? w.color + '50' : '#12122a'}`,
-                  background: done
-                    ? `linear-gradient(145deg, ${w.color}18 0%, ${w.color}0a 100%)`
-                    : 'linear-gradient(145deg, #0a0a16 0%, #07070e 100%)',
-                  color: done ? w.color : '#2a2a3e',
-                  fontSize: 'clamp(15px, 4vw, 18px)', fontWeight: 900, position: 'relative',
-                  boxShadow: done ? `0 0 16px ${w.color}15` : 'none',
-                  transition: 'all 0.15s',
-                  minWidth: 48, minHeight: 48,
-                }}>
-                  {level.id}
-                  {best !== undefined && (
-                    <div style={{
-                      position: 'absolute', top: -4, right: -4,
-                      width: 18, height: 18, borderRadius: '50%',
-                      background: '#fbbf24',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 10, color: '#000', fontWeight: 900,
-                      boxShadow: '0 0 8px rgba(251,191,36,0.6)',
-                    }}>★</div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {view === 'workshop' && (
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 360, padding: '0 4px' }}>
-          <LevelGeneratorPanel onLoad={loadLevel} />
-=======
       {/* ── SCROLLABLE CONTENT ─────────────────────────────────── */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', width: '100%', maxWidth: 420, WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'], position: 'relative', zIndex: 1 }}>
         <div style={{ padding: '20px 16px max(24px, env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -966,7 +586,6 @@ function MenuScreen() {
             </>
           )}
           {view === 'workshop' && <LevelGeneratorPanel onLoad={loadLevel} />}
->>>>>>> b4b75f7 (fixes)
         </div>
       </div>
 
@@ -984,22 +603,6 @@ function MenuScreen() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-<<<<<<< HEAD
-   ICON BUTTON STYLE
-═══════════════════════════════════════════════════════════════════════════ */
-
-const iconBtn: React.CSSProperties = {
-  width: 44, height: 44, borderRadius: 12,
-  border: '1px solid #12122a', background: 'rgba(255,255,255,0.02)',
-  color: '#3a3a55', cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  transition: 'all 0.15s',
-  flexShrink: 0,
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-=======
->>>>>>> b4b75f7 (fixes)
    MAIN GAME BOARD COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -1068,20 +671,11 @@ export default function GameBoard() {
   const hintPos = showHint && solution?.length ? solution[0] : null
   const nextLevel = allLevels.find(l => l.id === currentLevel.id + 1) ?? null
 
-<<<<<<< HEAD
-  // Calculate board dimensions - responsive to viewport
-  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 375
-  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 667
-  const maxBoardByWidth = Math.min(viewportWidth * 0.92, 400) // 92% of width, max 400px
-  const maxBoardByHeight = viewportHeight * 0.48 // 48% of height for the board
-  const boardPx = Math.min(maxBoardByWidth, maxBoardByHeight)
-=======
   // Responsive board: header ~62px + stats ~52px + footer ~62px + gaps ~24px = ~200px
   const reserved = 200
   const maxByWidth = Math.min(vw * 0.94, 440)
   const maxByHeight = Math.max(vh - reserved, 160)
   const boardPx = Math.min(maxByWidth, maxByHeight)
->>>>>>> b4b75f7 (fixes)
   const gap = gs > 5 ? 3 : 4
   const padding = gs > 5 ? 8 : 10
   const tileSize = Math.floor((boardPx - padding * 2 - gap * (gs - 1)) / gs)
@@ -1123,14 +717,8 @@ export default function GameBoard() {
         borderBottom: '1px solid #0e0e22',
         background: 'rgba(6,6,15,0.85)', backdropFilter: 'blur(12px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-<<<<<<< HEAD
-        width: '100%', maxWidth: 420, marginBottom: 'clamp(8px, 2vh, 14px)', 
-        position: 'relative', zIndex: 1,
-        padding: '0 8px',
-=======
         padding: 'max(10px, env(safe-area-inset-top)) 12px 10px',
         gap: 8,
->>>>>>> b4b75f7 (fixes)
       }}>
         <button onClick={goToMenu} style={iconBtn} title="Menu">
           <span style={{ fontSize: 16 }}>←</span>
@@ -1151,15 +739,9 @@ export default function GameBoard() {
       {/* ── STATS ROW ───────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 'clamp(6px, 2vw, 12px)',
-<<<<<<< HEAD
-        width: '100%', maxWidth: 420, marginBottom: 'clamp(8px, 2vh, 14px)', 
-        position: 'relative', zIndex: 1,
-        padding: '0 8px',
-=======
         width: '100%', maxWidth: 460, flexShrink: 0,
         padding: 'clamp(6px, 1.5vh, 10px) 12px',
         position: 'relative', zIndex: 1,
->>>>>>> b4b75f7 (fixes)
       }}>
         {/* Moves counter */}
         <div style={{
@@ -1167,17 +749,8 @@ export default function GameBoard() {
           background: '#07070e', border: '1px solid #12122a', borderRadius: 12,
           padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 3vw, 16px)', flexShrink: 0, minWidth: 52,
         }}>
-<<<<<<< HEAD
-          <div style={{ fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-            {moves}
-          </div>
-          <div style={{ fontSize: 'clamp(8px, 2.2vw, 9px)', color: '#3a3a55', letterSpacing: '0.1em', marginTop: 3 }}>
-            / {currentLevel.maxMoves}
-          </div>
-=======
           <div style={{ fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{moves}</div>
           <div style={{ fontSize: 'clamp(8px, 2.2vw, 9px)', color: '#3a3a55', letterSpacing: '0.1em', marginTop: 3 }}>/ {currentLevel.maxMoves}</div>
->>>>>>> b4b75f7 (fixes)
         </div>
 
         {/* Compression bar */}
@@ -1189,76 +762,6 @@ export default function GameBoard() {
           background: '#07070e', border: '1px solid #12122a', borderRadius: 12,
           padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 3vw, 16px)', flexShrink: 0, minWidth: 52,
         }}>
-<<<<<<< HEAD
-          <div style={{ 
-            fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
-            color: countdownSecs <= 3 && compressionActive ? '#ef4444' : '#fff',
-            transition: 'color 0.2s',
-          }}>
-            {countdownSecs}
-          </div>
-          <div style={{ fontSize: 'clamp(8px, 2.2vw, 9px)', color: '#3a3a55', letterSpacing: '0.1em', marginTop: 3 }}>
-            SEC
-          </div>
-        </div>
-      </div>
-
-      {/* Game board */}
-      <div
-        ref={boardRef}
-        style={{
-          position: 'relative',
-          width: boardPx, height: boardPx,
-          background: 'linear-gradient(145deg, #0a0a16, #07070e)',
-          borderRadius: 18, padding,
-          border: `2px solid ${wallsJustAdvanced ? '#ef444480' : '#12122a'}`,
-          boxShadow: wallsJustAdvanced
-            ? '0 0 40px rgba(239,68,68,0.3), inset 0 0 40px rgba(239,68,68,0.05)'
-            : '0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)',
-          transition: 'border-color 0.3s, box-shadow 0.3s',
-          zIndex: 1,
-        }}
-      >
-        {/* Tile grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${gs}, 1fr)`,
-          gridTemplateRows: `repeat(${gs}, 1fr)`,
-          gap,
-          width: '100%', height: '100%',
-        }}>
-          {Array.from({ length: gs * gs }, (_, i) => {
-            const x = i % gs
-            const y = Math.floor(i / gs)
-            // Use tileMap for O(1) lookup instead of tiles.find() which is O(n)
-            const tile = tileMap.get(`${x},${y}`)
-            const dist = Math.min(x, y, gs - 1 - x, gs - 1 - y)
-            // FIXED: Correct inDanger calculation - tiles in danger when compression is active
-            // and they're within the wall offset zone (not already a wall or crushed)
-            const inDanger = compressionActive && dist <= wallOffset && !!tile && tile.type !== 'wall' && tile.type !== 'crushed'
-            const isHint = hintPos?.x === x && hintPos?.y === y
-
-            return (
-              <GameTile
-                key={`${x}-${y}`}
-                type={tile?.type || 'empty'}
-                connections={tile?.connections || []}
-                canRotate={tile?.canRotate || false}
-                isGoalNode={tile?.isGoalNode || false}
-                isHint={isHint}
-                inDanger={inDanger}
-                justRotated={tile?.justRotated}
-                onClick={() => handleTileTap(x, y)}
-                tileSize={tileSize}
-              />
-            )
-          })}
-        </div>
-
-        {/* Animated Walls Overlay - The "Pressure Effect" */}
-        {status === 'playing' && wallOffset > 0 && (
-=======
->>>>>>> b4b75f7 (fixes)
           <div style={{
             fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
             color: countdownSecs <= 3 && compressionActive ? '#ef4444' : '#fff', transition: 'color 0.2s',
@@ -1269,15 +772,9 @@ export default function GameBoard() {
 
       {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
       <div style={{
-<<<<<<< HEAD
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(10px, 3vw, 16px)',
-        marginTop: 'clamp(12px, 2.5vh, 20px)', position: 'relative', zIndex: 1,
-        padding: '0 16px',
-=======
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: '100%', position: 'relative', zIndex: 1,
         padding: '4px 0',
->>>>>>> b4b75f7 (fixes)
       }}>
         <div
           ref={boardRef}
@@ -1294,20 +791,6 @@ export default function GameBoard() {
             flexShrink: 0,
           }}
         >
-<<<<<<< HEAD
-          <span style={{ fontSize: 18 }}>⎌</span>
-        </button>
-
-        {/* Time display */}
-        <div style={{
-          padding: '10px 18px', borderRadius: 12,
-          background: '#07070e', border: '1px solid #12122a',
-          fontSize: 'clamp(14px, 4vw, 16px)', fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-          color: '#3a3a55', minWidth: 72, textAlign: 'center',
-          minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {timeStr || '--:--'}
-=======
           {/* Tile grid */}
           <div style={{
             display: 'grid',
@@ -1380,7 +863,6 @@ export default function GameBoard() {
             {timeStr || '—'}
           </div>
           <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
->>>>>>> b4b75f7 (fixes)
         </div>
 
         {/* Hint */}
@@ -1389,18 +871,13 @@ export default function GameBoard() {
           disabled={!solution?.length || status !== 'playing'}
           style={{
             ...iconBtn,
-<<<<<<< HEAD
-            border: showHint ? '1.5px solid #f59e0b60' : '1px solid #12122a',
-            background: showHint ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)',
-=======
             opacity: !solution?.length || status !== 'playing' ? 0.25 : 1,
->>>>>>> b4b75f7 (fixes)
             color: showHint ? '#fbbf24' : '#3a3a55',
             border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
           }}
           title="Hint"
         >
-          <span style={{ fontSize: 18 }}>💡</span>
+          <span style={{ fontSize: 16 }}>💡</span>
         </button>
       </footer>
     </div>
