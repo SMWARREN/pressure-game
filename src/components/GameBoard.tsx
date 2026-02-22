@@ -95,12 +95,12 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
   const label = !active ? 'WAITING' : percent > 66 ? '⚠ CRITICAL' : percent > 33 ? 'WARNING' : 'ACTIVE'
 
   return (
-    <div style={{ flex: 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, letterSpacing: '0.14em', marginBottom: 4 }}>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(8px, 2.2vw, 10px)', letterSpacing: '0.12em', marginBottom: 5 }}>
         <span style={{ color: '#3a3a55' }}>WALLS</span>
         <span style={{ color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}>{label}</span>
       </div>
-      <div style={{ height: 6, background: '#080814', borderRadius: 4, overflow: 'hidden', border: '1px solid #131325' }}>
+      <div style={{ height: 8, background: '#080814', borderRadius: 4, overflow: 'hidden', border: '1px solid #131325' }}>
         <div style={{
           height: '100%', 
           width: `${percent}%`, 
@@ -397,15 +397,17 @@ const overlayStyle: React.CSSProperties = {
 }
 
 const btnPrimary: React.CSSProperties = {
-  padding: '12px 28px', fontSize: 13, fontWeight: 800, letterSpacing: '0.04em',
+  padding: '14px 32px', fontSize: 14, fontWeight: 800, letterSpacing: '0.04em',
   border: 'none', borderRadius: 12, cursor: 'pointer',
   background: 'linear-gradient(135deg, #22c55e, #16a34a)',
   color: '#fff', boxShadow: '0 4px 20px rgba(34,197,94,0.35)',
+  minHeight: 48, minWidth: 48,
 }
 
 const btnGhost: React.CSSProperties = {
-  padding: '12px 18px', fontSize: 13, fontWeight: 600, borderRadius: 12, cursor: 'pointer',
+  padding: '14px 20px', fontSize: 14, fontWeight: 600, borderRadius: 12, cursor: 'pointer',
   border: '1px solid #1e1e2e', background: 'rgba(255,255,255,0.02)', color: '#555',
+  minHeight: 48, minWidth: 48,
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -451,57 +453,59 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
   }, [gridSize, nodeCount, maxNodes, difficulty, decoysOverride])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 310 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 360 }}>
       {/* Tab switcher */}
-      <div style={{ display: 'flex', background: '#07070e', borderRadius: 10, padding: 3, border: '1px solid #12122a', gap: 2 }}>
+      <div style={{ display: 'flex', background: '#07070e', borderRadius: 12, padding: 4, border: '1px solid #12122a', gap: 2 }}>
         {([['gen', '⚡ Generate'], ['saved', `💾 Saved (${generatedLevels.length})`]] as const).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
+            flex: 1, padding: '12px 8px', borderRadius: 10, border: 'none', cursor: 'pointer',
             background: tab === t ? '#14142a' : 'transparent',
             color: tab === t ? '#a5b4fc' : '#3a3a55',
-            fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+            fontSize: 'clamp(11px, 3vw, 12px)', fontWeight: 700, letterSpacing: '0.04em',
             transition: 'all 0.15s',
+            minHeight: 44,
           }}>{label}</button>
         ))}
       </div>
 
       {tab === 'gen' && (
         <>
-          <div style={{ background: '#07070e', borderRadius: 14, padding: 18, border: '1px solid #12122a', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ background: '#07070e', borderRadius: 16, padding: 'clamp(14px, 4vw, 20px)', border: '1px solid #12122a', display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Grid size slider */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, letterSpacing: '0.12em', marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', marginBottom: 12 }}>
                 <span style={{ color: '#3a3a55' }}>GRID SIZE</span>
                 <span style={{ color: '#a5b4fc', fontWeight: 800 }}>{gridSize} × {gridSize}</span>
               </div>
               <input type="range" min={4} max={7} value={gridSize}
                 onChange={e => { setGridSize(+e.target.value); setResult(null) }}
-                style={{ width: '100%', accentColor: '#6366f1', height: 4 }} />
+                style={{ width: '100%', accentColor: '#6366f1' }} />
             </div>
 
             {/* Node count slider */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, letterSpacing: '0.12em', marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', marginBottom: 12 }}>
                 <span style={{ color: '#3a3a55' }}>GOAL NODES</span>
                 <span style={{ color: '#22c55e', fontWeight: 800 }}>{Math.min(nodeCount, maxNodes)}</span>
               </div>
               <input type="range" min={2} max={maxNodes} value={Math.min(nodeCount, maxNodes)}
                 onChange={e => { setNodeCount(+e.target.value); setResult(null) }}
-                style={{ width: '100%', accentColor: '#22c55e', height: 4 }} />
+                style={{ width: '100%', accentColor: '#22c55e' }} />
             </div>
 
             {/* Difficulty selector */}
             <div>
-              <div style={{ fontSize: 10, letterSpacing: '0.12em', color: '#3a3a55', marginBottom: 8 }}>DIFFICULTY</div>
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', color: '#3a3a55', marginBottom: 10 }}>DIFFICULTY</div>
+              <div style={{ display: 'flex', gap: 8 }}>
                 {(['easy', 'medium', 'hard'] as const).map(d => (
                   <button key={d} onClick={() => { setDifficulty(d); setResult(null); setDecoysOverride(null) }} style={{
-                    flex: 1, padding: '9px 0', borderRadius: 9, cursor: 'pointer',
-                    border: `1px solid ${difficulty === d ? diff[d] + '80' : '#1a1a2e'}`,
+                    flex: 1, padding: '12px 8px', borderRadius: 10, cursor: 'pointer',
+                    border: `1.5px solid ${difficulty === d ? diff[d] + '80' : '#1a1a2e'}`,
                     background: difficulty === d ? `${diff[d]}15` : 'rgba(255,255,255,0.01)',
                     color: difficulty === d ? diff[d] : '#2a2a3e',
-                    fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
+                    fontSize: 'clamp(10px, 2.8vw, 11px)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
                     transition: 'all 0.15s',
+                    minHeight: 44,
                   }}>{d}</button>
                 ))}
               </div>
@@ -509,10 +513,10 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
 
             {/* Decoys toggle */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: 10, letterSpacing: '0.12em', color: '#3a3a55' }}>DECOY TILES</div>
-                  <div style={{ fontSize: 9, color: '#25253a', marginTop: 2 }}>
+                  <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', color: '#3a3a55' }}>DECOY TILES</div>
+                  <div style={{ fontSize: 'clamp(9px, 2.5vw, 10px)', color: '#25253a', marginTop: 3 }}>
                     {(decoysOverride !== null ? decoysOverride : difficulty !== 'easy') ? `${difficulty === 'hard' ? 3 : 2} fake paths` : 'off'}
                   </div>
                 </div>
@@ -524,11 +528,13 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
                     setResult(null)
                   }}
                   style={{
-                    padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 10, fontWeight: 700,
-                    border: `1px solid ${decoysOverride === null ? '#3a3a55' : decoysOverride ? '#f59e0b80' : '#2a2a3e'}`,
+                    padding: '10px 16px', borderRadius: 10, cursor: 'pointer', 
+                    fontSize: 'clamp(10px, 2.8vw, 11px)', fontWeight: 700,
+                    border: `1.5px solid ${decoysOverride === null ? '#3a3a55' : decoysOverride ? '#f59e0b80' : '#2a2a3e'}`,
                     background: decoysOverride === null ? 'transparent' : decoysOverride ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.02)',
                     color: decoysOverride === null ? '#3a3a55' : decoysOverride ? '#f59e0b' : '#2a2a3e',
                     transition: 'all 0.15s',
+                    minHeight: 44, minWidth: 60,
                   }}
                 >
                   {decoysOverride === null ? 'AUTO' : decoysOverride ? 'ON' : 'OFF'}
@@ -539,13 +545,14 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
 
           {/* Generate button */}
           <button onClick={handleGenerate} disabled={generating} style={{
-            padding: '14px 0', borderRadius: 12, border: 'none',
+            padding: '16px 0', borderRadius: 14, border: 'none',
             cursor: generating ? 'wait' : 'pointer',
             background: generating ? '#0e0e1e' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
             color: generating ? '#333' : '#fff',
-            fontSize: 13, fontWeight: 800, letterSpacing: '0.06em',
+            fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 800, letterSpacing: '0.06em',
             boxShadow: generating ? 'none' : '0 4px 24px rgba(99,102,241,0.4)',
             transition: 'all 0.2s',
+            minHeight: 52,
           }}>
             {generating ? '⟳  GENERATING...' : '⚡  GENERATE LEVEL'}
           </button>
@@ -553,37 +560,40 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
           {/* Result display */}
           {result && (
             <div style={{
-              background: '#07070e', borderRadius: 12, padding: 16,
-              border: `1px solid ${result.valid ? '#22c55e20' : '#ef444420'}`,
+              background: '#07070e', borderRadius: 14, padding: 'clamp(14px, 4vw, 18px)',
+              border: `1.5px solid ${result.valid ? '#22c55e25' : '#ef444425'}`,
             }}>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: result.valid ? '#22c55e' : '#ef4444' }}>
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 800, color: result.valid ? '#22c55e' : '#ef4444' }}>
                   {result.valid ? '✓ Valid & Solvable' : '✗ Unsolvable'}
                 </div>
                 {result.valid && (
-                  <div style={{ fontSize: 10, color: '#3a3a55', marginTop: 3 }}>
+                  <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', color: '#3a3a55', marginTop: 4 }}>
                     Min {result.minMoves} rotation{result.minMoves !== 1 ? 's' : ''} to solve
                   </div>
                 )}
               </div>
               {result.valid ? (
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={() => onLoad(result.level)} style={{
-                    flex: 1, padding: '10px 0', borderRadius: 9, cursor: 'pointer',
-                    border: '1px solid #6366f180', background: 'rgba(99,102,241,0.1)',
-                    color: '#818cf8', fontSize: 12, fontWeight: 700,
+                    flex: 1, padding: '12px 0', borderRadius: 10, cursor: 'pointer',
+                    border: '1.5px solid #6366f180', background: 'rgba(99,102,241,0.1)',
+                    color: '#818cf8', fontSize: 'clamp(12px, 3.2vw, 13px)', fontWeight: 700,
+                    minHeight: 48,
                   }}>▶ Play Now</button>
                   <button onClick={() => { addGeneratedLevel(result.level); setResult(null) }} style={{
-                    flex: 1, padding: '10px 0', borderRadius: 9, cursor: 'pointer',
-                    border: '1px solid #22c55e80', background: 'rgba(34,197,94,0.08)',
-                    color: '#4ade80', fontSize: 12, fontWeight: 700,
+                    flex: 1, padding: '12px 0', borderRadius: 10, cursor: 'pointer',
+                    border: '1.5px solid #22c55e80', background: 'rgba(34,197,94,0.08)',
+                    color: '#4ade80', fontSize: 'clamp(12px, 3.2vw, 13px)', fontWeight: 700,
+                    minHeight: 48,
                   }}>💾 Save</button>
                 </div>
               ) : (
                 <button onClick={handleGenerate} style={{
-                  width: '100%', padding: '10px 0', borderRadius: 9, cursor: 'pointer',
-                  border: '1px solid #6366f180', background: 'rgba(99,102,241,0.1)',
-                  color: '#818cf8', fontSize: 12, fontWeight: 700,
+                  width: '100%', padding: '12px 0', borderRadius: 10, cursor: 'pointer',
+                  border: '1.5px solid #6366f180', background: 'rgba(99,102,241,0.1)',
+                  color: '#818cf8', fontSize: 'clamp(12px, 3.2vw, 13px)', fontWeight: 700,
+                  minHeight: 48,
                 }}>Try Again</button>
               )}
             </div>
@@ -592,37 +602,39 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
       )}
 
       {tab === 'saved' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {generatedLevels.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 0', color: '#25253a', fontSize: 12 }}>
+            <div style={{ textAlign: 'center', padding: '36px 16px', color: '#25253a', fontSize: 'clamp(12px, 3.2vw, 13px)' }}>
               No saved levels yet.<br />
               <span style={{ color: '#3a3a55' }}>Generate one and save it!</span>
             </div>
           ) : (
             generatedLevels.map((lvl) => (
               <div key={lvl.id} style={{
-                background: '#07070e', borderRadius: 12, padding: '12px 14px',
+                background: '#07070e', borderRadius: 14, padding: '14px 16px',
                 border: '1px solid #12122a',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {lvl.name}
                   </div>
-                  <div style={{ fontSize: 9, color: '#3a3a55', marginTop: 3 }}>
+                  <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', color: '#3a3a55', marginTop: 4 }}>
                     {lvl.gridSize}×{lvl.gridSize} · {lvl.goalNodes.length} nodes
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                   <button onClick={() => onLoad(lvl)} style={{
-                    padding: '7px 12px', borderRadius: 8, border: '1px solid #6366f180',
+                    padding: '10px 16px', borderRadius: 10, border: '1.5px solid #6366f180',
                     background: 'rgba(99,102,241,0.1)', color: '#818cf8',
-                    fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    fontSize: 'clamp(11px, 3vw, 12px)', fontWeight: 700, cursor: 'pointer',
+                    minHeight: 44,
                   }}>Play</button>
                   <button onClick={() => deleteGeneratedLevel(lvl.id)} style={{
-                    padding: '7px 10px', borderRadius: 8, border: '1px solid #ef444430',
+                    padding: '10px 14px', borderRadius: 10, border: '1.5px solid #ef444440',
                     background: 'rgba(239,68,68,0.06)', color: '#ef4444',
-                    fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    fontSize: 'clamp(11px, 3vw, 12px)', fontWeight: 700, cursor: 'pointer',
+                    minHeight: 44,
                   }}>✕</button>
                 </div>
               </div>
@@ -689,30 +701,31 @@ function MenuScreen() {
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       background: 'radial-gradient(ellipse 80% 60% at 50% -10%, #0f0f28 0%, #06060f 70%)',
       color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif',
-      overflowY: 'auto', padding: '40px 20px 56px',
+      overflowY: 'auto', 
+      padding: 'max(24px, env(safe-area-inset-top, 24px)) 16px max(40px, env(safe-area-inset-bottom, 40px))',
     }}>
       <StarField />
 
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 36, position: 'relative', zIndex: 1 }}>
+      <div style={{ textAlign: 'center', marginBottom: 'clamp(20px, 4vh, 36px)', position: 'relative', zIndex: 1 }}>
         <div style={{
-          fontSize: 'clamp(3rem, 14vw, 5rem)', fontWeight: 900,
+          fontSize: 'clamp(2.5rem, 12vw, 4.5rem)', fontWeight: 900,
           letterSpacing: '-0.06em', lineHeight: 0.95,
           background: 'linear-gradient(135deg, #c4b5fd 0%, #818cf8 35%, #6366f1 65%, #4f46e5 100%)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          marginBottom: 10,
+          marginBottom: 8,
           filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.3))',
         }}>PRESSURE</div>
-        <div style={{ fontSize: 10, color: '#2a2a45', letterSpacing: '0.35em', marginBottom: 16 }}>
+        <div style={{ fontSize: 'clamp(9px, 2.5vw, 11px)', color: '#2a2a45', letterSpacing: '0.3em', marginBottom: 14 }}>
           CONNECT · BEFORE · CRUSH
         </div>
 
         {/* Progress bar */}
-        <div style={{ width: 200, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#2a2a3e', marginBottom: 5 }}>
+        <div style={{ width: 'min(200px, 60vw)', margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(9px, 2.5vw, 10px)', color: '#2a2a3e', marginBottom: 5 }}>
             <span>PROGRESS</span><span>{totalDone}/{LEVELS.length}</span>
           </div>
-          <div style={{ height: 3, background: '#0e0e1c', borderRadius: 2 }}>
+          <div style={{ height: 4, background: '#0e0e1c', borderRadius: 2 }}>
             <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #6366f1, #22c55e)', borderRadius: 2, transition: 'width 1s ease' }} />
           </div>
         </div>
@@ -720,24 +733,26 @@ function MenuScreen() {
 
       {/* Nav tabs */}
       <div style={{
-        display: 'flex', background: '#07070e', borderRadius: 12, padding: 4,
-        border: '1px solid #12122a', marginBottom: 28, gap: 2, position: 'relative', zIndex: 1,
+        display: 'flex', background: '#07070e', borderRadius: 14, padding: 4,
+        border: '1px solid #12122a', marginBottom: 'clamp(16px, 3vh, 28px)', gap: 2, position: 'relative', zIndex: 1,
+        width: 'min(100%, 320px)',
       }}>
         {([['levels', '📋 Levels'], ['workshop', '⚡ Workshop']] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v as typeof view)} style={{
-            padding: '10px 24px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
             background: view === v ? '#14142a' : 'transparent',
             color: view === v ? (v === 'workshop' ? '#a5b4fc' : '#fff') : '#3a3a55',
-            fontSize: 12, fontWeight: 700, letterSpacing: '0.02em',
+            fontSize: 'clamp(11px, 3vw, 13px)', fontWeight: 700, letterSpacing: '0.02em',
             transition: 'all 0.15s',
+            minHeight: 44,
           }}>{label}</button>
         ))}
       </div>
 
       {view === 'levels' && (
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 340 }}>
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 360, padding: '0 4px' }}>
           {/* World selector */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 22 }}>
+          <div style={{ display: 'flex', gap: 'clamp(6px, 2vw, 10px)', marginBottom: 'clamp(16px, 3vh, 22px)' }}>
             {([1, 2, 3] as const).map(w => {
               const meta = worldMeta[w]
               const lvls = LEVELS.filter(l => l.world === w)
@@ -745,18 +760,19 @@ function MenuScreen() {
               const active = world === w
               return (
                 <button key={w} onClick={() => setWorld(w)} style={{
-                  flex: 1, padding: '12px 8px', borderRadius: 12, cursor: 'pointer',
-                  border: `1px solid ${active ? meta.color + '50' : '#12122a'}`,
-                  background: active ? `${meta.color}0e` : '#07070e',
+                  flex: 1, padding: 'clamp(10px, 2.5vw, 14px) 6px', borderRadius: 14, cursor: 'pointer',
+                  border: `1.5px solid ${active ? meta.color + '60' : '#12122a'}`,
+                  background: active ? `${meta.color}12` : '#07070e',
                   transition: 'all 0.2s',
+                  minHeight: 80,
                 }}>
-                  <div style={{ fontSize: 18, marginBottom: 4, filter: active ? `drop-shadow(0 0 8px ${meta.color}80)` : 'none' }}>
+                  <div style={{ fontSize: 'clamp(16px, 4vw, 20px)', marginBottom: 4, filter: active ? `drop-shadow(0 0 8px ${meta.color}80)` : 'none' }}>
                     {meta.icon}
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: active ? meta.color : '#3a3a55' }}>
+                  <div style={{ fontSize: 'clamp(11px, 3vw, 13px)', fontWeight: 800, color: active ? meta.color : '#3a3a55' }}>
                     {meta.name}
                   </div>
-                  <div style={{ fontSize: 9, color: '#25253a', marginTop: 2 }}>
+                  <div style={{ fontSize: 'clamp(9px, 2.5vw, 10px)', color: '#25253a', marginTop: 3 }}>
                     {done}/{lvls.length}
                   </div>
                 </button>
@@ -764,8 +780,13 @@ function MenuScreen() {
             })}
           </div>
 
-          {/* Level grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+          {/* Level grid - 4 columns on smaller screens, 5 on larger */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', 
+            gap: 'clamp(8px, 2vw, 12px)',
+            maxWidth: '100%',
+          }}>
             {LEVELS.filter(l => l.world === world).map(level => {
               const done = completedLevels.includes(level.id)
               const best = bestMoves[level.id]
@@ -773,23 +794,24 @@ function MenuScreen() {
               return (
                 <button key={level.id} onClick={() => loadLevel(level)} style={{
                   aspectRatio: '1', borderRadius: 14, cursor: 'pointer',
-                  border: `1px solid ${done ? w.color + '40' : '#12122a'}`,
+                  border: `1.5px solid ${done ? w.color + '50' : '#12122a'}`,
                   background: done
-                    ? `linear-gradient(145deg, ${w.color}15 0%, ${w.color}08 100%)`
+                    ? `linear-gradient(145deg, ${w.color}18 0%, ${w.color}0a 100%)`
                     : 'linear-gradient(145deg, #0a0a16 0%, #07070e 100%)',
                   color: done ? w.color : '#2a2a3e',
-                  fontSize: 17, fontWeight: 900, position: 'relative',
-                  boxShadow: done ? `0 0 16px ${w.color}12` : 'none',
+                  fontSize: 'clamp(15px, 4vw, 18px)', fontWeight: 900, position: 'relative',
+                  boxShadow: done ? `0 0 16px ${w.color}15` : 'none',
                   transition: 'all 0.15s',
+                  minWidth: 48, minHeight: 48,
                 }}>
                   {level.id}
                   {best !== undefined && (
                     <div style={{
-                      position: 'absolute', top: -5, right: -5,
-                      width: 16, height: 16, borderRadius: '50%',
+                      position: 'absolute', top: -4, right: -4,
+                      width: 18, height: 18, borderRadius: '50%',
                       background: '#fbbf24',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 8, color: '#000', fontWeight: 900,
+                      fontSize: 10, color: '#000', fontWeight: 900,
                       boxShadow: '0 0 8px rgba(251,191,36,0.6)',
                     }}>★</div>
                   )}
@@ -801,7 +823,7 @@ function MenuScreen() {
       )}
 
       {view === 'workshop' && (
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 340 }}>
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 360, padding: '0 4px' }}>
           <LevelGeneratorPanel onLoad={loadLevel} />
         </div>
       )}
@@ -814,11 +836,12 @@ function MenuScreen() {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const iconBtn: React.CSSProperties = {
-  width: 36, height: 36, borderRadius: 10,
+  width: 44, height: 44, borderRadius: 12,
   border: '1px solid #12122a', background: 'rgba(255,255,255,0.02)',
   color: '#3a3a55', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   transition: 'all 0.15s',
+  flexShrink: 0,
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -910,10 +933,14 @@ export default function GameBoard() {
   const hintPos = showHint && solution?.length ? solution[0] : null
   const nextLevel = allLevels.find(l => l.id === currentLevel.id + 1) ?? null
 
-  // Calculate board dimensions
-  const boardPx = Math.min(370, typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.88, window.innerHeight * 0.55) : 370)
+  // Calculate board dimensions - responsive to viewport
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 375
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 667
+  const maxBoardByWidth = Math.min(viewportWidth * 0.92, 400) // 92% of width, max 400px
+  const maxBoardByHeight = viewportHeight * 0.48 // 48% of height for the board
+  const boardPx = Math.min(maxBoardByWidth, maxBoardByHeight)
   const gap = gs > 5 ? 3 : 4
-  const padding = gs > 5 ? 6 : 8
+  const padding = gs > 5 ? 8 : 10
   const tileSize = Math.floor((boardPx - padding * 2 - gap * (gs - 1)) / gs)
 
   // Format time display
@@ -957,39 +984,43 @@ export default function GameBoard() {
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: '100%', maxWidth: 400, marginBottom: 12, position: 'relative', zIndex: 1,
+        width: '100%', maxWidth: 420, marginBottom: 'clamp(8px, 2vh, 14px)', 
+        position: 'relative', zIndex: 1,
+        padding: '0 8px',
       }}>
         <button onClick={goToMenu} style={iconBtn} title="Menu">
-          <span style={{ fontSize: 14 }}>←</span>
+          <span style={{ fontSize: 16 }}>←</span>
         </button>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.02em' }}>
+        <div style={{ textAlign: 'center', flex: 1, minWidth: 0, padding: '0 8px' }}>
+          <div style={{ fontSize: 'clamp(14px, 4vw, 18px)', fontWeight: 900, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {currentLevel.name}
           </div>
-          <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.18em', marginTop: 1 }}>
+          <div style={{ fontSize: 'clamp(9px, 2.5vw, 10px)', color: '#25253a', letterSpacing: '0.15em', marginTop: 2 }}>
             LEVEL {currentLevel.id}{currentLevel.isGenerated ? ' · CUSTOM' : ''}
           </div>
         </div>
         <button onClick={restartLevel} style={iconBtn} title="Restart">
-          <span style={{ fontSize: 14 }}>↺</span>
+          <span style={{ fontSize: 16 }}>↺</span>
         </button>
       </div>
 
       {/* Stats row */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        width: '100%', maxWidth: 400, marginBottom: 12, position: 'relative', zIndex: 1,
+        display: 'flex', alignItems: 'center', gap: 'clamp(6px, 2vw, 12px)',
+        width: '100%', maxWidth: 420, marginBottom: 'clamp(8px, 2vh, 14px)', 
+        position: 'relative', zIndex: 1,
+        padding: '0 8px',
       }}>
         {/* Moves counter */}
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          background: '#07070e', border: '1px solid #12122a', borderRadius: 10,
-          padding: '6px 12px', flexShrink: 0, minWidth: 54,
+          background: '#07070e', border: '1px solid #12122a', borderRadius: 12,
+          padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 3vw, 16px)', flexShrink: 0, minWidth: 52,
         }}>
-          <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+          <div style={{ fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {moves}
           </div>
-          <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.12em', marginTop: 2 }}>
+          <div style={{ fontSize: 'clamp(8px, 2.2vw, 9px)', color: '#3a3a55', letterSpacing: '0.1em', marginTop: 3 }}>
             / {currentLevel.maxMoves}
           </div>
         </div>
@@ -1000,17 +1031,17 @@ export default function GameBoard() {
         {/* Countdown timer */}
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          background: '#07070e', border: '1px solid #12122a', borderRadius: 10,
-          padding: '6px 12px', flexShrink: 0, minWidth: 54,
+          background: '#07070e', border: '1px solid #12122a', borderRadius: 12,
+          padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 3vw, 16px)', flexShrink: 0, minWidth: 52,
         }}>
           <div style={{ 
-            fontSize: 20, fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+            fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
             color: countdownSecs <= 3 && compressionActive ? '#ef4444' : '#fff',
             transition: 'color 0.2s',
           }}>
             {countdownSecs}
           </div>
-          <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.12em', marginTop: 2 }}>
+          <div style={{ fontSize: 'clamp(8px, 2.2vw, 9px)', color: '#3a3a55', letterSpacing: '0.1em', marginTop: 3 }}>
             SEC
           </div>
         </div>
@@ -1141,8 +1172,9 @@ export default function GameBoard() {
 
       {/* Bottom controls */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-        marginTop: 16, position: 'relative', zIndex: 1,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(10px, 3vw, 16px)',
+        marginTop: 'clamp(12px, 2.5vh, 20px)', position: 'relative', zIndex: 1,
+        padding: '0 16px',
       }}>
         {/* Undo button */}
         <button
@@ -1154,15 +1186,16 @@ export default function GameBoard() {
           }}
           title="Undo"
         >
-          <span style={{ fontSize: 16 }}>⎌</span>
+          <span style={{ fontSize: 18 }}>⎌</span>
         </button>
 
         {/* Time display */}
         <div style={{
-          padding: '8px 16px', borderRadius: 10,
+          padding: '10px 18px', borderRadius: 12,
           background: '#07070e', border: '1px solid #12122a',
-          fontSize: 14, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-          color: '#3a3a55', minWidth: 60, textAlign: 'center',
+          fontSize: 'clamp(14px, 4vw, 16px)', fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+          color: '#3a3a55', minWidth: 72, textAlign: 'center',
+          minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {timeStr || '--:--'}
         </div>
@@ -1172,13 +1205,13 @@ export default function GameBoard() {
           onClick={() => setShowHint(!showHint)}
           style={{
             ...iconBtn,
-            border: showHint ? '1px solid #f59e0b50' : '1px solid #12122a',
-            background: showHint ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.02)',
+            border: showHint ? '1.5px solid #f59e0b60' : '1px solid #12122a',
+            background: showHint ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)',
             color: showHint ? '#fbbf24' : '#3a3a55',
           }}
           title="Hint"
         >
-          <span style={{ fontSize: 16 }}>💡</span>
+          <span style={{ fontSize: 18 }}>💡</span>
         </button>
       </div>
     </div>
