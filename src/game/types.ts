@@ -53,6 +53,7 @@ export interface GameState {
   wallsJustAdvanced: boolean
   showingWin: boolean
   connectedTiles: Set<string>
+  wallAdvancing: boolean   // true while advanceWalls animation is in flight
 }
 
 export interface GameActions {

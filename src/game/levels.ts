@@ -383,7 +383,7 @@ export interface GenerateOptions {
   gridSize: number
   nodeCount: number
   difficulty: 'easy' | 'medium' | 'hard'
-  decoys?: boolean
+  decoys?: boolean | number
 }
 
 function rng(min: number, max: number): number {

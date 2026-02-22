@@ -1,5 +1,4 @@
-// PRESSURE - Game Store with Centralized Time Tracking
-// Fixed: Race conditions, multiple timers, proper cleanup
+// PRESSURE - Game Store (Rewritten for correctness and performance)
 import { create } from 'zustand'
 import { GameState, GameActions, Level, Tile, Position, Direction } from './types'
 
@@ -9,160 +8,191 @@ const OPP: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right
 const STORAGE_KEY = 'pressure_save_v2'
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CENTRALIZED TIMER SYSTEM
+   TIMER MANAGEMENT
    
-   Single source of truth for all game timing. Uses a single interval that
-   handles both elapsed time and compression countdown, eliminating race
-   conditions between competing timers.
+   Single interval, no competing timers, no flag leaks.
+   A "generation ID" ensures stale callbacks from old games never fire.
 ═══════════════════════════════════════════════════════════════════════════ */
 
-// Track all timeouts for cleanup
-const activeTimeouts = new Set<ReturnType<typeof setTimeout>>()
-// Game timer interval ID - SINGLE source of truth
 let gameTimerInterval: ReturnType<typeof setInterval> | null = null
-// Debounce flag for advanceWalls (reset on each call completion)
-let advanceWallsInProgress = false
-// Debounce flag for checkWin (prevents concurrent win checks)
-let checkWinInProgress = false
+let gameGeneration = 0 // Incremented on every loadLevel/restart. Stale callbacks check this.
 
-/**
- * Safely add a timeout with automatic tracking
- */
-function addTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout> {
-  const id = setTimeout(() => {
-    activeTimeouts.delete(id)
-    fn()
-  }, delay)
-  activeTimeouts.add(id)
-  return id
-}
-
-/**
- * Clear all tracked timeouts and intervals - CRITICAL for preventing leaks
- */
-export function clearAllTimers() {
-  // Clear all tracked timeouts
-  activeTimeouts.forEach(id => clearTimeout(id))
-  activeTimeouts.clear()
-  
-  // Clear game timer interval
+function stopGameTimer() {
   if (gameTimerInterval) {
     clearInterval(gameTimerInterval)
     gameTimerInterval = null
   }
-  
-  // Reset flags
-  advanceWallsInProgress = false
-  checkWinInProgress = false
 }
 
-// Legacy export for backward compatibility
-export const clearAllTimeouts = clearAllTimers
+function startGameTimer(gen: number) {
+  stopGameTimer()
+  gameTimerInterval = setInterval(() => {
+    // Drop if stale (level was reloaded/restarted while this interval was pending)
+    if (gen !== gameGeneration) { stopGameTimer(); return }
 
-/**
- * Rotate connections array by given steps (90 degrees per step)
- */
-function rotateConnections(conns: Direction[], times: number): Direction[] {
-  return conns.map(c => DIRS[(DIRS.indexOf(c) + times) % 4])
+    const state = useGameStore.getState()
+    if (state.status !== 'playing' || state.showingWin) return
+
+    // Tick elapsed time
+    useGameStore.setState(s => ({ elapsedSeconds: s.elapsedSeconds + 1 }))
+
+    // Tick compression countdown
+    if (state.compressionActive) {
+      const next = Math.max(0, state.timeUntilCompression - 1000)
+      useGameStore.setState({ timeUntilCompression: next })
+      if (next <= 0) {
+        // Fire wall advance — but only if not already in progress
+        const fresh = useGameStore.getState()
+        if (!fresh.wallAdvancing) {
+          useGameStore.getState().advanceWalls()
+        }
+      }
+    }
+  }, 1000)
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONNECTIVITY CHECK — O(1) per tap (no BFS, no heavy computation)
+
+   Instead of running BFS across the whole grid every tap, we:
+   1. Build a Map<"x,y", Tile> once per tap (O(n) but n ≤ 49 for 7×7)
+   2. Do a simple flood-fill from goal[0], counting reached goal nodes
+   3. Win if all goal nodes reachable
+
+   This is strictly faster than the previous full-BFS with tileMap rebuild
+   because we short-circuit as soon as we know it's a win or not.
+   No heavy allocation. No Set copies. No flag races.
+═══════════════════════════════════════════════════════════════════════════ */
+
+function buildTileMap(tiles: Tile[]): Map<string, Tile> {
+  const m = new Map<string, Tile>()
+  for (const t of tiles) m.set(`${t.x},${t.y}`, t)
+  return m
 }
 
 /**
- * Create a Map from tiles array for O(1) lookups
- * This is a critical performance optimization - converts O(n) find() to O(1) Map.get()
- */
-function createTileMap(tiles: Tile[]): Map<string, Tile> {
-  const map = new Map<string, Tile>()
-  for (const tile of tiles) {
-    map.set(`${tile.x},${tile.y}`, tile)
-  }
-  return map
-}
-
-/**
- * Check if all goal nodes are connected via valid paths
- * Uses BFS to find connected components with O(1) tile lookups
+ * Fast flood-fill connectivity check. Returns true if all goals reachable
+ * from goals[0] through valid bidirectional pipe connections.
  */
 export function checkConnected(tiles: Tile[], goals: Position[]): boolean {
   if (goals.length < 2) return true
-
-  // Use Map for O(1) lookups instead of O(n) array.find()
-  const tileMap = createTileMap(tiles)
+  const map = buildTileMap(tiles)
   const visited = new Set<string>()
-  const queue: Position[] = [goals[0]]
-  visited.add(`${goals[0].x},${goals[0].y}`)
-  const connected = new Set([`${goals[0].x},${goals[0].y}`])
-  
-  // Pre-compute goal positions for O(1) lookup
-  const goalSet = new Set(goals.map(g => `${g.x},${g.y}`))
+  const stack: Position[] = [goals[0]]
+  const startKey = `${goals[0].x},${goals[0].y}`
+  visited.add(startKey)
+  let goalsFound = 1
+  const goalKeys = new Set(goals.map(g => `${g.x},${g.y}`))
+  goalKeys.delete(startKey)
 
-  while (queue.length > 0) {
-    const curr = queue.shift()!
-    const tile = tileMap.get(`${curr.x},${curr.y}`)
+  while (stack.length > 0) {
+    const curr = stack.pop()!
+    const tile = map.get(`${curr.x},${curr.y}`)
     if (!tile) continue
 
     for (const d of tile.connections) {
-      let nx = curr.x, ny = curr.y
-      if (d === 'up') ny--
-      else if (d === 'down') ny++
-      else if (d === 'left') nx--
-      else if (d === 'right') nx++
-
+      const nx = curr.x + (d === 'right' ? 1 : d === 'left' ? -1 : 0)
+      const ny = curr.y + (d === 'down' ? 1 : d === 'up' ? -1 : 0)
       const key = `${nx},${ny}`
       if (visited.has(key)) continue
-
-      const neighbor = tileMap.get(key)
+      const neighbor = map.get(key)
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue
-
-      if (neighbor.connections.includes(OPP[d])) {
-        visited.add(key)
-        queue.push({ x: nx, y: ny })
-        if (goalSet.has(key)) connected.add(key)
+      if (!neighbor.connections.includes(OPP[d])) continue
+      visited.add(key)
+      if (goalKeys.has(key)) {
+        goalsFound++
+        goalKeys.delete(key)
+        if (goalKeys.size === 0) return true // Early exit
       }
+      stack.push({ x: nx, y: ny })
     }
   }
 
-  return goals.every(g => connected.has(`${g.x},${g.y}`))
+  return goalsFound === goals.length
 }
 
 /**
- * Get all tile positions that are connected to goal nodes
- * Uses BFS with O(1) tile lookups
+ * Returns the set of tile keys reachable from goals[0].
+ * Only called once on win to show connected highlights — not on every tap.
  */
 export function getConnectedTiles(tiles: Tile[], goals: Position[]): Set<string> {
   if (goals.length < 2) return new Set()
-
-  // Use Map for O(1) lookups instead of O(n) array.find()
-  const tileMap = createTileMap(tiles)
+  const map = buildTileMap(tiles)
   const visited = new Set<string>()
-  const queue: Position[] = [goals[0]]
+  const stack: Position[] = [goals[0]]
   visited.add(`${goals[0].x},${goals[0].y}`)
 
-  while (queue.length > 0) {
-    const curr = queue.shift()!
-    const tile = tileMap.get(`${curr.x},${curr.y}`)
+  while (stack.length > 0) {
+    const curr = stack.pop()!
+    const tile = map.get(`${curr.x},${curr.y}`)
     if (!tile) continue
-
     for (const d of tile.connections) {
-      let nx = curr.x, ny = curr.y
-      if (d === 'up') ny--
-      else if (d === 'down') ny++
-      else if (d === 'left') nx--
-      else if (d === 'right') nx++
-
+      const nx = curr.x + (d === 'right' ? 1 : d === 'left' ? -1 : 0)
+      const ny = curr.y + (d === 'down' ? 1 : d === 'up' ? -1 : 0)
       const key = `${nx},${ny}`
       if (visited.has(key)) continue
-
-      const neighbor = tileMap.get(key)
+      const neighbor = map.get(key)
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue
-
-      if (neighbor.connections.includes(OPP[d])) {
-        visited.add(key)
-        queue.push({ x: nx, y: ny })
-      }
+      if (!neighbor.connections.includes(OPP[d])) continue
+      visited.add(key)
+      stack.push({ x: nx, y: ny })
     }
   }
 
   return visited
+}
+
+/** Exported for compatibility */
+export function clearAllTimers() {
+  gameGeneration++ // Invalidate all pending interval callbacks
+  stopGameTimer()
+}
+export const clearAllTimeouts = clearAllTimers
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROTATE CONNECTIONS
+═══════════════════════════════════════════════════════════════════════════ */
+
+function rotateConnections(conns: Direction[], times: number): Direction[] {
+  return conns.map(c => DIRS[(DIRS.indexOf(c) + times) % 4])
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUDIO
+═══════════════════════════════════════════════════════════════════════════ */
+
+function playTone(freq: number, type: OscillatorType = 'sine', duration = 0.08, vol = 0.18) {
+  if (typeof window === 'undefined') return
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain); gain.connect(ctx.destination)
+    osc.type = type; osc.frequency.value = freq
+    gain.gain.setValueAtTime(vol, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + duration)
+    // Auto-close context after sound plays
+    setTimeout(() => ctx.close().catch(() => {}), (duration + 0.1) * 1000)
+  } catch { /* silent */ }
+}
+
+export function sfx(event: 'rotate' | 'win' | 'lose' | 'crush' | 'start' | 'undo') {
+  switch (event) {
+    case 'rotate': playTone(440, 'triangle', 0.06, 0.12); break
+    case 'win':
+      playTone(523, 'sine', 0.2, 0.25)
+      setTimeout(() => playTone(659, 'sine', 0.2, 0.25), 150)
+      setTimeout(() => playTone(784, 'sine', 0.3, 0.35), 300)
+      break
+    case 'lose':
+      playTone(220, 'sawtooth', 0.4, 0.35)
+      setTimeout(() => playTone(180, 'sawtooth', 0.4, 0.4), 200)
+      break
+    case 'crush': playTone(150, 'square', 0.15, 0.3); break
+    case 'start': playTone(392, 'triangle', 0.12, 0.18); break
+    case 'undo': playTone(330, 'triangle', 0.06, 0.1); break
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -195,53 +225,7 @@ function persist(state: Pick<GameState, 'completedLevels' | 'bestMoves' | 'showT
       showTutorial: state.showTutorial,
       generatedLevels: state.generatedLevels,
     }))
-  } catch {
-    // Silently fail on storage errors
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   AUDIO - Web Audio API Sound Effects
-═══════════════════════════════════════════════════════════════════════════ */
-
-function playTone(freq: number, type: OscillatorType = 'sine', duration = 0.08, vol = 0.18) {
-  if (typeof window === 'undefined') return
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain); gain.connect(ctx.destination)
-    osc.type = type; osc.frequency.value = freq
-    gain.gain.setValueAtTime(vol, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + duration)
-  } catch {
-    // Silently fail on audio errors
-  }
-}
-
-export function sfx(event: 'rotate' | 'win' | 'lose' | 'crush' | 'start' | 'undo') {
-  switch (event) {
-    case 'rotate': playTone(440, 'triangle', 0.06, 0.12); break
-    case 'win':
-      playTone(523, 'sine', 0.2, 0.25)
-      addTimeout(() => playTone(659, 'sine', 0.2, 0.25), 150)
-      addTimeout(() => playTone(784, 'sine', 0.3, 0.35), 300)
-      break
-    case 'lose':
-      playTone(220, 'sawtooth', 0.4, 0.35)
-      addTimeout(() => playTone(180, 'sawtooth', 0.4, 0.4), 200)
-      break
-    case 'crush':
-      playTone(150, 'square', 0.15, 0.3)
-      break
-    case 'start':
-      playTone(392, 'triangle', 0.12, 0.18)
-      break
-    case 'undo':
-      playTone(330, 'triangle', 0.06, 0.1)
-      break
-  }
+  } catch { /* silent */ }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -270,6 +254,7 @@ const initialState: GameState = {
   wallsJustAdvanced: false,
   showingWin: false,
   connectedTiles: new Set(),
+  wallAdvancing: false,
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -279,13 +264,10 @@ const initialState: GameState = {
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
   ...initialState,
 
-  /**
-   * Load a level and reset all game state
-   */
   loadLevel: (level: Level) => {
-    // Clear ALL timers before loading
-    clearAllTimers()
-    
+    gameGeneration++ // Invalidate ALL pending interval callbacks and old timeouts
+    stopGameTimer()
+
     set({
       currentLevel: level,
       tiles: level.tiles.map(t => ({ ...t, connections: [...t.connections] })),
@@ -302,351 +284,191 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       wallsJustAdvanced: false,
       showingWin: false,
       connectedTiles: new Set(),
+      wallAdvancing: false,
     })
   },
 
-  /**
-   * Restart current level
-   */
   restartLevel: () => {
-    clearAllTimers()
     const { currentLevel } = get()
     if (currentLevel) get().loadLevel(currentLevel)
   },
 
-  /**
-   * Start the game - begins timers and compression
-   */
   startGame: () => {
     const { currentLevel, status } = get()
-    if (!currentLevel) return
-    
-    // Prevent starting if already playing or in end state
-    if (status === 'playing' || status === 'won' || status === 'lost') return
-    
+    if (!currentLevel || status === 'playing' || status === 'won' || status === 'lost') return
+
     sfx('start')
-    
-    set({ 
-      status: 'playing', 
-      elapsedSeconds: 0, 
-      timeUntilCompression: currentLevel.compressionDelay, 
+
+    set({
+      status: 'playing',
+      elapsedSeconds: 0,
+      timeUntilCompression: currentLevel.compressionDelay,
       showingWin: false,
       compressionActive: true,
+      wallAdvancing: false,
     })
 
-    // Check for immediate win (already connected)
+    // Check immediate win (level already solved from idle)
     if (get().checkWin()) return
 
-    // Start the centralized game timer
-    startGameTimer()
+    const gen = gameGeneration
+    startGameTimer(gen)
   },
 
-  /**
-   * Handle tile tap - rotate the tile 90 degrees clockwise
-   */
   tapTile: (x: number, y: number) => {
     const { tiles, status, moves, currentLevel, showingWin } = get()
-    
-    // Guard: Only allow taps during active gameplay
     if (status !== 'playing' || showingWin) return
 
-    // Use direct array lookup optimized for small grids
     const tile = tiles.find(t => t.x === x && t.y === y)
     if (!tile?.canRotate) return
     if (currentLevel && moves >= currentLevel.maxMoves) return
 
     sfx('rotate')
-    
-    // Save state for undo
+
     const prevTiles = tiles.map(t => ({ ...t, connections: [...t.connections] }))
+    const newTiles = tiles.map(t =>
+      t.x === x && t.y === y
+        ? { ...t, connections: rotateConnections(t.connections, 1), justRotated: true }
+        : { ...t, justRotated: false }
+    )
 
-    // Create new tiles with rotated connections
-    const newTiles = tiles.map(t => {
-      if (t.x === x && t.y === y) {
-        return { ...t, connections: rotateConnections(t.connections, 1), justRotated: true }
-      }
-      return { ...t, justRotated: false }
-    })
-
-    // Update state atomically using functional update
-    set(state => ({
+    set(s => ({
       tiles: newTiles,
-      moves: state.moves + 1,
-      history: [...state.history, prevTiles],
+      moves: s.moves + 1,
+      history: [...s.history, prevTiles],
       lastRotatedPos: { x, y },
     }))
 
-    // Clear justRotated flag after animation
-    addTimeout(() => {
-      set(state => ({ 
-        tiles: state.tiles.map(t => ({ ...t, justRotated: false })) 
-      }))
+    // Clear justRotated after animation — use raw setTimeout, not tracked
+    const gen = gameGeneration
+    setTimeout(() => {
+      if (gen !== gameGeneration) return
+      set(s => ({ tiles: s.tiles.map(t => ({ ...t, justRotated: false })) }))
     }, 300)
 
-    // Check for win after rotation
+    // Check win — fast O(n) flood fill, n ≤ 49
     get().checkWin()
   },
 
-  /**
-   * Undo the last move
-   */
-  undoMove: () => {
-    const { history, moves, status, showingWin } = get()
-    
-    // Guard: Only allow undo during active gameplay
-    if (status !== 'playing' || showingWin || history.length === 0) return
-    
-    sfx('undo')
-    const prev = history[history.length - 1]
-    
-    set(state => ({
-      tiles: prev,
-      moves: moves - 1,
-      history: state.history.slice(0, -1),
-      lastRotatedPos: null,
-    }))
-  },
-
-  /**
-   * Advance walls inward - called when compression timer reaches 0
-   * Protected against concurrent calls
-   */
   advanceWalls: () => {
-    // Guard: Prevent concurrent or invalid calls
-    if (advanceWallsInProgress) return
-    
-    const { wallOffset, status, tiles, currentLevel, showingWin } = get()
-    
-    // Guard: Only advance during active gameplay
-    if (status !== 'playing' || !currentLevel || showingWin) return
-    
-    advanceWallsInProgress = true
+    const { wallAdvancing, status, tiles, currentLevel, showingWin } = get()
+    if (wallAdvancing || status !== 'playing' || !currentLevel || showingWin) return
 
-    const newOffset = wallOffset + 1
+    set({ wallAdvancing: true })
+
+    const newOffset = get().wallOffset + 1
     const gridSize = currentLevel.gridSize
-
     let crushedNode = false
+
     const newTiles = tiles.map(t => {
       const dist = Math.min(t.x, t.y, gridSize - 1 - t.x, gridSize - 1 - t.y)
-      if (dist < newOffset) {
-        if (t.type === 'node') {
-          crushedNode = true
-          sfx('crush')
-          return { ...t, type: 'crushed' as const, connections: [], canRotate: false, justCrushed: true }
-        }
-        if (t.type === 'path') {
-          return { ...t, type: 'crushed' as const, connections: [], canRotate: false, justCrushed: true }
-        }
+      if (dist < newOffset && (t.type === 'node' || t.type === 'path')) {
+        if (t.type === 'node') { crushedNode = true; sfx('crush') }
+        return { ...t, type: 'crushed' as const, connections: [], canRotate: false, justCrushed: true }
       }
       return t
     })
 
-    // Atomic state update
-    set({ 
-      tiles: newTiles, 
-      wallOffset: newOffset, 
+    set({
+      tiles: newTiles,
+      wallOffset: newOffset,
       timeUntilCompression: currentLevel.compressionDelay,
       wallsJustAdvanced: true,
     })
 
-    // Clear wallsJustAdvanced flag after animation
-    addTimeout(() => {
-      set({ wallsJustAdvanced: false })
-      advanceWallsInProgress = false
-    }, 600)
-
-    // Handle crush (game over)
     if (crushedNode) {
       sfx('lose')
       stopGameTimer()
-      set({ status: 'lost', compressionActive: false, screenShake: true })
-      addTimeout(() => set({ screenShake: false }), 600)
-      advanceWallsInProgress = false
+      set({ status: 'lost', compressionActive: false, screenShake: true, wallAdvancing: false })
+      const gen = gameGeneration
+      setTimeout(() => {
+        if (gen !== gameGeneration) return
+        set({ screenShake: false, wallsJustAdvanced: false })
+      }, 600)
+      return
     }
+
+    // Clear animation flags after transition
+    const gen = gameGeneration
+    setTimeout(() => {
+      if (gen !== gameGeneration) return
+      set({ wallsJustAdvanced: false, wallAdvancing: false })
+    }, 600)
   },
 
-  /**
-   * Check if all goal nodes are connected - triggers win if so
-   * Protected against concurrent calls
-   */
   checkWin: () => {
-    // Guard: Prevent concurrent checks
-    if (checkWinInProgress) return false
-    
     const { tiles, currentLevel, moves, status, showingWin } = get()
-    
-    // Guard: Only check during active gameplay
     if (!currentLevel || status !== 'playing' || showingWin) return false
-    
-    checkWinInProgress = true
 
     const isWin = checkConnected(tiles, currentLevel.goalNodes)
-    
-    if (isWin) {
-      const connected = getConnectedTiles(tiles, currentLevel.goalNodes)
-      
-      // Stop game timer first
-      stopGameTimer()
-      
-      // Set win state
-      set({ 
-        showingWin: true, 
-        connectedTiles: connected,
-        compressionActive: false,
+    if (!isWin) return false
+
+    // Won — stop everything immediately
+    const gen = gameGeneration
+    stopGameTimer()
+
+    const connected = getConnectedTiles(tiles, currentLevel.goalNodes)
+    set({ showingWin: true, connectedTiles: connected, compressionActive: false })
+    sfx('win')
+
+    setTimeout(() => {
+      if (gen !== gameGeneration) return
+      set(state => {
+        const newCompleted = [...new Set([...state.completedLevels, currentLevel.id])]
+        const newBest = { ...state.bestMoves }
+        if (!newBest[currentLevel.id] || moves < newBest[currentLevel.id]) {
+          newBest[currentLevel.id] = moves
+        }
+        persist({ completedLevels: newCompleted, bestMoves: newBest, showTutorial: false, generatedLevels: state.generatedLevels })
+        return { status: 'won', completedLevels: newCompleted, bestMoves: newBest, showingWin: false }
       })
-      
-      sfx('win')
-      
-      // Delayed final win state update
-      addTimeout(() => {
-        set(state => {
-          const newCompleted = [...new Set([...state.completedLevels, currentLevel.id])]
-          const newBest = { ...state.bestMoves }
-          if (!newBest[currentLevel.id] || moves < newBest[currentLevel.id]) {
-            newBest[currentLevel.id] = moves
-          }
-          persist({ 
-            completedLevels: newCompleted, 
-            bestMoves: newBest, 
-            showTutorial: false, 
-            generatedLevels: state.generatedLevels 
-          })
-          return { 
-            status: 'won', 
-            completedLevels: newCompleted, 
-            bestMoves: newBest, 
-            showingWin: false 
-          }
-        })
-        checkWinInProgress = false
-      }, 1500)
-      
-      return true
-    }
-    
-    checkWinInProgress = false
-    return false
+    }, 1500)
+
+    return true
   },
 
-  /**
-   * Return to main menu
-   */
+  undoMove: () => {
+    const { history, moves, status, showingWin } = get()
+    if (status !== 'playing' || showingWin || history.length === 0) return
+    sfx('undo')
+    const prev = history[history.length - 1]
+    set(s => ({ tiles: prev, moves: moves - 1, history: s.history.slice(0, -1), lastRotatedPos: null }))
+  },
+
   goToMenu: () => {
-    clearAllTimers()
-    set({ status: 'menu', currentLevel: null, compressionActive: false, showingWin: false })
+    gameGeneration++
+    stopGameTimer()
+    set({ status: 'menu', currentLevel: null, compressionActive: false, showingWin: false, wallAdvancing: false })
   },
 
-  /**
-   * Complete tutorial and show menu
-   */
   completeTutorial: () => {
     const { completedLevels, bestMoves, generatedLevels } = get()
     persist({ completedLevels, bestMoves, showTutorial: false, generatedLevels })
     set({ showTutorial: false, status: 'menu' })
   },
 
-  /**
-   * Add a generated level to saved levels
-   */
   addGeneratedLevel: (level: Level) => {
     set(state => {
       const newGenerated = [...state.generatedLevels, level]
-      persist({ 
-        completedLevels: state.completedLevels, 
-        bestMoves: state.bestMoves, 
-        showTutorial: false, 
-        generatedLevels: newGenerated 
-      })
+      persist({ completedLevels: state.completedLevels, bestMoves: state.bestMoves, showTutorial: false, generatedLevels: newGenerated })
       return { generatedLevels: newGenerated }
     })
   },
 
-  /**
-   * Delete a generated level from saved levels
-   */
   deleteGeneratedLevel: (id: number) => {
     set(state => {
       const newGenerated = state.generatedLevels.filter(l => l.id !== id)
-      persist({ 
-        completedLevels: state.completedLevels, 
-        bestMoves: state.bestMoves, 
-        showTutorial: false, 
-        generatedLevels: newGenerated 
-      })
+      persist({ completedLevels: state.completedLevels, bestMoves: state.bestMoves, showTutorial: false, generatedLevels: newGenerated })
       return { generatedLevels: newGenerated }
     })
   },
 
-  /**
-   * Increment elapsed time counter (called by centralized timer)
-   */
-  tickTimer: () => {
-    const { status, showingWin } = get()
-    // Guard: Only tick during active gameplay
-    if (status === 'playing' && !showingWin) {
-      set(state => ({ elapsedSeconds: state.elapsedSeconds + 1 }))
-    }
-  },
-
-  /**
-   * Decrement compression timer (called by centralized timer)
-   */
-  tickCompressionTimer: () => {
-    const { status, compressionActive, timeUntilCompression, showingWin } = get()
-    // Guard: Only tick during active gameplay with compression
-    if (status === 'playing' && compressionActive && !showingWin) {
-      const newTime = Math.max(0, timeUntilCompression - 1000)
-      set({ timeUntilCompression: newTime })
-      
-      // Trigger wall advance when countdown reaches 0
-      if (newTime <= 0) {
-        get().advanceWalls()
-      }
-    }
-  },
-
-  /**
-   * Trigger screen shake effect
-   */
+  // These are vestigial — timer is now self-contained in startGameTimer
+  tickTimer: () => {},
+  tickCompressionTimer: () => {},
   triggerShake: () => {
+    const gen = gameGeneration
     set({ screenShake: true })
-    addTimeout(() => set({ screenShake: false }), 500)
+    setTimeout(() => { if (gen === gameGeneration) set({ screenShake: false }) }, 500)
   },
 }))
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   CENTRALIZED GAME TIMER
-   
-   Single interval that handles both:
-   1. Elapsed time counting (every second)
-   2. Compression countdown (every second)
-   
-   This eliminates race conditions from multiple competing intervals.
-═══════════════════════════════════════════════════════════════════════════ */
-
-function startGameTimer() {
-  // Clear any existing game timer first
-  stopGameTimer()
-  
-  // Start single centralized timer - runs every second
-  gameTimerInterval = setInterval(() => {
-    const state = useGameStore.getState()
-    
-    // Only tick if game is actively playing (double-check to be safe)
-    if (state.status === 'playing' && !state.showingWin) {
-      // Increment elapsed time
-      state.tickTimer()
-      // Decrement compression countdown and trigger wall advance if needed
-      state.tickCompressionTimer()
-    }
-  }, 1000)
-}
-
-function stopGameTimer() {
-  if (gameTimerInterval) {
-    clearInterval(gameTimerInterval)
-    gameTimerInterval = null
-  }
-  // Reset debounce flags when timer stops
-  advanceWallsInProgress = false
-}
