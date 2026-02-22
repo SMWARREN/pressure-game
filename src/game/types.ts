@@ -58,6 +58,10 @@ export interface Level {
   compressionEnabled?: boolean;
   isGenerated?: boolean;
   solution?: { x: number; y: number; rotations: number }[];
+  /** Score-based modes: win when score reaches this value */
+  targetScore?: number;
+  /** Time-based modes: game over when elapsedSeconds reaches this value (in seconds) */
+  timeLimit?: number;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -90,8 +94,12 @@ export interface GameState {
   currentModeId: string;
   compressionOverride: boolean | null;
   animationsEnabled: boolean;
+  /** Running score — used by score-based modes like Candy */
+  score: number;
   /** Guards against re-entrant win checks */
   _winCheckPending: boolean;
+  /** Reason for the current loss — shown in the game-over overlay */
+  lossReason: string | null;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -111,6 +119,7 @@ export interface GameActions {
   triggerShake: () => void;
   goToMenu: () => void;
   completeTutorial: () => void;
+  replayTutorial: () => void;
   setGameMode: (modeId: string) => void;
   setCompressionOverride: (enabled: boolean | null) => void;
   addGeneratedLevel: (level: Level) => void;

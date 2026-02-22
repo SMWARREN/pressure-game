@@ -93,6 +93,23 @@ function Pipes({
 
 import type { TileRenderer } from '@/game/types';
 
+// Inject candy drop animation keyframes once into the document
+let candyStylesInjected = false;
+function ensureCandyStyles() {
+  if (candyStylesInjected || typeof document === 'undefined') return;
+  candyStylesInjected = true;
+  const el = document.createElement('style');
+  el.textContent = `
+    @keyframes candyDrop {
+      0%   { opacity: 0; transform: translateY(-24px) scale(0.75); }
+      55%  { opacity: 1; transform: translateY(4px) scale(1.07); }
+      80%  { transform: translateY(-2px) scale(1.01); }
+      100% { transform: translateY(0) scale(1); }
+    }
+  `;
+  document.head.appendChild(el);
+}
+
 export interface GameTileProps {
   type: string;
   connections: string[];
@@ -107,6 +124,8 @@ export interface GameTileProps {
   /** Optional mode-specific renderer — enables slots, candy crush, match-3, etc. */
   tileRenderer?: TileRenderer;
   displayData?: Record<string, unknown>;
+  /** Tap was rejected (isolated tile) — show a brief red flash */
+  isRejected?: boolean;
 }
 
 /**
@@ -126,6 +145,7 @@ function GameTileComponent({
   animationsEnabled = true,
   tileRenderer,
   displayData,
+  isRejected = false,
 }: GameTileProps) {
   const [pressed, setPressed] = useState(false);
   const [ripple, setRipple] = useState(false);
@@ -241,6 +261,8 @@ function GameTileComponent({
 
   // ── Custom mode renderer (slots, candy crush, match-3, etc.) ──────────────
   if (tileRenderer && tileRenderer.type !== 'pipe') {
+    if (tileRenderer.type === 'candy') ensureCandyStyles();
+
     const ctx = {
       isHint,
       inDanger,
@@ -261,7 +283,18 @@ function GameTileComponent({
     };
     const customColors = tileRenderer.getColors?.(tile, ctx);
     const symbol = tileRenderer.getSymbol?.(tile, ctx);
-    const appliedBg = customColors ?? bgStyle;
+    const rejectedStyle = isRejected
+      ? {
+          background: 'linear-gradient(145deg, #2d0808 0%, #1a0000 100%)',
+          border: '2px solid #ef4444',
+          boxShadow: '0 0 18px rgba(239,68,68,0.7)',
+        }
+      : null;
+    const appliedBg = rejectedStyle ?? customColors ?? bgStyle;
+
+    // isNew: tile just dropped in — play slide animation + glow border transition
+    const isNewTile = !!displayData?.isNew;
+
     return (
       <div
         onClick={handleClick}
@@ -272,8 +305,12 @@ function GameTileComponent({
           alignItems: 'center',
           justifyContent: 'center',
           cursor: canRotate ? 'pointer' : 'default',
-          transform: tileTransform,
-          transition: tileTransition,
+          // During isNew: slide-in animation drives transform; otherwise use press/rotate state
+          transform: isNewTile ? undefined : tileTransform,
+          transition: isNewTile
+            ? 'border-color 0.6s ease, box-shadow 0.6s ease'
+            : `${tileTransition}, border-color 0.6s ease, box-shadow 0.6s ease`,
+          animation: isNewTile && animationsEnabled ? 'candyDrop 0.42s cubic-bezier(0.34,1.56,0.64,1)' : undefined,
           fontSize: tileRenderer.symbolSize ?? '1.2rem',
           ...appliedBg,
           overflow: 'hidden',

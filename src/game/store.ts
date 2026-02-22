@@ -213,6 +213,8 @@ const initialState: GameState = {
   currentModeId: saved.currentModeId,
   compressionOverride: null,
   animationsEnabled: saved.animationsEnabled,
+  score: 0,
+  lossReason: null,
   // Reentrancy guards — in Zustand state so they reset with loadLevel/restart
   _winCheckPending: false,
 };
@@ -261,6 +263,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       wallsJustAdvanced: false,
       showingWin: false,
       connectedTiles: new Set(),
+      score: 0,
+      lossReason: null,
       _winCheckPending: false,
     });
   },
@@ -325,6 +329,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     set((s) => ({
       tiles: result.tiles,
       moves: s.moves + 1,
+      score: s.score + (result.scoreDelta ?? 0),
       history: prevTiles ? [...s.history, prevTiles] : s.history,
       lastRotatedPos: { x, y },
     }));
@@ -335,6 +340,20 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         tiles: s.tiles.map((t) => (t.justRotated ? { ...t, justRotated: false } : t)),
       }));
     }, 300);
+
+    // Clear "new tile" glow after it has had time to show (candy mode drop-in effect)
+    safeTimeout(() => {
+      set((s) => {
+        if (!s.tiles.some((t) => t.displayData?.isNew)) return {};
+        return {
+          tiles: s.tiles.map((t) =>
+            t.displayData?.isNew
+              ? { ...t, displayData: { ...t.displayData, isNew: false } }
+              : t
+          ),
+        };
+      });
+    }, 1500);
 
     get().checkWin();
 
@@ -347,14 +366,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       mode.useMoveLimit !== false &&
       afterWin.moves >= afterWin.currentLevel.maxMoves
     ) {
-      const { lost } = mode.checkLoss(
+      const { lost, reason } = mode.checkLoss(
         afterWin.tiles,
         afterWin.wallOffset,
         afterWin.moves,
-        afterWin.currentLevel.maxMoves
+        afterWin.currentLevel.maxMoves,
+        { score: afterWin.score, targetScore: afterWin.currentLevel.targetScore }
       );
       if (lost) {
-        set({ status: 'lost' });
+        set({ status: 'lost', lossReason: reason ?? null });
         stopGameTimer();
         sfx('lose');
       }
@@ -369,7 +389,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     if (!currentLevel || status !== 'playing' || showingWin || _winCheckPending) return false;
 
     const mode = getModeById(currentModeId);
-    const { won } = mode.checkWin(tiles, currentLevel.goalNodes, moves, currentLevel.maxMoves);
+    const modeState = { score: get().score, targetScore: currentLevel.targetScore };
+    const { won } = mode.checkWin(tiles, currentLevel.goalNodes, moves, currentLevel.maxMoves, modeState);
 
     if (!won) return false;
 
@@ -450,9 +471,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // Check mode-specific loss condition
     const mode = getModeById(currentModeId);
     if (mode.checkLoss) {
-      const { lost } = mode.checkLoss(newTiles, newOffset, get().moves, currentLevel.maxMoves);
+      const { lost, reason } = mode.checkLoss(newTiles, newOffset, get().moves, currentLevel.maxMoves, {
+        score: get().score,
+        targetScore: currentLevel.targetScore,
+      });
       if (lost) {
-        set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true });
+        set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true, lossReason: reason ?? null });
         stopGameTimer();
         sfx('lose');
         return;
@@ -465,7 +489,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     );
 
     if (allGoalsCrushed) {
-      set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true });
+      set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true, lossReason: null });
       stopGameTimer();
       sfx('lose');
       return;
@@ -487,23 +511,43 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentLevel,
       currentModeId,
       compressionOverride,
-      elapsedSeconds, // Get current elapsedSeconds
+      elapsedSeconds,
     } = get();
     if (status !== 'playing') return;
 
-    // Prepare state changes
     const newElapsedSeconds = elapsedSeconds + 1;
-    let stateChanges: Partial<GameState> = {};
+    let stateChanges: Partial<GameState> = { elapsedSeconds: newElapsedSeconds };
 
-    // Always update elapsed seconds if playing
-    if (elapsedSeconds !== newElapsedSeconds) {
-      stateChanges.elapsedSeconds = newElapsedSeconds;
+    // Call mode's per-tick hook (e.g. candy freeze mechanic)
+    const mode = getModeById(currentModeId);
+    if (mode.onTick && currentLevel) {
+      const modeState = {
+        score: get().score,
+        targetScore: currentLevel.targetScore,
+        timeLeft: currentLevel.timeLimit
+          ? Math.max(0, currentLevel.timeLimit - newElapsedSeconds)
+          : undefined,
+      };
+      const modeChanges = mode.onTick(get(), modeState);
+      if (modeChanges) {
+        Object.assign(stateChanges, modeChanges);
+      }
+    }
+
+    // Time-based loss: when the clock hits zero and score < target
+    if (currentLevel?.timeLimit && newElapsedSeconds >= currentLevel.timeLimit) {
+      const currentScore = get().score;
+      const targetScore = currentLevel.targetScore ?? Infinity;
+      if (currentScore < targetScore) {
+        set({ ...stateChanges, status: 'lost', lossReason: "Time's up!" });
+        stopGameTimer();
+        sfx('lose');
+        return;
+      }
     }
 
     if (!compressionActive || !currentLevel) {
-      if (Object.keys(stateChanges).length > 0) {
-        set(stateChanges);
-      }
+      set(stateChanges);
       return;
     }
 
@@ -513,28 +557,17 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       compressionOverride
     );
     if (!compressionEnabled) {
-      // If compression is not enabled, only update elapsedSeconds if it changed
-      if (Object.keys(stateChanges).length > 0) {
-        set(stateChanges);
-      }
+      set(stateChanges);
       return;
     }
 
     let newTimeUntilCompression = timeUntilCompression - 1000;
     if (newTimeUntilCompression <= 0) {
-      // Reset for the next cycle after compression.
       newTimeUntilCompression = currentLevel.compressionDelay;
-      // Trigger advanceWalls; it will handle its own set() for wall changes and potential loss.
       get().advanceWalls();
     }
-    // Update timeUntilCompression in stateChanges regardless, to ensure it's always reflected.
     stateChanges.timeUntilCompression = newTimeUntilCompression;
 
-    // Always update elapsedSeconds if playing, which was already done.
-    stateChanges.elapsedSeconds = newElapsedSeconds;
-
-    // Only call set if there are actual state changes in the batch to avoid unnecessary renders.
-    // advanceWalls might have already called set, so this acts as a final update for timer states.
     set(stateChanges);
   },
 
@@ -555,6 +588,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       showingWin: false,
       _winCheckPending: false,
     });
+  },
+
+  replayTutorial: () => {
+    set({ status: 'tutorial', currentLevel: null });
   },
 
   completeTutorial: () => {

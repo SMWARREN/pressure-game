@@ -10,6 +10,27 @@ import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   NOTIFICATION FLOAT ANIMATION
+   Inject once — used by the score/message popup that floats above the board.
+═══════════════════════════════════════════════════════════════════════════ */
+
+let notifStylesInjected = false;
+function ensureNotifStyles() {
+  if (notifStylesInjected || typeof document === 'undefined') return;
+  notifStylesInjected = true;
+  const el = document.createElement('style');
+  el.textContent = `
+    @keyframes notifFloat {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(0); }
+      15%  { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+      65%  { opacity: 1; transform: translateX(-50%) translateY(-14px); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-26px); }
+    }
+  `;
+  document.head.appendChild(el);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    PARTICLE SYSTEM
    Isolated in its own component + imperative ref so 60fps RAF updates
    never cause the full GameBoard to re-render.
@@ -196,6 +217,10 @@ interface OverlayProps {
   solution: { x: number; y: number; rotations: number }[] | null;
   hasNext: boolean;
   elapsedSeconds: number;
+  winTitle?: string;
+  lossTitle?: string;
+  finalScore?: number;
+  targetScore?: number;
 }
 
 function Overlay({
@@ -209,11 +234,17 @@ function Overlay({
   solution,
   hasNext,
   elapsedSeconds,
+  winTitle = 'CONNECTED',
+  lossTitle = 'CRUSHED',
+  finalScore,
+  targetScore,
 }: OverlayProps) {
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
   const timeStr =
     elapsedSeconds > 0 ? `${mins > 0 ? mins + ':' : ''}${String(secs).padStart(2, '0')}s` : '';
+
+  const isScoreMode = targetScore !== undefined;
 
   if (status === 'idle')
     return (
@@ -239,11 +270,12 @@ function Overlay({
       <div style={overlayStyle}>
         <div style={{ fontSize: 32, marginBottom: 4 }}>✦</div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 4 }}>
-          CONNECTED
+          {winTitle.toUpperCase()}
         </div>
         <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 20 }}>
-          {moves} move{moves !== 1 ? 's' : ''}
-          {timeStr ? ` · ${timeStr}` : ''}
+          {isScoreMode
+            ? `${finalScore ?? 0} pts · ${moves} tap${moves !== 1 ? 's' : ''}`
+            : `${moves} move${moves !== 1 ? 's' : ''}${timeStr ? ` · ${timeStr}` : ''}`}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           {hasNext && (
@@ -265,10 +297,12 @@ function Overlay({
       <div style={overlayStyle}>
         <div style={{ fontSize: 32, marginBottom: 4 }}>✕</div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#ef4444', marginBottom: 4 }}>
-          CRUSHED
+          {lossTitle.toUpperCase()}
         </div>
         <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 20 }}>
-          {moves} move{moves !== 1 ? 's' : ''}
+          {isScoreMode
+            ? `${moves} tap${moves !== 1 ? 's' : ''}`
+            : `${moves} move${moves !== 1 ? 's' : ''}`}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={onRetry} style={btnPrimary}>
@@ -608,6 +642,7 @@ function MenuScreen() {
     currentModeId,
     animationsEnabled,
     toggleAnimations,
+    replayTutorial,
   } = useGameStore(
     useShallow((s) => ({
       completedLevels: s.completedLevels,
@@ -616,6 +651,7 @@ function MenuScreen() {
       currentModeId: s.currentModeId,
       animationsEnabled: s.animationsEnabled,
       toggleAnimations: s.toggleAnimations,
+      replayTutorial: s.replayTutorial,
     }))
   );
   const [view, setView] = useState<'levels' | 'workshop'>('levels');
@@ -989,6 +1025,34 @@ function MenuScreen() {
           </span>
         </button>
 
+        {/* ── HOW TO PLAY ────────────────────────── */}
+        <button
+          onClick={replayTutorial}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '8px 12px',
+            borderRadius: 10,
+            border: '1px solid #1e1e3540',
+            background: 'transparent',
+            cursor: 'pointer',
+          }}
+          title="How to play"
+        >
+          <span style={{ fontSize: 13 }}>?</span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              color: '#3a3a55',
+            }}
+          >
+            HOW TO PLAY
+          </span>
+        </button>
+
         {/* ── CHANGE MODE BUTTON ─────────────────── */}
         <button
           onClick={() => setShowModeModal(true)}
@@ -1053,6 +1117,8 @@ export default function GameBoard() {
     currentModeId,
     animationsEnabled,
     toggleAnimations,
+    score,
+    lossReason,
   } = useGameStore(
     useShallow((s) => ({
       currentLevel: s.currentLevel,
@@ -1077,13 +1143,27 @@ export default function GameBoard() {
       currentModeId: s.currentModeId,
       animationsEnabled: s.animationsEnabled,
       toggleAnimations: s.toggleAnimations,
+      score: s.score,
+      lossReason: s.lossReason,
     }))
   );
 
   const particleRef = useRef<ParticleSystemHandle>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(false);
+  const [rejectedPos, setRejectedPos] = useState<{ x: number; y: number } | null>(null);
+  const [notification, setNotification] = useState<{ text: string; key: number; isScore: boolean } | null>(null);
+  const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { w: vw, h: vh } = useViewport();
+
+  // Inject notification CSS once on mount
+  useEffect(() => { ensureNotifStyles(); }, []);
+
+  const showNotification = useCallback((text: string, isScore = false) => {
+    if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
+    setNotification({ text, key: Date.now(), isScore });
+    notifTimeoutRef.current = setTimeout(() => setNotification(null), 1400);
+  }, []);
 
   const allLevels = [...LEVELS, ...generatedLevels];
   const solution = currentLevel ? getSolution(currentLevel) : null;
@@ -1107,21 +1187,59 @@ export default function GameBoard() {
     }
   }, [status, animationsEnabled]);
 
+  const CANDY_BURST_COLORS: Record<string, string> = {
+    '🍎': '#ef4444',
+    '🍊': '#f97316',
+    '🍋': '#eab308',
+    '🫐': '#6366f1',
+    '🍓': '#ec4899',
+  };
+
   const handleTileTap = useCallback(
     (x: number, y: number) => {
       if (status !== 'playing') return;
       const tile = tiles.find((t) => t.x === x && t.y === y);
       if (!tile?.canRotate) return;
+
+      // Zustand set() is synchronous — read before/after to detect validity and score change
+      const prevMoves = useGameStore.getState().moves;
+      const prevScore = useGameStore.getState().score;
+      tapTile(x, y);
+      const accepted = useGameStore.getState().moves > prevMoves;
+      const scoreDelta = useGameStore.getState().score - prevScore;
+
       if (animationsEnabled && boardRef.current && currentLevel) {
         const rect = boardRef.current.getBoundingClientRect();
         const gs = currentLevel.gridSize;
         const px = rect.left + (x + 0.5) * (rect.width / gs);
         const py = rect.top + (y + 0.5) * (rect.height / gs);
-        particleRef.current?.burst(px, py, '#f59e0b', 5);
+
+        if (accepted) {
+          const sym = tile.displayData?.symbol as string | undefined;
+          const color = (sym && CANDY_BURST_COLORS[sym]) ? CANDY_BURST_COLORS[sym] : '#f59e0b';
+          particleRef.current?.burst(px, py, color, sym ? 8 : 5);
+        } else {
+          particleRef.current?.burst(px, py, '#ef4444', 4);
+        }
       }
-      tapTile(x, y);
+
+      if (accepted) {
+        // Mode gets first crack at the notification (can include combo text + score delta).
+        // Falls back to plain "+N" if the mode returns null.
+        const tappedMode = getModeById(currentModeId);
+        let notifText: string | null = null;
+        if (tappedMode.getNotification) {
+          const freshState = useGameStore.getState();
+          notifText = tappedMode.getNotification(freshState.tiles, freshState.moves, { scoreDelta });
+        }
+        if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;
+        if (notifText) showNotification(notifText, scoreDelta > 0);
+      } else {
+        setRejectedPos({ x, y });
+        setTimeout(() => setRejectedPos(null), 380);
+      }
     },
-    [status, tiles, currentLevel, tapTile, animationsEnabled]
+    [status, tiles, currentLevel, tapTile, animationsEnabled, currentModeId, showNotification]
   );
 
   // CHANGE 3: Only check status for tutorial, not showTutorial
@@ -1134,6 +1252,9 @@ export default function GameBoard() {
   const mode = getModeById(currentModeId);
   const hintPos = showHint && solution?.length ? solution[0] : null;
   const nextLevel = allLevels.find((l) => l.id === currentLevel.id + 1) ?? null;
+
+  const winTitle = mode.overlayText?.win ?? 'CONNECTED';
+  const lossTitle = lossReason ?? mode.overlayText?.loss ?? 'CRUSHED';
 
   // Responsive board: header ~62px + stats ~52px + footer ~62px + gaps ~24px = ~200px
   const reserved = 200;
@@ -1149,6 +1270,15 @@ export default function GameBoard() {
   const timeStr =
     status === 'playing' ? `${mins > 0 ? mins + ':' : ''}${String(secs).padStart(2, '0')}` : '';
   const countdownSecs = Math.ceil(timeUntilCompression / 1000);
+
+  // For timed levels (e.g. Frozen world): countdown to game-over
+  const timeLeft = currentLevel.timeLimit
+    ? Math.max(0, currentLevel.timeLimit - elapsedSeconds)
+    : undefined;
+  // Override statsDisplay when the level has a time limit
+  const levelStatsDisplay = currentLevel.timeLimit
+    ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
+    : undefined;
 
   return (
     <div
@@ -1231,6 +1361,11 @@ export default function GameBoard() {
         compressionPercent={comprPct}
         compressionActive={compressionActive}
         countdownSeconds={countdownSecs}
+        score={score}
+        targetScore={currentLevel.targetScore}
+        timeLeft={timeLeft}
+        timeLimit={currentLevel.timeLimit}
+        statsDisplayOverride={levelStatsDisplay}
       />
 
       {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
@@ -1279,7 +1414,31 @@ export default function GameBoard() {
             onTileTap={handleTileTap}
             animationsEnabled={animationsEnabled}
             tileRenderer={mode.tileRenderer}
+            rejectedPos={rejectedPos}
           />
+
+          {/* Score / mode notification — floats above the board, fades out */}
+          {notification && (
+            <div
+              key={notification.key}
+              style={{
+                position: 'absolute',
+                top: 14,
+                left: '50%',
+                animation: 'notifFloat 1.4s ease forwards',
+                fontSize: 15,
+                fontWeight: 900,
+                color: notification.isScore ? mode.color : '#fbbf24',
+                letterSpacing: '0.05em',
+                pointerEvents: 'none',
+                zIndex: 20,
+                whiteSpace: 'nowrap',
+                textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
+              }}
+            >
+              {notification.text}
+            </div>
+          )}
 
           {/* Overlay screens */}
           <Overlay
@@ -1293,6 +1452,10 @@ export default function GameBoard() {
             solution={solution}
             hasNext={!!nextLevel}
             elapsedSeconds={elapsedSeconds}
+            winTitle={winTitle}
+            lossTitle={lossTitle}
+            finalScore={score}
+            targetScore={currentLevel.targetScore}
           />
         </div>
       </div>

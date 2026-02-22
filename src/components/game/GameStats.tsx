@@ -133,13 +133,150 @@ function CountdownTimer({ seconds, active }: { seconds: number; active: boolean 
   );
 }
 
+/**
+ * ScoreDisplay - Shows current score vs target score with a progress bar
+ */
+function ScoreDisplay({ score, targetScore }: { score: number; targetScore?: number }) {
+  const pct = targetScore ? Math.min((score / targetScore) * 100, 100) : 0;
+  const color = pct >= 100 ? '#22c55e' : pct > 60 ? '#f472b6' : '#f472b6';
+  return (
+    <div style={{ flex: 1 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: 9,
+          letterSpacing: '0.14em',
+          marginBottom: 4,
+        }}
+      >
+        <span style={{ color: '#f472b6', fontWeight: 800 }}>SCORE</span>
+        {targetScore !== undefined && (
+          <span style={{ color: '#3a3a55' }}>TARGET {targetScore}</span>
+        )}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 900,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            color,
+            minWidth: 48,
+            transition: 'color 0.3s',
+          }}
+        >
+          {score}
+        </div>
+        {targetScore !== undefined && (
+          <div
+            style={{
+              flex: 1,
+              height: 6,
+              background: '#080814',
+              borderRadius: 4,
+              overflow: 'hidden',
+              border: '1px solid #131325',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${pct}%`,
+                borderRadius: 4,
+                background: `linear-gradient(90deg, #db2777cc, ${color})`,
+                transition: 'width 0.4s ease',
+                boxShadow: pct > 10 ? `0 0 10px rgba(244,114,182,0.5)` : 'none',
+              }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * TimeleftDisplay - Countdown timer for time-limited levels (e.g. Frozen world)
+ */
+function TimeleftDisplay({ timeLeft, timeLimit }: { timeLeft: number; timeLimit?: number }) {
+  const urgent = timeLeft <= 10;
+  const pct = timeLimit ? Math.min((timeLeft / timeLimit) * 100, 100) : 100;
+  return (
+    <div style={{ flex: 1 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: 9,
+          letterSpacing: '0.14em',
+          marginBottom: 4,
+        }}
+      >
+        <span style={{ color: urgent ? '#ef4444' : '#60a5fa', fontWeight: 800, transition: 'color 0.3s' }}>
+          TIME LEFT
+        </span>
+        {timeLimit !== undefined && (
+          <span style={{ color: '#3a3a55' }}>{timeLimit}s</span>
+        )}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 900,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            color: urgent ? '#ef4444' : '#60a5fa',
+            minWidth: 48,
+            transition: 'color 0.3s',
+          }}
+        >
+          {timeLeft}
+        </div>
+        {timeLimit !== undefined && (
+          <div
+            style={{
+              flex: 1,
+              height: 6,
+              background: '#080814',
+              borderRadius: 4,
+              overflow: 'hidden',
+              border: '1px solid #131325',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${pct}%`,
+                borderRadius: 4,
+                background: urgent
+                  ? 'linear-gradient(90deg, #ef444480, #ef4444)'
+                  : 'linear-gradient(90deg, #3b82f680, #60a5fa)',
+                transition: 'width 1s linear, background 0.4s',
+                boxShadow: pct > 10 ? `0 0 10px ${urgent ? 'rgba(239,68,68,0.5)' : 'rgba(96,165,250,0.4)'}` : 'none',
+              }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface GameStatsProps {
   moves: number;
   maxMoves: number;
   compressionPercent: number;
   compressionActive: boolean;
   countdownSeconds: number;
-  currentModeId: string; // Add this prop
+  currentModeId: string;
+  score?: number;
+  targetScore?: number;
+  timeLeft?: number;
+  timeLimit?: number;
+  statsDisplayOverride?: StatComponentConfig[];
 }
 
 /**
@@ -151,14 +288,19 @@ export default function GameStats({
   compressionPercent,
   compressionActive,
   countdownSeconds,
-  currentModeId, // Destructure the new prop
+  currentModeId,
+  score = 0,
+  targetScore,
+  timeLeft = 0,
+  timeLimit,
+  statsDisplayOverride,
 }: GameStatsProps) {
   const activeMode = getModeById(currentModeId);
-  const statsDisplay = activeMode.statsDisplay || [
+  const statsDisplay = statsDisplayOverride ?? activeMode.statsDisplay ?? [
     { type: 'moves' },
     { type: 'compressionBar' },
     { type: 'countdown' },
-  ]; // Default to all if not specified
+  ];
 
   return (
     <div
@@ -193,8 +335,12 @@ export default function GameStats({
                 active={compressionActive}
               />
             );
+          case 'score':
+            return <ScoreDisplay key="score" score={score} targetScore={targetScore} />;
+          case 'timeleft':
+            return <TimeleftDisplay key="timeleft" timeLeft={timeLeft} timeLimit={timeLimit} />;
           default:
-            return null; // Should not happen with type checking
+            return null;
         }
       })}
     </div>

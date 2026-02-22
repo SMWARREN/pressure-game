@@ -17,6 +17,8 @@ interface GameGridProps {
   animationsEnabled?: boolean;
   /** Pass the active mode's tileRenderer to enable non-pipe visuals (candy crush, slots, etc.) */
   tileRenderer?: TileRenderer;
+  /** Position of last rejected (invalid) tap — shows red flash on that tile */
+  rejectedPos?: { x: number; y: number } | null;
 }
 
 /**
@@ -37,6 +39,7 @@ function GameGridComponent({
   onTileTap,
   animationsEnabled = true,
   tileRenderer,
+  rejectedPos,
 }: GameGridProps) {
   // Create a Map for O(1) tile lookups instead of O(n) array.find()
   const tileMap = useMemo(() => {
@@ -103,6 +106,8 @@ function GameGridComponent({
         {gridCells.map(({ key, x, y, tile, inDanger }) => {
           const isHint = hintPos?.x === x && hintPos?.y === y;
 
+          const isRejected = !!(rejectedPos && rejectedPos.x === x && rejectedPos.y === y);
+
           return (
             <GameTile
               key={key}
@@ -118,6 +123,7 @@ function GameGridComponent({
               animationsEnabled={animationsEnabled}
               tileRenderer={tileRenderer}
               displayData={tile?.displayData}
+              isRejected={isRejected}
             />
           );
         })}

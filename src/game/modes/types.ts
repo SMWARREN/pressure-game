@@ -30,7 +30,7 @@ export interface LossResult {
 /**
  * Configuration for a single statistic component to be rendered in the GameStats display.
  */
-export type StatComponentType = 'moves' | 'compressionBar' | 'countdown';
+export type StatComponentType = 'moves' | 'compressionBar' | 'countdown' | 'score' | 'timeleft';
 
 export interface StatComponentConfig {
   type: StatComponentType;
@@ -48,7 +48,11 @@ export type TutorialDemoType =
   | 'controls'
   | 'ready'
   | 'blitz-ready'
-  | 'zen-ready';
+  | 'zen-ready'
+  | 'candy-group'
+  | 'candy-score'
+  | 'candy-gravity'
+  | 'candy-ready';
 
 export interface TutorialStep {
   icon: string;
@@ -205,12 +209,12 @@ export interface GameModeConfig {
 
   /**
    * Optional: called every game tick (1 second) for time-based mechanics.
-   * Return a partial state update or null for no change.
+   * Return a partial GameState update or null for no change.
    */
   onTick?: (
     state: GameState,
     modeState?: Record<string, unknown>
-  ) => Record<string, unknown> | null;
+  ) => Partial<GameState> | null;
 
   /** Whether this mode supports the undo mechanic. Default: true */
   supportsUndo?: boolean;
@@ -251,4 +255,25 @@ export interface GameModeConfig {
 
   /** Whether the Workshop (level generator) tab is shown for this mode. Default: false */
   supportsWorkshop?: boolean;
+
+  /**
+   * Custom win/loss overlay titles.
+   * Defaults: win → 'CONNECTED', loss → 'CRUSHED'.
+   * The dynamic lossReason stored by the store always takes priority over loss.
+   */
+  overlayText?: {
+    win?: string;
+    loss?: string;
+  };
+
+  /**
+   * Optional: return a brief notification to flash above the board after a valid tap.
+   * E.g. "1 more!", "COMBO x3", or null for no notification.
+   * Score-delta notifications (+N) are handled automatically by GameBoard.
+   */
+  getNotification?: (
+    tiles: Tile[],
+    moves: number,
+    modeState?: Record<string, unknown>
+  ) => string | null;
 }
