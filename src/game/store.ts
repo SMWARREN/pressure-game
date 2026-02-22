@@ -18,14 +18,12 @@ const STORAGE_KEY = 'pressure_save_v2'
 
 // Track all timeouts for cleanup
 const activeTimeouts = new Set<ReturnType<typeof setTimeout>>()
-// Track all intervals for cleanup (NEW)
-const activeIntervals = new Set<ReturnType<typeof setInterval>>()
-// Game timer interval ID
+// Game timer interval ID - SINGLE source of truth
 let gameTimerInterval: ReturnType<typeof setInterval> | null = null
-// Flag to prevent concurrent advanceWalls calls
-let isAdvancingWalls = false
-// Flag to prevent concurrent checkWin calls
-let isCheckingWin = false
+// Debounce flag for advanceWalls (reset on each call completion)
+let advanceWallsInProgress = false
+// Debounce flag for checkWin (prevents concurrent win checks)
+let checkWinInProgress = false
 
 /**
  * Safely add a timeout with automatic tracking
@@ -40,26 +38,22 @@ function addTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout
 }
 
 /**
- * Clear all tracked timeouts and intervals
+ * Clear all tracked timeouts and intervals - CRITICAL for preventing leaks
  */
 export function clearAllTimers() {
-  // Clear all timeouts
+  // Clear all tracked timeouts
   activeTimeouts.forEach(id => clearTimeout(id))
   activeTimeouts.clear()
   
-  // Clear all intervals
-  activeIntervals.forEach(id => clearInterval(id))
-  activeIntervals.clear()
-  
-  // Clear game timer
+  // Clear game timer interval
   if (gameTimerInterval) {
     clearInterval(gameTimerInterval)
     gameTimerInterval = null
   }
   
   // Reset flags
-  isAdvancingWalls = false
-  isCheckingWin = false
+  advanceWallsInProgress = false
+  checkWinInProgress = false
 }
 
 // Legacy export for backward compatibility
@@ -73,38 +67,56 @@ function rotateConnections(conns: Direction[], times: number): Direction[] {
 }
 
 /**
+ * Create a Map from tiles array for O(1) lookups
+ * This is a critical performance optimization - converts O(n) find() to O(1) Map.get()
+ */
+function createTileMap(tiles: Tile[]): Map<string, Tile> {
+  const map = new Map<string, Tile>()
+  for (const tile of tiles) {
+    map.set(`${tile.x},${tile.y}`, tile)
+  }
+  return map
+}
+
+/**
  * Check if all goal nodes are connected via valid paths
- * Uses BFS to find connected components
+ * Uses BFS to find connected components with O(1) tile lookups
  */
 export function checkConnected(tiles: Tile[], goals: Position[]): boolean {
   if (goals.length < 2) return true
 
-  const getTile = (x: number, y: number) => tiles.find(t => t.x === x && t.y === y)
+  // Use Map for O(1) lookups instead of O(n) array.find()
+  const tileMap = createTileMap(tiles)
   const visited = new Set<string>()
   const queue: Position[] = [goals[0]]
   visited.add(`${goals[0].x},${goals[0].y}`)
   const connected = new Set([`${goals[0].x},${goals[0].y}`])
+  
+  // Pre-compute goal positions for O(1) lookup
+  const goalSet = new Set(goals.map(g => `${g.x},${g.y}`))
 
   while (queue.length > 0) {
     const curr = queue.shift()!
-    const tile = getTile(curr.x, curr.y)
+    const tile = tileMap.get(`${curr.x},${curr.y}`)
     if (!tile) continue
 
     for (const d of tile.connections) {
       let nx = curr.x, ny = curr.y
-      if (d === 'up') ny--; else if (d === 'down') ny++
-      else if (d === 'left') nx--; else if (d === 'right') nx++
+      if (d === 'up') ny--
+      else if (d === 'down') ny++
+      else if (d === 'left') nx--
+      else if (d === 'right') nx++
 
       const key = `${nx},${ny}`
       if (visited.has(key)) continue
 
-      const neighbor = getTile(nx, ny)
+      const neighbor = tileMap.get(key)
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue
 
       if (neighbor.connections.includes(OPP[d])) {
         visited.add(key)
         queue.push({ x: nx, y: ny })
-        if (goals.some(g => g.x === nx && g.y === ny)) connected.add(key)
+        if (goalSet.has(key)) connected.add(key)
       }
     }
   }
@@ -114,30 +126,33 @@ export function checkConnected(tiles: Tile[], goals: Position[]): boolean {
 
 /**
  * Get all tile positions that are connected to goal nodes
- * Used for win visualization
+ * Uses BFS with O(1) tile lookups
  */
 export function getConnectedTiles(tiles: Tile[], goals: Position[]): Set<string> {
   if (goals.length < 2) return new Set()
 
-  const getTile = (x: number, y: number) => tiles.find(t => t.x === x && t.y === y)
+  // Use Map for O(1) lookups instead of O(n) array.find()
+  const tileMap = createTileMap(tiles)
   const visited = new Set<string>()
   const queue: Position[] = [goals[0]]
   visited.add(`${goals[0].x},${goals[0].y}`)
 
   while (queue.length > 0) {
     const curr = queue.shift()!
-    const tile = getTile(curr.x, curr.y)
+    const tile = tileMap.get(`${curr.x},${curr.y}`)
     if (!tile) continue
 
     for (const d of tile.connections) {
       let nx = curr.x, ny = curr.y
-      if (d === 'up') ny--; else if (d === 'down') ny++
-      else if (d === 'left') nx--; else if (d === 'right') nx++
+      if (d === 'up') ny--
+      else if (d === 'down') ny++
+      else if (d === 'left') nx--
+      else if (d === 'right') nx++
 
       const key = `${nx},${ny}`
       if (visited.has(key)) continue
 
-      const neighbor = getTile(nx, ny)
+      const neighbor = tileMap.get(key)
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue
 
       if (neighbor.connections.includes(OPP[d])) {
@@ -335,6 +350,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // Guard: Only allow taps during active gameplay
     if (status !== 'playing' || showingWin) return
 
+    // Use direct array lookup optimized for small grids
     const tile = tiles.find(t => t.x === x && t.y === y)
     if (!tile?.canRotate) return
     if (currentLevel && moves >= currentLevel.maxMoves) return
@@ -397,14 +413,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
    */
   advanceWalls: () => {
     // Guard: Prevent concurrent or invalid calls
-    if (isAdvancingWalls) return
+    if (advanceWallsInProgress) return
     
     const { wallOffset, status, tiles, currentLevel, showingWin } = get()
     
     // Guard: Only advance during active gameplay
     if (status !== 'playing' || !currentLevel || showingWin) return
     
-    isAdvancingWalls = true
+    advanceWallsInProgress = true
 
     const newOffset = wallOffset + 1
     const gridSize = currentLevel.gridSize
@@ -436,7 +452,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // Clear wallsJustAdvanced flag after animation
     addTimeout(() => {
       set({ wallsJustAdvanced: false })
-      isAdvancingWalls = false
+      advanceWallsInProgress = false
     }, 600)
 
     // Handle crush (game over)
@@ -445,7 +461,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       stopGameTimer()
       set({ status: 'lost', compressionActive: false, screenShake: true })
       addTimeout(() => set({ screenShake: false }), 600)
-      isAdvancingWalls = false
+      advanceWallsInProgress = false
     }
   },
 
@@ -455,14 +471,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
    */
   checkWin: () => {
     // Guard: Prevent concurrent checks
-    if (isCheckingWin) return false
+    if (checkWinInProgress) return false
     
     const { tiles, currentLevel, moves, status, showingWin } = get()
     
     // Guard: Only check during active gameplay
     if (!currentLevel || status !== 'playing' || showingWin) return false
     
-    isCheckingWin = true
+    checkWinInProgress = true
 
     const isWin = checkConnected(tiles, currentLevel.goalNodes)
     
@@ -502,13 +518,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
             showingWin: false 
           }
         })
-        isCheckingWin = false
+        checkWinInProgress = false
       }, 1500)
       
       return true
     }
     
-    isCheckingWin = false
+    checkWinInProgress = false
     return false
   },
 
@@ -610,30 +626,27 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
 function startGameTimer() {
   // Clear any existing game timer first
-  if (gameTimerInterval) {
-    clearInterval(gameTimerInterval)
-    gameTimerInterval = null
-  }
+  stopGameTimer()
   
-  // Start single centralized timer
+  // Start single centralized timer - runs every second
   gameTimerInterval = setInterval(() => {
     const state = useGameStore.getState()
     
-    // Only tick if game is actively playing
+    // Only tick if game is actively playing (double-check to be safe)
     if (state.status === 'playing' && !state.showingWin) {
+      // Increment elapsed time
       state.tickTimer()
+      // Decrement compression countdown and trigger wall advance if needed
       state.tickCompressionTimer()
     }
   }, 1000)
-  
-  // Track for cleanup
-  activeIntervals.add(gameTimerInterval)
 }
 
 function stopGameTimer() {
   if (gameTimerInterval) {
     clearInterval(gameTimerInterval)
-    activeIntervals.delete(gameTimerInterval)
     gameTimerInterval = null
   }
+  // Reset debounce flags when timer stops
+  advanceWallsInProgress = false
 }

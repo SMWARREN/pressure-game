@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useGameStore } from '@/game/store'
 import { LEVELS, getSolution, generateLevel, verifyLevel } from '@/game/levels'
 import TutorialScreen from './TutorialScreen'
@@ -843,7 +843,7 @@ export default function GameBoard() {
     timeUntilCompression, wallsJustAdvanced,
     loadLevel, startGame, tapTile,
     restartLevel, goToMenu, undoMove,
-    completeTutorial, showTutorial, bestMoves,
+    completeTutorial, showTutorial,
     generatedLevels, history,
   } = useGameStore()
 
@@ -899,6 +899,15 @@ export default function GameBoard() {
   const comprPct = Math.round((wallOffset / maxOff) * 100)
   const hintPos = showHint && solution?.length ? solution[0] : null
   const nextLevel = allLevels.find(l => l.id === currentLevel.id + 1) ?? null
+
+  // Create tile map for O(1) lookups (optimization)
+  const tileMap = useMemo(() => {
+    const map = new Map<string, typeof tiles[0]>()
+    for (const tile of tiles) {
+      map.set(`${tile.x},${tile.y}`, tile)
+    }
+    return map
+  }, [tiles])
 
   // Calculate board dimensions
   const boardPx = Math.min(370, typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.88, window.innerHeight * 0.55) : 370)
@@ -1033,9 +1042,12 @@ export default function GameBoard() {
           {Array.from({ length: gs * gs }, (_, i) => {
             const x = i % gs
             const y = Math.floor(i / gs)
-            const tile = tiles.find(t => t.x === x && t.y === y)
+            // Use tileMap for O(1) lookup instead of tiles.find() which is O(n)
+            const tile = tileMap.get(`${x},${y}`)
             const dist = Math.min(x, y, gs - 1 - x, gs - 1 - y)
-            const inDanger = dist <= wallOffset + 1 && dist > wallOffset
+            // FIXED: Correct inDanger calculation - tiles in danger when compression is active
+            // and they're within the wall offset zone (not already a wall or crushed)
+            const inDanger = compressionActive && dist <= wallOffset && !!tile && tile.type !== 'wall' && tile.type !== 'crushed'
             const isHint = hintPos?.x === x && hintPos?.y === y
 
             return (
@@ -1054,6 +1066,62 @@ export default function GameBoard() {
             )
           })}
         </div>
+
+        {/* Animated Walls Overlay - The "Pressure Effect" */}
+        {status === 'playing' && wallOffset > 0 && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            borderRadius: 18,
+            overflow: 'hidden',
+          }}>
+            {/* Top wall */}
+            <div style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0,
+              height: `${(wallOffset / gs) * 100}%`,
+              background: 'linear-gradient(180deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
+              borderBottom: '2px solid rgba(239,68,68,0.3)',
+              transform: wallsJustAdvanced ? 'translateY(2px)' : 'translateY(0)',
+              transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              boxShadow: wallsJustAdvanced ? '0 4px 20px rgba(239,68,68,0.4)' : 'none',
+            }} />
+            {/* Bottom wall */}
+            <div style={{
+              position: 'absolute',
+              bottom: 0, left: 0, right: 0,
+              height: `${(wallOffset / gs) * 100}%`,
+              background: 'linear-gradient(0deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
+              borderTop: '2px solid rgba(239,68,68,0.3)',
+              transform: wallsJustAdvanced ? 'translateY(-2px)' : 'translateY(0)',
+              transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              boxShadow: wallsJustAdvanced ? '0 -4px 20px rgba(239,68,68,0.4)' : 'none',
+            }} />
+            {/* Left wall */}
+            <div style={{
+              position: 'absolute',
+              left: 0, top: 0, bottom: 0,
+              width: `${(wallOffset / gs) * 100}%`,
+              background: 'linear-gradient(90deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
+              borderRight: '2px solid rgba(239,68,68,0.3)',
+              transform: wallsJustAdvanced ? 'translateX(2px)' : 'translateX(0)',
+              transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              boxShadow: wallsJustAdvanced ? '4px 0 20px rgba(239,68,68,0.4)' : 'none',
+            }} />
+            {/* Right wall */}
+            <div style={{
+              position: 'absolute',
+              right: 0, top: 0, bottom: 0,
+              width: `${(wallOffset / gs) * 100}%`,
+              background: 'linear-gradient(270deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
+              borderLeft: '2px solid rgba(239,68,68,0.3)',
+              transform: wallsJustAdvanced ? 'translateX(-2px)' : 'translateX(0)',
+              transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              boxShadow: wallsJustAdvanced ? '-4px 0 20px rgba(239,68,68,0.4)' : 'none',
+            }} />
+          </div>
+        )}
 
         {/* Overlay screens */}
         <Overlay

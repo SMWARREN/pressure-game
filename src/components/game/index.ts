@@ -1,0 +1,5 @@
+export { default as GameTile } from './GameTile'
+export { default as GameGrid } from './GameGrid'
+export { default as GameStats } from './GameStats'
+export { default as GameControls } from './GameControls'
+export { default as WallOverlay } from './WallOverlay'
