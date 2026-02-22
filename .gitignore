@@ -45,8 +45,9 @@ local-*
 dev.log
 test
 prompt
-
 server.log
 # Skills directory
 /skills/pressure-game
 /pressure-game
+dist
+dist/
