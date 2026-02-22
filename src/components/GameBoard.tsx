@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
 import { LEVELS, getSolution, generateLevel, verifyLevel } from '@/game/levels';
 import TutorialScreen from './TutorialScreen';
 import ModeSelectorModal from './ModeSelectorModal';
+import StatsScreen from './StatsScreen';
 import { getModeById } from '../game/modes';
 import { Level } from '@/game/types';
 import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
+import { statsEngine } from '@/game/stats';
+import type { GameEndEvent } from '@/game/stats/types';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NOTIFICATION FLOAT ANIMATION
@@ -221,6 +224,7 @@ interface OverlayProps {
   lossTitle?: string;
   finalScore?: number;
   targetScore?: number;
+  levelRecord?: { wins: number; attempts: number };
 }
 
 function Overlay({
@@ -238,6 +242,7 @@ function Overlay({
   lossTitle = 'CRUSHED',
   finalScore,
   targetScore,
+  levelRecord,
 }: OverlayProps) {
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
@@ -272,12 +277,17 @@ function Overlay({
         <div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 4 }}>
           {winTitle.toUpperCase()}
         </div>
-        <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 20 }}>
+        <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
           {isScoreMode
             ? `${finalScore ?? 0} pts · ${moves} tap${moves !== 1 ? 's' : ''}`
             : `${moves} move${moves !== 1 ? 's' : ''}${timeStr ? ` · ${timeStr}` : ''}`}
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        {levelRecord && levelRecord.attempts > 0 && (
+          <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
+            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts} attempt{levelRecord.attempts !== 1 ? 's' : ''}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14 }}>
           {hasNext && (
             <button onClick={onNext} style={btnPrimary}>
               NEXT →
@@ -299,12 +309,17 @@ function Overlay({
         <div style={{ fontSize: 20, fontWeight: 900, color: '#ef4444', marginBottom: 4 }}>
           {lossTitle.toUpperCase()}
         </div>
-        <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 20 }}>
+        <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
           {isScoreMode
             ? `${moves} tap${moves !== 1 ? 's' : ''}`
             : `${moves} move${moves !== 1 ? 's' : ''}`}
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        {levelRecord && levelRecord.attempts > 0 && (
+          <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
+            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts} attempt{levelRecord.attempts !== 1 ? 's' : ''}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14 }}>
           <button onClick={onRetry} style={btnPrimary}>
             ↺ RETRY
           </button>
@@ -657,6 +672,7 @@ function MenuScreen() {
   const [view, setView] = useState<'levels' | 'workshop'>('levels');
   const [world, setWorld] = useState(1);
   const [showModeModal, setShowModeModal] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   const activeMode = getModeById(currentModeId);
   const levels = activeMode.getLevels();
@@ -671,6 +687,8 @@ function MenuScreen() {
 
   const totalDone = levels.filter((l) => completedLevels.includes(l.id)).length;
   const pct = Math.round((totalDone / levels.length) * 100);
+
+  if (showStats) return <StatsScreen onBack={() => setShowStats(false)} />;
 
   return (
     <div
@@ -1025,6 +1043,34 @@ function MenuScreen() {
           </span>
         </button>
 
+        {/* ── STATS ──────────────────────────────── */}
+        <button
+          onClick={() => setShowStats(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '8px 12px',
+            borderRadius: 10,
+            border: '1px solid #1e1e3540',
+            background: 'transparent',
+            cursor: 'pointer',
+          }}
+          title="Stats"
+        >
+          <span style={{ fontSize: 13 }}>📊</span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              color: '#3a3a55',
+            }}
+          >
+            STATS
+          </span>
+        </button>
+
         {/* ── HOW TO PLAY ────────────────────────── */}
         <button
           onClick={replayTutorial}
@@ -1167,6 +1213,16 @@ export default function GameBoard() {
 
   const allLevels = [...LEVELS, ...generatedLevels];
   const solution = currentLevel ? getSolution(currentLevel) : null;
+
+  // Level-specific all-time record — computed once per level load, not reactive
+  const levelRecord = useMemo(() => {
+    if (!currentLevel) return undefined;
+    const ends = statsEngine
+      .getBackend()
+      .getAll()
+      .filter((e): e is GameEndEvent => e.type === 'game_end' && e.levelId === currentLevel.id);
+    return { attempts: ends.length, wins: ends.filter((e) => e.outcome === 'won').length };
+  }, [currentLevel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (status === 'won' && animationsEnabled && boardRef.current) {
@@ -1456,6 +1512,7 @@ export default function GameBoard() {
             lossTitle={lossTitle}
             finalScore={score}
             targetScore={currentLevel.targetScore}
+            levelRecord={levelRecord}
           />
         </div>
       </div>
