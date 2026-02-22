@@ -1,92 +1,131 @@
-// PRESSURE - Game Mode System
-// Defines the plugin interface that makes the grid engine swappable
+// PRESSURE - Core Game Types
+// Single source of truth for all types used across the game.
+// Re-exports mode-specific types so consumers only need one import.
 
-import { Tile, Position, GameState } from '../types'
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRIMITIVES
+═══════════════════════════════════════════════════════════════════════════ */
 
-// Re-export core types so consumers can import from one place
-export type { Tile, Position, GameState, Direction, Level, GameActions } from '../types'
+export type Direction = 'up' | 'down' | 'left' | 'right'
 
-export type WallCompressionSetting = 'always' | 'never' | 'optional'
-
-export interface TapResult {
-  tiles: Tile[]
-  valid: boolean
-  scoreDelta?: number
-  customState?: Record<string, unknown>
+export interface Position {
+  x: number
+  y: number
 }
 
-export interface WinResult {
-  won: boolean
-  reason?: string
+/* ═══════════════════════════════════════════════════════════════════════════
+   TILE
+   The fundamental unit of the game grid.
+   Modes can extend behavior via `displayData` without changing the core type.
+   This is what allows swapping between pipe puzzles, slots, candy crush, etc.
+═══════════════════════════════════════════════════════════════════════════ */
+
+export type TileType = 'path' | 'node' | 'wall' | 'crushed' | 'empty'
+
+export interface Tile {
+  x: number
+  y: number
+  type: TileType
+  /** Pipe connection directions — can be repurposed by modes (e.g., match directions) */
+  connections: Direction[]
+  canRotate: boolean
+  isGoalNode: boolean
+  justRotated?: boolean
+  justCrushed?: boolean
+  /**
+   * Arbitrary mode-specific display data.
+   * For slots: { symbol: '🍒', reel: 0 }
+   * For candy crush: { color: 'red', shape: 'circle' }
+   * Pipe modes leave this undefined.
+   */
+  displayData?: Record<string, unknown>
 }
 
-export interface LossResult {
-  lost: boolean
-  reason?: string
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEVEL
+═══════════════════════════════════════════════════════════════════════════ */
 
-// ─── Tutorial Step Definition ────────────────────────────────────────────────
-
-export type TutorialDemoType =
-  | 'fixed-path'
-  | 'rotatable'
-  | 'connection'
-  | 'node'
-  | 'walls'
-  | 'controls'
-  | 'ready'
-  | 'blitz-ready'
-  | 'zen-ready'
-
-export interface TutorialStep {
-  icon: string
-  iconColor: string
-  title: string
-  subtitle: string
-  demo: TutorialDemoType
-  body: string
-}
-
-// ─── Game Mode Config ─────────────────────────────────────────────────────────
-
-export interface GameModeConfig {
-  id: string
+export interface Level {
+  id: number
   name: string
-  description: string
-  icon: string
-  color: string
-  wallCompression: WallCompressionSetting
-  tutorialSteps?: TutorialStep[]
-  onTileTap: (
-    x: number,
-    y: number,
-    tiles: Tile[],
-    gridSize: number,
-    modeState?: Record<string, unknown>
-  ) => TapResult | null
-  checkWin: (
-    tiles: Tile[],
-    goalNodes: Position[],
-    moves: number,
-    maxMoves: number,
-    modeState?: Record<string, unknown>
-  ) => WinResult
-  checkLoss?: (
-    tiles: Tile[],
-    wallOffset: number,
-    moves: number,
-    maxMoves: number,
-    modeState?: Record<string, unknown>
-  ) => LossResult
-  onTick?: (
-    state: GameState,
-    modeState?: Record<string, unknown>
-  ) => Record<string, unknown> | null
-  supportsUndo?: boolean
-  useMoveLimit?: boolean
-  statsLabels?: {
-    moves?: string
-    timer?: string
-    compression?: string
-  }
+  world: number
+  gridSize: number
+  tiles: Tile[]
+  goalNodes: Position[]
+  maxMoves: number
+  compressionDelay: number
+  compressionEnabled?: boolean
+  isGenerated?: boolean
+  solution?: { x: number; y: number; rotations: number }[]
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════════════════════════════════ */
+
+export type GameStatus = 'menu' | 'idle' | 'playing' | 'won' | 'lost' | 'tutorial'
+
+export interface GameState {
+  currentLevel: Level | null
+  tiles: Tile[]
+  wallOffset: number
+  compressionActive: boolean
+  compressionDelay: number
+  moves: number
+  status: GameStatus
+  completedLevels: number[]
+  bestMoves: Record<number, number>
+  history: Tile[][]
+  lastRotatedPos: Position | null
+  showTutorial: boolean
+  seenTutorials: string[]
+  generatedLevels: Level[]
+  elapsedSeconds: number
+  screenShake: boolean
+  timeUntilCompression: number
+  wallsJustAdvanced: boolean
+  showingWin: boolean
+  connectedTiles: Set<string>
+  currentModeId: string
+  compressionOverride: boolean | null
+  /** Guards against re-entrant win checks */
+  _winCheckPending: boolean
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GAME ACTIONS
+═══════════════════════════════════════════════════════════════════════════ */
+
+export interface GameActions {
+  loadLevel: (level: Level) => void
+  restartLevel: () => void
+  startGame: () => void
+  tapTile: (x: number, y: number) => void
+  checkWin: () => boolean
+  undoMove: () => void
+  advanceWalls: () => void
+  tickTimer: () => void
+  tickCompressionTimer: () => void
+  triggerShake: () => void
+  goToMenu: () => void
+  completeTutorial: () => void
+  setGameMode: (modeId: string) => void
+  setCompressionOverride: (enabled: boolean | null) => void
+  addGeneratedLevel: (level: Level) => void
+  deleteGeneratedLevel: (id: number) => void
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RE-EXPORTS — consumers import everything from '@/game/types'
+═══════════════════════════════════════════════════════════════════════════ */
+
+export type {
+  TutorialStep,
+  TutorialDemoType,
+  GameModeConfig,
+  TapResult,
+  WinResult,
+  LossResult,
+  WallCompressionSetting,
+  TileRenderer,
+} from './modes/types'

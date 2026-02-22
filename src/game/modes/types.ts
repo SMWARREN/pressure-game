@@ -1,5 +1,10 @@
 // PRESSURE - Game Mode System
-// Defines the plugin interface that makes the grid engine swappable
+// Defines the plugin interface that makes the grid engine fully swappable.
+//
+// To add a completely different game (slots, candy crush, match-3):
+//   1. Implement GameModeConfig with your own onTileTap / checkWin logic
+//   2. Implement TileRenderer to control how each tile looks
+//   3. Register in modes/index.ts
 
 import { Tile, Position, GameState } from '../types'
 
@@ -44,6 +49,61 @@ export interface TutorialStep {
   body: string
 }
 
+// ─── Tile Renderer ───────────────────────────────────────────────────────────
+//
+// Swap this out to completely change the visual language of the grid.
+// The engine (GameGrid / GameTile) calls these functions instead of using
+// hard-coded pipe logic. Want candy crush? Return circles. Want slots? Return
+// spinning symbols. The store and win/loss checking are untouched.
+//
+// All functions are optional — fall back to the default pipe renderer.
+
+export interface TileColors {
+  background: string
+  border: string
+  boxShadow?: string
+}
+
+export interface TileRenderer {
+  /**
+   * Unique identifier so GameTile knows which rendering branch to use.
+   * 'pipe' is the default. Add 'slots' | 'candy' | 'match3' etc. as you create modes.
+   */
+  type: 'pipe' | 'slots' | 'candy' | string
+
+  /**
+   * Return the background/border/shadow for a tile given its state.
+   * If omitted, uses the default pipe palette.
+   */
+  getColors?: (tile: Tile, ctx: TileRenderContext) => TileColors
+
+  /**
+   * Return content to render inside the tile (emoji, letter, icon, SVG string).
+   * For pipe modes this is undefined — pipes draw their own connection lines.
+   */
+  getSymbol?: (tile: Tile, ctx: TileRenderContext) => string | null
+
+  /**
+   * If true, the pipe connection lines are hidden and the mode draws its own
+   * content entirely via getSymbol / getColors.
+   */
+  hidePipes?: boolean
+
+  /**
+   * Custom CSS font size for the symbol (e.g. '1.4rem').
+   * Only used when getSymbol returns a value.
+   */
+  symbolSize?: string
+}
+
+export interface TileRenderContext {
+  isHint: boolean
+  inDanger: boolean
+  justRotated: boolean
+  compressionActive: boolean
+  tileSize: number
+}
+
 // ─── Game Mode Config ─────────────────────────────────────────────────────────
 
 export interface GameModeConfig {
@@ -71,6 +131,20 @@ export interface GameModeConfig {
   wallCompression: WallCompressionSetting
 
   /**
+   * Controls how tiles are rendered visually.
+   * Omit to use the default pipe renderer.
+   *
+   * Example — a slot machine mode:
+   *   tileRenderer: {
+   *     type: 'slots',
+   *     hidePipes: true,
+   *     getSymbol: (tile) => tile.displayData?.symbol as string ?? '?',
+   *     getColors: (tile, ctx) => ({ background: '#1a1a2e', border: ctx.inDanger ? '#ef4444' : '#6366f1' }),
+   *   }
+   */
+  tileRenderer?: TileRenderer
+
+  /**
    * Custom tutorial steps for this mode.
    * If omitted, a generic fallback tutorial is shown.
    */
@@ -78,6 +152,8 @@ export interface GameModeConfig {
 
   /**
    * Called when a tile is tapped. Returns the new tile state or null if invalid.
+   * This is the primary hook for custom game logic — implement match-3 swaps,
+   * slot spins, etc. here.
    */
   onTileTap: (
     x: number,
@@ -111,6 +187,7 @@ export interface GameModeConfig {
 
   /**
    * Optional: called every game tick (1 second) for time-based mechanics.
+   * Return a partial state update or null for no change.
    */
   onTick?: (
     state: GameState,

@@ -1,30 +1,29 @@
-// PRESSURE - Game Store with Mode System
+// PRESSURE - Game Store (Zustand v5)
 // Delegates tap handling, win/loss checking to the active GameMode plugin.
-// Wall compression is resolved by: level override → mode setting → compressionOverride
+// Reentrancy guards live in Zustand state (not module scope) so they can
+// never be stranded by clearAllTimers() calls.
 
 import { create } from 'zustand'
-import { GameState, GameActions, Level, Tile, Position, Direction } from './types'
+import { GameState, GameActions, Level, Tile, Position } from './types'
 import { getModeById, DEFAULT_MODE_ID } from './modes'
-import { checkConnected, getConnectedTiles, rotateConnections, createTileMap } from './modes/utils'
+import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils'
 
 // Re-export utilities so existing imports don't break
 export { checkConnected, getConnectedTiles, createTileMap }
 
-const DIRS: Direction[] = ['up', 'right', 'down', 'left']
-const OPP: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' }
 
 const STORAGE_KEY = 'pressure_save_v3'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CENTRALIZED TIMER SYSTEM
+   All timeouts are tracked so we can reliably cancel them.
+   The game interval is stored separately for clean teardown.
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const activeTimeouts = new Set<ReturnType<typeof setTimeout>>()
 let gameTimerInterval: ReturnType<typeof setInterval> | null = null
-let advanceWallsInProgress = false
-let checkWinInProgress = false
 
-function addTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout> {
+function safeTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout> {
   const id = setTimeout(() => {
     activeTimeouts.delete(id)
     fn()
@@ -36,15 +35,26 @@ function addTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout
 export function clearAllTimers() {
   activeTimeouts.forEach(id => clearTimeout(id))
   activeTimeouts.clear()
+  stopGameTimer()
+}
+
+// Keep the old name as an alias so nothing breaks
+export const clearAllTimeouts = clearAllTimers
+
+function startGameTimer() {
+  stopGameTimer()
+  gameTimerInterval = setInterval(() => {
+    // Always read fresh state from store — no closure staleness
+    useGameStore.getState().tickTimer()
+  }, 1000)
+}
+
+function stopGameTimer() {
   if (gameTimerInterval) {
     clearInterval(gameTimerInterval)
     gameTimerInterval = null
   }
-  advanceWallsInProgress = false
-  checkWinInProgress = false
 }
-
-export const clearAllTimeouts = clearAllTimers
 
 /* ═══════════════════════════════════════════════════════════════════════════
    AUDIO
@@ -72,12 +82,12 @@ function sfx(name: 'rotate' | 'win' | 'lose' | 'crush' | 'start' | 'undo') {
     case 'rotate': playTone(440, 'triangle', 0.06, 0.12); break
     case 'win':
       playTone(523, 'sine', 0.2, 0.25)
-      addTimeout(() => playTone(659, 'sine', 0.2, 0.25), 150)
-      addTimeout(() => playTone(784, 'sine', 0.3, 0.35), 300)
+      safeTimeout(() => playTone(659, 'sine', 0.2, 0.25), 150)
+      safeTimeout(() => playTone(784, 'sine', 0.3, 0.35), 300)
       break
     case 'lose':
       playTone(220, 'sawtooth', 0.4, 0.35)
-      addTimeout(() => playTone(180, 'sawtooth', 0.4, 0.4), 200)
+      safeTimeout(() => playTone(180, 'sawtooth', 0.4, 0.4), 200)
       break
     case 'crush': playTone(150, 'square', 0.15, 0.3); break
     case 'start': playTone(392, 'triangle', 0.12, 0.18); break
@@ -101,7 +111,7 @@ function loadSaved(): PersistedState {
     showTutorial: true,
     generatedLevels: [],
     currentModeId: DEFAULT_MODE_ID,
-    seenTutorials: [DEFAULT_MODE_ID], // classic always seen on first load if showTutorial=false
+    seenTutorials: [DEFAULT_MODE_ID],
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -113,7 +123,6 @@ function loadSaved(): PersistedState {
       showTutorial: p.showTutorial !== false,
       generatedLevels: p.generatedLevels || [],
       currentModeId: p.currentModeId || DEFAULT_MODE_ID,
-      // Migrate: if they've already seen classic (showTutorial=false), mark it seen
       seenTutorials: p.seenTutorials || (p.showTutorial === false ? [DEFAULT_MODE_ID] : []),
     }
   } catch {
@@ -130,7 +139,7 @@ function persist(data: PersistedState) {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    COMPRESSION RESOLUTION
-   Priority: level.compressionEnabled → mode setting → compressionOverride
+   Priority: level.compressionEnabled → mode.wallCompression → compressionOverride
 ═══════════════════════════════════════════════════════════════════════════ */
 
 function resolveCompressionEnabled(
@@ -146,33 +155,10 @@ function resolveCompressionEnabled(
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   TIMER MANAGEMENT
-═══════════════════════════════════════════════════════════════════════════ */
-
-function startGameTimer() {
-  stopGameTimer()
-  gameTimerInterval = setInterval(() => {
-    useGameStore.getState().tickTimer()
-  }, 1000)
-}
-
-function stopGameTimer() {
-  if (gameTimerInterval) {
-    clearInterval(gameTimerInterval)
-    gameTimerInterval = null
-  }
-  advanceWallsInProgress = false
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
    INITIAL STATE
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const saved = loadSaved()
-
-// On first load: if showTutorial is true, show tutorial for the current mode.
-// seenTutorials tracks which modes have been tutorialed so switching modes
-// shows their specific tutorial.
 const needsTutorial = saved.showTutorial || !saved.seenTutorials.includes(saved.currentModeId)
 
 const initialState: GameState = {
@@ -198,10 +184,12 @@ const initialState: GameState = {
   connectedTiles: new Set(),
   currentModeId: saved.currentModeId,
   compressionOverride: null,
+  // Reentrancy guards — in Zustand state so they reset with loadLevel/restart
+  _winCheckPending: false,
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ZUSTAND STORE
+   STORE
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
@@ -212,7 +200,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const alreadySeen = seenTutorials.includes(modeId)
     set({
       currentModeId: modeId,
-      // If switching to a mode whose tutorial hasn't been seen, go to tutorial screen
       status: alreadySeen ? 'menu' : 'tutorial',
       currentLevel: null,
     })
@@ -241,6 +228,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       wallsJustAdvanced: false,
       showingWin: false,
       connectedTiles: new Set(),
+      _winCheckPending: false,
     })
   },
 
@@ -264,13 +252,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       timeUntilCompression: currentLevel.compressionDelay,
       showingWin: false,
       compressionActive: compressionEnabled,
+      _winCheckPending: false,
     })
 
+    // Check if already solved (e.g., pre-solved demo levels)
     if (!get().checkWin()) startGameTimer()
   },
 
   tapTile: (x: number, y: number) => {
-    const { tiles, status, moves, currentLevel, showingWin, currentModeId } = get()
+    const state = get()
+    const { tiles, status, moves, currentLevel, showingWin, currentModeId } = state
 
     if (status !== 'playing' || showingWin) return
 
@@ -287,16 +278,17 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       ? tiles.map(t => ({ ...t, connections: [...t.connections] }))
       : null
 
-    set(state => ({
+    set(s => ({
       tiles: result.tiles,
-      moves: state.moves + 1,
-      history: prevTiles ? [...state.history, prevTiles] : state.history,
+      moves: s.moves + 1,
+      history: prevTiles ? [...s.history, prevTiles] : s.history,
       lastRotatedPos: { x, y },
     }))
 
-    addTimeout(() => {
-      set(state => ({
-        tiles: state.tiles.map(t => ({ ...t, justRotated: false }))
+    // Clear justRotated flag after animation
+    safeTimeout(() => {
+      set(s => ({
+        tiles: s.tiles.map(t => (t.justRotated ? { ...t, justRotated: false } : t)),
       }))
     }, 300)
 
@@ -304,56 +296,46 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   checkWin: () => {
-    const { tiles, currentLevel, status, showingWin, moves, currentModeId } = get()
+    const { tiles, currentLevel, status, showingWin, moves, currentModeId, _winCheckPending } = get()
 
-    if (!currentLevel || status !== 'playing' || showingWin) return false
-    if (checkWinInProgress) return false
-
-    checkWinInProgress = true
+    // Guard: don't re-enter while a win animation is pending
+    if (!currentLevel || status !== 'playing' || showingWin || _winCheckPending) return false
 
     const mode = getModeById(currentModeId)
-    const { won } = mode.checkWin(
-      tiles,
-      currentLevel.goalNodes,
-      moves,
-      currentLevel.maxMoves
-    )
+    const { won } = mode.checkWin(tiles, currentLevel.goalNodes, moves, currentLevel.maxMoves)
 
-    if (won) {
-      const connected = getConnectedTiles(tiles, currentLevel.goalNodes)
-      stopGameTimer()
-      set({ showingWin: true, connectedTiles: connected, compressionActive: false })
-      sfx('win')
+    if (!won) return false
 
-      addTimeout(() => {
-        set(state => {
-          const newCompleted = [...new Set([...state.completedLevels, currentLevel.id])]
-          const newBest = { ...state.bestMoves }
-          if (!newBest[currentLevel.id] || moves < newBest[currentLevel.id]) {
-            newBest[currentLevel.id] = moves
-          }
-          persist({
-            completedLevels: newCompleted,
-            bestMoves: newBest,
-            showTutorial: false,
-            generatedLevels: state.generatedLevels,
-            currentModeId: state.currentModeId,
-            seenTutorials: state.seenTutorials,
-          })
-          return {
-            status: 'won' as const,
-            completedLevels: newCompleted,
-            bestMoves: newBest,
-          }
-        })
-        checkWinInProgress = false
-      }, 600)
+    // Mark win pending immediately to prevent re-entry
+    const connected = getConnectedTiles(tiles, currentLevel.goalNodes)
+    stopGameTimer()
+    set({ showingWin: true, connectedTiles: connected, compressionActive: false, _winCheckPending: true })
+    sfx('win')
 
-      return true
-    }
+    safeTimeout(() => {
+      const s = get()
+      const newCompleted = [...new Set([...s.completedLevels, currentLevel.id])]
+      const newBest = { ...s.bestMoves }
+      if (!newBest[currentLevel.id] || moves < newBest[currentLevel.id]) {
+        newBest[currentLevel.id] = moves
+      }
+      persist({
+        completedLevels: newCompleted,
+        bestMoves: newBest,
+        showTutorial: false,
+        generatedLevels: s.generatedLevels,
+        currentModeId: s.currentModeId,
+        seenTutorials: s.seenTutorials,
+      })
+      set({
+        status: 'won',
+        completedLevels: newCompleted,
+        bestMoves: newBest,
+        _winCheckPending: false,
+      })
+    }, 600)
 
-    checkWinInProgress = false
-    return false
+    return true
   },
 
   undoMove: () => {
@@ -364,32 +346,23 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     const prev = history[history.length - 1]
     sfx('undo')
-    set(state => ({
+    set(s => ({
       tiles: prev,
-      moves: Math.max(0, state.moves - 1),
-      history: state.history.slice(0, -1),
+      moves: Math.max(0, s.moves - 1),
+      history: s.history.slice(0, -1),
       lastRotatedPos: null,
     }))
   },
 
   advanceWalls: () => {
-    if (advanceWallsInProgress) return
-    advanceWallsInProgress = true
-
-    const { tiles, wallOffset, currentLevel, status, currentModeId } = get()
-    if (!currentLevel || status !== 'playing') {
-      advanceWallsInProgress = false
-      return
-    }
+    const { tiles, wallOffset, currentLevel, status, currentModeId, compressionOverride } = get()
+    if (!currentLevel || status !== 'playing') return
 
     const gs = currentLevel.gridSize
     const maxOff = Math.floor(gs / 2)
     const newOffset = wallOffset + 1
 
-    if (newOffset > maxOff) {
-      advanceWallsInProgress = false
-      return
-    }
+    if (newOffset > maxOff) return
 
     const newTiles = tiles.map(tile => {
       const dist = Math.min(tile.x, tile.y, gs - 1 - tile.x, gs - 1 - tile.y)
@@ -399,43 +372,43 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       return tile
     })
 
-    const { currentModeId: modeId, compressionOverride } = get()
-    const mode = getModeById(modeId)
+    // Check mode-specific loss condition
+    const mode = getModeById(currentModeId)
     if (mode.checkLoss) {
-      const { lost, reason } = mode.checkLoss(newTiles, newOffset, get().moves, currentLevel.maxMoves)
+      const { lost } = mode.checkLoss(newTiles, newOffset, get().moves, currentLevel.maxMoves)
       if (lost) {
         set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true })
         stopGameTimer()
         sfx('lose')
-        advanceWallsInProgress = false
         return
       }
+    }
+
+    // Check if all goal nodes were crushed
+    const allGoalsCrushed = currentLevel.goalNodes.every(g =>
+      newTiles.find(t => t.x === g.x && t.y === g.y)?.type === 'crushed'
+    )
+
+    if (allGoalsCrushed) {
+      set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true })
+      stopGameTimer()
+      sfx('lose')
+      return
     }
 
     sfx('crush')
     set({ tiles: newTiles, wallOffset: newOffset, wallsJustAdvanced: true })
 
-    addTimeout(() => {
+    safeTimeout(() => {
       set({ wallsJustAdvanced: false })
     }, 600)
-
-    const allGoalsCrushed = currentLevel.goalNodes.every(g =>
-      newTiles.find(t => t.x === g.x && t.y === g.y)?.type === 'crushed'
-    )
-    if (allGoalsCrushed) {
-      set({ status: 'lost' })
-      stopGameTimer()
-      sfx('lose')
-    }
-
-    advanceWallsInProgress = false
   },
 
   tickTimer: () => {
     const { status, timeUntilCompression, compressionActive, currentLevel, currentModeId, compressionOverride } = get()
     if (status !== 'playing') return
 
-    set(state => ({ elapsedSeconds: state.elapsedSeconds + 1 }))
+    set(s => ({ elapsedSeconds: s.elapsedSeconds + 1 }))
 
     if (!compressionActive || !currentLevel) return
 
@@ -451,18 +424,17 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }
   },
 
-  tickCompressionTimer: () => {
-    // Legacy: tickTimer now handles this
-  },
+  // Legacy alias — tickTimer now handles compression
+  tickCompressionTimer: () => {},
 
   triggerShake: () => {
     set({ screenShake: true })
-    addTimeout(() => set({ screenShake: false }), 400)
+    safeTimeout(() => set({ screenShake: false }), 400)
   },
 
   goToMenu: () => {
     clearAllTimers()
-    set({ status: 'menu', currentLevel: null, compressionActive: false, showingWin: false })
+    set({ status: 'menu', currentLevel: null, compressionActive: false, showingWin: false, _winCheckPending: false })
   },
 
   completeTutorial: () => {

@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useRef, useEffect, memo } from 'react'
 
 /**
@@ -45,6 +43,8 @@ function Pipes({ connections, color, glow }: { connections: string[]; color: str
   )
 }
 
+import type { TileRenderer } from '@/game/types'
+
 export interface GameTileProps {
   type: string
   connections: string[]
@@ -55,6 +55,9 @@ export interface GameTileProps {
   justRotated?: boolean
   onClick: () => void
   tileSize: number
+  /** Optional mode-specific renderer — enables slots, candy crush, match-3, etc. */
+  tileRenderer?: TileRenderer
+  displayData?: Record<string, unknown>
 }
 
 /**
@@ -62,7 +65,8 @@ export interface GameTileProps {
  * Memoized to prevent unnecessary re-renders
  */
 function GameTileComponent({
-  type, connections, canRotate, isGoalNode, isHint, inDanger, justRotated, onClick, tileSize
+  type, connections, canRotate, isGoalNode, isHint, inDanger, justRotated, onClick, tileSize,
+  tileRenderer, displayData
 }: GameTileProps) {
   const [pressed, setPressed] = useState(false)
   const [ripple, setRipple] = useState(false)
@@ -147,6 +151,35 @@ function GameTileComponent({
       ? (isHint ? 'rgba(253,230,138,0.7)' : 'rgba(245,158,11,0.5)')
       : 'rgba(59,130,246,0.4)'
 
+  // ── Custom mode renderer (slots, candy crush, match-3, etc.) ──────────────
+  if (tileRenderer && tileRenderer.type !== 'pipe') {
+    const ctx = { isHint, inDanger, justRotated: !!justRotated, compressionActive: false, tileSize }
+    const tile = { x: 0, y: 0, type: type as any, connections: connections as any, canRotate, isGoalNode, justRotated, displayData }
+    const customColors = tileRenderer.getColors?.(tile, ctx)
+    const symbol = tileRenderer.getSymbol?.(tile, ctx)
+    const appliedBg = customColors ?? bgStyle
+    return (
+      <div
+        onClick={handleClick}
+        style={{
+          borderRadius: r, position: 'relative',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: canRotate ? 'pointer' : 'default',
+          transform: pressed ? 'scale(0.84)' : justRotated ? 'scale(1.08)' : 'scale(1)',
+          transition: pressed ? 'transform 0.08s ease' : 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+          fontSize: tileRenderer.symbolSize ?? '1.2rem',
+          ...appliedBg, overflow: 'hidden',
+        }}
+      >
+        {symbol && <span style={{ zIndex: 1, userSelect: 'none' }}>{symbol}</span>}
+        {!tileRenderer.hidePipes && connections.length > 0 && type !== 'wall' && type !== 'crushed' && (
+          <Pipes connections={connections} color={connColor} glow={connGlow} />
+        )}
+      </div>
+    )
+  }
+
+  // ── Default pipe renderer ─────────────────────────────────────────────────
   return (
     <div
       onClick={handleClick}

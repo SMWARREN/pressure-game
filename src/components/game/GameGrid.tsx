@@ -1,5 +1,3 @@
-'use client'
-
 import { useMemo, memo } from 'react'
 import { Tile } from '@/game/types'
 import GameTile from './GameTile'

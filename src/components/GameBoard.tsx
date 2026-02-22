@@ -1,7 +1,6 @@
-'use client'
-
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useGameStore } from '@/game/store'
+import { useShallow } from 'zustand/react/shallow'
 import { LEVELS, getSolution, generateLevel, verifyLevel } from '@/game/levels'
 import TutorialScreen from './TutorialScreen'
 import ModeSelectorModal from './ModeSelectorModal'
@@ -10,14 +9,22 @@ import { Level } from '@/game/types'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PARTICLE SYSTEM
+   Isolated in its own component + imperative ref so 60fps RAF updates
+   never cause the full GameBoard to re-render.
 ═══════════════════════════════════════════════════════════════════════════ */
+
+import React from 'react'
 
 interface Particle {
   id: number; x: number; y: number; vx: number; vy: number
   life: number; maxLife: number; color: string; size: number; shape: 'circle' | 'star'
 }
 
-function useParticles() {
+interface ParticleSystemHandle {
+  burst: (x: number, y: number, color: string, count?: number, shape?: 'circle' | 'star') => void
+}
+
+const ParticleLayer = React.forwardRef<ParticleSystemHandle>((_, ref) => {
   const [particles, setParticles] = useState<Particle[]>([])
   const idRef = useRef(0)
   const frameRef = useRef<number | null>(null)
@@ -32,19 +39,37 @@ function useParticles() {
     setParticles(p => [...p, ...ps])
   }, [])
 
+  React.useImperativeHandle(ref, () => ({ burst }), [burst])
+
   useEffect(() => {
     if (particles.length === 0) {
       if (frameRef.current) { cancelAnimationFrame(frameRef.current); frameRef.current = null }
       return
     }
     frameRef.current = requestAnimationFrame(() => {
-      setParticles(ps => ps.map(p => ({ ...p, x: p.x + p.vx, y: p.y + p.vy, vy: p.vy + 0.18, life: p.life - 0.025 })).filter(p => p.life > 0))
+      setParticles(ps =>
+        ps.map(p => ({ ...p, x: p.x + p.vx, y: p.y + p.vy, vy: p.vy + 0.18, life: p.life - 0.025 }))
+          .filter(p => p.life > 0)
+      )
     })
     return () => { if (frameRef.current) { cancelAnimationFrame(frameRef.current); frameRef.current = null } }
   }, [particles])
 
-  return { particles, burst }
-}
+  if (particles.length === 0) return null
+  return (
+    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 999 }}>
+      {particles.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute', left: p.x - p.size / 2, top: p.y - p.size / 2,
+          width: p.size, height: p.size, borderRadius: p.shape === 'circle' ? '50%' : '2px',
+          background: p.color, opacity: p.life / p.maxLife,
+          transform: p.shape === 'star' ? `rotate(${p.life * 200}deg)` : undefined,
+          boxShadow: `0 0 ${p.size * 1.5}px ${p.color}`, pointerEvents: 'none',
+        }} />
+      ))}
+    </div>
+  )
+})
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RESPONSIVE VIEWPORT HOOK — re-renders on resize/orientation change
@@ -348,7 +373,11 @@ function StarField() {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
-  const { addGeneratedLevel, generatedLevels, deleteGeneratedLevel } = useGameStore()
+  const { addGeneratedLevel, generatedLevels, deleteGeneratedLevel } = useGameStore(useShallow(s => ({
+    addGeneratedLevel: s.addGeneratedLevel,
+    generatedLevels: s.generatedLevels,
+    deleteGeneratedLevel: s.deleteGeneratedLevel,
+  })))
   const [tab, setTab] = useState<'gen' | 'saved'>('gen')
   const [gridSize, setGridSize] = useState(5)
   const [nodeCount, setNodeCount] = useState(2)
@@ -459,7 +488,12 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 function MenuScreen() {
-  const { completedLevels, bestMoves, loadLevel, currentModeId } = useGameStore()
+  const { completedLevels, bestMoves, loadLevel, currentModeId } = useGameStore(useShallow(s => ({
+    completedLevels: s.completedLevels,
+    bestMoves: s.bestMoves,
+    loadLevel: s.loadLevel,
+    currentModeId: s.currentModeId,
+  })))
   const [view, setView] = useState<'levels' | 'workshop'>('levels')
   const [world, setWorld] = useState(1)
   const [showModeModal, setShowModeModal] = useState(false)
@@ -645,9 +679,30 @@ export default function GameBoard() {
     restartLevel, goToMenu, undoMove,
     completeTutorial, showTutorial,
     generatedLevels, history,
-  } = useGameStore()
+  } = useGameStore(useShallow(s => ({
+    currentLevel: s.currentLevel,
+    tiles: s.tiles,
+    wallOffset: s.wallOffset,
+    compressionActive: s.compressionActive,
+    moves: s.moves,
+    status: s.status,
+    elapsedSeconds: s.elapsedSeconds,
+    screenShake: s.screenShake,
+    timeUntilCompression: s.timeUntilCompression,
+    wallsJustAdvanced: s.wallsJustAdvanced,
+    loadLevel: s.loadLevel,
+    startGame: s.startGame,
+    tapTile: s.tapTile,
+    restartLevel: s.restartLevel,
+    goToMenu: s.goToMenu,
+    undoMove: s.undoMove,
+    completeTutorial: s.completeTutorial,
+    showTutorial: s.showTutorial,
+    generatedLevels: s.generatedLevels,
+    history: s.history,
+  })))
 
-  const { particles, burst } = useParticles()
+  const particleRef = useRef<ParticleSystemHandle>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const [showHint, setShowHint] = useState(false)
   const { w: vw, h: vh } = useViewport()
@@ -662,7 +717,7 @@ export default function GameBoard() {
       const cy = rect.top + rect.height / 2
       for (let i = 0; i < 8; i++) {
         setTimeout(() => {
-          burst(
+          particleRef.current?.burst(
             cx + (Math.random() - .5) * 120, cy + (Math.random() - .5) * 100,
             i % 3 === 0 ? '#22c55e' : i % 3 === 1 ? '#a5b4fc' : '#fbbf24', 14,
             i % 2 === 0 ? 'star' : 'circle'
@@ -670,7 +725,7 @@ export default function GameBoard() {
         }, i * 80)
       }
     }
-  }, [status, burst])
+  }, [status])
 
   const handleTileTap = useCallback((x: number, y: number) => {
     if (status !== 'playing') return
@@ -681,10 +736,10 @@ export default function GameBoard() {
       const gs = currentLevel.gridSize
       const px = rect.left + (x + 0.5) * (rect.width / gs)
       const py = rect.top + (y + 0.5) * (rect.height / gs)
-      burst(px, py, '#f59e0b', 5)
+      particleRef.current?.burst(px, py, '#f59e0b', 5)
     }
     tapTile(x, y)
-  }, [status, tiles, currentLevel, burst, tapTile])
+  }, [status, tiles, currentLevel, tapTile])
 
   const tileMap = useMemo(() => {
     const map = new Map<string, typeof tiles[0]>()
@@ -729,18 +784,8 @@ export default function GameBoard() {
     }}>
       <StarField />
 
-      {/* Particles layer */}
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 999 }}>
-        {particles.map(p => (
-          <div key={p.id} style={{
-            position: 'absolute', left: p.x - p.size / 2, top: p.y - p.size / 2,
-            width: p.size, height: p.size, borderRadius: p.shape === 'circle' ? '50%' : '2px',
-            background: p.color, opacity: p.life / p.maxLife,
-            transform: p.shape === 'star' ? `rotate(${p.life * 200}deg)` : undefined,
-            boxShadow: `0 0 ${p.size * 1.5}px ${p.color}`, pointerEvents: 'none',
-          }} />
-        ))}
-      </div>
+      {/* Particles — isolated component, won't re-render the rest of the board */}
+      <ParticleLayer ref={particleRef} />
 
       {/* ── HEADER ──────────────────────────────────────────────── */}
       <header style={{
