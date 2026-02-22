@@ -43,7 +43,8 @@ export default function GameControls({
         marginTop: 16,
         position: 'relative',
         zIndex: 1,
-      }}>
+      }}
+    >
       {/* Undo button */}
       <button
         onClick={onUndo}
@@ -52,7 +53,8 @@ export default function GameControls({
           ...iconBtn,
           opacity: undoDisabled ? 0.3 : 1,
         }}
-        title="Undo">
+        title="Undo"
+      >
         <span style={{ fontSize: 16 }}>⎌</span>
       </button>
 
@@ -69,7 +71,8 @@ export default function GameControls({
           color: '#3a3a55',
           minWidth: 60,
           textAlign: 'center',
-        }}>
+        }}
+      >
         {timeStr || '--:--'}
       </div>
 
@@ -82,7 +85,8 @@ export default function GameControls({
           background: showHint ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.02)',
           color: showHint ? '#fbbf24' : '#3a3a55',
         }}
-        title="Hint">
+        title="Hint"
+      >
         <span style={{ fontSize: 16 }}>💡</span>
       </button>
     </div>

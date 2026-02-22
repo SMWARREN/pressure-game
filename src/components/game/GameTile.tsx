@@ -277,7 +277,8 @@ function GameTileComponent({
           fontSize: tileRenderer.symbolSize ?? '1.2rem',
           ...appliedBg,
           overflow: 'hidden',
-        }}>
+        }}
+      >
         {symbol && <span style={{ zIndex: 1, userSelect: 'none' }}>{symbol}</span>}
         {!tileRenderer.hidePipes &&
           connections.length > 0 &&
@@ -304,7 +305,8 @@ function GameTileComponent({
         transition: tileTransition,
         ...bgStyle,
         overflow: 'hidden',
-      }}>
+      }}
+    >
       {/* Ripple effect */}
       {ripple && canRotate && (
         <div
@@ -365,7 +367,8 @@ function GameTileComponent({
             color: 'rgba(239,68,68,0.4)',
             fontWeight: 900,
             zIndex: 1,
-          }}>
+          }}
+        >
           ✕
         </div>
       )}

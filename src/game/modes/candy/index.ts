@@ -128,7 +128,5 @@ export const CandyMode: GameModeConfig = {
   statsLabels: {
     moves: 'TAPS',
   },
-  statsDisplay: [
-    { type: 'moves' },
-  ],
+  statsDisplay: [{ type: 'moves' }],
 };

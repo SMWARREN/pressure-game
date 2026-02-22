@@ -36,7 +36,8 @@ export default function WallOverlay({
         pointerEvents: 'none',
         borderRadius: 18,
         overflow: 'hidden',
-      }}>
+      }}
+    >
       {/* Top wall */}
       <div
         style={{

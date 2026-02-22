@@ -98,7 +98,8 @@ function GameGridComponent({
           gap,
           width: '100%',
           height: '100%',
-        }}>
+        }}
+      >
         {gridCells.map(({ key, x, y, tile, inDanger }) => {
           const isHint = hintPos?.x === x && hintPos?.y === y;
 

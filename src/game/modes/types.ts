@@ -231,8 +231,6 @@ export interface GameModeConfig {
    */
   statsDisplay?: StatComponentConfig[];
 
-  
-
   /**
    * Returns the full level list for this mode.
    * GameBoard uses this to populate the level selector and world tabs.

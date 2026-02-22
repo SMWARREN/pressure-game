@@ -17,7 +17,8 @@ export default function ModeSelector() {
 
   return (
     <div
-      style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 360 }}>
+      style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 360 }}
+    >
       <div
         style={{
           fontSize: 11,
@@ -26,7 +27,8 @@ export default function ModeSelector() {
           color: '#3a3a55',
           textAlign: 'center',
           marginBottom: 2,
-        }}>
+        }}
+      >
         GAME MODE
       </div>
 
@@ -49,7 +51,8 @@ export default function ModeSelector() {
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.2s',
-              }}>
+              }}
+            >
               <span
                 style={{
                   fontSize: 22,
@@ -57,7 +60,8 @@ export default function ModeSelector() {
                     ? `drop-shadow(0 0 8px ${mode.color}80)`
                     : 'grayscale(1) opacity(0.3)',
                   transition: 'filter 0.2s',
-                }}>
+                }}
+              >
                 {mode.icon}
               </span>
 
@@ -68,7 +72,8 @@ export default function ModeSelector() {
                     fontWeight: 800,
                     color: active ? mode.color : '#2a2a3e',
                     transition: 'color 0.2s',
-                  }}>
+                  }}
+                >
                   {mode.name}
                 </div>
                 <div style={{ fontSize: 11, color: '#25253a', marginTop: 2, lineHeight: 1.3 }}>
@@ -83,7 +88,8 @@ export default function ModeSelector() {
                   flexDirection: 'column',
                   gap: 3,
                   alignItems: 'flex-end',
-                }}>
+                }}
+              >
                 {mode.supportsUndo === false && <Badge label="No Undo" color="#ef4444" />}
                 {mode.wallCompression === 'never' && <Badge label="No Walls" color="#34d399" />}
                 {mode.wallCompression === 'always' && <Badge label="Walls On" color="#f97316" />}
@@ -105,7 +111,8 @@ export default function ModeSelector() {
             borderRadius: 10,
             border: '1px solid #12122a',
             background: '#07070e',
-          }}>
+          }}
+        >
           <span style={{ fontSize: 12, color: '#3a3a55', fontWeight: 700 }}>Wall Compression</span>
           <Toggle
             value={compressionOverride !== false}
@@ -130,7 +137,8 @@ function Badge({ label, color }: { label: string; color: string }) {
         borderRadius: 4,
         padding: '2px 5px',
         background: `${color}10`,
-      }}>
+      }}
+    >
       {label}
     </span>
   );
@@ -158,7 +166,8 @@ function Toggle({
         position: 'relative',
         transition: 'background 0.2s',
         boxShadow: value ? `0 0 8px ${color}60` : 'none',
-      }}>
+      }}
+    >
       <div
         style={{
           position: 'absolute',

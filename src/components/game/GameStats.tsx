@@ -1,4 +1,3 @@
-
 import { getModeById } from '@/game/modes';
 import { StatComponentConfig } from '@/game/modes/types'; // Import the new type
 /**
@@ -29,10 +28,12 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
           fontSize: 9,
           letterSpacing: '0.14em',
           marginBottom: 4,
-        }}>
+        }}
+      >
         <span style={{ color: '#3a3a55' }}>WALLS</span>
         <span
-          style={{ color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}>
+          style={{ color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}
+        >
           {label}
         </span>
       </div>
@@ -43,7 +44,8 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
           borderRadius: 4,
           overflow: 'hidden',
           border: '1px solid #131325',
-        }}>
+        }}
+      >
         <div
           style={{
             height: '100%',
@@ -75,14 +77,16 @@ function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) 
         padding: '6px 12px',
         flexShrink: 0,
         minWidth: 54,
-      }}>
+      }}
+    >
       <div
         style={{
           fontSize: 20,
           fontWeight: 900,
           lineHeight: 1,
           fontVariantNumeric: 'tabular-nums',
-        }}>
+        }}
+      >
         {moves}
       </div>
       <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.12em', marginTop: 2 }}>
@@ -108,7 +112,8 @@ function CountdownTimer({ seconds, active }: { seconds: number; active: boolean 
         padding: '6px 12px',
         flexShrink: 0,
         minWidth: 54,
-      }}>
+      }}
+    >
       <div
         style={{
           fontSize: 20,
@@ -117,7 +122,8 @@ function CountdownTimer({ seconds, active }: { seconds: number; active: boolean 
           fontVariantNumeric: 'tabular-nums',
           color: seconds <= 3 && active ? '#ef4444' : '#fff',
           transition: 'color 0.2s',
-        }}>
+        }}
+      >
         {seconds}
       </div>
       <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.12em', marginTop: 2 }}>
@@ -149,7 +155,9 @@ export default function GameStats({
 }: GameStatsProps) {
   const activeMode = getModeById(currentModeId);
   const statsDisplay = activeMode.statsDisplay || [
-    { type: 'moves' }, { type: 'compressionBar' }, { type: 'countdown' }
+    { type: 'moves' },
+    { type: 'compressionBar' },
+    { type: 'countdown' },
   ]; // Default to all if not specified
 
   return (
@@ -163,15 +171,28 @@ export default function GameStats({
         marginBottom: 12,
         position: 'relative',
         zIndex: 1,
-      }}>
+      }}
+    >
       {statsDisplay.map((stat: StatComponentConfig) => {
         switch (stat.type) {
           case 'moves':
             return <MovesCounter key="moves" moves={moves} maxMoves={maxMoves} />;
           case 'compressionBar':
-            return <CompressionBar key="compressionBar" percent={compressionPercent} active={compressionActive} />;
+            return (
+              <CompressionBar
+                key="compressionBar"
+                percent={compressionPercent}
+                active={compressionActive}
+              />
+            );
           case 'countdown':
-            return <CountdownTimer key="countdown" seconds={countdownSeconds} active={compressionActive} />;
+            return (
+              <CountdownTimer
+                key="countdown"
+                seconds={countdownSeconds}
+                active={compressionActive}
+              />
+            );
           default:
             return null; // Should not happen with type checking
         }

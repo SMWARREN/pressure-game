@@ -414,7 +414,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
           borderRadius: 12,
           padding: 4,
           border: '1px solid #12122a',
-        }}>
+        }}
+      >
         {(
           [
             ['gen', 'Generate'],
@@ -436,7 +437,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
               fontWeight: 700,
               letterSpacing: '0.04em',
               minHeight: 44,
-            }}>
+            }}
+          >
             {label}
           </button>
         ))}
@@ -447,7 +449,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
           {/* Grid Size */}
           <div>
             <div
-              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}>
+              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}
+            >
               GRID SIZE: {gridSize}×{gridSize}
             </div>
             <input
@@ -462,7 +465,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
           {/* Node Count */}
           <div>
             <div
-              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}>
+              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}
+            >
               NODES: {Math.min(nodeCount, maxNodes)}
             </div>
             <input
@@ -477,7 +481,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
           {/* Difficulty */}
           <div>
             <div
-              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}>
+              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}
+            >
               DIFFICULTY
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -499,7 +504,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
                     transition: 'all 0.15s',
                     textTransform: 'uppercase',
                     minHeight: 44,
-                  }}>
+                  }}
+                >
                   {d}
                 </button>
               ))}
@@ -516,14 +522,16 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
                 background: result.success ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
                 border: `1px solid ${result.success ? '#22c55e40' : '#ef444440'}`,
                 color: result.success ? '#22c55e' : '#ef4444',
-              }}>
+              }}
+            >
               {result.message}
             </div>
           )}
           <button
             onClick={handleGenerate}
             disabled={generating}
-            style={{ ...btnPrimary, width: '100%', opacity: generating ? 0.7 : 1 }}>
+            style={{ ...btnPrimary, width: '100%', opacity: generating ? 0.7 : 1 }}
+          >
             {generating ? 'GENERATING...' : '⚡ GENERATE LEVEL'}
           </button>
         </div>
@@ -547,7 +555,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
                   borderRadius: 12,
                   padding: '12px 14px',
                   border: '1px solid #12122a',
-                }}>
+                }}
+              >
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>{lvl.name}</div>
                   <div style={{ fontSize: 10, color: '#3a3a55' }}>
@@ -557,7 +566,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={() => onLoad(lvl)}
-                    style={{ ...btnPrimary, padding: '8px 14px', fontSize: 12 }}>
+                    style={{ ...btnPrimary, padding: '8px 14px', fontSize: 12 }}
+                  >
                     Play
                   </button>
                   <button
@@ -572,7 +582,8 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
                       fontWeight: 700,
                       cursor: 'pointer',
                       minHeight: 44,
-                    }}>
+                    }}
+                  >
                     ✕
                   </button>
                 </div>
@@ -637,7 +648,8 @@ function MenuScreen() {
         color: '#fff',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
-      }}>
+      }}
+    >
       <StarField />
 
       {/* ── HEADER ─────────────────────────────────────────────── */}
@@ -654,7 +666,8 @@ function MenuScreen() {
           flexDirection: 'column',
           alignItems: 'center',
           padding: 'max(16px, env(safe-area-inset-top)) 20px 14px',
-        }}>
+        }}
+      >
         <div
           style={{
             fontSize: 'clamp(2rem, 10vw, 3.5rem)',
@@ -664,7 +677,8 @@ function MenuScreen() {
             background: 'linear-gradient(135deg, #c4b5fd 0%, #818cf8 40%, #6366f1 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-          }}>
+          }}
+        >
           PRESSURE
         </div>
         <div style={{ fontSize: 10, color: '#3a3a55', letterSpacing: '0.25em', marginTop: 4 }}>
@@ -678,7 +692,8 @@ function MenuScreen() {
               fontSize: 10,
               color: '#25253a',
               marginBottom: 4,
-            }}>
+            }}
+          >
             <span>
               {totalDone}/{levels.length} COMPLETE
             </span>
@@ -708,7 +723,8 @@ function MenuScreen() {
           borderBottom: '1px solid #12122a',
           zIndex: 2,
           position: 'relative',
-        }}>
+        }}
+      >
         {(
           [
             ['levels', 'Levels'],
@@ -731,7 +747,8 @@ function MenuScreen() {
               borderBottom: view === v ? '2px solid #6366f1' : '2px solid transparent',
               transition: 'all 0.15s',
               minHeight: 48,
-            }}>
+            }}
+          >
             {label}
           </button>
         ))}
@@ -748,14 +765,16 @@ function MenuScreen() {
           WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'],
           position: 'relative',
           zIndex: 1,
-        }}>
+        }}
+      >
         <div
           style={{
             padding: '20px 16px max(24px, env(safe-area-inset-bottom))',
             display: 'flex',
             flexDirection: 'column',
             gap: 20,
-          }}>
+          }}
+        >
           {view === 'levels' && (
             <>
               {/* ── World tagline / flavour text ── */}
@@ -771,7 +790,8 @@ function MenuScreen() {
                         color: wm.color,
                         letterSpacing: '-0.03em',
                         filter: `drop-shadow(0 0 16px ${wm.color}60)`,
-                      }}>
+                      }}
+                    >
                       {wm.icon} {wm.name}
                     </div>
                     <div
@@ -780,7 +800,8 @@ function MenuScreen() {
                         color: '#3a3a55',
                         marginTop: 4,
                         letterSpacing: '0.1em',
-                      }}>
+                      }}
+                    >
                       {wm.tagline.toUpperCase()}
                     </div>
                   </div>
@@ -793,7 +814,8 @@ function MenuScreen() {
                   display: 'grid',
                   gridTemplateColumns: `repeat(${activeMode.worlds.length}, 1fr)`,
                   gap: 8,
-                }}>
+                }}
+              >
                 {activeMode.worlds.map((wDef) => {
                   const lvls = levels.filter((l) => l.world === wDef.id);
                   const done = lvls.filter((l) => completedLevels.includes(l.id)).length;
@@ -815,12 +837,14 @@ function MenuScreen() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 4,
-                      }}>
+                      }}
+                    >
                       <div
                         style={{
                           fontSize: 20,
                           filter: active ? `drop-shadow(0 0 8px ${wDef.color}80)` : 'none',
-                        }}>
+                        }}
+                      >
                         {wDef.icon}
                       </div>
                       <div
@@ -828,7 +852,8 @@ function MenuScreen() {
                           fontSize: 12,
                           fontWeight: 800,
                           color: active ? wDef.color : '#3a3a55',
-                        }}>
+                        }}
+                      >
                         {wDef.name}
                       </div>
                       <div style={{ fontSize: 10, color: '#25253a' }}>
@@ -848,7 +873,8 @@ function MenuScreen() {
                     letterSpacing: '0.2em',
                     marginBottom: 10,
                     paddingLeft: 2,
-                  }}>
+                  }}
+                >
                   SELECT LEVEL
                 </div>
                 <div
@@ -856,7 +882,8 @@ function MenuScreen() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))',
                     gap: 'clamp(8px, 2vw, 12px)',
-                  }}>
+                  }}
+                >
                   {levels
                     .filter((l) => l.world === world)
                     .map((level) => {
@@ -883,7 +910,8 @@ function MenuScreen() {
                             transition: 'all 0.15s',
                             minWidth: 48,
                             minHeight: 48,
-                          }}>
+                          }}
+                        >
                           {level.id}
                           {best !== undefined && (
                             <div
@@ -902,7 +930,8 @@ function MenuScreen() {
                                 color: '#000',
                                 fontWeight: 900,
                                 boxShadow: '0 0 8px rgba(251,191,36,0.6)',
-                              }}>
+                              }}
+                            >
                               ★
                             </div>
                           )}
@@ -930,7 +959,8 @@ function MenuScreen() {
           justifyContent: 'space-between',
           padding: 'clamp(10px, 1.5vh, 14px) 20px max(12px, env(safe-area-inset-bottom))',
           gap: 12,
-        }}>
+        }}
+      >
         {/* ── EFFECTS TOGGLE ─────────────────────── */}
         <button
           onClick={toggleAnimations}
@@ -944,7 +974,8 @@ function MenuScreen() {
             background: animationsEnabled ? '#6366f10a' : 'transparent',
             cursor: 'pointer',
           }}
-          title={animationsEnabled ? 'Disable effects' : 'Enable effects'}>
+          title={animationsEnabled ? 'Disable effects' : 'Enable effects'}
+        >
           <span style={{ fontSize: 13 }}>{animationsEnabled ? '✨' : '◻'}</span>
           <span
             style={{
@@ -952,7 +983,8 @@ function MenuScreen() {
               fontWeight: 700,
               letterSpacing: '0.06em',
               color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
-            }}>
+            }}
+          >
             FX
           </span>
         </button>
@@ -970,7 +1002,8 @@ function MenuScreen() {
             background: `${activeMode.color}10`,
             cursor: 'pointer',
             transition: 'all 0.2s',
-          }}>
+          }}
+        >
           <span style={{ fontSize: 14 }}>{activeMode.icon}</span>
           <span
             style={{
@@ -978,7 +1011,8 @@ function MenuScreen() {
               fontWeight: 700,
               letterSpacing: '0.06em',
               color: activeMode.color,
-            }}>
+            }}
+          >
             {activeMode.name.toUpperCase()}
           </span>
           <span style={{ fontSize: 9, color: activeMode.color + '80' }}>▼</span>
@@ -1132,7 +1166,8 @@ export default function GameBoard() {
         overflow: 'hidden',
         transform: animationsEnabled && screenShake ? 'translateX(-4px)' : 'none',
         transition: animationsEnabled && screenShake ? 'none' : 'transform 0.05s ease',
-      }}>
+      }}
+    >
       <StarField />
 
       {/* Particles — isolated component, won't re-render the rest of the board */}
@@ -1153,7 +1188,8 @@ export default function GameBoard() {
           justifyContent: 'space-between',
           padding: 'max(10px, env(safe-area-inset-top)) 12px 10px',
           gap: 8,
-        }}>
+        }}
+      >
         <button onClick={goToMenu} style={iconBtn} title="Menu">
           <span style={{ fontSize: 16 }}>←</span>
         </button>
@@ -1166,7 +1202,8 @@ export default function GameBoard() {
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-            }}>
+            }}
+          >
             {currentLevel.name}
           </div>
           <div
@@ -1175,7 +1212,8 @@ export default function GameBoard() {
               color: '#25253a',
               letterSpacing: '0.15em',
               marginTop: 2,
-            }}>
+            }}
+          >
             LEVEL {currentLevel.id}
             {currentLevel.isGenerated ? ' · CUSTOM' : ''}
           </div>
@@ -1206,7 +1244,8 @@ export default function GameBoard() {
           position: 'relative',
           zIndex: 1,
           padding: '4px 0',
-        }}>
+        }}
+      >
         <div
           ref={boardRef}
           style={{
@@ -1222,7 +1261,8 @@ export default function GameBoard() {
               : '0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)',
             transition: 'border-color 0.3s, box-shadow 0.3s',
             flexShrink: 0,
-          }}>
+          }}
+        >
           {/* Tile grid + wall overlay — delegated to GameGrid which passes
               mode.tileRenderer down to each GameTile, enabling candy crush,
               slots, match-3, or any custom visual without touching this file. */}
@@ -1272,26 +1312,30 @@ export default function GameBoard() {
           justifyContent: 'center',
           gap: 'clamp(10px, 3vw, 20px)',
           padding: 'clamp(8px, 1.5vh, 12px) 16px max(10px, env(safe-area-inset-bottom))',
-        }}>
+        }}
+      >
         {/* Undo */}
         <button
           onClick={undoMove}
           disabled={history.length === 0 || status !== 'playing'}
           style={{ ...iconBtn, opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1 }}
-          title="Undo">
+          title="Undo"
+        >
           <span style={{ fontSize: 18 }}>⌫</span>
         </button>
 
         {/* Timer display */}
         <div
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 48 }}>
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 48 }}
+        >
           <div
             style={{
               fontSize: 'clamp(14px, 4vw, 18px)',
               fontWeight: 900,
               fontVariantNumeric: 'tabular-nums',
               letterSpacing: '-0.02em',
-            }}>
+            }}
+          >
             {timeStr || '—'}
           </div>
           <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
@@ -1307,7 +1351,8 @@ export default function GameBoard() {
             color: showHint ? '#fbbf24' : '#3a3a55',
             border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
           }}
-          title="Hint">
+          title="Hint"
+        >
           <span style={{ fontSize: 16 }}>💡</span>
         </button>
 
@@ -1319,7 +1364,8 @@ export default function GameBoard() {
             color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
             border: animationsEnabled ? '1px solid #6366f140' : '1px solid #12122a',
           }}
-          title={animationsEnabled ? 'Disable effects' : 'Enable effects'}>
+          title={animationsEnabled ? 'Disable effects' : 'Enable effects'}
+        >
           <span style={{ fontSize: 14 }}>{animationsEnabled ? '✨' : '◻'}</span>
         </button>
       </footer>

@@ -156,7 +156,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             background: 'linear-gradient(145deg, #14532d, #0f3d21)',
             border: '2px solid #22c55e',
             boxShadow: '0 0 14px rgba(34,197,94,0.3)',
-          }}>
+          }}
+        >
           {pipe('right', 'rgba(134,239,172,0.9)')}
           {pipe('down', 'rgba(134,239,172,0.9)')}
           {dot('rgba(134,239,172,0.9)')}
@@ -180,7 +181,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             background: 'linear-gradient(145deg, #78350f, #5c2a0a)',
             border: '2px solid #f59e0b',
             boxShadow: '0 0 8px rgba(245,158,11,0.2)',
-          }}>
+          }}
+        >
           {pipe('left', 'rgba(252,211,77,0.9)')}
           {pipe('right', 'rgba(252,211,77,0.9)')}
           {dot('rgba(252,211,77,0.9)')}
@@ -192,7 +194,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             background: 'linear-gradient(145deg, #14532d, #0f3d21)',
             border: '2px solid #22c55e',
             boxShadow: '0 0 14px rgba(34,197,94,0.3)',
-          }}>
+          }}
+        >
           {pipe('left', 'rgba(134,239,172,0.9)')}
           {dot('rgba(134,239,172,0.9)')}
           <div
@@ -222,7 +225,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
               background: 'linear-gradient(145deg, #78350f, #5c2a0a)',
               border: '2px solid #f59e0b',
               boxShadow: '0 0 8px rgba(245,158,11,0.2)',
-            }}>
+            }}
+          >
             {pipe('up', 'rgba(252,211,77,0.9)')}
             {pipe('right', 'rgba(252,211,77,0.9)')}
             {dot('rgba(252,211,77,0.9)')}
@@ -238,7 +242,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
               background: 'linear-gradient(145deg, #78350f, #5c2a0a)',
               border: '2px solid #fde68a',
               boxShadow: '0 0 18px rgba(253,230,138,0.5)',
-            }}>
+            }}
+          >
             {pipe('right', 'rgba(253,230,138,0.95)')}
             {pipe('down', 'rgba(253,230,138,0.95)')}
             {dot('rgba(253,230,138,0.95)')}
@@ -258,7 +263,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             background: 'linear-gradient(145deg, #14532d, #0f3d21)',
             border: '2px solid #22c55e',
             boxShadow: '0 0 18px rgba(34,197,94,0.4)',
-          }}>
+          }}
+        >
           {pipe('right', 'rgba(134,239,172,0.9)')}
           {pipe('down', 'rgba(134,239,172,0.9)')}
           {dot('rgba(134,239,172,0.9)')}
@@ -288,7 +294,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             ...tileBase,
             background: 'linear-gradient(145deg, #1e3060, #172349)',
             border: '1.5px solid #2a4080',
-          }}>
+          }}
+        >
           {pipe('right', 'rgba(147,197,253,0.85)')}
           {dot('rgba(147,197,253,0.85)')}
         </div>
@@ -297,7 +304,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             ...tileBase,
             background: 'linear-gradient(145deg, #1e3060, #172349)',
             border: '1.5px solid #2a4080',
-          }}>
+          }}
+        >
           {pipe('left', 'rgba(147,197,253,0.85)')}
           {pipe('right', 'rgba(147,197,253,0.85)')}
           {dot('rgba(147,197,253,0.85)')}
@@ -307,7 +315,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             ...tileBase,
             background: 'linear-gradient(145deg, #1e3060, #172349)',
             border: '1.5px solid #2a4080',
-          }}>
+          }}
+        >
           {pipe('left', 'rgba(147,197,253,0.85)')}
           {dot('rgba(147,197,253,0.85)')}
         </div>
@@ -381,7 +390,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-          }}>
+          }}
+        >
           <div style={{ fontSize: 28, filter: 'drop-shadow(0 0 8px rgba(239,68,68,0.5))' }}>💀</div>
         </div>
       </div>
@@ -399,7 +409,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
               background: 'rgba(58,58,85,0.15)',
               color: '#818cf8',
               fontSize: 20,
-            }}>
+            }}
+          >
             ⎌
           </div>
           <div style={{ fontSize: 9, color: '#3a3a55' }}>UNDO</div>
@@ -413,7 +424,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
               background: 'rgba(245,158,11,0.08)',
               color: '#fbbf24',
               fontSize: 20,
-            }}>
+            }}
+          >
             💡
           </div>
           <div style={{ fontSize: 9, color: '#f59e0b' }}>HINT</div>
@@ -484,7 +496,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
         padding:
           'max(16px, env(safe-area-inset-top, 16px)) 16px max(16px, env(safe-area-inset-bottom, 16px))',
         overflowY: 'auto',
-      }}>
+      }}
+    >
       {/* Mode badge */}
       <div
         style={{
@@ -500,7 +513,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
           fontWeight: 700,
           letterSpacing: '0.1em',
           color: accentColor,
-        }}>
+        }}
+      >
         <span>{mode.icon}</span>
         <span>{mode.name.toUpperCase()} — HOW TO PLAY</span>
       </div>
@@ -512,7 +526,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
           gap: 8,
           marginBottom: 'clamp(12px, 2.5vh, 20px)',
           padding: '8px 0',
-        }}>
+        }}
+      >
         {steps.map((_, i) => (
           <button
             key={i}
@@ -526,7 +541,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-            }}>
+            }}
+          >
             <div
               style={{
                 width: i === step ? 24 : 8,
@@ -549,7 +565,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
           border: `1px solid ${accentColor}20`,
           padding: 'clamp(18px, 4vw, 28px) clamp(16px, 4vw, 24px)',
           boxShadow: `0 0 60px ${accentColor}08, 0 8px 40px rgba(0,0,0,0.8)`,
-        }}>
+        }}
+      >
         <div style={{ textAlign: 'center', marginBottom: 'clamp(14px, 3vw, 20px)' }}>
           <div
             style={{
@@ -558,7 +575,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
               marginBottom: 12,
               color: s.iconColor,
               filter: `drop-shadow(0 0 16px ${s.iconColor}80)`,
-            }}>
+            }}
+          >
             {s.icon}
           </div>
           <div
@@ -567,7 +585,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
               fontWeight: 900,
               letterSpacing: '-0.02em',
               marginBottom: 6,
-            }}>
+            }}
+          >
             {s.title}
           </div>
           <div
@@ -575,7 +594,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
               fontSize: 'clamp(11px, 3vw, 12px)',
               color: '#3a3a55',
               letterSpacing: '0.04em',
-            }}>
+            }}
+          >
             {s.subtitle}
           </div>
         </div>
@@ -590,7 +610,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
             borderRadius: 14,
             border: '1px solid #0e0e1e',
             overflowX: 'auto',
-          }}>
+          }}
+        >
           <DemoVisual type={s.demo} modeColor={accentColor} />
         </div>
 
@@ -600,7 +621,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
             borderRadius: 12,
             padding: 'clamp(12px, 3vw, 16px)',
             marginBottom: 'clamp(14px, 3vw, 20px)',
-          }}>
+          }}
+        >
           <p
             style={{
               fontSize: 'clamp(12px, 3.2vw, 13px)',
@@ -608,7 +630,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
               lineHeight: 1.8,
               margin: 0,
               whiteSpace: 'pre-line',
-            }}>
+            }}
+          >
             {s.body}
           </p>
         </div>
@@ -628,7 +651,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
                 fontWeight: 600,
                 cursor: 'pointer',
                 minHeight: 48,
-              }}>
+              }}
+            >
               ← Back
             </button>
           )}
@@ -651,7 +675,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
                 : '0 4px 20px rgba(99,102,241,0.35)',
               letterSpacing: '0.04em',
               minHeight: 48,
-            }}>
+            }}
+          >
             {isLast ? `▶ Play ${mode.name}!` : 'Next →'}
           </button>
         </div>
@@ -669,7 +694,8 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
           fontSize: 'clamp(11px, 3vw, 12px)',
           letterSpacing: '0.08em',
           minHeight: 44,
-        }}>
+        }}
+      >
         SKIP TUTORIAL
       </button>
     </div>

@@ -25,7 +25,8 @@ function Badge({ label, color }: { label: string; color: string }) {
         borderRadius: 4,
         padding: '2px 5px',
         background: `${color}10`,
-      }}>
+      }}
+    >
       {label}
     </span>
   );
@@ -57,7 +58,8 @@ function Toggle({
         boxShadow: value ? `0 0 8px ${color}60` : 'none',
         minHeight: 'unset',
         minWidth: 'unset',
-      }}>
+      }}
+    >
       <div
         style={{
           position: 'absolute',
@@ -125,7 +127,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           animation: 'slideUp 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
           maxHeight: '85vh',
           overflowY: 'auto',
-        }}>
+        }}
+      >
         <style>{`
           @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
@@ -151,7 +154,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
             alignItems: 'center',
             justifyContent: 'space-between',
             marginBottom: 16,
-          }}>
+          }}
+        >
           <div>
             <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.01em' }}>Game Mode</div>
             <div style={{ fontSize: 11, color: '#3a3a55', marginTop: 2 }}>
@@ -175,7 +179,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
               fontWeight: 700,
               minHeight: 'unset',
               minWidth: 'unset',
-            }}>
+            }}
+          >
             ✕
           </button>
         </div>
@@ -204,7 +209,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                   width: '100%',
                   position: 'relative',
                   boxShadow: active ? `0 0 20px ${mode.color}12` : 'none',
-                }}>
+                }}
+              >
                 {/* "NEW" badge for unseen modes */}
                 {isNew && (
                   <div
@@ -219,7 +225,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                       background: '#6366f1',
                       padding: '2px 6px',
                       borderRadius: 4,
-                    }}>
+                    }}
+                  >
                     NEW
                   </div>
                 )}
@@ -232,7 +239,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                       : 'grayscale(0.6) opacity(0.5)',
                     transition: 'filter 0.2s',
                     flexShrink: 0,
-                  }}>
+                  }}
+                >
                   {mode.icon}
                 </span>
 
@@ -244,7 +252,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                       color: active ? mode.color : '#2a2a3e',
                       transition: 'color 0.2s',
                       marginBottom: 3,
-                    }}>
+                    }}
+                  >
                     {mode.name}
                   </div>
                   <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>
@@ -260,7 +269,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                     gap: 3,
                     alignItems: 'flex-end',
                     flexShrink: 0,
-                  }}>
+                  }}
+                >
                   {mode.supportsUndo === false && <Badge label="No Undo" color="#ef4444" />}
                   {mode.wallCompression === 'never' && <Badge label="No Walls" color="#34d399" />}
                   {mode.wallCompression === 'always' && <Badge label="Walls On" color="#f97316" />}
@@ -284,7 +294,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
               border: '1px solid #12122a',
               background: '#07070e',
               marginBottom: 8,
-            }}>
+            }}
+          >
             <div>
               <div style={{ fontSize: 13, color: '#3a3a55', fontWeight: 700 }}>
                 Wall Compression
