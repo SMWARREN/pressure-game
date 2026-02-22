@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useGameStore } from '@/game/store'
 import { LEVELS, getSolution, generateLevel, verifyLevel } from '@/game/levels'
 import TutorialScreen from './TutorialScreen'
+import ModeSelectorModal from './ModeSelectorModal'
+import { getModeById } from '../game/modes'
 import { Level } from '@/game/types'
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -65,13 +67,12 @@ function useViewport() {
 
 function CompressionBar({ percent, active }: { percent: number; active: boolean }) {
   const color = percent > 66 ? '#ef4444' : percent > 33 ? '#f59e0b' : '#22c55e'
-  const glow = percent > 66 ? 'rgba(239,68,68,0.5)' : percent > 33 ? 'rgba(245,158,11,0.4)' : 'rgba(34,197,94,0.3)'
-  const label = !active ? 'WAITING' : percent > 66 ? '⚠ CRITICAL' : percent > 33 ? 'WARNING' : 'ACTIVE'
+  const glow = percent > 66 ? 'rgba(239,68,68,0.5)' : percent > 33 ? 'rgba(245,158,11,0.5)' : 'rgba(34,197,94,0.5)'
+  const label = percent > 66 ? 'CRITICAL' : percent > 33 ? 'PRESSURE' : 'STABLE'
   return (
-    <div style={{ flex: 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, letterSpacing: '0.14em', marginBottom: 4 }}>
-        <span style={{ color: '#3a3a55' }}>WALLS</span>
-        <span style={{ color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}>{label}</span>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 9, letterSpacing: '0.15em', color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}>{label}</span>
       </div>
       <div style={{ height: 8, background: '#080814', borderRadius: 4, overflow: 'hidden', border: '1px solid #131325' }}>
         <div style={{
@@ -86,7 +87,7 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PIPE RENDERER — original implementation
+   PIPE RENDERER
 ═══════════════════════════════════════════════════════════════════════════ */
 
 function Pipes({ connections, color, glow }: { connections: string[]; color: string; glow: string }) {
@@ -110,7 +111,7 @@ function Pipes({ connections, color, glow }: { connections: string[]; color: str
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   GAME TILE — original rendering with pressed/ripple/bgStyle/connColor
+   GAME TILE
 ═══════════════════════════════════════════════════════════════════════════ */
 
 interface GameTileProps {
@@ -385,33 +386,33 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
             flex: 1, padding: '10px 8px', borderRadius: 8, border: 'none', cursor: 'pointer',
             background: tab === t ? '#14142a' : 'transparent',
             color: tab === t ? '#a5b4fc' : '#3a3a55',
-            fontSize: 'clamp(11px, 3vw, 12px)', fontWeight: 700, letterSpacing: '0.04em', transition: 'all 0.15s', minHeight: 44,
+            fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', minHeight: 44,
           }}>{label}</button>
         ))}
       </div>
 
       {tab === 'gen' && (
-        <div style={{ background: '#07070e', borderRadius: 16, padding: 'clamp(14px, 4vw, 20px)', border: '1px solid #12122a', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Grid Size */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', marginBottom: 12 }}>
-              <span style={{ color: '#3a3a55' }}>GRID SIZE</span><span style={{ color: '#a5b4fc', fontWeight: 800 }}>{gridSize} × {gridSize}</span>
-            </div>
-            <input type="range" min={4} max={7} value={gridSize} onChange={e => { setGridSize(+e.target.value); setResult(null) }} style={{ width: '100%', accentColor: '#6366f1' }} />
+            <div style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}>GRID SIZE: {gridSize}×{gridSize}</div>
+            <input type="range" min={4} max={8} value={gridSize} onChange={e => setGridSize(+e.target.value)}
+              style={{ width: '100%', accentColor: '#6366f1' }} />
           </div>
+          {/* Node Count */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', marginBottom: 12 }}>
-              <span style={{ color: '#3a3a55' }}>GOAL NODES</span><span style={{ color: '#22c55e', fontWeight: 800 }}>{Math.min(nodeCount, maxNodes)}</span>
-            </div>
-            <input type="range" min={2} max={maxNodes} value={Math.min(nodeCount, maxNodes)} onChange={e => { setNodeCount(+e.target.value); setResult(null) }} style={{ width: '100%', accentColor: '#22c55e' }} />
+            <div style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}>NODES: {Math.min(nodeCount, maxNodes)}</div>
+            <input type="range" min={2} max={Math.max(2, maxNodes)} value={Math.min(nodeCount, maxNodes)}
+              onChange={e => setNodeCount(+e.target.value)} style={{ width: '100%', accentColor: '#6366f1' }} />
           </div>
+          {/* Difficulty */}
           <div>
-            <div style={{ fontSize: 'clamp(10px, 2.8vw, 11px)', letterSpacing: '0.12em', color: '#3a3a55', marginBottom: 10 }}>DIFFICULTY</div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}>DIFFICULTY</div>
+            <div style={{ display: 'flex', gap: 6 }}>
               {(['easy', 'medium', 'hard'] as const).map(d => (
-                <button key={d} onClick={() => { setDifficulty(d); setResult(null); setDecoysOverride(null) }} style={{
-                  flex: 1, padding: '12px 8px', borderRadius: 10, cursor: 'pointer',
-                  border: `1.5px solid ${difficulty === d ? diff[d] + '80' : '#1a1a2e'}`,
-                  background: difficulty === d ? `${diff[d]}15` : 'rgba(255,255,255,0.01)',
+                <button key={d} onClick={() => setDifficulty(d)} style={{
+                  flex: 1, padding: '10px 4px', borderRadius: 10, border: `1.5px solid ${difficulty === d ? diff[d] + '60' : '#12122a'}`,
+                  background: difficulty === d ? diff[d] + '12' : '#07070e', cursor: 'pointer',
                   color: difficulty === d ? diff[d] : '#3a3a55',
                   fontSize: 'clamp(10px, 2.8vw, 11px)', fontWeight: 700, letterSpacing: '0.06em',
                   transition: 'all 0.15s', textTransform: 'uppercase', minHeight: 44,
@@ -458,9 +459,13 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 function MenuScreen() {
-  const { completedLevels, bestMoves, loadLevel } = useGameStore()
+  const { completedLevels, bestMoves, loadLevel, currentModeId } = useGameStore()
   const [view, setView] = useState<'levels' | 'workshop'>('levels')
   const [world, setWorld] = useState(1)
+  const [showModeModal, setShowModeModal] = useState(false)
+
+  // Get active mode for the badge in the footer
+  const activeMode = getModeById(currentModeId)
 
   const worldMeta: Record<number, { name: string; tagline: string; color: string; icon: string }> = {
     1: { name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
@@ -593,11 +598,36 @@ function MenuScreen() {
       <footer style={{
         width: '100%', flexShrink: 0, zIndex: 2,
         borderTop: '1px solid #12122a', background: 'rgba(6,6,15,0.75)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: 'clamp(10px, 1.5vh, 14px) 20px max(12px, env(safe-area-inset-bottom))',
+        gap: 12,
       }}>
         <div style={{ fontSize: 10, color: '#1e1e35', letterSpacing: '0.2em' }}>PRESSURE © 2025</div>
+
+        {/* ── CHANGE MODE BUTTON ─────────────────── */}
+        <button
+          onClick={() => setShowModeModal(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '8px 12px', borderRadius: 10,
+            border: `1px solid ${activeMode.color}40`,
+            background: `${activeMode.color}10`,
+            cursor: 'pointer', transition: 'all 0.2s',
+          }}
+        >
+          <span style={{ fontSize: 14 }}>{activeMode.icon}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: activeMode.color }}>
+            {activeMode.name.toUpperCase()}
+          </span>
+          <span style={{ fontSize: 9, color: activeMode.color + '80' }}>▼</span>
+        </button>
       </footer>
+
+      {/* ── MODE SELECTOR MODAL ─────────────────────────────────── */}
+      <ModeSelectorModal
+        visible={showModeModal}
+        onClose={() => setShowModeModal(false)}
+      />
     </div>
   )
 }
@@ -662,7 +692,8 @@ export default function GameBoard() {
     return map
   }, [tiles])
 
-  if (showTutorial || status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />
+  // CHANGE 3: Only check status for tutorial, not showTutorial
+  if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />
   if (status === 'menu' || !currentLevel) return <MenuScreen />
 
   const gs = currentLevel.gridSize

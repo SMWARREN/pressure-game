@@ -89,11 +89,23 @@ function sfx(name: 'rotate' | 'win' | 'lose' | 'crush' | 'start' | 'undo') {
    PERSISTENCE
 ═══════════════════════════════════════════════════════════════════════════ */
 
-function loadSaved(): Pick<GameState, 'completedLevels' | 'bestMoves' | 'showTutorial' | 'generatedLevels' | 'currentModeId'> {
-  if (typeof window === 'undefined') return { completedLevels: [], bestMoves: {}, showTutorial: true, generatedLevels: [], currentModeId: DEFAULT_MODE_ID }
+type PersistedState = Pick<
+  GameState,
+  'completedLevels' | 'bestMoves' | 'showTutorial' | 'generatedLevels' | 'currentModeId' | 'seenTutorials'
+>
+
+function loadSaved(): PersistedState {
+  const fallback: PersistedState = {
+    completedLevels: [],
+    bestMoves: {},
+    showTutorial: true,
+    generatedLevels: [],
+    currentModeId: DEFAULT_MODE_ID,
+    seenTutorials: [DEFAULT_MODE_ID], // classic always seen on first load if showTutorial=false
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { completedLevels: [], bestMoves: {}, showTutorial: true, generatedLevels: [], currentModeId: DEFAULT_MODE_ID }
+    if (!raw) return fallback
     const p = JSON.parse(raw)
     return {
       completedLevels: p.completedLevels || [],
@@ -101,13 +113,15 @@ function loadSaved(): Pick<GameState, 'completedLevels' | 'bestMoves' | 'showTut
       showTutorial: p.showTutorial !== false,
       generatedLevels: p.generatedLevels || [],
       currentModeId: p.currentModeId || DEFAULT_MODE_ID,
+      // Migrate: if they've already seen classic (showTutorial=false), mark it seen
+      seenTutorials: p.seenTutorials || (p.showTutorial === false ? [DEFAULT_MODE_ID] : []),
     }
   } catch {
-    return { completedLevels: [], bestMoves: {}, showTutorial: true, generatedLevels: [], currentModeId: DEFAULT_MODE_ID }
+    return fallback
   }
 }
 
-function persist(data: Pick<GameState, 'completedLevels' | 'bestMoves' | 'showTutorial' | 'generatedLevels' | 'currentModeId'>) {
+function persist(data: PersistedState) {
   if (typeof window === 'undefined') return
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -124,15 +138,10 @@ function resolveCompressionEnabled(
   modeId: string,
   override: boolean | null
 ): boolean {
-  // Level-specific override takes highest priority
   if (level?.compressionEnabled !== undefined) return level.compressionEnabled
-
   const mode = getModeById(modeId)
-
   if (mode.wallCompression === 'always') return true
   if (mode.wallCompression === 'never') return false
-
-  // 'optional' → use player's override, default to true
   return override !== null ? override : true
 }
 
@@ -161,6 +170,11 @@ function stopGameTimer() {
 
 const saved = loadSaved()
 
+// On first load: if showTutorial is true, show tutorial for the current mode.
+// seenTutorials tracks which modes have been tutorialed so switching modes
+// shows their specific tutorial.
+const needsTutorial = saved.showTutorial || !saved.seenTutorials.includes(saved.currentModeId)
+
 const initialState: GameState = {
   currentLevel: null,
   tiles: [],
@@ -168,12 +182,13 @@ const initialState: GameState = {
   compressionActive: false,
   compressionDelay: 10000,
   moves: 0,
-  status: saved.showTutorial ? 'tutorial' : 'menu',
+  status: needsTutorial ? 'tutorial' : 'menu',
   completedLevels: saved.completedLevels,
   bestMoves: saved.bestMoves,
   history: [],
   lastRotatedPos: null,
   showTutorial: saved.showTutorial,
+  seenTutorials: saved.seenTutorials,
   generatedLevels: saved.generatedLevels,
   elapsedSeconds: 0,
   screenShake: false,
@@ -193,9 +208,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   ...initialState,
 
   setGameMode: (modeId: string) => {
-    const { completedLevels, bestMoves, showTutorial, generatedLevels } = get()
-    set({ currentModeId: modeId })
-    persist({ completedLevels, bestMoves, showTutorial, generatedLevels, currentModeId: modeId })
+    const { completedLevels, bestMoves, showTutorial, generatedLevels, seenTutorials } = get()
+    const alreadySeen = seenTutorials.includes(modeId)
+    set({
+      currentModeId: modeId,
+      // If switching to a mode whose tutorial hasn't been seen, go to tutorial screen
+      status: alreadySeen ? 'menu' : 'tutorial',
+      currentLevel: null,
+    })
+    persist({ completedLevels, bestMoves, showTutorial, generatedLevels, currentModeId: modeId, seenTutorials })
   },
 
   setCompressionOverride: (enabled: boolean | null) => {
@@ -255,16 +276,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     const mode = getModeById(currentModeId)
 
-    // Check move limit (if mode uses it)
     if (mode.useMoveLimit !== false && currentLevel && moves >= currentLevel.maxMoves) return
 
-    // Delegate tap to mode
     const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5)
     if (!result || !result.valid) return
 
     sfx('rotate')
 
-    // Save history for undo (if mode supports it)
     const prevTiles = mode.supportsUndo !== false
       ? tiles.map(t => ({ ...t, connections: [...t.connections] }))
       : null
@@ -276,7 +294,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       lastRotatedPos: { x, y },
     }))
 
-    // Clear justRotated flag after animation
     addTimeout(() => {
       set(state => ({
         tiles: state.tiles.map(t => ({ ...t, justRotated: false }))
@@ -321,16 +338,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
             showTutorial: false,
             generatedLevels: state.generatedLevels,
             currentModeId: state.currentModeId,
+            seenTutorials: state.seenTutorials,
           })
           return {
-            status: 'won',
+            status: 'won' as const,
             completedLevels: newCompleted,
             bestMoves: newBest,
-            showingWin: false,
           }
         })
         checkWinInProgress = false
-      }, 1500)
+      }, 600)
 
       return true
     }
@@ -340,17 +357,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   undoMove: () => {
-    const { history, moves, status, showingWin, currentModeId } = get()
+    const { history, status, currentModeId } = get()
     const mode = getModeById(currentModeId)
+    if (mode.supportsUndo === false) return
+    if (status !== 'playing' || history.length === 0) return
 
-    if (!mode.supportsUndo) return
-    if (status !== 'playing' || showingWin || history.length === 0) return
-
-    sfx('undo')
     const prev = history[history.length - 1]
+    sfx('undo')
     set(state => ({
       tiles: prev,
-      moves: moves - 1,
+      moves: Math.max(0, state.moves - 1),
       history: state.history.slice(0, -1),
       lastRotatedPos: null,
     }))
@@ -360,25 +376,21 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     if (advanceWallsInProgress) return
     advanceWallsInProgress = true
 
-    const { tiles, wallOffset, currentLevel, status } = get()
+    const { tiles, wallOffset, currentLevel, status, currentModeId } = get()
     if (!currentLevel || status !== 'playing') {
       advanceWallsInProgress = false
       return
     }
 
     const gs = currentLevel.gridSize
+    const maxOff = Math.floor(gs / 2)
     const newOffset = wallOffset + 1
-    const maxOffset = Math.floor(gs / 2)
 
-    if (newOffset > maxOffset) {
-      set({ status: 'lost' })
-      stopGameTimer()
-      sfx('lose')
+    if (newOffset > maxOff) {
       advanceWallsInProgress = false
       return
     }
 
-    // Crush tiles in the new wall zone
     const newTiles = tiles.map(tile => {
       const dist = Math.min(tile.x, tile.y, gs - 1 - tile.x, gs - 1 - tile.y)
       if (dist < newOffset && tile.type !== 'wall' && tile.type !== 'crushed') {
@@ -387,9 +399,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       return tile
     })
 
-    // Check mode-specific loss condition
-    const { currentModeId, compressionOverride } = get()
-    const mode = getModeById(currentModeId)
+    const { currentModeId: modeId, compressionOverride } = get()
+    const mode = getModeById(modeId)
     if (mode.checkLoss) {
       const { lost, reason } = mode.checkLoss(newTiles, newOffset, get().moves, currentLevel.maxMoves)
       if (lost) {
@@ -408,7 +419,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       set({ wallsJustAdvanced: false })
     }, 600)
 
-    // Check if goal nodes are all crushed → auto lose
     const allGoalsCrushed = currentLevel.goalNodes.every(g =>
       newTiles.find(t => t.x === g.x && t.y === g.y)?.type === 'crushed'
     )
@@ -456,15 +466,30 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   completeTutorial: () => {
-    const { completedLevels, bestMoves, generatedLevels, currentModeId } = get()
-    persist({ completedLevels, bestMoves, showTutorial: false, generatedLevels, currentModeId })
-    set({ showTutorial: false, status: 'menu' })
+    const { completedLevels, bestMoves, generatedLevels, currentModeId, seenTutorials } = get()
+    const newSeenTutorials = [...new Set([...seenTutorials, currentModeId])]
+    persist({
+      completedLevels,
+      bestMoves,
+      showTutorial: false,
+      generatedLevels,
+      currentModeId,
+      seenTutorials: newSeenTutorials,
+    })
+    set({ showTutorial: false, seenTutorials: newSeenTutorials, status: 'menu' })
   },
 
   addGeneratedLevel: (level: Level) => {
     set(state => {
       const generatedLevels = [...state.generatedLevels, level]
-      persist({ completedLevels: state.completedLevels, bestMoves: state.bestMoves, showTutorial: state.showTutorial, generatedLevels, currentModeId: state.currentModeId })
+      persist({
+        completedLevels: state.completedLevels,
+        bestMoves: state.bestMoves,
+        showTutorial: state.showTutorial,
+        generatedLevels,
+        currentModeId: state.currentModeId,
+        seenTutorials: state.seenTutorials,
+      })
       return { generatedLevels }
     })
   },
@@ -472,7 +497,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   deleteGeneratedLevel: (id: number) => {
     set(state => {
       const generatedLevels = state.generatedLevels.filter(l => l.id !== id)
-      persist({ completedLevels: state.completedLevels, bestMoves: state.bestMoves, showTutorial: state.showTutorial, generatedLevels, currentModeId: state.currentModeId })
+      persist({
+        completedLevels: state.completedLevels,
+        bestMoves: state.bestMoves,
+        showTutorial: state.showTutorial,
+        generatedLevels,
+        currentModeId: state.currentModeId,
+        seenTutorials: state.seenTutorials,
+      })
       return { generatedLevels }
     })
   },
