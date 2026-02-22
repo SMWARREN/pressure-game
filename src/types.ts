@@ -8,6 +8,7 @@ export interface Position {
 }
 
 export interface Tile {
+  id?: string
   x: number
   y: number
   type: 'empty' | 'path' | 'node' | 'wall' | 'crushed'
@@ -28,7 +29,8 @@ export interface Level {
   maxMoves: number
   compressionDelay: number
   compressionEnabled?: boolean
-  solution?: { x: number; y: number; rotations: number }[]
+  isGenerated?: boolean
+  solution?: { x: number; y: number; rotations: number }[] | null
 }
 
 export interface GameState {
@@ -43,9 +45,7 @@ export interface GameState {
   bestMoves: Record<number, number>
   history: Tile[][]
   lastRotatedPos: Position | null
-  /** Legacy: true = show tutorial on first launch */
   showTutorial: boolean
-  /** Per-mode tutorial tracking: list of mode IDs whose tutorial has been seen */
   seenTutorials: string[]
   generatedLevels: Level[]
   elapsedSeconds: number
