@@ -228,75 +228,87 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       background: 'radial-gradient(ellipse 70% 50% at 50% -5%, #0d0d22 0%, #06060f 100%)',
       color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif',
-      padding: '24px 16px',
+      padding: 'max(16px, env(safe-area-inset-top, 16px)) 16px max(16px, env(safe-area-inset-bottom, 16px))',
+      overflowY: 'auto',
     }}>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 24 }}>
+      {/* Step indicators - larger touch targets */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 'clamp(16px, 3vh, 24px)', padding: '8px 0' }}>
         {STEPS.map((_, i) => (
           <button key={i} onClick={() => setStep(i)} style={{
-            width: i === step ? 20 : 6, height: 6, borderRadius: 3,
+            width: i === step ? 24 : 8, height: 8, borderRadius: 4,
             background: i === step ? '#818cf8' : i < step ? '#3a3a55' : '#1a1a2e',
             border: 'none', cursor: 'pointer',
             transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }} />
+            minHeight: 44, minWidth: 44,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: i === step ? 24 : 8, height: 8, borderRadius: 4,
+              background: i === step ? '#818cf8' : i < step ? '#3a3a55' : '#1a1a2e',
+            }} />
+          </button>
         ))}
       </div>
 
       <div style={{
-        width: '100%', maxWidth: 340,
+        width: '100%', maxWidth: 380,
         background: 'linear-gradient(145deg, #0b0b1a 0%, #07070e 100%)',
         borderRadius: 20, border: '1px solid #12122a',
-        padding: '24px 20px',
+        padding: 'clamp(18px, 4vw, 28px) clamp(16px, 4vw, 24px)',
         boxShadow: '0 0 60px rgba(99,102,241,0.06), 0 8px 40px rgba(0,0,0,0.8)',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(14px, 3vw, 20px)' }}>
           <div style={{
-            fontSize: 40, lineHeight: 1, marginBottom: 12,
+            fontSize: 'clamp(32px, 10vw, 44px)', lineHeight: 1, marginBottom: 12,
             color: s.iconColor,
             filter: `drop-shadow(0 0 16px ${s.iconColor}80)`,
           }}>{s.icon}</div>
-          <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 4 }}>
+          <div style={{ fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 6 }}>
             {s.title}
           </div>
-          <div style={{ fontSize: 11, color: '#3a3a55', letterSpacing: '0.04em' }}>{s.subtitle}</div>
+          <div style={{ fontSize: 'clamp(11px, 3vw, 12px)', color: '#3a3a55', letterSpacing: '0.04em' }}>{s.subtitle}</div>
         </div>
 
         <div style={{
           display: 'flex', justifyContent: 'center',
-          padding: '16px 0', marginBottom: 16,
+          padding: 'clamp(12px, 3vw, 18px) 8px', marginBottom: 'clamp(12px, 3vw, 18px)',
           background: 'rgba(0,0,0,0.3)', borderRadius: 14,
           border: '1px solid #0e0e1e',
+          overflowX: 'auto',
         }}>
           <DemoVisual type={s.demo} />
         </div>
 
         <div style={{
-          background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: '14px 16px',
-          marginBottom: 18,
+          background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 'clamp(12px, 3vw, 16px)',
+          marginBottom: 'clamp(14px, 3vw, 20px)',
         }}>
           <p style={{
-            fontSize: 12, color: '#4a4a6a', lineHeight: 1.8,
+            fontSize: 'clamp(12px, 3.2vw, 13px)', color: '#4a4a6a', lineHeight: 1.8,
             margin: 0, whiteSpace: 'pre-line',
           }}>{s.body}</p>
         </div>
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 10 }}>
           {step > 0 && (
             <button onClick={() => setStep(step - 1)} style={{
-              flex: 1, padding: '12px 0', borderRadius: 10,
+              flex: 1, padding: '14px 0', borderRadius: 12,
               border: '1px solid #1a1a2e', background: 'rgba(255,255,255,0.01)',
-              color: '#3a3a55', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              color: '#3a3a55', fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 600, cursor: 'pointer',
+              minHeight: 48,
             }}>← Back</button>
           )}
           <button
             onClick={isLast ? onComplete : () => setStep(step + 1)}
             style={{
-              flex: 2, padding: '12px 0', borderRadius: 10, border: 'none',
+              flex: 2, padding: '14px 0', borderRadius: 12, border: 'none',
               background: isLast
                 ? 'linear-gradient(135deg, #22c55e, #16a34a)'
                 : 'linear-gradient(135deg, #6366f1, #4f46e5)',
-              color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+              color: '#fff', fontSize: 'clamp(13px, 3.5vw, 14px)', fontWeight: 800, cursor: 'pointer',
               boxShadow: isLast ? '0 4px 20px rgba(34,197,94,0.35)' : '0 4px 20px rgba(99,102,241,0.35)',
               letterSpacing: '0.04em',
+              minHeight: 48,
             }}
           >
             {isLast ? '▶ Play Now!' : 'Next →'}
@@ -305,9 +317,10 @@ export default function TutorialScreen({ onComplete }: { onComplete: () => void 
       </div>
 
       <button onClick={onComplete} style={{
-        marginTop: 16, padding: '8px 16px',
+        marginTop: 'clamp(12px, 2vh, 20px)', padding: '12px 24px',
         background: 'none', border: 'none', cursor: 'pointer',
-        color: '#1e1e2e', fontSize: 11, letterSpacing: '0.08em',
+        color: '#1e1e2e', fontSize: 'clamp(11px, 3vw, 12px)', letterSpacing: '0.08em',
+        minHeight: 44,
       }}>
         SKIP TUTORIAL
       </button>

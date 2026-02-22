@@ -40,35 +40,54 @@ body {
   }
 }
 
-/* Input range styling for level generator */
+/* Input range styling for level generator - Mobile optimized with larger touch target */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  height: 4px;
+  height: 8px;
   background: #1a1a2e;
-  border-radius: 2px;
+  border-radius: 4px;
   outline: none;
+  cursor: pointer;
+  /* Add padding for larger touch area */
+  padding: 12px 0;
+  margin: -12px 0;
+  background-clip: content-box;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 28px;
+  height: 28px;
   background: #6366f1;
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+  /* Ensure thumb is above the track */
+  margin-top: -10px;
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 28px;
+  height: 28px;
   background: #6366f1;
   border-radius: 50%;
   cursor: pointer;
   border: none;
   box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  background: #1a1a2e;
+  border-radius: 4px;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  background: #1a1a2e;
+  border-radius: 4px;
 }
 
 /* Focus styles */
@@ -81,4 +100,38 @@ button:focus-visible {
 .smooth-scroll {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-first responsive utilities */
+
+/* Ensure minimum touch target sizes */
+button, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Better text rendering on mobile */
+@media screen and (max-width: 480px) {
+  html {
+    font-size: 16px; /* Prevents zoom on input focus in iOS */
+  }
+  
+  /* Prevent horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* Small phones (320px - 375px) */
+@media screen and (max-width: 375px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  body {
+    font-size: 14px;
+  }
 }
