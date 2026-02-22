@@ -7,6 +7,7 @@ import ModeSelectorModal from './ModeSelectorModal';
 import { getModeById } from '../game/modes';
 import { Level } from '@/game/types';
 import GameGrid from './game/GameGrid';
+import GameStats from './game/GameStats';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PARTICLE SYSTEM
@@ -1185,134 +1186,14 @@ export default function GameBoard() {
       </header>
 
       {/* ── STATS ROW ───────────────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'clamp(6px, 2vw, 12px)',
-          width: '100%',
-          maxWidth: 460,
-          flexShrink: 0,
-          padding: 'clamp(6px, 1.5vh, 10px) 12px',
-          position: 'relative',
-          zIndex: 1,
-        }}>
-        {/* Moves counter */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            background: '#07070e',
-            border: '1px solid #12122a',
-            borderRadius: 12,
-            padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 3vw, 16px)',
-            flexShrink: 0,
-            minWidth: 52,
-          }}>
-          <div
-            style={{
-              fontSize: 'clamp(18px, 5vw, 22px)',
-              fontWeight: 900,
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-            }}>
-            {moves}
-          </div>
-          <div
-            style={{
-              fontSize: 'clamp(8px, 2.2vw, 9px)',
-              color: '#3a3a55',
-              letterSpacing: '0.1em',
-              marginTop: 3,
-            }}>
-            / {currentLevel.maxMoves}
-          </div>
-        </div>
-
-        {/* Compression bar */}
-        {(() => {
-          const color = comprPct > 66 ? '#ef4444' : comprPct > 33 ? '#f59e0b' : '#22c55e';
-          const glow =
-            comprPct > 66
-              ? 'rgba(239,68,68,0.5)'
-              : comprPct > 33
-                ? 'rgba(245,158,11,0.5)'
-                : 'rgba(34,197,94,0.5)';
-          const label = comprPct > 66 ? 'CRITICAL' : comprPct > 33 ? 'PRESSURE' : 'STABLE';
-          return (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span
-                  style={{
-                    fontSize: 9,
-                    letterSpacing: '0.15em',
-                    color: compressionActive ? color : '#3a3a55',
-                    fontWeight: 800,
-                    transition: 'color 0.3s',
-                  }}>
-                  {label}
-                </span>
-              </div>
-              <div
-                style={{
-                  height: 8,
-                  background: '#080814',
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                  border: '1px solid #131325',
-                }}>
-                <div
-                  style={{
-                    height: '100%',
-                    width: `${comprPct}%`,
-                    borderRadius: 4,
-                    background: `linear-gradient(90deg, ${color}cc, ${color})`,
-                    transition: 'width 0.5s ease, background 0.4s',
-                    boxShadow: compressionActive && comprPct > 10 ? `0 0 12px ${glow}` : 'none',
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Countdown timer */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            background: '#07070e',
-            border: '1px solid #12122a',
-            borderRadius: 12,
-            padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 3vw, 16px)',
-            flexShrink: 0,
-            minWidth: 52,
-          }}>
-          <div
-            style={{
-              fontSize: 'clamp(18px, 5vw, 22px)',
-              fontWeight: 900,
-              lineHeight: 1,
-              fontVariantNumeric: 'tabular-nums',
-              color: countdownSecs <= 3 && compressionActive ? '#ef4444' : '#fff',
-              transition: 'color 0.2s',
-            }}>
-            {countdownSecs}
-          </div>
-          <div
-            style={{
-              fontSize: 'clamp(8px, 2.2vw, 9px)',
-              color: '#3a3a55',
-              letterSpacing: '0.1em',
-              marginTop: 3,
-            }}>
-            SEC
-          </div>
-        </div>
-      </div>
+      <GameStats
+        moves={moves}
+        currentModeId={currentModeId}
+        maxMoves={currentLevel.maxMoves}
+        compressionPercent={comprPct}
+        compressionActive={compressionActive}
+        countdownSeconds={countdownSecs}
+      />
 
       {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
       <div

@@ -92,4 +92,9 @@ export const ClassicMode: GameModeConfig = {
     moves: 'MOVES',
     compression: 'PRESSURE',
   },
+  statsDisplay: [
+    { type: 'moves' },
+    { type: 'compressionBar' },
+    { type: 'countdown' },
+  ],
 };

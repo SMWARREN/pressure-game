@@ -1,3 +1,6 @@
+
+import { getModeById } from '@/game/modes';
+import { StatComponentConfig } from '@/game/modes/types'; // Import the new type
 /**
  * CompressionBar - Visual indicator showing wall compression progress
  */
@@ -130,6 +133,7 @@ interface GameStatsProps {
   compressionPercent: number;
   compressionActive: boolean;
   countdownSeconds: number;
+  currentModeId: string; // Add this prop
 }
 
 /**
@@ -141,7 +145,13 @@ export default function GameStats({
   compressionPercent,
   compressionActive,
   countdownSeconds,
+  currentModeId, // Destructure the new prop
 }: GameStatsProps) {
+  const activeMode = getModeById(currentModeId);
+  const statsDisplay = activeMode.statsDisplay || [
+    { type: 'moves' }, { type: 'compressionBar' }, { type: 'countdown' }
+  ]; // Default to all if not specified
+
   return (
     <div
       style={{
@@ -154,9 +164,18 @@ export default function GameStats({
         position: 'relative',
         zIndex: 1,
       }}>
-      <MovesCounter moves={moves} maxMoves={maxMoves} />
-      <CompressionBar percent={compressionPercent} active={compressionActive} />
-      <CountdownTimer seconds={countdownSeconds} active={compressionActive} />
+      {statsDisplay.map((stat: StatComponentConfig) => {
+        switch (stat.type) {
+          case 'moves':
+            return <MovesCounter key="moves" moves={moves} maxMoves={maxMoves} />;
+          case 'compressionBar':
+            return <CompressionBar key="compressionBar" percent={compressionPercent} active={compressionActive} />;
+          case 'countdown':
+            return <CountdownTimer key="countdown" seconds={countdownSeconds} active={compressionActive} />;
+          default:
+            return null; // Should not happen with type checking
+        }
+      })}
     </div>
   );
 }

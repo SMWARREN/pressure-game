@@ -27,6 +27,16 @@ export interface LossResult {
   reason?: string;
 }
 
+/**
+ * Configuration for a single statistic component to be rendered in the GameStats display.
+ */
+export type StatComponentType = 'moves' | 'compressionBar' | 'countdown';
+
+export interface StatComponentConfig {
+  type: StatComponentType;
+  // Future: could add more specific options per component, e.g., { type: 'moves', showMax: true }
+}
+
 // ─── Tutorial Step Definition ────────────────────────────────────────────────
 
 export type TutorialDemoType =
@@ -214,6 +224,14 @@ export interface GameModeConfig {
     timer?: string;
     compression?: string;
   };
+
+  /**
+   * Defines which specific statistic components should be rendered and in what order.
+   * If not provided, defaults to all available stats in a standard order.
+   */
+  statsDisplay?: StatComponentConfig[];
+
+  
 
   /**
    * Returns the full level list for this mode.

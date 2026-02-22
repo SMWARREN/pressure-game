@@ -276,6 +276,9 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     if (!currentLevel) return;
     if (status === 'playing' || status === 'won' || status === 'lost') return;
 
+    // Clear any existing timers before starting a new game (fix for freezing on rapid restarts)
+    clearAllTimers();
+
     const compressionEnabled = resolveCompressionEnabled(
       currentLevel,
       currentModeId,
@@ -293,7 +296,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
 
     // Check if already solved (e.g., pre-solved demo levels)
-    if (!get().checkWin()) startGameTimer();
+    // Only start timer if the game is genuinely in 'playing' state and not won immediately
+    if (get().status === 'playing' && !get().checkWin()) {
+      startGameTimer();
+    }
   },
 
   tapTile: (x: number, y: number) => {
@@ -481,27 +487,55 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentLevel,
       currentModeId,
       compressionOverride,
+      elapsedSeconds, // Get current elapsedSeconds
     } = get();
     if (status !== 'playing') return;
 
-    set((s) => ({ elapsedSeconds: s.elapsedSeconds + 1 }));
+    // Prepare state changes
+    const newElapsedSeconds = elapsedSeconds + 1;
+    let stateChanges: Partial<GameState> = {};
 
-    if (!compressionActive || !currentLevel) return;
+    // Always update elapsed seconds if playing
+    if (elapsedSeconds !== newElapsedSeconds) {
+      stateChanges.elapsedSeconds = newElapsedSeconds;
+    }
+
+    if (!compressionActive || !currentLevel) {
+      if (Object.keys(stateChanges).length > 0) {
+        set(stateChanges);
+      }
+      return;
+    }
 
     const compressionEnabled = resolveCompressionEnabled(
       currentLevel,
       currentModeId,
       compressionOverride
     );
-    if (!compressionEnabled) return;
-
-    const newTime = timeUntilCompression - 1000;
-    if (newTime <= 0) {
-      set({ timeUntilCompression: currentLevel.compressionDelay });
-      get().advanceWalls();
-    } else {
-      set({ timeUntilCompression: newTime });
+    if (!compressionEnabled) {
+      // If compression is not enabled, only update elapsedSeconds if it changed
+      if (Object.keys(stateChanges).length > 0) {
+        set(stateChanges);
+      }
+      return;
     }
+
+    let newTimeUntilCompression = timeUntilCompression - 1000;
+    if (newTimeUntilCompression <= 0) {
+      // Reset for the next cycle after compression.
+      newTimeUntilCompression = currentLevel.compressionDelay;
+      // Trigger advanceWalls; it will handle its own set() for wall changes and potential loss.
+      get().advanceWalls();
+    }
+    // Update timeUntilCompression in stateChanges regardless, to ensure it's always reflected.
+    stateChanges.timeUntilCompression = newTimeUntilCompression;
+
+    // Always update elapsedSeconds if playing, which was already done.
+    stateChanges.elapsedSeconds = newElapsedSeconds;
+
+    // Only call set if there are actual state changes in the batch to avoid unnecessary renders.
+    // advanceWalls might have already called set, so this acts as a final update for timer states.
+    set(stateChanges);
   },
 
   // Legacy alias — tickTimer now handles compression
