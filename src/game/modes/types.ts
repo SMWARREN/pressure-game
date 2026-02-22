@@ -6,7 +6,7 @@
 //   2. Implement TileRenderer to control how each tile looks
 //   3. Register in modes/index.ts
 
-import { Tile, Position, GameState } from '../types'
+import { Tile, Position, GameState, Level } from '../types'
 
 export type WallCompressionSetting = 'always' | 'never' | 'optional'
 
@@ -186,6 +186,14 @@ export interface GameModeConfig {
   ) => LossResult
 
   /**
+   * Optional: return the set of tile keys ("x,y") to highlight on win.
+   * Defaults to a pipe-connectivity BFS from the goal nodes.
+   * Override this for modes that have a different win-highlight concept
+   * (e.g. candy crush "matched" tiles, score chains, etc.)
+   */
+  getWinTiles?: (tiles: Tile[], goalNodes: Position[]) => Set<string>
+
+  /**
    * Optional: called every game tick (1 second) for time-based mechanics.
    * Return a partial state update or null for no change.
    */
@@ -206,4 +214,25 @@ export interface GameModeConfig {
     timer?: string
     compression?: string
   }
+
+  /**
+   * Returns the full level list for this mode.
+   * GameBoard uses this to populate the level selector and world tabs.
+   */
+  getLevels: () => Level[]
+
+  /**
+   * Worlds displayed in the MenuScreen level selector.
+   * Each world groups a set of levels with a name, color, and icon.
+   */
+  worlds: Array<{
+    id: number
+    name: string
+    tagline: string
+    color: string
+    icon: string
+  }>
+
+  /** Whether the Workshop (level generator) tab is shown for this mode. Default: false */
+  supportsWorkshop?: boolean
 }

@@ -1,5 +1,5 @@
 import { useMemo, memo } from 'react'
-import { Tile } from '@/game/types'
+import { Tile, TileRenderer } from '@/game/types'
 import GameTile from './GameTile'
 import WallOverlay from './WallOverlay'
 
@@ -14,6 +14,8 @@ interface GameGridProps {
   hintPos: { x: number; y: number } | null
   status: string
   onTileTap: (x: number, y: number) => void
+  /** Pass the active mode's tileRenderer to enable non-pipe visuals (candy crush, slots, etc.) */
+  tileRenderer?: TileRenderer
 }
 
 /**
@@ -32,6 +34,7 @@ function GameGridComponent({
   hintPos,
   status,
   onTileTap,
+  tileRenderer,
 }: GameGridProps) {
   // Create a Map for O(1) tile lookups instead of O(n) array.find()
   const tileMap = useMemo(() => {
@@ -107,6 +110,8 @@ function GameGridComponent({
               justRotated={tile?.justRotated}
               onClick={() => onTileTap(x, y)}
               tileSize={tileSize}
+              tileRenderer={tileRenderer}
+              displayData={tile?.displayData}
             />
           )
         })}

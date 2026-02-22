@@ -1,5 +1,11 @@
-// PRESSURE - Verified Solvable Levels with Pre-computed Solutions
+// PRESSURE - Verified Solvable Levels
+// Solutions are computed lazily on first access to avoid blocking the main
+// thread at module load time. The solutionCache persists across calls.
 import { Level, Tile, Position, Direction } from './types'
+
+// null  = computed, no solution found
+// entry missing = not yet computed
+const solutionCache = new Map<number, { x: number; y: number; rotations: number }[] | null>()
 
 const DIRS: Direction[] = ['up', 'right', 'down', 'left']
 const OPP: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' }
@@ -127,10 +133,9 @@ function createWalls(size: number): Tile[] {
   return walls
 }
 
-// Create a level with pre-computed solution
+// Create a level — solution is computed lazily by getSolution(), not here.
 function createLevel(config: Omit<Level, 'solution'>): Level {
-  const solution = solve(config.tiles, config.goalNodes, config.maxMoves)
-  return { ...config, solution }
+  return { ...config }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -363,16 +368,25 @@ export function getLevelsByWorld(world: number): Level[] {
   return LEVELS.filter(l => l.world === world)
 }
 
-// Get solution for a level (returns pre-computed solution or null)
+// Get solution for a level — computed on first call, then cached.
+// Generated levels already embed their solution so no BFS is needed for them.
 export function getSolution(level: Level): { x: number; y: number; rotations: number }[] | null {
-  return level.solution ?? null
+  // Generated levels store their solution directly on the object
+  if (level.solution !== undefined) return level.solution
+  // Check module-level cache for hand-authored levels
+  if (solutionCache.has(level.id)) return solutionCache.get(level.id)!
+  // First access — run the BFS now (lazy)
+  const sol = solve(level.tiles, level.goalNodes, level.maxMoves) ?? null
+  solutionCache.set(level.id, sol)
+  return sol
 }
 
 /* ─────────────────────────────────────────
    Level Verifier
 ───────────────────────────────────────── */
+// verifyLevel reuses getSolution so it never re-runs BFS unnecessarily.
 export function verifyLevel(level: Level): { solvable: boolean; minMoves: number } {
-  const sol = level.solution ?? solve(level.tiles, level.goalNodes, level.maxMoves)
+  const sol = getSolution(level)
   return { solvable: sol !== null, minMoves: sol?.reduce((s, p) => s + p.rotations, 0) ?? -1 }
 }
 

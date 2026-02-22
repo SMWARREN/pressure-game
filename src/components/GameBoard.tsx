@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useGameStore } from '@/game/store'
 import { useShallow } from 'zustand/react/shallow'
 import { LEVELS, getSolution, generateLevel, verifyLevel } from '@/game/levels'
@@ -6,6 +6,7 @@ import TutorialScreen from './TutorialScreen'
 import ModeSelectorModal from './ModeSelectorModal'
 import { getModeById } from '../game/modes'
 import { Level } from '@/game/types'
+import GameGrid from './game/GameGrid'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PARTICLE SYSTEM
@@ -86,183 +87,8 @@ function useViewport() {
   return size
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   COMPRESSION BAR
-═══════════════════════════════════════════════════════════════════════════ */
-
-function CompressionBar({ percent, active }: { percent: number; active: boolean }) {
-  const color = percent > 66 ? '#ef4444' : percent > 33 ? '#f59e0b' : '#22c55e'
-  const glow = percent > 66 ? 'rgba(239,68,68,0.5)' : percent > 33 ? 'rgba(245,158,11,0.5)' : 'rgba(34,197,94,0.5)'
-  const label = percent > 66 ? 'CRITICAL' : percent > 33 ? 'PRESSURE' : 'STABLE'
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 9, letterSpacing: '0.15em', color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}>{label}</span>
-      </div>
-      <div style={{ height: 8, background: '#080814', borderRadius: 4, overflow: 'hidden', border: '1px solid #131325' }}>
-        <div style={{
-          height: '100%', width: `${percent}%`, borderRadius: 4,
-          background: `linear-gradient(90deg, ${color}cc, ${color})`,
-          transition: 'width 0.5s ease, background 0.4s',
-          boxShadow: active && percent > 10 ? `0 0 12px ${glow}` : 'none',
-        }} />
-      </div>
-    </div>
-  )
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   PIPE RENDERER
-═══════════════════════════════════════════════════════════════════════════ */
-
-function Pipes({ connections, color, glow }: { connections: string[]; color: string; glow: string }) {
-  return (
-    <>
-      {connections.includes('up') && (
-        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 5, height: '53%', background: color, borderRadius: '3px 3px 0 0', boxShadow: `0 0 6px ${glow}` }} />
-      )}
-      {connections.includes('down') && (
-        <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 5, height: '53%', background: color, borderRadius: '0 0 3px 3px', boxShadow: `0 0 6px ${glow}` }} />
-      )}
-      {connections.includes('left') && (
-        <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', height: 5, width: '53%', background: color, borderRadius: '3px 0 0 3px', boxShadow: `0 0 6px ${glow}` }} />
-      )}
-      {connections.includes('right') && (
-        <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', height: 5, width: '53%', background: color, borderRadius: '0 3px 3px 0', boxShadow: `0 0 6px ${glow}` }} />
-      )}
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 8, height: 8, background: color, borderRadius: '50%', boxShadow: `0 0 8px ${glow}` }} />
-    </>
-  )
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   GAME TILE
-═══════════════════════════════════════════════════════════════════════════ */
-
-interface GameTileProps {
-  type: string; connections: string[]; canRotate: boolean; isGoalNode: boolean
-  isHint: boolean; inDanger: boolean; justRotated?: boolean; onClick: () => void; tileSize: number
-}
-
-function GameTile({ type, connections, canRotate, isGoalNode, isHint, inDanger, justRotated, onClick, tileSize }: GameTileProps) {
-  const [pressed, setPressed] = useState(false)
-  const [ripple, setRipple] = useState(false)
-  const pressedRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const rippleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => () => {
-    if (pressedRef.current) clearTimeout(pressedRef.current)
-    if (rippleRef.current) clearTimeout(rippleRef.current)
-  }, [])
-
-  const handleClick = () => {
-    if (!canRotate) return
-    setPressed(true); setRipple(true)
-    if (pressedRef.current) clearTimeout(pressedRef.current)
-    if (rippleRef.current) clearTimeout(rippleRef.current)
-    pressedRef.current = setTimeout(() => setPressed(false), 150)
-    rippleRef.current = setTimeout(() => setRipple(false), 400)
-    onClick()
-  }
-
-  const r = tileSize > 50 ? 8 : 6
-
-  const bgStyle = (() => {
-    if (type === 'wall') return {
-      background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)',
-      border: '1px solid #131325',
-    }
-    if (type === 'crushed') return {
-      background: 'linear-gradient(145deg, #1a0000 0%, #0d0000 100%)',
-      border: '1px solid #2a0505',
-      boxShadow: 'inset 0 0 12px rgba(239,68,68,0.15)',
-    }
-    if (type === 'node') return {
-      background: inDanger
-        ? 'linear-gradient(145deg, #3d0808 0%, #2d0606 100%)'
-        : 'linear-gradient(145deg, #14532d 0%, #0f3d21 100%)',
-      border: `2px solid ${inDanger ? '#ef4444' : isHint ? '#86efac' : '#22c55e'}`,
-      boxShadow: inDanger
-        ? '0 0 20px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
-        : '0 0 14px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
-    }
-    if (type === 'path' && canRotate) return {
-      background: isHint
-        ? 'linear-gradient(145deg, #7c5c00 0%, #5c4400 100%)'
-        : inDanger
-          ? 'linear-gradient(145deg, #5c1a1a 0%, #3d1010 100%)'
-          : 'linear-gradient(145deg, #78350f 0%, #5c2a0a 100%)',
-      border: `2px solid ${isHint ? '#fde68a' : inDanger ? '#ef4444' : '#f59e0b'}`,
-      boxShadow: isHint
-        ? '0 0 18px rgba(253,230,138,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'
-        : inDanger
-          ? '0 0 14px rgba(239,68,68,0.4)'
-          : '0 0 8px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.06)',
-    }
-    if (type === 'path') return {
-      background: 'linear-gradient(145deg, #1e3060 0%, #172349 100%)',
-      border: '1.5px solid #2a4080',
-      boxShadow: '0 0 6px rgba(59,130,246,0.12)',
-    }
-    return { background: 'rgba(10,10,20,0.3)' }
-  })()
-
-  const connColor = type === 'node'
-    ? (inDanger ? 'rgba(252,165,165,0.9)' : 'rgba(134,239,172,0.95)')
-    : canRotate
-      ? (isHint ? 'rgba(253,230,138,0.95)' : inDanger ? 'rgba(252,165,165,0.9)' : 'rgba(252,211,77,0.92)')
-      : 'rgba(147,197,253,0.85)'
-
-  const connGlow = type === 'node'
-    ? (inDanger ? 'rgba(239,68,68,0.6)' : 'rgba(34,197,94,0.5)')
-    : canRotate
-      ? (isHint ? 'rgba(253,230,138,0.7)' : 'rgba(245,158,11,0.5)')
-      : 'rgba(59,130,246,0.4)'
-
-  return (
-    <div
-      onClick={handleClick}
-      style={{
-        borderRadius: r, position: 'relative',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: canRotate ? 'pointer' : 'default',
-        transform: pressed ? 'scale(0.84)' : justRotated ? 'scale(1.08)' : 'scale(1)',
-        transition: pressed ? 'transform 0.08s ease' : 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
-        ...bgStyle,
-        overflow: 'hidden',
-      }}
-    >
-      {ripple && canRotate && (
-        <div style={{ position: 'absolute', inset: 0, borderRadius: r, background: 'rgba(255,255,255,0.12)', opacity: 0, transition: 'opacity 0.4s ease' }} />
-      )}
-
-      {connections.length > 0 && type !== 'wall' && type !== 'crushed' && type !== 'empty' && (
-        <Pipes connections={connections} color={connColor} glow={connGlow} />
-      )}
-
-      {isGoalNode && type === 'node' && (
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-          width: '40%', height: '40%',
-          border: `2px solid ${inDanger ? 'rgba(252,165,165,0.5)' : 'rgba(134,239,172,0.5)'}`,
-          borderRadius: '50%', zIndex: 1,
-        }} />
-      )}
-
-      {canRotate && (
-        <div style={{
-          position: 'absolute', top: 3, right: 3, width: 4, height: 4, borderRadius: '50%',
-          background: isHint ? '#fde68a' : inDanger ? '#fca5a5' : '#fcd34d',
-          boxShadow: `0 0 4px ${isHint ? 'rgba(253,230,138,0.8)' : 'rgba(252,211,77,0.6)'}`,
-        }} />
-      )}
-
-      {type === 'crushed' && (
-        <div style={{ fontSize: tileSize > 40 ? 14 : 10, color: 'rgba(239,68,68,0.4)', fontWeight: 900, zIndex: 1 }}>✕</div>
-      )}
-    </div>
-  )
-}
+/* (CompressionBar, Pipes, and GameTile are provided by src/components/game/
+   — GameBoard uses GameGrid which threads tileRenderer through to each tile) */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    OVERLAY SCREENS
@@ -498,17 +324,19 @@ function MenuScreen() {
   const [world, setWorld] = useState(1)
   const [showModeModal, setShowModeModal] = useState(false)
 
-  // Get active mode for the badge in the footer
   const activeMode = getModeById(currentModeId)
+  const levels = activeMode.getLevels()
 
-  const worldMeta: Record<number, { name: string; tagline: string; color: string; icon: string }> = {
-    1: { name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
-    2: { name: 'Squeeze', tagline: 'Feel the walls', color: '#f59e0b', icon: '◆' },
-    3: { name: 'Crush', tagline: 'Survive or die', color: '#ef4444', icon: '⬟' },
-  }
+  // Reset world + view when the active mode changes
+  useEffect(() => {
+    setWorld(activeMode.worlds[0]?.id ?? 1)
+    if (!activeMode.supportsWorkshop) setView('levels')
+  }, [currentModeId])
 
-  const totalDone = completedLevels.length
-  const pct = Math.round((totalDone / LEVELS.length) * 100)
+  const worldMap = new Map(activeMode.worlds.map(w => [w.id, w]))
+
+  const totalDone = levels.filter(l => completedLevels.includes(l.id)).length
+  const pct = Math.round((totalDone / levels.length) * 100)
 
   return (
     <div style={{
@@ -537,7 +365,7 @@ function MenuScreen() {
         <div style={{ fontSize: 10, color: '#3a3a55', letterSpacing: '0.25em', marginTop: 4 }}>PIPE PUZZLE</div>
         <div style={{ marginTop: 10, width: '100%', maxWidth: 260 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#25253a', marginBottom: 4 }}>
-            <span>{totalDone}/{LEVELS.length} COMPLETE</span><span>{pct}%</span>
+            <span>{totalDone}/{levels.length} COMPLETE</span><span>{pct}%</span>
           </div>
           <div style={{ height: 4, background: '#0d0d1f', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #6366f1, #a5b4fc)', borderRadius: 2, transition: 'width 0.5s ease' }} />
@@ -547,8 +375,8 @@ function MenuScreen() {
 
       {/* ── NAV TABS ───────────────────────────────────────────── */}
       <div style={{ display: 'flex', width: '100%', maxWidth: 420, flexShrink: 0, borderBottom: '1px solid #12122a', zIndex: 2, position: 'relative' }}>
-        {([['levels', 'Levels'], ['workshop', 'Workshop']] as const).map(([v, label]) => (
-          <button key={v} onClick={() => setView(v)} style={{
+        {([['levels', 'Levels'], ...(activeMode.supportsWorkshop ? [['workshop', 'Workshop']] : [])] as const).map(([v, label]) => (
+          <button key={v} onClick={() => setView(v as 'levels' | 'workshop')} style={{
             flex: 1, padding: '13px 8px', border: 'none', cursor: 'pointer',
             background: 'transparent', color: view === v ? '#a5b4fc' : '#3a3a55',
             fontSize: 13, fontWeight: 700, letterSpacing: '0.04em',
@@ -564,29 +392,34 @@ function MenuScreen() {
           {view === 'levels' && (
             <>
               {/* ── World tagline / flavour text ── */}
-              <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                <div style={{ fontSize: 'clamp(22px, 7vw, 30px)', fontWeight: 900, color: worldMeta[world].color, letterSpacing: '-0.03em', filter: `drop-shadow(0 0 16px ${worldMeta[world].color}60)` }}>
-                  {worldMeta[world].icon} {worldMeta[world].name}
-                </div>
-                <div style={{ fontSize: 12, color: '#3a3a55', marginTop: 4, letterSpacing: '0.1em' }}>{worldMeta[world].tagline.toUpperCase()}</div>
-              </div>
+              {(() => {
+                const wm = worldMap.get(world)
+                if (!wm) return null
+                return (
+                  <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                    <div style={{ fontSize: 'clamp(22px, 7vw, 30px)', fontWeight: 900, color: wm.color, letterSpacing: '-0.03em', filter: `drop-shadow(0 0 16px ${wm.color}60)` }}>
+                      {wm.icon} {wm.name}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#3a3a55', marginTop: 4, letterSpacing: '0.1em' }}>{wm.tagline.toUpperCase()}</div>
+                  </div>
+                )
+              })()}
 
               {/* ── World selector ── */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                {[1, 2, 3].map(w => {
-                  const meta = worldMeta[w]
-                  const lvls = LEVELS.filter(l => l.world === w)
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${activeMode.worlds.length}, 1fr)`, gap: 8 }}>
+                {activeMode.worlds.map(wDef => {
+                  const lvls = levels.filter(l => l.world === wDef.id)
                   const done = lvls.filter(l => completedLevels.includes(l.id)).length
-                  const active = world === w
+                  const active = world === wDef.id
                   return (
-                    <button key={w} onClick={() => setWorld(w)} style={{
+                    <button key={wDef.id} onClick={() => setWorld(wDef.id)} style={{
                       padding: '14px 8px', borderRadius: 14, cursor: 'pointer',
-                      border: `1.5px solid ${active ? meta.color + '60' : '#12122a'}`,
-                      background: active ? `${meta.color}12` : '#07070e',
+                      border: `1.5px solid ${active ? wDef.color + '60' : '#12122a'}`,
+                      background: active ? `${wDef.color}12` : '#07070e',
                       transition: 'all 0.2s', minHeight: 80, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
                     }}>
-                      <div style={{ fontSize: 20, filter: active ? `drop-shadow(0 0 8px ${meta.color}80)` : 'none' }}>{meta.icon}</div>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: active ? meta.color : '#3a3a55' }}>{meta.name}</div>
+                      <div style={{ fontSize: 20, filter: active ? `drop-shadow(0 0 8px ${wDef.color}80)` : 'none' }}>{wDef.icon}</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: active ? wDef.color : '#3a3a55' }}>{wDef.name}</div>
                       <div style={{ fontSize: 10, color: '#25253a' }}>{done}/{lvls.length}</div>
                     </button>
                   )
@@ -597,20 +430,20 @@ function MenuScreen() {
               <div>
                 <div style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 10, paddingLeft: 2 }}>SELECT LEVEL</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 'clamp(8px, 2vw, 12px)' }}>
-                  {LEVELS.filter(l => l.world === world).map(level => {
+                  {levels.filter(l => l.world === world).map(level => {
                     const done = completedLevels.includes(level.id)
                     const best = bestMoves[level.id]
-                    const w = worldMeta[world]
+                    const wm = worldMap.get(world) ?? activeMode.worlds[0]
                     return (
                       <button key={level.id} onClick={() => loadLevel(level)} style={{
                         aspectRatio: '1', borderRadius: 14, cursor: 'pointer',
-                        border: `1.5px solid ${done ? w.color + '50' : '#12122a'}`,
+                        border: `1.5px solid ${done ? wm.color + '50' : '#12122a'}`,
                         background: done
-                          ? `linear-gradient(145deg, ${w.color}18 0%, ${w.color}0a 100%)`
+                          ? `linear-gradient(145deg, ${wm.color}18 0%, ${wm.color}0a 100%)`
                           : 'linear-gradient(145deg, #0a0a16 0%, #07070e 100%)',
-                        color: done ? w.color : '#2a2a3e',
+                        color: done ? wm.color : '#2a2a3e',
                         fontSize: 'clamp(15px, 4vw, 18px)', fontWeight: 900, position: 'relative',
-                        boxShadow: done ? `0 0 16px ${w.color}15` : 'none',
+                        boxShadow: done ? `0 0 16px ${wm.color}15` : 'none',
                         transition: 'all 0.15s', minWidth: 48, minHeight: 48,
                       }}>
                         {level.id}
@@ -679,6 +512,7 @@ export default function GameBoard() {
     restartLevel, goToMenu, undoMove,
     completeTutorial,
     generatedLevels, history,
+    currentModeId,
   } = useGameStore(useShallow(s => ({
     currentLevel: s.currentLevel,
     tiles: s.tiles,
@@ -699,6 +533,7 @@ export default function GameBoard() {
     completeTutorial: s.completeTutorial,
     generatedLevels: s.generatedLevels,
     history: s.history,
+    currentModeId: s.currentModeId,
   })))
 
   const particleRef = useRef<ParticleSystemHandle>(null)
@@ -740,12 +575,6 @@ export default function GameBoard() {
     tapTile(x, y)
   }, [status, tiles, currentLevel, tapTile])
 
-  const tileMap = useMemo(() => {
-    const map = new Map<string, typeof tiles[0]>()
-    for (const tile of tiles) map.set(`${tile.x},${tile.y}`, tile)
-    return map
-  }, [tiles])
-
   // CHANGE 3: Only check status for tutorial, not showTutorial
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />
   if (status === 'menu' || !currentLevel) return <MenuScreen />
@@ -753,6 +582,7 @@ export default function GameBoard() {
   const gs = currentLevel.gridSize
   const maxOff = Math.floor(gs / 2)
   const comprPct = Math.round((wallOffset / maxOff) * 100)
+  const mode = getModeById(currentModeId)
   const hintPos = showHint && solution?.length ? solution[0] : null
   const nextLevel = allLevels.find(l => l.id === currentLevel.id + 1) ?? null
 
@@ -829,7 +659,21 @@ export default function GameBoard() {
         </div>
 
         {/* Compression bar */}
-        <CompressionBar percent={comprPct} active={compressionActive} />
+        {(() => {
+          const color = comprPct > 66 ? '#ef4444' : comprPct > 33 ? '#f59e0b' : '#22c55e'
+          const glow = comprPct > 66 ? 'rgba(239,68,68,0.5)' : comprPct > 33 ? 'rgba(245,158,11,0.5)' : 'rgba(34,197,94,0.5)'
+          const label = comprPct > 66 ? 'CRITICAL' : comprPct > 33 ? 'PRESSURE' : 'STABLE'
+          return (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 9, letterSpacing: '0.15em', color: compressionActive ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}>{label}</span>
+              </div>
+              <div style={{ height: 8, background: '#080814', borderRadius: 4, overflow: 'hidden', border: '1px solid #131325' }}>
+                <div style={{ height: '100%', width: `${comprPct}%`, borderRadius: 4, background: `linear-gradient(90deg, ${color}cc, ${color})`, transition: 'width 0.5s ease, background 0.4s', boxShadow: compressionActive && comprPct > 10 ? `0 0 12px ${glow}` : 'none' }} />
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Countdown timer */}
         <div style={{
@@ -866,46 +710,22 @@ export default function GameBoard() {
             flexShrink: 0,
           }}
         >
-          {/* Tile grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${gs}, 1fr)`,
-            gridTemplateRows: `repeat(${gs}, 1fr)`,
-            gap, width: '100%', height: '100%',
-          }}>
-            {Array.from({ length: gs * gs }, (_, i) => {
-              const x = i % gs
-              const y = Math.floor(i / gs)
-              const tile = tileMap.get(`${x},${y}`)
-              const dist = Math.min(x, y, gs - 1 - x, gs - 1 - y)
-              const inDanger = compressionActive && dist <= wallOffset && !!tile && tile.type !== 'wall' && tile.type !== 'crushed'
-              const isHint = hintPos?.x === x && hintPos?.y === y
-              return (
-                <GameTile
-                  key={`${x}-${y}`}
-                  type={tile?.type || 'empty'}
-                  connections={tile?.connections || []}
-                  canRotate={tile?.canRotate || false}
-                  isGoalNode={tile?.isGoalNode || false}
-                  isHint={isHint}
-                  inDanger={inDanger}
-                  justRotated={tile?.justRotated}
-                  onClick={() => handleTileTap(x, y)}
-                  tileSize={tileSize}
-                />
-              )
-            })}
-          </div>
-
-          {/* Animated Walls Overlay — The "Pressure Effect" */}
-          {status === 'playing' && wallOffset > 0 && (
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 18, overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: `${(wallOffset / gs) * 100}%`, background: 'linear-gradient(180deg, rgba(239,68,68,0.15) 0%, transparent 100%)', borderBottom: '2px solid rgba(239,68,68,0.3)', transform: wallsJustAdvanced ? 'translateY(2px)' : 'translateY(0)', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: wallsJustAdvanced ? '0 4px 20px rgba(239,68,68,0.4)' : 'none' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${(wallOffset / gs) * 100}%`, background: 'linear-gradient(0deg, rgba(239,68,68,0.15) 0%, transparent 100%)', borderTop: '2px solid rgba(239,68,68,0.3)', transform: wallsJustAdvanced ? 'translateY(-2px)' : 'translateY(0)', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: wallsJustAdvanced ? '0 -4px 20px rgba(239,68,68,0.4)' : 'none' }} />
-              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${(wallOffset / gs) * 100}%`, background: 'linear-gradient(90deg, rgba(239,68,68,0.15) 0%, transparent 100%)', borderRight: '2px solid rgba(239,68,68,0.3)', transform: wallsJustAdvanced ? 'translateX(2px)' : 'translateX(0)', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: wallsJustAdvanced ? '4px 0 20px rgba(239,68,68,0.4)' : 'none' }} />
-              <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: `${(wallOffset / gs) * 100}%`, background: 'linear-gradient(270deg, rgba(239,68,68,0.15) 0%, transparent 100%)', borderLeft: '2px solid rgba(239,68,68,0.3)', transform: wallsJustAdvanced ? 'translateX(-2px)' : 'translateX(0)', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: wallsJustAdvanced ? '-4px 0 20px rgba(239,68,68,0.4)' : 'none' }} />
-            </div>
-          )}
+          {/* Tile grid + wall overlay — delegated to GameGrid which passes
+              mode.tileRenderer down to each GameTile, enabling candy crush,
+              slots, match-3, or any custom visual without touching this file. */}
+          <GameGrid
+            tiles={tiles}
+            gridSize={gs}
+            gap={gap}
+            tileSize={tileSize}
+            wallOffset={wallOffset}
+            wallsJustAdvanced={wallsJustAdvanced}
+            compressionActive={compressionActive}
+            hintPos={hintPos}
+            status={status}
+            onTileTap={handleTileTap}
+            tileRenderer={mode.tileRenderer}
+          />
 
           {/* Overlay screens */}
           <Overlay

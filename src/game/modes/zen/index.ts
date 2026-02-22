@@ -1,8 +1,15 @@
 // PRESSURE - Zen Mode
 // Pure puzzle, no walls, no pressure. Just connect the pipes.
 
-import { GameModeConfig, TapResult, WinResult, TutorialStep } from './types'
-import { rotateTileTap, checkConnected } from './utils'
+import { GameModeConfig, TapResult, WinResult, TutorialStep } from '../types'
+import { rotateTileTap, checkConnected } from '../utils'
+import { LEVELS } from '../../levels'
+
+export const ZEN_WORLDS = [
+  { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
+  { id: 2, name: 'Squeeze', tagline: 'Find your flow', color: '#34d399', icon: '◆' },
+  { id: 3, name: 'Crush', tagline: 'Pure challenge', color: '#6ee7b7', icon: '⬟' },
+]
 
 export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
   {
@@ -57,6 +64,9 @@ export const ZenMode: GameModeConfig = {
   supportsUndo: true,
   useMoveLimit: false,
   tutorialSteps: ZEN_TUTORIAL_STEPS,
+  getLevels: () => LEVELS,
+  worlds: ZEN_WORLDS,
+  supportsWorkshop: true,
 
   onTileTap(x, y, tiles): TapResult | null {
     const newTiles = rotateTileTap(x, y, tiles)

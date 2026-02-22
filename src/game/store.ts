@@ -293,6 +293,23 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }, 300)
 
     get().checkWin()
+
+    // Check for move-limit loss (e.g. candy mode runs out of taps without winning)
+    const afterWin = get()
+    if (afterWin.status === 'playing' && mode.checkLoss && afterWin.currentLevel &&
+        mode.useMoveLimit !== false && afterWin.moves >= afterWin.currentLevel.maxMoves) {
+      const { lost } = mode.checkLoss(
+        afterWin.tiles,
+        afterWin.wallOffset,
+        afterWin.moves,
+        afterWin.currentLevel.maxMoves,
+      )
+      if (lost) {
+        set({ status: 'lost' })
+        stopGameTimer()
+        sfx('lose')
+      }
+    }
   },
 
   checkWin: () => {
@@ -306,8 +323,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     if (!won) return false
 
-    // Mark win pending immediately to prevent re-entry
-    const connected = getConnectedTiles(tiles, currentLevel.goalNodes)
+    // Mark win pending immediately to prevent re-entry.
+    // Modes can provide their own win-highlight logic (e.g. candy crush matched tiles).
+    const connected = mode.getWinTiles
+      ? mode.getWinTiles(tiles, currentLevel.goalNodes)
+      : getConnectedTiles(tiles, currentLevel.goalNodes)
     stopGameTimer()
     set({ showingWin: true, connectedTiles: connected, compressionActive: false, _winCheckPending: true })
     sfx('win')

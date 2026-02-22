@@ -1,9 +1,16 @@
 // PRESSURE - Blitz Mode
 // Walls close fast and never stop. No move limit — solve it before you're crushed.
 
-import { GameModeConfig, TapResult, WinResult, LossResult, TutorialStep } from './types'
-import { rotateTileTap, checkConnected } from './utils'
-import { Tile } from '../types'
+import { GameModeConfig, TapResult, WinResult, LossResult, TutorialStep } from '../types'
+import { rotateTileTap, checkConnected } from '../utils'
+import { LEVELS } from '../../levels'
+import { Tile } from '../../types'
+
+export const BLITZ_WORLDS = [
+  { id: 1, name: 'Breathe', tagline: 'Warm up', color: '#fb923c', icon: '◈' },
+  { id: 2, name: 'Squeeze', tagline: 'Walls never stop', color: '#f97316', icon: '◆' },
+  { id: 3, name: 'Crush', tagline: 'No mercy', color: '#ef4444', icon: '⬟' },
+]
 
 export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
   {
@@ -58,6 +65,9 @@ export const BlitzMode: GameModeConfig = {
   supportsUndo: false,
   useMoveLimit: false,
   tutorialSteps: BLITZ_TUTORIAL_STEPS,
+  getLevels: () => LEVELS,
+  worlds: BLITZ_WORLDS,
+  supportsWorkshop: true,
 
   onTileTap(x, y, tiles): TapResult | null {
     const newTiles = rotateTileTap(x, y, tiles)
