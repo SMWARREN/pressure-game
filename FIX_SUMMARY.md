@@ -173,5 +173,39 @@ Created new reusable components in `src/components/game/`:
 
 ---
 
+---
+
+## Additional Fixes (Round 2)
+
+### Timer Freezing Issue - Root Cause Analysis
+
+The timer was stopping because of flag management issues:
+
+1. **`isAdvancingWalls` flag getting stuck** - If the timeout cleanup failed, the flag stayed `true` forever, blocking all future wall advances
+
+2. **Reference to removed `activeIntervals` Set** - Code was trying to add/delete from a removed data structure
+
+### Solutions Applied
+
+1. **Simplified timer management**:
+   - `startGameTimer()` now calls `stopGameTimer()` first for clean slate
+   - `stopGameTimer()` resets the `advanceWallsInProgress` flag
+   - Removed the `activeIntervals` Set (unnecessary complexity)
+
+2. **Better flag naming**:
+   - Renamed `isAdvancingWalls` → `advanceWallsInProgress`
+   - Renamed `isCheckingWin` → `checkWinInProgress`
+   - Clearer intent and easier to track
+
+3. **Removed unused variable**: `lastWallAdvanceTime` was never used
+
+### Build Errors Fixed
+
+1. Removed unused `bestMoves` extraction from GameBoard
+2. Fixed all TypeScript compilation errors
+3. Removed references to non-existent `activeIntervals` Set
+
+---
+
 ## Date: February 21, 2026
 ## Branch: fix/freeze-issues-centralized-timer

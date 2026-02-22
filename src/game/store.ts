@@ -18,14 +18,12 @@ const STORAGE_KEY = 'pressure_save_v2'
 
 // Track all timeouts for cleanup
 const activeTimeouts = new Set<ReturnType<typeof setTimeout>>()
-// Track all intervals for cleanup (NEW)
-const activeIntervals = new Set<ReturnType<typeof setInterval>>()
-// Game timer interval ID
+// Game timer interval ID - SINGLE source of truth
 let gameTimerInterval: ReturnType<typeof setInterval> | null = null
-// Flag to prevent concurrent advanceWalls calls
-let isAdvancingWalls = false
-// Flag to prevent concurrent checkWin calls
-let isCheckingWin = false
+// Debounce flag for advanceWalls (reset on each call completion)
+let advanceWallsInProgress = false
+// Debounce flag for checkWin (prevents concurrent win checks)
+let checkWinInProgress = false
 
 /**
  * Safely add a timeout with automatic tracking
@@ -40,26 +38,22 @@ function addTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout
 }
 
 /**
- * Clear all tracked timeouts and intervals
+ * Clear all tracked timeouts and intervals - CRITICAL for preventing leaks
  */
 export function clearAllTimers() {
-  // Clear all timeouts
+  // Clear all tracked timeouts
   activeTimeouts.forEach(id => clearTimeout(id))
   activeTimeouts.clear()
   
-  // Clear all intervals
-  activeIntervals.forEach(id => clearInterval(id))
-  activeIntervals.clear()
-  
-  // Clear game timer
+  // Clear game timer interval
   if (gameTimerInterval) {
     clearInterval(gameTimerInterval)
     gameTimerInterval = null
   }
   
   // Reset flags
-  isAdvancingWalls = false
-  isCheckingWin = false
+  advanceWallsInProgress = false
+  checkWinInProgress = false
 }
 
 // Legacy export for backward compatibility
@@ -419,14 +413,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
    */
   advanceWalls: () => {
     // Guard: Prevent concurrent or invalid calls
-    if (isAdvancingWalls) return
+    if (advanceWallsInProgress) return
     
     const { wallOffset, status, tiles, currentLevel, showingWin } = get()
     
     // Guard: Only advance during active gameplay
     if (status !== 'playing' || !currentLevel || showingWin) return
     
-    isAdvancingWalls = true
+    advanceWallsInProgress = true
 
     const newOffset = wallOffset + 1
     const gridSize = currentLevel.gridSize
@@ -458,7 +452,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // Clear wallsJustAdvanced flag after animation
     addTimeout(() => {
       set({ wallsJustAdvanced: false })
-      isAdvancingWalls = false
+      advanceWallsInProgress = false
     }, 600)
 
     // Handle crush (game over)
@@ -467,7 +461,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       stopGameTimer()
       set({ status: 'lost', compressionActive: false, screenShake: true })
       addTimeout(() => set({ screenShake: false }), 600)
-      isAdvancingWalls = false
+      advanceWallsInProgress = false
     }
   },
 
@@ -477,14 +471,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
    */
   checkWin: () => {
     // Guard: Prevent concurrent checks
-    if (isCheckingWin) return false
+    if (checkWinInProgress) return false
     
     const { tiles, currentLevel, moves, status, showingWin } = get()
     
     // Guard: Only check during active gameplay
     if (!currentLevel || status !== 'playing' || showingWin) return false
     
-    isCheckingWin = true
+    checkWinInProgress = true
 
     const isWin = checkConnected(tiles, currentLevel.goalNodes)
     
@@ -524,13 +518,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
             showingWin: false 
           }
         })
-        isCheckingWin = false
+        checkWinInProgress = false
       }, 1500)
       
       return true
     }
     
-    isCheckingWin = false
+    checkWinInProgress = false
     return false
   },
 
@@ -632,30 +626,27 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
 function startGameTimer() {
   // Clear any existing game timer first
-  if (gameTimerInterval) {
-    clearInterval(gameTimerInterval)
-    gameTimerInterval = null
-  }
+  stopGameTimer()
   
-  // Start single centralized timer
+  // Start single centralized timer - runs every second
   gameTimerInterval = setInterval(() => {
     const state = useGameStore.getState()
     
-    // Only tick if game is actively playing
+    // Only tick if game is actively playing (double-check to be safe)
     if (state.status === 'playing' && !state.showingWin) {
+      // Increment elapsed time
       state.tickTimer()
+      // Decrement compression countdown and trigger wall advance if needed
       state.tickCompressionTimer()
     }
   }, 1000)
-  
-  // Track for cleanup
-  activeIntervals.add(gameTimerInterval)
 }
 
 function stopGameTimer() {
   if (gameTimerInterval) {
     clearInterval(gameTimerInterval)
-    activeIntervals.delete(gameTimerInterval)
     gameTimerInterval = null
   }
+  // Reset debounce flags when timer stops
+  advanceWallsInProgress = false
 }
