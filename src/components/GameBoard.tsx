@@ -890,6 +890,16 @@ export default function GameBoard() {
     tapTile(x, y)
   }, [status, tiles, currentLevel, burst, tapTile])
 
+  // Create tile map for O(1) lookups (optimization)
+  // IMPORTANT: This hook must be called unconditionally, before any early returns
+  const tileMap = useMemo(() => {
+    const map = new Map<string, typeof tiles[0]>()
+    for (const tile of tiles) {
+      map.set(`${tile.x},${tile.y}`, tile)
+    }
+    return map
+  }, [tiles])
+
   // Show tutorial or menu if needed
   if (showTutorial || status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />
   if (status === 'menu' || !currentLevel) return <MenuScreen />
@@ -899,15 +909,6 @@ export default function GameBoard() {
   const comprPct = Math.round((wallOffset / maxOff) * 100)
   const hintPos = showHint && solution?.length ? solution[0] : null
   const nextLevel = allLevels.find(l => l.id === currentLevel.id + 1) ?? null
-
-  // Create tile map for O(1) lookups (optimization)
-  const tileMap = useMemo(() => {
-    const map = new Map<string, typeof tiles[0]>()
-    for (const tile of tiles) {
-      map.set(`${tile.x},${tile.y}`, tile)
-    }
-    return map
-  }, [tiles])
 
   // Calculate board dimensions
   const boardPx = Math.min(370, typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.88, window.innerHeight * 0.55) : 370)
