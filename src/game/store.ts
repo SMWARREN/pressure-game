@@ -73,38 +73,56 @@ function rotateConnections(conns: Direction[], times: number): Direction[] {
 }
 
 /**
+ * Create a Map from tiles array for O(1) lookups
+ * This is a critical performance optimization - converts O(n) find() to O(1) Map.get()
+ */
+function createTileMap(tiles: Tile[]): Map<string, Tile> {
+  const map = new Map<string, Tile>()
+  for (const tile of tiles) {
+    map.set(`${tile.x},${tile.y}`, tile)
+  }
+  return map
+}
+
+/**
  * Check if all goal nodes are connected via valid paths
- * Uses BFS to find connected components
+ * Uses BFS to find connected components with O(1) tile lookups
  */
 export function checkConnected(tiles: Tile[], goals: Position[]): boolean {
   if (goals.length < 2) return true
 
-  const getTile = (x: number, y: number) => tiles.find(t => t.x === x && t.y === y)
+  // Use Map for O(1) lookups instead of O(n) array.find()
+  const tileMap = createTileMap(tiles)
   const visited = new Set<string>()
   const queue: Position[] = [goals[0]]
   visited.add(`${goals[0].x},${goals[0].y}`)
   const connected = new Set([`${goals[0].x},${goals[0].y}`])
+  
+  // Pre-compute goal positions for O(1) lookup
+  const goalSet = new Set(goals.map(g => `${g.x},${g.y}`))
 
   while (queue.length > 0) {
     const curr = queue.shift()!
-    const tile = getTile(curr.x, curr.y)
+    const tile = tileMap.get(`${curr.x},${curr.y}`)
     if (!tile) continue
 
     for (const d of tile.connections) {
       let nx = curr.x, ny = curr.y
-      if (d === 'up') ny--; else if (d === 'down') ny++
-      else if (d === 'left') nx--; else if (d === 'right') nx++
+      if (d === 'up') ny--
+      else if (d === 'down') ny++
+      else if (d === 'left') nx--
+      else if (d === 'right') nx++
 
       const key = `${nx},${ny}`
       if (visited.has(key)) continue
 
-      const neighbor = getTile(nx, ny)
+      const neighbor = tileMap.get(key)
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue
 
       if (neighbor.connections.includes(OPP[d])) {
         visited.add(key)
         queue.push({ x: nx, y: ny })
-        if (goals.some(g => g.x === nx && g.y === ny)) connected.add(key)
+        if (goalSet.has(key)) connected.add(key)
       }
     }
   }
@@ -114,30 +132,33 @@ export function checkConnected(tiles: Tile[], goals: Position[]): boolean {
 
 /**
  * Get all tile positions that are connected to goal nodes
- * Used for win visualization
+ * Uses BFS with O(1) tile lookups
  */
 export function getConnectedTiles(tiles: Tile[], goals: Position[]): Set<string> {
   if (goals.length < 2) return new Set()
 
-  const getTile = (x: number, y: number) => tiles.find(t => t.x === x && t.y === y)
+  // Use Map for O(1) lookups instead of O(n) array.find()
+  const tileMap = createTileMap(tiles)
   const visited = new Set<string>()
   const queue: Position[] = [goals[0]]
   visited.add(`${goals[0].x},${goals[0].y}`)
 
   while (queue.length > 0) {
     const curr = queue.shift()!
-    const tile = getTile(curr.x, curr.y)
+    const tile = tileMap.get(`${curr.x},${curr.y}`)
     if (!tile) continue
 
     for (const d of tile.connections) {
       let nx = curr.x, ny = curr.y
-      if (d === 'up') ny--; else if (d === 'down') ny++
-      else if (d === 'left') nx--; else if (d === 'right') nx++
+      if (d === 'up') ny--
+      else if (d === 'down') ny++
+      else if (d === 'left') nx--
+      else if (d === 'right') nx++
 
       const key = `${nx},${ny}`
       if (visited.has(key)) continue
 
-      const neighbor = getTile(nx, ny)
+      const neighbor = tileMap.get(key)
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue
 
       if (neighbor.connections.includes(OPP[d])) {
@@ -335,6 +356,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // Guard: Only allow taps during active gameplay
     if (status !== 'playing' || showingWin) return
 
+    // Use direct array lookup optimized for small grids
     const tile = tiles.find(t => t.x === x && t.y === y)
     if (!tile?.canRotate) return
     if (currentLevel && moves >= currentLevel.maxMoves) return
