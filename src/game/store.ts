@@ -347,9 +347,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         if (!s.tiles.some((t) => t.displayData?.isNew)) return {};
         return {
           tiles: s.tiles.map((t) =>
-            t.displayData?.isNew
-              ? { ...t, displayData: { ...t.displayData, isNew: false } }
-              : t
+            t.displayData?.isNew ? { ...t, displayData: { ...t.displayData, isNew: false } } : t
           ),
         };
       });
@@ -390,7 +388,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     const mode = getModeById(currentModeId);
     const modeState = { score: get().score, targetScore: currentLevel.targetScore };
-    const { won } = mode.checkWin(tiles, currentLevel.goalNodes, moves, currentLevel.maxMoves, modeState);
+    const { won } = mode.checkWin(
+      tiles,
+      currentLevel.goalNodes,
+      moves,
+      currentLevel.maxMoves,
+      modeState
+    );
 
     if (!won) return false;
 
@@ -471,12 +475,24 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     // Check mode-specific loss condition
     const mode = getModeById(currentModeId);
     if (mode.checkLoss) {
-      const { lost, reason } = mode.checkLoss(newTiles, newOffset, get().moves, currentLevel.maxMoves, {
-        score: get().score,
-        targetScore: currentLevel.targetScore,
-      });
+      const { lost, reason } = mode.checkLoss(
+        newTiles,
+        newOffset,
+        get().moves,
+        currentLevel.maxMoves,
+        {
+          score: get().score,
+          targetScore: currentLevel.targetScore,
+        }
+      );
       if (lost) {
-        set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true, lossReason: reason ?? null });
+        set({
+          tiles: newTiles,
+          wallOffset: newOffset,
+          status: 'lost',
+          wallsJustAdvanced: true,
+          lossReason: reason ?? null,
+        });
         stopGameTimer();
         sfx('lose');
         return;
@@ -489,7 +505,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     );
 
     if (allGoalsCrushed) {
-      set({ tiles: newTiles, wallOffset: newOffset, status: 'lost', wallsJustAdvanced: true, lossReason: null });
+      set({
+        tiles: newTiles,
+        wallOffset: newOffset,
+        status: 'lost',
+        wallsJustAdvanced: true,
+        lossReason: null,
+      });
       stopGameTimer();
       sfx('lose');
       return;

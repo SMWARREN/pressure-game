@@ -474,7 +474,15 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
     '🍓': '#ec4899',
   };
 
-  function CandyTile({ sym, highlight = false, small = false }: { sym: string; highlight?: boolean; small?: boolean }) {
+  function CandyTile({
+    sym,
+    highlight = false,
+    small = false,
+  }: {
+    sym: string;
+    highlight?: boolean;
+    small?: boolean;
+  }) {
     const col = CANDY_COLORS[sym] ?? '#6366f1';
     const size = small ? 34 : 42;
     return (
@@ -507,8 +515,7 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
       ['🍎', '🫐', '🫐'],
       ['🍋', '🫐', '🍓'],
     ];
-    const inGroup = (r: number, c: number) =>
-      (r === 0 && c < 2) || (r === 1 && c === 0);
+    const inGroup = (r: number, c: number) => (r === 0 && c < 2) || (r === 1 && c === 0);
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {grid.map((row, r) => (
@@ -592,8 +599,24 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ display: 'flex', gap: 3 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 7, background: 'rgba(165,180,252,0.1)', border: '2px dashed #a5b4fc30' }} />
-              <div style={{ width: 34, height: 34, borderRadius: 7, background: 'rgba(165,180,252,0.1)', border: '2px dashed #a5b4fc30' }} />
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 7,
+                  background: 'rgba(165,180,252,0.1)',
+                  border: '2px dashed #a5b4fc30',
+                }}
+              />
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 7,
+                  background: 'rgba(165,180,252,0.1)',
+                  border: '2px dashed #a5b4fc30',
+                }}
+              />
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
               <CandyTile sym="🍊" highlight small />

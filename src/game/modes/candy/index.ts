@@ -44,7 +44,11 @@ function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
       [1, 0],
     ] as [number, number][]) {
       const nb = map.get(`${cur.x + dx},${cur.y + dy}`);
-      if (nb?.canRotate && !visited.has(`${nb.x},${nb.y}`) && nb.displayData?.symbol === targetSym) {
+      if (
+        nb?.canRotate &&
+        !visited.has(`${nb.x},${nb.y}`) &&
+        nb.displayData?.symbol === targetSym
+      ) {
         stack.push(nb);
       }
     }
@@ -68,9 +72,7 @@ function applyGravity(tiles: Tile[], gridSize: number): Tile[] {
   const result: Tile[] = [];
 
   for (let col = 0; col < gridSize; col++) {
-    const colTiles = survivors
-      .filter((t) => t.x === col)
-      .sort((a, b) => b.y - a.y); // highest y (bottom) first
+    const colTiles = survivors.filter((t) => t.x === col).sort((a, b) => b.y - a.y); // highest y (bottom) first
 
     // Pack existing tiles to the bottom — clear isNew so survivors don't re-animate
     for (let i = 0; i < colTiles.length; i++) {
@@ -183,7 +185,11 @@ export const CandyMode: GameModeConfig = {
       }
 
       const sym = tile.displayData?.symbol as string;
-      const c = CANDY_COLORS[sym] ?? { bg: '#1a1a2e', border: '#6366f1', glow: 'rgba(99,102,241,0.4)' };
+      const c = CANDY_COLORS[sym] ?? {
+        bg: '#1a1a2e',
+        border: '#6366f1',
+        glow: 'rgba(99,102,241,0.4)',
+      };
 
       // New tiles (just dropped in) get a bright indigo glow that fades out after ~1.5s
       if (tile.displayData?.isNew) {

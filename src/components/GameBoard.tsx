@@ -284,7 +284,8 @@ function Overlay({
         </div>
         {levelRecord && levelRecord.attempts > 0 && (
           <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
-            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts} attempt{levelRecord.attempts !== 1 ? 's' : ''}
+            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts}{' '}
+            attempt{levelRecord.attempts !== 1 ? 's' : ''}
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14 }}>
@@ -316,7 +317,8 @@ function Overlay({
         </div>
         {levelRecord && levelRecord.attempts > 0 && (
           <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
-            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts} attempt{levelRecord.attempts !== 1 ? 's' : ''}
+            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts}{' '}
+            attempt{levelRecord.attempts !== 1 ? 's' : ''}
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14 }}>
@@ -1198,12 +1200,18 @@ export default function GameBoard() {
   const boardRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(false);
   const [rejectedPos, setRejectedPos] = useState<{ x: number; y: number } | null>(null);
-  const [notification, setNotification] = useState<{ text: string; key: number; isScore: boolean } | null>(null);
+  const [notification, setNotification] = useState<{
+    text: string;
+    key: number;
+    isScore: boolean;
+  } | null>(null);
   const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { w: vw, h: vh } = useViewport();
 
   // Inject notification CSS once on mount
-  useEffect(() => { ensureNotifStyles(); }, []);
+  useEffect(() => {
+    ensureNotifStyles();
+  }, []);
 
   const showNotification = useCallback((text: string, isScore = false) => {
     if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
@@ -1272,7 +1280,7 @@ export default function GameBoard() {
 
         if (accepted) {
           const sym = tile.displayData?.symbol as string | undefined;
-          const color = (sym && CANDY_BURST_COLORS[sym]) ? CANDY_BURST_COLORS[sym] : '#f59e0b';
+          const color = sym && CANDY_BURST_COLORS[sym] ? CANDY_BURST_COLORS[sym] : '#f59e0b';
           particleRef.current?.burst(px, py, color, sym ? 8 : 5);
         } else {
           particleRef.current?.burst(px, py, '#ef4444', 4);
@@ -1286,7 +1294,9 @@ export default function GameBoard() {
         let notifText: string | null = null;
         if (tappedMode.getNotification) {
           const freshState = useGameStore.getState();
-          notifText = tappedMode.getNotification(freshState.tiles, freshState.moves, { scoreDelta });
+          notifText = tappedMode.getNotification(freshState.tiles, freshState.moves, {
+            scoreDelta,
+          });
         }
         if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;
         if (notifText) showNotification(notifText, scoreDelta > 0);

@@ -214,12 +214,16 @@ function TimeleftDisplay({ timeLeft, timeLimit }: { timeLeft: number; timeLimit?
           marginBottom: 4,
         }}
       >
-        <span style={{ color: urgent ? '#ef4444' : '#60a5fa', fontWeight: 800, transition: 'color 0.3s' }}>
+        <span
+          style={{
+            color: urgent ? '#ef4444' : '#60a5fa',
+            fontWeight: 800,
+            transition: 'color 0.3s',
+          }}
+        >
           TIME LEFT
         </span>
-        {timeLimit !== undefined && (
-          <span style={{ color: '#3a3a55' }}>{timeLimit}s</span>
-        )}
+        {timeLimit !== undefined && <span style={{ color: '#3a3a55' }}>{timeLimit}s</span>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div
@@ -255,7 +259,10 @@ function TimeleftDisplay({ timeLeft, timeLimit }: { timeLeft: number; timeLimit?
                   ? 'linear-gradient(90deg, #ef444480, #ef4444)'
                   : 'linear-gradient(90deg, #3b82f680, #60a5fa)',
                 transition: 'width 1s linear, background 0.4s',
-                boxShadow: pct > 10 ? `0 0 10px ${urgent ? 'rgba(239,68,68,0.5)' : 'rgba(96,165,250,0.4)'}` : 'none',
+                boxShadow:
+                  pct > 10
+                    ? `0 0 10px ${urgent ? 'rgba(239,68,68,0.5)' : 'rgba(96,165,250,0.4)'}`
+                    : 'none',
               }}
             />
           </div>
@@ -296,11 +303,12 @@ export default function GameStats({
   statsDisplayOverride,
 }: GameStatsProps) {
   const activeMode = getModeById(currentModeId);
-  const statsDisplay = statsDisplayOverride ?? activeMode.statsDisplay ?? [
-    { type: 'moves' },
-    { type: 'compressionBar' },
-    { type: 'countdown' },
-  ];
+  const statsDisplay = statsDisplayOverride ??
+    activeMode.statsDisplay ?? [
+      { type: 'moves' },
+      { type: 'compressionBar' },
+      { type: 'countdown' },
+    ];
 
   return (
     <div

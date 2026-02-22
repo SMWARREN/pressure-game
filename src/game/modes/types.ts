@@ -211,10 +211,7 @@ export interface GameModeConfig {
    * Optional: called every game tick (1 second) for time-based mechanics.
    * Return a partial GameState update or null for no change.
    */
-  onTick?: (
-    state: GameState,
-    modeState?: Record<string, unknown>
-  ) => Partial<GameState> | null;
+  onTick?: (state: GameState, modeState?: Record<string, unknown>) => Partial<GameState> | null;
 
   /** Whether this mode supports the undo mechanic. Default: true */
   supportsUndo?: boolean;

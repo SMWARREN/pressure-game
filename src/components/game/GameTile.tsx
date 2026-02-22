@@ -310,7 +310,10 @@ function GameTileComponent({
           transition: isNewTile
             ? 'border-color 0.6s ease, box-shadow 0.6s ease'
             : `${tileTransition}, border-color 0.6s ease, box-shadow 0.6s ease`,
-          animation: isNewTile && animationsEnabled ? 'candyDrop 0.42s cubic-bezier(0.34,1.56,0.64,1)' : undefined,
+          animation:
+            isNewTile && animationsEnabled
+              ? 'candyDrop 0.42s cubic-bezier(0.34,1.56,0.64,1)'
+              : undefined,
           fontSize: tileRenderer.symbolSize ?? '1.2rem',
           ...appliedBg,
           overflow: 'hidden',

@@ -243,9 +243,7 @@ export default function StatsScreen({ onBack }: { onBack: () => void }) {
                           </div>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                          <div
-                            style={{ fontSize: 13, fontWeight: 900, color: mode.color }}
-                          >
+                          <div style={{ fontSize: 13, fontWeight: 900, color: mode.color }}>
                             {winRate}%
                           </div>
                           <div style={{ fontSize: 10, color: '#3a3a55' }}>
@@ -295,7 +293,8 @@ export default function StatsScreen({ onBack }: { onBack: () => void }) {
                               {mode?.icon} {mode?.name ?? e.modeId} · Lv {e.levelId}
                             </div>
                             <div style={{ fontSize: 10, color: '#3a3a55', marginTop: 1 }}>
-                              {e.moves} {e.moves === 1 ? 'move' : 'moves'} · {fmtTime(e.elapsedSeconds)}
+                              {e.moves} {e.moves === 1 ? 'move' : 'moves'} ·{' '}
+                              {fmtTime(e.elapsedSeconds)}
                               {e.score > 0 ? ` · ${e.score} pts` : ''}
                             </div>
                           </div>

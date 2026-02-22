@@ -29,9 +29,7 @@ export class StatsEngine {
   /** Wire into the store. Call once at app startup. Idempotent. */
   start(): void {
     if (this.unsubscribe) return;
-    this.unsubscribe = useGameStore.subscribe((state, prev) =>
-      this.onStateChange(state, prev)
-    );
+    this.unsubscribe = useGameStore.subscribe((state, prev) => this.onStateChange(state, prev));
   }
 
   /** Stop listening. Useful for testing teardown. */
