@@ -382,7 +382,7 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
   const [gridSize, setGridSize] = useState(5)
   const [nodeCount, setNodeCount] = useState(2)
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
-  const [decoysOverride, setDecoysOverride] = useState<number | null>(null)
+  const [decoysOverride, _setDecoysOverride] = useState<number | null>(null)
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState<{ success: boolean; moves?: number; message: string } | null>(null)
 
@@ -677,7 +677,7 @@ export default function GameBoard() {
     timeUntilCompression, wallsJustAdvanced,
     loadLevel, startGame, tapTile,
     restartLevel, goToMenu, undoMove,
-    completeTutorial, showTutorial,
+    completeTutorial,
     generatedLevels, history,
   } = useGameStore(useShallow(s => ({
     currentLevel: s.currentLevel,
@@ -697,7 +697,6 @@ export default function GameBoard() {
     goToMenu: s.goToMenu,
     undoMove: s.undoMove,
     completeTutorial: s.completeTutorial,
-    showTutorial: s.showTutorial,
     generatedLevels: s.generatedLevels,
     history: s.history,
   })))

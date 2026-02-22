@@ -154,7 +154,7 @@ function GameTileComponent({
   // ── Custom mode renderer (slots, candy crush, match-3, etc.) ──────────────
   if (tileRenderer && tileRenderer.type !== 'pipe') {
     const ctx = { isHint, inDanger, justRotated: !!justRotated, compressionActive: false, tileSize }
-    const tile = { x: 0, y: 0, type: type as any, connections: connections as any, canRotate, isGoalNode, justRotated, displayData }
+    const tile = { id: `${type}-0-0`, x: 0, y: 0, type: type as any, connections: connections as any, canRotate, isGoalNode, justRotated, displayData }
     const customColors = tileRenderer.getColors?.(tile, ctx)
     const symbol = tileRenderer.getSymbol?.(tile, ctx)
     const appliedBg = customColors ?? bgStyle

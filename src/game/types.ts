@@ -23,6 +23,7 @@ export interface Position {
 export type TileType = 'path' | 'node' | 'wall' | 'crushed' | 'empty'
 
 export interface Tile {
+  id: string
   x: number
   y: number
   type: TileType

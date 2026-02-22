@@ -40,11 +40,7 @@ body {
   overflow: hidden;
 }
 
-<<<<<<< HEAD
 /* Input range styling for level generator - Mobile optimized with larger touch target */
-=======
-/* Input range styling */
->>>>>>> b4b75f7 (fixes)
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -53,17 +49,11 @@ input[type="range"] {
   border-radius: 4px;
   outline: none;
   cursor: pointer;
-<<<<<<< HEAD
   /* Add padding for larger touch area */
   padding: 12px 0;
   margin: -12px 0;
   background-clip: content-box;
-=======
-  padding: 12px 0;
-  margin: -12px 0;
-  background-clip: content-box;
   width: 100%;
->>>>>>> b4b75f7 (fixes)
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -75,10 +65,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
-<<<<<<< HEAD
   /* Ensure thumb is above the track */
-=======
->>>>>>> b4b75f7 (fixes)
   margin-top: -10px;
 }
 
@@ -116,63 +103,36 @@ button:focus-visible {
   -webkit-overflow-scrolling: touch;
 }
 
-<<<<<<< HEAD
 /* Mobile-first responsive utilities */
 
 /* Ensure minimum touch target sizes */
-=======
-/* Minimum touch target sizes */
->>>>>>> b4b75f7 (fixes)
 button, [role="button"] {
   min-height: 44px;
   min-width: 44px;
 }
 
-<<<<<<< HEAD
+/* Prevent horizontal overflow */
+body, #root {
+  overflow-x: hidden;
+}
+
 /* Better text rendering on mobile */
 @media screen and (max-width: 480px) {
   html {
     font-size: 16px; /* Prevents zoom on input focus in iOS */
   }
-  
-  /* Prevent horizontal overflow */
-  body {
-    overflow-x: hidden;
-  }
 }
 
 /* Small phones (320px - 375px) */
-=======
-/* Prevent horizontal overflow everywhere */
-body, #root {
-  overflow-x: hidden;
-}
-
-/* iOS: prevent zoom on input focus */
-@media screen and (max-width: 480px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-/* Small phones */
->>>>>>> b4b75f7 (fixes)
 @media screen and (max-width: 375px) {
   html {
     font-size: 14px;
   }
 }
 
-<<<<<<< HEAD
 /* Landscape orientation on mobile */
 @media screen and (max-height: 500px) and (orientation: landscape) {
   body {
-    font-size: 14px;
-=======
-/* Landscape on mobile — shrink text slightly */
-@media screen and (max-height: 500px) and (orientation: landscape) {
-  body {
     font-size: 13px;
->>>>>>> b4b75f7 (fixes)
   }
 }

@@ -4,7 +4,7 @@
 // never be stranded by clearAllTimers() calls.
 
 import { create } from 'zustand'
-import { GameState, GameActions, Level, Tile, Position } from './types'
+import { GameState, GameActions, Level } from './types'
 import { getModeById, DEFAULT_MODE_ID } from './modes'
 import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils'
 
@@ -355,7 +355,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   advanceWalls: () => {
-    const { tiles, wallOffset, currentLevel, status, currentModeId, compressionOverride } = get()
+    const { tiles, wallOffset, currentLevel, status, currentModeId } = get()
     if (!currentLevel || status !== 'playing') return
 
     const gs = currentLevel.gridSize

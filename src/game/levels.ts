@@ -45,12 +45,12 @@ function isConnected(tiles: Tile[], goals: Position[]): boolean {
   return goals.every(g => connected.has(`${g.x},${g.y}`))
 }
 
-// BFS solver - returns solution path or null
-function solve(tiles: Tile[], goals: Position[], maxMoves: number): { x: number; y: number; rotations: number }[] | null {
+// BFS solver - returns solution path or undefined
+function solve(tiles: Tile[], goals: Position[], maxMoves: number): { x: number; y: number; rotations: number }[] | undefined {
   if (isConnected(tiles, goals)) return []
 
   const rotatable = tiles.filter(t => t.canRotate)
-  if (rotatable.length === 0) return null
+  if (rotatable.length === 0) return undefined
 
   const visited = new Set<string>()
   const queue: { tiles: Tile[]; path: { x: number; y: number; rotations: number }[] }[] = [
@@ -69,7 +69,7 @@ function solve(tiles: Tile[], goals: Position[], maxMoves: number): { x: number;
   const MAX_ITERATIONS = 50_000
 
   while (queue.length > 0) {
-    if (++iterations > MAX_ITERATIONS) return null
+    if (++iterations > MAX_ITERATIONS) return undefined
 
     const curr = queue.shift()!
 
@@ -98,7 +98,7 @@ function solve(tiles: Tile[], goals: Position[], maxMoves: number): { x: number;
     }
   }
 
-  return null
+  return undefined
 }
 
 // Create a tile

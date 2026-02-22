@@ -70,7 +70,7 @@ export const BlitzMode: GameModeConfig = {
     return { won, reason: won ? 'Survived!' : undefined }
   },
 
-  checkLoss(tiles, wallOffset, _moves, _maxMoves): LossResult {
+  checkLoss(tiles, _wallOffset, _moves, _maxMoves): LossResult {
     const crushedGoal = tiles.some(
       (t: Tile) => t.isGoalNode && t.type === 'crushed'
     )
