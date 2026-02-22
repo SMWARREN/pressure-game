@@ -22,7 +22,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: #06060f;
   color: #fff;
-  /* Prevent overscroll bounce on iOS */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
   overflow: hidden;
@@ -40,6 +39,11 @@ body {
   overflow: hidden;
 }
 
+/* Prevent horizontal overflow everywhere */
+body, #root {
+  overflow-x: hidden;
+}
+
 /* Input range styling for level generator - Mobile optimized with larger touch target */
 input[type="range"] {
   -webkit-appearance: none;
@@ -49,7 +53,6 @@ input[type="range"] {
   border-radius: 4px;
   outline: none;
   cursor: pointer;
-  /* Add padding for larger touch area */
   padding: 12px 0;
   margin: -12px 0;
   background-clip: content-box;
@@ -65,7 +68,6 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
-  /* Ensure thumb is above the track */
   margin-top: -10px;
 }
 
@@ -103,34 +105,27 @@ button:focus-visible {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Mobile-first responsive utilities */
-
-/* Ensure minimum touch target sizes */
+/* Minimum touch target sizes */
 button, [role="button"] {
   min-height: 44px;
   min-width: 44px;
 }
 
-/* Prevent horizontal overflow */
-body, #root {
-  overflow-x: hidden;
-}
-
-/* Better text rendering on mobile */
+/* iOS: prevent zoom on input focus */
 @media screen and (max-width: 480px) {
   html {
-    font-size: 16px; /* Prevents zoom on input focus in iOS */
+    font-size: 16px;
   }
 }
 
-/* Small phones (320px - 375px) */
+/* Small phones */
 @media screen and (max-width: 375px) {
   html {
     font-size: 14px;
   }
 }
 
-/* Landscape orientation on mobile */
+/* Landscape on mobile — shrink text slightly */
 @media screen and (max-height: 500px) and (orientation: landscape) {
   body {
     font-size: 13px;

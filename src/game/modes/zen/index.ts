@@ -1,15 +1,15 @@
 // PRESSURE - Zen Mode
 // Pure puzzle, no walls, no pressure. Just connect the pipes.
 
-import { GameModeConfig, TapResult, WinResult, TutorialStep } from '../types'
-import { rotateTileTap, checkConnected } from '../utils'
-import { LEVELS } from '../../levels'
+import { GameModeConfig, TapResult, WinResult, TutorialStep } from '../types';
+import { rotateTileTap, checkConnected } from '../utils';
+import { LEVELS } from '../../levels';
 
 export const ZEN_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
   { id: 2, name: 'Squeeze', tagline: 'Find your flow', color: '#34d399', icon: '◆' },
   { id: 3, name: 'Crush', tagline: 'Pure challenge', color: '#6ee7b7', icon: '⬟' },
-]
+];
 
 export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
   {
@@ -34,7 +34,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Connect the Nodes',
     subtitle: 'YOUR ONLY GOAL',
     demo: 'node',
-    body: 'Green goal nodes must all be connected through a continuous pipe path. That\'s it. No walls. No clock. Just pure puzzling.',
+    body: "Green goal nodes must all be connected through a continuous pipe path. That's it. No walls. No clock. Just pure puzzling.",
   },
   {
     icon: '♾️',
@@ -52,7 +52,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     demo: 'zen-ready',
     body: 'Connect all the nodes. Take your time. Enjoy the puzzle.',
   },
-]
+];
 
 export const ZenMode: GameModeConfig = {
   id: 'zen',
@@ -69,17 +69,17 @@ export const ZenMode: GameModeConfig = {
   supportsWorkshop: true,
 
   onTileTap(x, y, tiles): TapResult | null {
-    const newTiles = rotateTileTap(x, y, tiles)
-    if (!newTiles) return null
-    return { tiles: newTiles, valid: true }
+    const newTiles = rotateTileTap(x, y, tiles);
+    if (!newTiles) return null;
+    return { tiles: newTiles, valid: true };
   },
 
   checkWin(tiles, goalNodes): WinResult {
-    const won = checkConnected(tiles, goalNodes)
-    return { won, reason: won ? 'Connected!' : undefined }
+    const won = checkConnected(tiles, goalNodes);
+    return { won, reason: won ? 'Connected!' : undefined };
   },
 
   statsLabels: {
     moves: 'MOVES',
   },
-}
+};

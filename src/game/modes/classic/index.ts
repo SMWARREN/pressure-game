@@ -2,15 +2,15 @@
 // The original pipe puzzle with closing walls.
 // Connect all goal nodes before the walls crush them.
 
-import { GameModeConfig, TapResult, WinResult, TutorialStep } from '../types'
-import { rotateTileTap, checkConnected } from '../utils'
-import { LEVELS } from '../../levels'
+import { GameModeConfig, TapResult, WinResult, TutorialStep } from '../types';
+import { rotateTileTap, checkConnected } from '../utils';
+import { LEVELS } from '../../levels';
 
 export const CLASSIC_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
   { id: 2, name: 'Squeeze', tagline: 'Feel the walls', color: '#f59e0b', icon: '◆' },
   { id: 3, name: 'Crush', tagline: 'Survive or die', color: '#ef4444', icon: '⬟' },
-]
+];
 
 export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
   {
@@ -19,7 +19,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Welcome to Pressure',
     subtitle: 'THE PIPE PUZZLE',
     demo: 'fixed-path',
-    body: 'Pipes fill the board. Fixed pipes (blue) can\'t move — they show you the path.\n\nYour job: connect all the glowing goal nodes.',
+    body: "Pipes fill the board. Fixed pipes (blue) can't move — they show you the path.\n\nYour job: connect all the glowing goal nodes.",
   },
   {
     icon: '🔄',
@@ -51,17 +51,17 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Undo & Hints',
     subtitle: 'YOUR TOOLS',
     demo: 'controls',
-    body: 'Stuck? Use Undo (⎌) to take back a move, or tap the Hint (💡) to see the next best rotation. Use them wisely — the walls won\'t wait.',
+    body: "Stuck? Use Undo (⎌) to take back a move, or tap the Hint (💡) to see the next best rotation. Use them wisely — the walls won't wait.",
   },
   {
     icon: '✦',
     iconColor: '#fbbf24',
-    title: 'You\'re Ready!',
+    title: "You're Ready!",
     subtitle: 'CONNECT BEFORE THE CRUSH',
     demo: 'ready',
-    body: 'Connect all nodes before the walls close in. Watch your move count. Good luck — you\'ll need it.',
+    body: "Connect all nodes before the walls close in. Watch your move count. Good luck — you'll need it.",
   },
-]
+];
 
 export const ClassicMode: GameModeConfig = {
   id: 'classic',
@@ -78,18 +78,18 @@ export const ClassicMode: GameModeConfig = {
   supportsWorkshop: true,
 
   onTileTap(x, y, tiles): TapResult | null {
-    const newTiles = rotateTileTap(x, y, tiles)
-    if (!newTiles) return null
-    return { tiles: newTiles, valid: true }
+    const newTiles = rotateTileTap(x, y, tiles);
+    if (!newTiles) return null;
+    return { tiles: newTiles, valid: true };
   },
 
   checkWin(tiles, goalNodes): WinResult {
-    const won = checkConnected(tiles, goalNodes)
-    return { won, reason: won ? 'All nodes connected!' : undefined }
+    const won = checkConnected(tiles, goalNodes);
+    return { won, reason: won ? 'All nodes connected!' : undefined };
   },
 
   statsLabels: {
     moves: 'MOVES',
     compression: 'PRESSURE',
   },
-}
+};
