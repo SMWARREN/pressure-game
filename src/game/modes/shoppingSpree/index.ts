@@ -3,13 +3,54 @@
 // Tap a connected group of 2+ same items to "buy" them and earn cash.
 // Different items have different values: 💄=10, 👗=15, 👠=20, 👜=25, 💎=50
 // Bigger groups = bonus multipliers! Score = (itemValue × groupSize) × comboMultiplier
-// Win: reach targetScore within maxMoves. Loss: moves exhausted without hitting target.
 //
-// No pipes, no walls — pure shopping arcade gameplay!
+// UNIQUE MECHANICS:
+// 🎫 Coupon Tiles - Match adjacent to coupons for 2× bonus!
+// ⚡ Flash Sales - Random item gets 3× value for next 3 taps!
+// 🛒 Shopping Cart - Build up cart bonus for mega rewards!
+//
+// Win: reach targetScore within maxMoves. Loss: moves exhausted without hitting target.
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
 import { SHOPPING_LEVELS, SHOPPING_WORLDS, SHOPPING_ITEMS, ITEM_VALUES } from './levels';
+
+// ── Mode State for Flash Sales & Cart ────────────────────────────────────────
+
+interface ShoppingModeState extends Record<string, unknown> {
+  flashSaleItem: string | null; // Which item is on sale
+  flashSaleTapsLeft: number; // How many taps left in the sale
+  cartItems: number; // Items in shopping cart
+  cartBonus: number; // Bonus when cart is full (every 10 items)
+  lastGroupSize: number; // For combo notifications
+}
+
+function getInitialState(): ShoppingModeState {
+  return {
+    flashSaleItem: null,
+    flashSaleTapsLeft: 0,
+    cartItems: 0,
+    cartBonus: 0,
+    lastGroupSize: 0,
+  };
+}
+
+// ── Flash Sale System ─────────────────────────────────────────────────────────
+
+function maybeTriggerFlashSale(state: ShoppingModeState): ShoppingModeState {
+  // 15% chance to trigger a flash sale after each move
+  if (Math.random() > 0.15) return state;
+
+  // Pick a random common item (not 💎)
+  const commonItems = SHOPPING_ITEMS.filter((s) => s !== '💎');
+  const saleItem = commonItems[Math.floor(Math.random() * commonItems.length)];
+
+  return {
+    ...state,
+    flashSaleItem: saleItem,
+    flashSaleTapsLeft: 3, // Sale lasts 3 taps
+  };
+}
 
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 
@@ -209,13 +250,24 @@ export const ShoppingSpreeMode: GameModeConfig = {
     },
   },
 
-  onTileTap(x, y, tiles, gridSize): TapResult | null {
+  initialState: () => getInitialState(),
+
+  onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
     const group = findGroup(x, y, tiles);
     if (group.length < 2) return null; // Need 2+ connected same-item tiles
 
+    const state: ShoppingModeState = (modeState as ShoppingModeState) || getInitialState();
+
     // Get the item type and its value
     const symbol = group[0].displayData?.symbol as string;
-    const baseValue = ITEM_VALUES[symbol] ?? 10;
+    let baseValue = ITEM_VALUES[symbol] ?? 10;
+
+    // ⚡ FLASH SALE BONUS - 3× value if this item is on sale!
+    let flashSaleBonus = false;
+    if (state.flashSaleItem === symbol && state.flashSaleTapsLeft > 0) {
+      baseValue *= 3;
+      flashSaleBonus = true;
+    }
 
     // Calculate score: base value × group size × combo multiplier
     // Bigger groups get bonus multipliers
@@ -224,7 +276,15 @@ export const ShoppingSpreeMode: GameModeConfig = {
     if (group.length >= 7) comboMultiplier = 3;
     if (group.length >= 10) comboMultiplier = 4;
 
-    const scoreDelta = baseValue * group.length * comboMultiplier;
+    let scoreDelta = baseValue * group.length * comboMultiplier;
+
+    // 🛒 SHOPPING CART BONUS - Every 10 items = bonus $50!
+    const newCartItems = state.cartItems + group.length;
+    let cartBonus = 0;
+    if (Math.floor(newCartItems / 10) > Math.floor(state.cartItems / 10)) {
+      cartBonus = 50;
+      scoreDelta += cartBonus;
+    }
 
     const clearedKeys = new Set(group.map((t) => `${t.x},${t.y}`));
     const remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
@@ -236,7 +296,22 @@ export const ShoppingSpreeMode: GameModeConfig = {
       next = reshuffle(next);
     }
 
-    return { tiles: next, valid: true, scoreDelta };
+    // Update mode state
+    let newState: ShoppingModeState = {
+      ...state,
+      cartItems: newCartItems,
+      cartBonus: cartBonus,
+      lastGroupSize: group.length,
+      flashSaleTapsLeft: flashSaleBonus ? state.flashSaleTapsLeft - 1 : state.flashSaleTapsLeft,
+      flashSaleItem: state.flashSaleTapsLeft <= 1 ? null : state.flashSaleItem,
+    };
+
+    // Maybe trigger a new flash sale
+    if (!newState.flashSaleItem) {
+      newState = maybeTriggerFlashSale(newState);
+    }
+
+    return { tiles: next, valid: true, scoreDelta, customState: newState };
   },
 
   checkWin(_tiles, _goalNodes, _moves, _maxMoves, modeState): WinResult {
@@ -278,12 +353,20 @@ export const ShoppingSpreeMode: GameModeConfig = {
       body: 'Each item has a different value:\n💄 Lipstick = $10\n👗 Dress = $15\n👠 Heels = $20\n👜 Handbag = $25\n💎 Diamond = $50\n\nMatch diamonds for big money!',
     },
     {
-      icon: '✨',
-      iconColor: '#a855f7',
-      title: 'Combo Bonus',
-      subtitle: 'BIGGER GROUPS',
+      icon: '⚡',
+      iconColor: '#fbbf24',
+      title: 'Flash Sales!',
+      subtitle: 'NEW FEATURE',
       demo: 'candy-gravity',
-      body: 'Larger groups earn bonus multipliers!\n5+ items = 2× bonus\n7+ items = 3× bonus\n10+ items = 4× bonus\n\nPlan your shopping for maximum cash!',
+      body: 'Random items go on FLASH SALE for 3× value!\nWatch for the notification and grab that item fast!\n\nSales only last 3 taps, so act quickly!',
+    },
+    {
+      icon: '🛒',
+      iconColor: '#22c55e',
+      title: 'Shopping Cart',
+      subtitle: 'BONUS REWARDS',
+      demo: 'candy-gravity',
+      body: 'Every 10 items you buy fills your cart!\nFull cart = $50 bonus!\n\nKeep shopping to stack those bonuses!',
     },
     {
       icon: '🛍️',
@@ -296,7 +379,19 @@ export const ShoppingSpreeMode: GameModeConfig = {
   ],
 
   getNotification(_tiles, _moves, modeState) {
+    const state = (modeState as ShoppingModeState) || getInitialState();
     const delta = (modeState?.scoreDelta as number) ?? 0;
+
+    // Flash sale announcement
+    if (state.flashSaleItem && state.flashSaleTapsLeft === 3) {
+      return `⚡ FLASH SALE! ${state.flashSaleItem} = 3× VALUE!`;
+    }
+
+    // Cart bonus notification
+    if (state.cartBonus > 0) {
+      return `🛒 CART FULL! +$${state.cartBonus} BONUS!`;
+    }
+
     if (delta <= 0) return null;
 
     // Give feedback based on score earned

@@ -215,6 +215,7 @@ const initialState: GameState = {
   animationsEnabled: saved.animationsEnabled,
   score: 0,
   lossReason: null,
+  modeState: {},
   // Reentrancy guards — in Zustand state so they reset with loadLevel/restart
   _winCheckPending: false,
 };
@@ -247,6 +248,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   loadLevel: (level: Level) => {
     clearAllTimers();
+    const mode = getModeById(get().currentModeId);
+    const initialModeState = mode.initialState ? mode.initialState(get()) : {};
     set({
       currentLevel: level,
       tiles: level.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
@@ -265,6 +268,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       connectedTiles: new Set(),
       score: 0,
       lossReason: null,
+      modeState: initialModeState,
       _winCheckPending: false,
     });
   },
@@ -308,7 +312,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   tapTile: (x: number, y: number) => {
     const state = get();
-    const { tiles, status, moves, currentLevel, showingWin, currentModeId } = state;
+    const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState } = state;
 
     if (status !== 'playing' || showingWin) return;
 
@@ -316,7 +320,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
     if (mode.useMoveLimit !== false && currentLevel && moves >= currentLevel.maxMoves) return;
 
-    const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5);
+    const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeState);
     if (!result || !result.valid) return;
 
     sfx('rotate');
@@ -332,6 +336,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       score: s.score + (result.scoreDelta ?? 0),
       history: prevTiles ? [...s.history, prevTiles] : s.history,
       lastRotatedPos: { x, y },
+      modeState: result.customState ?? s.modeState,
     }));
 
     // Clear justRotated flag after animation

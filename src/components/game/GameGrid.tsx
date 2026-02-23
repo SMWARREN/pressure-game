@@ -12,6 +12,8 @@ interface GameGridProps {
   wallsJustAdvanced: boolean;
   compressionActive: boolean;
   hintPos: { x: number; y: number } | null;
+  /** Set of hint tile keys ("x,y") from mode's getHintTiles */
+  hintTiles?: Set<string>;
   status: string;
   onTileTap: (x: number, y: number) => void;
   animationsEnabled?: boolean;
@@ -35,6 +37,7 @@ function GameGridComponent({
   wallsJustAdvanced,
   compressionActive,
   hintPos,
+  hintTiles,
   status,
   onTileTap,
   animationsEnabled = true,
@@ -104,7 +107,8 @@ function GameGridComponent({
         }}
       >
         {gridCells.map(({ key, x, y, tile, inDanger }) => {
-          const isHint = hintPos?.x === x && hintPos?.y === y;
+          const isHint =
+            (hintPos?.x === x && hintPos?.y === y) || (hintTiles?.has(`${x},${y}`) ?? false);
 
           const isRejected = !!(rejectedPos && rejectedPos.x === x && rejectedPos.y === y);
 

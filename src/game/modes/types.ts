@@ -281,4 +281,14 @@ export interface GameModeConfig {
    * is loaded or restarted, before `onTileTap` calls.
    */
   initialState?: (state: GameState) => Record<string, unknown>;
+
+  /**
+   * Optional: return a set of tile keys ("x,y") to highlight as hints.
+   * This is used to show the player which tiles are valid next moves.
+   */
+  getHintTiles?: (
+    tiles: Tile[],
+    goalNodes: Position[],
+    modeState?: Record<string, unknown>
+  ) => Set<string>;
 }

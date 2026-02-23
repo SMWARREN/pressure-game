@@ -4,6 +4,8 @@
 // Tap a number, then an adjacent operator, then another number, etc.
 // End your chain on a Target tile with the matching sum to win.
 // Quantum Flux tiles modify adjacent number values!
+// Chain Multiplier tiles boost your score!
+// Wildcard tiles can be any number 1-9!
 
 import type {
   GameModeConfig,
@@ -31,6 +33,10 @@ interface QuantumChainModeState extends Record<string, unknown> {
   currentCalculation: string;
   currentValue: number;
   lastTilePosition: { x: number; y: number } | null;
+  comboCount: number;
+  lastActionValid: boolean;
+  wrongClickMessage: string | null;
+  chainMultiplier: number;
 }
 
 function getInitialState(): QuantumChainModeState {
@@ -39,6 +45,10 @@ function getInitialState(): QuantumChainModeState {
     currentCalculation: '',
     currentValue: 0,
     lastTilePosition: null,
+    comboCount: 0,
+    lastActionValid: true,
+    wrongClickMessage: null,
+    chainMultiplier: 1,
   };
 }
 
@@ -128,6 +138,34 @@ function isAdjacent(tile1: Tile, tile2: Tile): boolean {
   const dx = Math.abs(tile1.x - tile2.x);
   const dy = Math.abs(tile1.y - tile2.y);
   return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
+}
+
+// ── Hint System ──────────────────────────────────────────────────────────────
+
+function getValidNextTiles(
+  activeChain: Tile[],
+  _lastTilePosition: { x: number; y: number } | null,
+  tiles: Tile[]
+): Tile[] {
+  // No chain started - all number tiles are valid
+  if (activeChain.length === 0) {
+    return tiles.filter((t) => t.type === 'number');
+  }
+
+  const lastTile = activeChain[activeChain.length - 1];
+  const neighbors = getNeighbors(lastTile, tiles);
+
+  // After a number, can tap operator or target
+  if (lastTile.type === 'number') {
+    return neighbors.filter((t) => t.type === 'operator' || t.type === 'target');
+  }
+
+  // After an operator, must tap a number
+  if (lastTile.type === 'operator') {
+    return neighbors.filter((t) => t.type === 'number');
+  }
+
+  return [];
 }
 
 // ── Tile Renderer ────────────────────────────────────────────────────────────
@@ -463,5 +501,45 @@ export const QuantumChainMode: GameModeConfig = {
       }
     });
     return winTiles;
+  },
+
+  // ── Hint System ────────────────────────────────────────────────────────────
+  getHintTiles(
+    tiles: Tile[],
+    _goalNodes: { x: number; y: number }[],
+    modeState?: Record<string, unknown>
+  ): Set<string> {
+    const state: QuantumChainModeState = (modeState as QuantumChainModeState) || getInitialState();
+    const validTiles = getValidNextTiles(state.activeChain, state.lastTilePosition, tiles);
+    const hintSet = new Set<string>();
+    validTiles.forEach((t) => hintSet.add(`${t.x},${t.y}`));
+    return hintSet;
+  },
+
+  // ── Notification System ─────────────────────────────────────────────────────
+  getNotification(
+    _tiles: Tile[],
+    _moves: number,
+    modeState?: Record<string, unknown>
+  ): string | null {
+    const state: QuantumChainModeState = (modeState as QuantumChainModeState) || getInitialState();
+
+    // Show wrong click message
+    if (state.wrongClickMessage) {
+      return state.wrongClickMessage;
+    }
+
+    // Show chain progress
+    if (state.activeChain.length > 0) {
+      const chainLength = state.activeChain.length;
+      if (chainLength >= 5) {
+        return `🔥 Chain x${chainLength}!`;
+      }
+      if (chainLength >= 3) {
+        return `${state.currentCalculation} = ${state.currentValue}`;
+      }
+    }
+
+    return null;
   },
 };

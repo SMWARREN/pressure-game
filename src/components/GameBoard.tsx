@@ -1167,6 +1167,7 @@ export default function GameBoard() {
     toggleAnimations,
     score,
     lossReason,
+    modeState,
   } = useGameStore(
     useShallow((s) => ({
       currentLevel: s.currentLevel,
@@ -1193,6 +1194,7 @@ export default function GameBoard() {
       toggleAnimations: s.toggleAnimations,
       score: s.score,
       lossReason: s.lossReason,
+      modeState: s.modeState,
     }))
   );
 
@@ -1476,6 +1478,11 @@ export default function GameBoard() {
             wallsJustAdvanced={wallsJustAdvanced}
             compressionActive={compressionActive}
             hintPos={hintPos}
+            hintTiles={
+              mode.getHintTiles
+                ? mode.getHintTiles(tiles, currentLevel.goalNodes, modeState)
+                : undefined
+            }
             status={status}
             onTileTap={handleTileTap}
             animationsEnabled={animationsEnabled}
