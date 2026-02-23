@@ -8,7 +8,7 @@ function Pipes({
   color,
   glow,
 }: {
-  connections: string[];
+  connections: Direction[];
   color: string;
   glow: string;
 }) {
@@ -91,7 +91,7 @@ function Pipes({
   );
 }
 
-import type { TileRenderer } from '@/game/types';
+import type { TileRenderer, TileType, Direction } from '@/game/types';
 
 // Inject candy drop animation keyframes once into the document
 let candyStylesInjected = false;
@@ -112,7 +112,7 @@ function ensureCandyStyles() {
 
 export interface GameTileProps {
   type: string;
-  connections: string[];
+  connections: Direction[];
   canRotate: boolean;
   isGoalNode: boolean;
   isHint: boolean;
@@ -274,8 +274,8 @@ function GameTileComponent({
       id: `${type}-0-0`,
       x: 0,
       y: 0,
-      type: type as any,
-      connections: connections as any,
+      type: type as TileType,
+      connections: connections as Direction[],
       canRotate,
       isGoalNode,
       justRotated,

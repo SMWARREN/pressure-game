@@ -13,6 +13,35 @@ export interface Position {
   y: number;
 }
 
+/** Mathematical operators for Quantum Chain mode */
+export type OperatorSymbol = '+' | '-' | '*' | '/'; // Add more as needed
+
+/** Effects for Quantum Flux tiles in Quantum Chain mode */
+export type QuantumFluxEffect = 'double' | 'halve' | 'add' | 'subtract'; // Add more as needed
+
+/** Specific data for 'number' type tiles */
+export interface NumberTileData extends Record<string, unknown> {
+  baseValue: number;
+  currentValue?: number; // Computed value after flux
+}
+
+/** Specific data for 'operator' type tiles */
+export interface OperatorTileData extends Record<string, unknown> {
+  symbol: OperatorSymbol;
+}
+
+/** Specific data for 'quantumFlux' type tiles */
+export interface QuantumFluxTileData extends Record<string, unknown> {
+  effect: QuantumFluxEffect;
+  value?: number; // e.g., for 'add 5' or 'subtract 3'
+}
+
+/** Specific data for 'target' type tiles */
+export interface TargetTileData extends Record<string, unknown> {
+  targetSum: number;
+  isFulfilled: boolean;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    TILE
    The fundamental unit of the game grid.
@@ -20,7 +49,16 @@ export interface Position {
    This is what allows swapping between pipe puzzles, slots, candy crush, etc.
 ═══════════════════════════════════════════════════════════════════════════ */
 
-export type TileType = 'path' | 'node' | 'wall' | 'crushed' | 'empty';
+export type TileType =
+  | 'path'
+  | 'node'
+  | 'wall'
+  | 'crushed'
+  | 'empty'
+  | 'number'
+  | 'operator'
+  | 'quantumFlux'
+  | 'target';
 
 export interface Tile {
   id: string;
@@ -39,7 +77,17 @@ export interface Tile {
    * For candy crush: { color: 'red', shape: 'circle' }
    * Pipe modes leave this undefined.
    */
-  displayData?: Record<string, unknown>;
+  displayData?:
+    | NumberTileData
+    | OperatorTileData
+    | QuantumFluxTileData
+    | TargetTileData
+    | (Record<string, unknown> & {
+        symbol?: any;
+        frozen?: any;
+        isNew?: any;
+        activeSymbols?: any;
+      });
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -77,6 +125,7 @@ export interface GameState {
   compressionActive: boolean;
   compressionDelay: number;
   moves: number;
+  modeState?: Record<string, unknown>;
   status: GameStatus;
   completedLevels: number[];
   bestMoves: Record<number, number>;

@@ -76,6 +76,7 @@ export interface TileColors {
   background: string;
   border: string;
   boxShadow?: string;
+  color?: string;
 }
 
 export interface TileRenderer {
@@ -273,4 +274,11 @@ export interface GameModeConfig {
     moves: number,
     modeState?: Record<string, unknown>
   ) => string | null;
+
+  /**
+   * Optional: provide a function to initialize or reset mode-specific state
+   * within the global GameState.modeState object. This is called when a level
+   * is loaded or restarted, before `onTileTap` calls.
+   */
+  initialState?: (state: GameState) => Record<string, unknown>;
 }
