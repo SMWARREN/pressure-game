@@ -18,7 +18,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Welcome to Zen',
     subtitle: 'NO RUSH, NO WALLS',
     demo: 'fixed-path',
-    body: 'Zen mode is pure puzzle. The walls are gone — take as long as you need.\n\nFixed blue pipes show the path. Your job: complete the connection.',
+    body: "No walls. No timer. No pressure. Zen mode strips the puzzle down to its essence.\n\nBlue tiles are fixed anchors. Rotate the orange ones to complete the path.",
   },
   {
     icon: '🔄',
@@ -26,7 +26,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Tap to Rotate',
     subtitle: 'EXPERIMENT FREELY',
     demo: 'rotatable',
-    body: 'Tap any orange tile to rotate it. No time pressure, no move penalty. Explore, undo, retry — until the pipes line up perfectly.',
+    body: "Tap any orange tile to rotate it 90° clockwise. Try every orientation — nothing here punishes experimentation.\n\nWhen the openings align, the pipe connects.",
   },
   {
     icon: '🟢',
@@ -34,7 +34,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Connect the Nodes',
     subtitle: 'YOUR ONLY GOAL',
     demo: 'node',
-    body: "Green goal nodes must all be connected through a continuous pipe path. That's it. No walls. No clock. Just pure puzzling.",
+    body: "The green glowing tiles are goal nodes. Link every single one through a continuous, unbroken pipe path.\n\nNo walls. No clock. One clean solution.",
   },
   {
     icon: '♾️',
@@ -42,7 +42,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'No Limits',
     subtitle: 'TAKE YOUR TIME',
     demo: 'controls',
-    body: 'Unlimited moves, unlimited undo. Use hints whenever you want. Zen mode is about finding the solution, not racing against anything.',
+    body: "Undo as many times as you want. Use the hint whenever you're stuck. Zen mode rewards patience and observation, not speed.",
   },
   {
     icon: '✦',
@@ -50,7 +50,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Find Your Flow',
     subtitle: 'PURE PUZZLE ZEN',
     demo: 'zen-ready',
-    body: 'Connect all the nodes. Take your time. Enjoy the puzzle.',
+    body: "Rotate. Connect. Solve. There's no rush and nowhere to be.\n\nFind the path.",
   },
 ];
 

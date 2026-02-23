@@ -47,7 +47,13 @@ const big: React.CSSProperties = {
 
 /* ── component ────────────────────────────────────────────────────────────── */
 
-export default function StatsScreen({ onBack }: { onBack: () => void }) {
+export default function StatsScreen({
+  onBack,
+  onReplay,
+}: {
+  onBack: () => void;
+  onReplay?: (event: GameEndEvent) => void;
+}) {
   const stats = useMemo(() => {
     const all = statsEngine.getBackend().getAll();
     const ends = all.filter((e): e is GameEndEvent => e.type === 'game_end');
@@ -264,6 +270,7 @@ export default function StatsScreen({ onBack }: { onBack: () => void }) {
                     {stats.recent.map((e, i) => {
                       const mode = GAME_MODES.find((m) => m.id === e.modeId);
                       const won = e.outcome === 'won';
+                      const hasReplay = onReplay && e.moveLog && e.moveLog.length > 0;
                       return (
                         <div
                           key={i}
@@ -301,6 +308,28 @@ export default function StatsScreen({ onBack }: { onBack: () => void }) {
                           <div style={{ fontSize: 10, color: '#25253a', flexShrink: 0 }}>
                             {fmtDate(e.ts)}
                           </div>
+                          {hasReplay && (
+                            <button
+                              onClick={() => onReplay(e)}
+                              title="Watch replay"
+                              style={{
+                                width: 32,
+                                height: 28,
+                                borderRadius: 8,
+                                border: '1px solid #1e1e3580',
+                                background: 'rgba(165,180,252,0.07)',
+                                color: '#a5b4fc',
+                                cursor: 'pointer',
+                                fontSize: 12,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              ▶
+                            </button>
+                          )}
                         </div>
                       );
                     })}

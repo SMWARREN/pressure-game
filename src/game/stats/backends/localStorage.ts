@@ -3,7 +3,7 @@
 
 import type { StatEvent, StatsBackend } from '../types';
 
-const STORAGE_KEY = 'pressure_stats_v1';
+const STORAGE_KEY = 'pressure_stats_v2';
 const MAX_EVENTS = 5_000;
 
 export class LocalStorageStatsBackend implements StatsBackend {

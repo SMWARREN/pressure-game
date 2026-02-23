@@ -23,6 +23,14 @@ export interface GameStartEvent extends BaseEvent {
   type: 'game_start';
 }
 
+/** A single tap recorded during gameplay for move-by-move replay */
+export interface MoveRecord {
+  x: number;
+  y: number;
+  /** Milliseconds elapsed from game start at the time of the tap */
+  t: number;
+}
+
 /** Fired when status transitions from 'playing' → 'won' or 'lost' */
 export interface GameEndEvent extends BaseEvent {
   type: 'game_end';
@@ -31,6 +39,8 @@ export interface GameEndEvent extends BaseEvent {
   elapsedSeconds: number;
   score: number;
   lossReason: string | null;
+  /** Full move log for replay. Empty array on legacy events recorded before this field existed. */
+  moveLog: MoveRecord[];
 }
 
 export type StatEvent = GameStartEvent | GameEndEvent;
