@@ -670,6 +670,195 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
    MENU SCREEN
 ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── SETTINGS PANEL ──────────────────────────────────────────────────────── */
+
+interface SettingsPanelProps {
+  visible: boolean;
+  onClose: () => void;
+  animationsEnabled: boolean;
+  onToggleAnimations: () => void;
+  onShowStats: () => void;
+  onHowToPlay: () => void;
+}
+
+function SettingsPanel({
+  visible,
+  onClose,
+  animationsEnabled,
+  onToggleAnimations,
+  onShowStats,
+  onHowToPlay,
+}: SettingsPanelProps) {
+  if (!visible) return null;
+  return (
+    <>
+      {/* backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          zIndex: 50,
+        }}
+      />
+      {/* sheet */}
+      <div
+        style={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 51,
+          background: 'linear-gradient(180deg, #0d0d22 0%, #06060f 100%)',
+          borderTop: '1px solid #1e1e35',
+          borderRadius: '20px 20px 0 0',
+          padding:
+            'clamp(16px,4vw,24px) clamp(16px,5vw,28px) max(24px,env(safe-area-inset-bottom))',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
+        {/* drag handle */}
+        <div
+          style={{
+            width: 36,
+            height: 4,
+            borderRadius: 2,
+            background: '#1e1e35',
+            alignSelf: 'center',
+            marginBottom: 8,
+          }}
+        />
+
+        <div
+          style={{
+            fontSize: 10,
+            color: '#25253a',
+            letterSpacing: '0.2em',
+            marginBottom: 4,
+          }}
+        >
+          SETTINGS
+        </div>
+
+        {/* FX toggle row */}
+        <button
+          onClick={() => {
+            onToggleAnimations();
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '14px 16px',
+            borderRadius: 14,
+            border: `1px solid ${animationsEnabled ? '#6366f140' : '#12122a'}`,
+            background: animationsEnabled ? '#6366f10a' : '#07070e',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 20 }}>{animationsEnabled ? '✨' : '◻'}</span>
+          <div style={{ flex: 1 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
+              }}
+            >
+              Visual Effects
+            </div>
+            <div style={{ fontSize: 11, color: '#25253a', marginTop: 2 }}>
+              {animationsEnabled ? 'Particles & animations on' : 'Particles & animations off'}
+            </div>
+          </div>
+          <div
+            style={{
+              width: 36,
+              height: 20,
+              borderRadius: 10,
+              background: animationsEnabled ? '#6366f1' : '#12122a',
+              position: 'relative',
+              transition: 'background 0.2s',
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 3,
+                left: animationsEnabled ? 19 : 3,
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                background: '#fff',
+                transition: 'left 0.2s',
+              }}
+            />
+          </div>
+        </button>
+
+        {/* Stats row */}
+        <button
+          onClick={() => {
+            onShowStats();
+            onClose();
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '14px 16px',
+            borderRadius: 14,
+            border: '1px solid #12122a',
+            background: '#07070e',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 20 }}>📊</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc' }}>Statistics</div>
+            <div style={{ fontSize: 11, color: '#25253a', marginTop: 2 }}>
+              View your game history
+            </div>
+          </div>
+          <span style={{ fontSize: 14, color: '#3a3a55' }}>›</span>
+        </button>
+
+        {/* How to play row */}
+        <button
+          onClick={() => {
+            onHowToPlay();
+            onClose();
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '14px 16px',
+            borderRadius: 14,
+            border: '1px solid #12122a',
+            background: '#07070e',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 20 }}>❓</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc' }}>How to Play</div>
+            <div style={{ fontSize: 11, color: '#25253a', marginTop: 2 }}>Replay the tutorial</div>
+          </div>
+          <span style={{ fontSize: 14, color: '#3a3a55' }}>›</span>
+        </button>
+      </div>
+    </>
+  );
+}
+
 function MenuScreen() {
   const {
     completedLevels,
@@ -693,6 +882,7 @@ function MenuScreen() {
   const [view, setView] = useState<'levels' | 'workshop'>('levels');
   const [world, setWorld] = useState(1);
   const [showModeModal, setShowModeModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [replayEventFromStats, setReplayEventFromStats] = useState<GameEndEvent | null>(null);
 
@@ -1046,50 +1236,22 @@ function MenuScreen() {
           gap: 12,
         }}
       >
-        {/* ── EFFECTS TOGGLE ─────────────────────── */}
+        {/* ── SETTINGS BUTTON ────────────────────── */}
         <button
-          onClick={toggleAnimations}
+          onClick={() => setShowSettings(true)}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 5,
-            padding: '8px 12px',
-            borderRadius: 10,
-            border: `1px solid ${animationsEnabled ? '#6366f140' : '#3a3a5540'}`,
-            background: animationsEnabled ? '#6366f10a' : 'transparent',
-            cursor: 'pointer',
-          }}
-          title={animationsEnabled ? 'Disable effects' : 'Enable effects'}
-        >
-          <span style={{ fontSize: 13 }}>{animationsEnabled ? '✨' : '◻'}</span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
-            }}
-          >
-            FX
-          </span>
-        </button>
-
-        {/* ── STATS ──────────────────────────────── */}
-        <button
-          onClick={() => setShowStats(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '8px 12px',
+            gap: 6,
+            padding: '8px 14px',
             borderRadius: 10,
             border: '1px solid #1e1e3540',
             background: 'transparent',
             cursor: 'pointer',
           }}
-          title="Stats"
+          title="Settings"
         >
-          <span style={{ fontSize: 13 }}>📊</span>
+          <span style={{ fontSize: 16 }}>⚙️</span>
           <span
             style={{
               fontSize: 10,
@@ -1098,35 +1260,7 @@ function MenuScreen() {
               color: '#3a3a55',
             }}
           >
-            STATS
-          </span>
-        </button>
-
-        {/* ── HOW TO PLAY ────────────────────────── */}
-        <button
-          onClick={replayTutorial}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '8px 12px',
-            borderRadius: 10,
-            border: '1px solid #1e1e3540',
-            background: 'transparent',
-            cursor: 'pointer',
-          }}
-          title="How to play"
-        >
-          <span style={{ fontSize: 13 }}>?</span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              color: '#3a3a55',
-            }}
-          >
-            HOW TO PLAY
+            SETTINGS
           </span>
         </button>
 
@@ -1137,7 +1271,7 @@ function MenuScreen() {
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            padding: '8px 12px',
+            padding: '8px 14px',
             borderRadius: 10,
             border: `1px solid ${activeMode.color}40`,
             background: `${activeMode.color}10`,
@@ -1159,6 +1293,16 @@ function MenuScreen() {
           <span style={{ fontSize: 9, color: activeMode.color + '80' }}>▼</span>
         </button>
       </footer>
+
+      {/* ── SETTINGS PANEL ──────────────────────────────────────── */}
+      <SettingsPanel
+        visible={showSettings}
+        onClose={() => setShowSettings(false)}
+        animationsEnabled={animationsEnabled}
+        onToggleAnimations={toggleAnimations}
+        onShowStats={() => setShowStats(true)}
+        onHowToPlay={replayTutorial}
+      />
 
       {/* ── MODE SELECTOR MODAL ─────────────────────────────────── */}
       <ModeSelectorModal visible={showModeModal} onClose={() => setShowModeModal(false)} />
