@@ -291,8 +291,7 @@ function GameTileComponent({
 
   // ── Custom mode renderer (slots, candy crush, match-3, outbreak, etc.) ────
   if (tileRenderer && tileRenderer.type !== 'pipe') {
-    if (tileRenderer.type === 'candy' || tileRenderer.type === 'outbreak')
-      ensureCandyStyles();
+    if (tileRenderer.type === 'candy' || tileRenderer.type === 'outbreak') ensureCandyStyles();
 
     const ctx = {
       isHint,
@@ -380,11 +379,11 @@ function GameTileComponent({
           transition: isNewTile
             ? 'border-color 0.6s ease, box-shadow 0.6s ease'
             : `${tileTransition}, border-color 0.4s ease, box-shadow 0.4s ease`,
-          animation: isOutbreak ? outbreakAnimation : (
-            isNewTile && animationsEnabled
+          animation: isOutbreak
+            ? outbreakAnimation
+            : isNewTile && animationsEnabled
               ? 'candyDrop 0.42s cubic-bezier(0.34,1.56,0.64,1)'
-              : undefined
-          ),
+              : undefined,
           fontSize: symSize,
           fontWeight: isOutbreak && obFrontier ? 700 : undefined,
           // CSS vars for zombiePulse keyframe
@@ -404,9 +403,10 @@ function GameTileComponent({
               animation: iconAnimation,
               // Dim interior zombie icons slightly so they don't compete with frontier numbers
               opacity: isOutbreak && obInterior ? 0.55 : 1,
-              filter: isOutbreak && obOwned && !isNewTile
-                ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
-                : undefined,
+              filter:
+                isOutbreak && obOwned && !isNewTile
+                  ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
+                  : undefined,
             }}
           >
             {symbol}
