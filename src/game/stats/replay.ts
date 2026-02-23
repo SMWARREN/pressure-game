@@ -50,9 +50,13 @@ export class ReplayEngine {
       connections: [...t.connections],
     }));
     let score = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Provide a minimal stub so initialState functions that only read
+    // safe fields (currentModeId, etc.) don't crash during replay.
+    const stateStub = { currentModeId: this.event.modeId } as Parameters<
+      NonNullable<typeof mode.initialState>
+    >[0];
     let modeState: Record<string, unknown> = mode.initialState
-      ? (mode.initialState({} as any) as Record<string, unknown>)
+      ? (mode.initialState(stateStub) as Record<string, unknown>)
       : {};
 
     const snapshots: ReplaySnapshot[] = [

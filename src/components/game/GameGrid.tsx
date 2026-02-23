@@ -115,6 +115,9 @@ function GameGridComponent({
           return (
             <GameTile
               key={key}
+              id={tile?.id}
+              x={x}
+              y={y}
               type={tile?.type || 'empty'}
               connections={tile?.connections || []}
               canRotate={tile?.canRotate || false}

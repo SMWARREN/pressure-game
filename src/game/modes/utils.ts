@@ -26,36 +26,11 @@ export function rotateConnections(conns: Direction[], times: number): Direction[
 
 /**
  * Check if all goal nodes are reachable from goals[0] via valid bidirectional pipe connections.
- * This is a simple graph traversal (DFS), NOT the solver — it never tries rotations.
- * O(tiles) per call. Stack pop/push is O(1) vs queue shift which is O(n).
+ * Delegates to getConnectedTiles to avoid duplicating traversal logic.
  */
 export function checkConnected(tiles: Tile[], goals: Position[]): boolean {
   if (goals.length < 2) return true;
-
-  const tileMap = createTileMap(tiles);
-  const visited = new Set<string>();
-  const stack = [`${goals[0].x},${goals[0].y}`];
-
-  while (stack.length > 0) {
-    const key = stack.pop()!;
-    if (visited.has(key)) continue;
-    visited.add(key);
-
-    const tile = tileMap.get(key);
-    if (!tile || tile.type === 'wall' || tile.type === 'crushed') continue;
-
-    for (const d of tile.connections) {
-      const nx = tile.x + (d === 'right' ? 1 : d === 'left' ? -1 : 0);
-      const ny = tile.y + (d === 'down' ? 1 : d === 'up' ? -1 : 0);
-      const nkey = `${nx},${ny}`;
-      if (visited.has(nkey)) continue;
-
-      const neighbor = tileMap.get(nkey);
-      if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
-      if (neighbor.connections.includes(OPP[d])) stack.push(nkey);
-    }
-  }
-
+  const visited = getConnectedTiles(tiles, goals);
   return goals.every((g) => visited.has(`${g.x},${g.y}`));
 }
 

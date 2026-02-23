@@ -111,6 +111,9 @@ function ensureCandyStyles() {
 }
 
 export interface GameTileProps {
+  id?: string;
+  x?: number;
+  y?: number;
   type: string;
   connections: Direction[];
   canRotate: boolean;
@@ -133,6 +136,9 @@ export interface GameTileProps {
  * Memoized to prevent unnecessary re-renders
  */
 function GameTileComponent({
+  id,
+  x = 0,
+  y = 0,
   type,
   connections,
   canRotate,
@@ -271,9 +277,9 @@ function GameTileComponent({
       tileSize,
     };
     const tile = {
-      id: `${type}-0-0`,
-      x: 0,
-      y: 0,
+      id: id ?? `${type}-${x}-${y}`,
+      x,
+      y,
       type: type as TileType,
       connections: connections as Direction[],
       canRotate,

@@ -38,10 +38,28 @@ export const OUTBREAK_DARK = [
 // ── World definitions ──────────────────────────────────────────────────────────
 
 export const OUTBREAK_WORLDS = [
-  { id: 1, name: 'Spore',   tagline: 'First contact — learn the spread',        color: '#51cf66', icon: '🦠' },
-  { id: 2, name: 'Colony',  tagline: 'Growing stronger — 4 strains',             color: '#74c0fc', icon: '🧫' },
-  { id: 3, name: 'Plague',  tagline: 'Expert spread — 5 strains, tight moves',   color: '#da77f2', icon: '⚗️' },
-  { id: 4, name: 'Viral',   tagline: 'Infinite infestation — 10×10 forever',     color: '#ffd43b', icon: '🔬' },
+  {
+    id: 1,
+    name: 'Spore',
+    tagline: 'First contact — learn the spread',
+    color: '#51cf66',
+    icon: '🦠',
+  },
+  { id: 2, name: 'Colony', tagline: 'Growing stronger — 4 strains', color: '#74c0fc', icon: '🧫' },
+  {
+    id: 3,
+    name: 'Plague',
+    tagline: 'Expert spread — 5 strains, tight moves',
+    color: '#da77f2',
+    icon: '⚗️',
+  },
+  {
+    id: 4,
+    name: 'Viral',
+    tagline: 'Infinite infestation — 10×10 forever',
+    color: '#ffd43b',
+    icon: '🔬',
+  },
 ];
 
 // ── Seeded PRNG (mulberry32) ───────────────────────────────────────────────────
@@ -63,7 +81,12 @@ export function seededRandom(seed: number): () => number {
 //   • Frontier tiles always show their group-size number
 //   • The first render already has correct frontier state, no tap needed first
 
-const F_DIRS: [number, number][] = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+const F_DIRS: [number, number][] = [
+  [0, -1],
+  [0, 1],
+  [-1, 0],
+  [1, 0],
+];
 
 interface OBData extends Record<string, unknown> {
   colorIndex: number;
@@ -104,7 +127,7 @@ function bfsGroup(sx: number, sy: number, colorIndex: number, map: Map<string, T
  * Re-run this after every tap to keep the data fresh.
  */
 export function computeFrontierData(tiles: Tile[]): Tile[] {
-  const map = new Map<string, Tile>(tiles.map(t => [`${t.x},${t.y}`, t]));
+  const map = new Map<string, Tile>(tiles.map((t) => [`${t.x},${t.y}`, t]));
 
   // 1. Identify every frontier tile (unowned, adjacent to at least one owned tile)
   const frontierSet = new Set<string>();
@@ -134,7 +157,7 @@ export function computeFrontierData(tiles: Tile[]): Tile[] {
   }
 
   // 3. Patch tile displayData (skip tiles that are already correct to avoid churn)
-  return tiles.map(t => {
+  return tiles.map((t) => {
     const d = t.displayData as unknown as OBData;
     if (!d) return t;
 
@@ -147,7 +170,7 @@ export function computeFrontierData(tiles: Tile[]): Tile[] {
 
     const key = `${t.x},${t.y}`;
     const isFrontier = frontierSet.has(key);
-    const groupSize  = groupSizeByKey.get(key);
+    const groupSize = groupSizeByKey.get(key);
 
     if (d.isFrontier === isFrontier && d.groupSize === groupSize) return t;
     return { ...t, displayData: { ...d, isFrontier, groupSize } };
@@ -210,7 +233,13 @@ function makeLevel(
 
 // ── Level definitions ─────────────────────────────────────────────────────────
 
-const DEFS: { world: number; gridSize: number; numColors: number; maxMoves: number; seed: number }[] = [
+const DEFS: {
+  world: number;
+  gridSize: number;
+  numColors: number;
+  maxMoves: number;
+  seed: number;
+}[] = [
   // World 1 : Spore  (5×5, 3 colors, ~2× headroom)
   { world: 1, gridSize: 5, numColors: 3, maxMoves: 18, seed: 0x1a2b3c4d },
   { world: 1, gridSize: 5, numColors: 3, maxMoves: 17, seed: 0x2b3c4d5e },

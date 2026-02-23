@@ -138,7 +138,7 @@ function CountdownTimer({ seconds, active }: { seconds: number; active: boolean 
  */
 function ScoreDisplay({ score, targetScore }: { score: number; targetScore?: number }) {
   const pct = targetScore ? Math.min((score / targetScore) * 100, 100) : 0;
-  const color = pct >= 100 ? '#22c55e' : pct > 60 ? '#f472b6' : '#f472b6';
+  const color = pct >= 100 ? '#22c55e' : pct > 40 ? '#f472b6' : '#f59e0b';
   return (
     <div style={{ flex: 1 }}>
       <div

@@ -19,7 +19,7 @@ export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Welcome to Blitz',
     subtitle: 'SPEED IS EVERYTHING',
     demo: 'fixed-path',
-    body: "Blitz is the most unforgiving mode. The walls never stop — not between moves, not ever.\n\nRotate the orange tiles, connect all goal nodes, and get out before the walls arrive.",
+    body: 'Blitz is the most unforgiving mode. The walls never stop — not between moves, not ever.\n\nRotate the orange tiles, connect all goal nodes, and get out before the walls arrive.',
   },
   {
     icon: '🔄',
@@ -51,7 +51,7 @@ export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Survive!',
     subtitle: 'CONNECT OR DIE',
     demo: 'blitz-ready',
-    body: "No undo. Walls never stop. One crushed node ends it all.\n\nThink fast. Move faster.",
+    body: 'No undo. Walls never stop. One crushed node ends it all.\n\nThink fast. Move faster.',
   },
 ];
 

@@ -19,7 +19,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Welcome to Pressure',
     subtitle: 'THE PIPE PUZZLE',
     demo: 'fixed-path',
-    body: "The board is full of pipe tiles. Blue tiles are locked in place — they anchor the path.\n\nTap the orange tiles to rotate them and complete the connection.",
+    body: 'The board is full of pipe tiles. Blue tiles are locked in place — they anchor the path.\n\nTap the orange tiles to rotate them and complete the connection.',
   },
   {
     icon: '🔄',
@@ -27,7 +27,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Tap to Rotate',
     subtitle: 'YOUR MAIN MOVE',
     demo: 'rotatable',
-    body: "Tap any orange tile and it rotates 90° clockwise. Align the openings so pipe flows continuously from node to node.\n\nOne tap can change everything.",
+    body: 'Tap any orange tile and it rotates 90° clockwise. Align the openings so pipe flows continuously from node to node.\n\nOne tap can change everything.',
   },
   {
     icon: '🟢',
@@ -51,7 +51,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Undo & Hints',
     subtitle: 'YOUR TOOLS',
     demo: 'controls',
-    body: "Tap ⎌ to undo your last rotation. Tap 💡 to reveal the next correct move.\n\nBoth cost precious time — the walls keep moving while you think.",
+    body: 'Tap ⎌ to undo your last rotation. Tap 💡 to reveal the next correct move.\n\nBoth cost precious time — the walls keep moving while you think.',
   },
   {
     icon: '✦',
@@ -59,7 +59,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: "You're Ready!",
     subtitle: 'CONNECT BEFORE THE CRUSH',
     demo: 'ready',
-    body: "Rotate the orange tiles. Connect all goal nodes. Beat the walls.\n\nThe clock is already ticking.",
+    body: 'Rotate the orange tiles. Connect all goal nodes. Beat the walls.\n\nThe clock is already ticking.',
   },
 ];
 

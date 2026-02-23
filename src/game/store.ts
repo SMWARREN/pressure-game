@@ -59,10 +59,25 @@ function stopGameTimer() {
    AUDIO
 ═══════════════════════════════════════════════════════════════════════════ */
 
-function playTone(freq: number, type: OscillatorType = 'sine', dur = 0.08, vol = 0.18) {
-  if (typeof window === 'undefined') return;
+// Single shared AudioContext — browsers cap concurrent instances (~6).
+// Created lazily on first sound so it's safe in SSR/test environments.
+let _audioCtx: AudioContext | null = null;
+function getAudioCtx(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (!_audioCtx || _audioCtx.state === 'closed') {
+      _audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    return _audioCtx;
+  } catch {
+    return null;
+  }
+}
+
+function playTone(freq: number, type: OscillatorType = 'sine', dur = 0.08, vol = 0.18) {
+  try {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);

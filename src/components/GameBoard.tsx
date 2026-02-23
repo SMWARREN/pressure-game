@@ -294,7 +294,15 @@ function Overlay({
             attempt{levelRecord.attempts !== 1 ? 's' : ''}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            marginTop: levelRecord ? 0 : 14,
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
           {hasNext && (
             <button onClick={onNext} style={btnPrimary}>
               NEXT →
@@ -415,7 +423,7 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
   const [gridSize, setGridSize] = useState(5);
   const [nodeCount, setNodeCount] = useState(2);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [decoysOverride, _setDecoysOverride] = useState<number | null>(null);
+  const [decoysOverride] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
@@ -1156,18 +1164,19 @@ function MenuScreen() {
       <ModeSelectorModal visible={showModeModal} onClose={() => setShowModeModal(false)} />
 
       {/* ── REPLAY OVERLAY (launched from stats screen) ─────────── */}
-      {replayEventFromStats && (() => {
-        const level = ReplayEngine.findLevel(replayEventFromStats.levelId);
-        if (!level) return null;
-        const engine = new ReplayEngine(replayEventFromStats, level);
-        return (
-          <ReplayOverlay
-            event={replayEventFromStats}
-            engine={engine}
-            onClose={() => setReplayEventFromStats(null)}
-          />
-        );
-      })()}
+      {replayEventFromStats &&
+        (() => {
+          const level = ReplayEngine.findLevel(replayEventFromStats.levelId);
+          if (!level) return null;
+          const engine = new ReplayEngine(replayEventFromStats, level);
+          return (
+            <ReplayOverlay
+              event={replayEventFromStats}
+              engine={engine}
+              onClose={() => setReplayEventFromStats(null)}
+            />
+          );
+        })()}
     </div>
   );
 }
@@ -1243,6 +1252,13 @@ export default function GameBoard() {
     isScore: boolean;
   } | null>(null);
   const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up notification timeout on unmount to avoid state updates on unmounted component
+  useEffect(() => {
+    return () => {
+      if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
+    };
+  }, []);
   const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
   const { w: vw, h: vh } = useViewport();
 
@@ -1407,8 +1423,7 @@ export default function GameBoard() {
       .getBackend()
       .getAll()
       .filter(
-        (e): e is GameEndEvent =>
-          e.type === 'game_end' && e.levelId === (currentLevel?.id ?? -1)
+        (e): e is GameEndEvent => e.type === 'game_end' && e.levelId === (currentLevel?.id ?? -1)
       );
     const latest = allEnds[allEnds.length - 1];
     if (!latest || !latest.moveLog?.length) return undefined;

@@ -18,7 +18,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Welcome to Zen',
     subtitle: 'NO RUSH, NO WALLS',
     demo: 'fixed-path',
-    body: "No walls. No timer. No pressure. Zen mode strips the puzzle down to its essence.\n\nBlue tiles are fixed anchors. Rotate the orange ones to complete the path.",
+    body: 'No walls. No timer. No pressure. Zen mode strips the puzzle down to its essence.\n\nBlue tiles are fixed anchors. Rotate the orange ones to complete the path.',
   },
   {
     icon: '🔄',
@@ -26,7 +26,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Tap to Rotate',
     subtitle: 'EXPERIMENT FREELY',
     demo: 'rotatable',
-    body: "Tap any orange tile to rotate it 90° clockwise. Try every orientation — nothing here punishes experimentation.\n\nWhen the openings align, the pipe connects.",
+    body: 'Tap any orange tile to rotate it 90° clockwise. Try every orientation — nothing here punishes experimentation.\n\nWhen the openings align, the pipe connects.',
   },
   {
     icon: '🟢',
@@ -34,7 +34,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Connect the Nodes',
     subtitle: 'YOUR ONLY GOAL',
     demo: 'node',
-    body: "The green glowing tiles are goal nodes. Link every single one through a continuous, unbroken pipe path.\n\nNo walls. No clock. One clean solution.",
+    body: 'The green glowing tiles are goal nodes. Link every single one through a continuous, unbroken pipe path.\n\nNo walls. No clock. One clean solution.',
   },
   {
     icon: '♾️',

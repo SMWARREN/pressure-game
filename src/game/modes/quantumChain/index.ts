@@ -35,7 +35,6 @@ interface QuantumChainModeState extends Record<string, unknown> {
   lastTilePosition: { x: number; y: number } | null;
   comboCount: number;
   lastActionValid: boolean;
-  wrongClickMessage: string | null;
   chainMultiplier: number;
 }
 
@@ -47,7 +46,6 @@ function getInitialState(): QuantumChainModeState {
     lastTilePosition: null,
     comboCount: 0,
     lastActionValid: true,
-    wrongClickMessage: null,
     chainMultiplier: 1,
   };
 }
@@ -277,7 +275,7 @@ export const QuantumChainMode: GameModeConfig = {
       title: 'Start the Chain',
       subtitle: 'STEP 1',
       demo: 'fixed-path',
-      body: 'Tap any blue NUMBER tile to kick off your chain.\n\nThat tile\'s value becomes the start of your equation.\n\nOnly blue tiles can open a chain — pick your starting number wisely!',
+      body: "Tap any blue NUMBER tile to kick off your chain.\n\nThat tile's value becomes the start of your equation.\n\nOnly blue tiles can open a chain — pick your starting number wisely!",
     },
     {
       icon: '➕',
@@ -293,7 +291,7 @@ export const QuantumChainMode: GameModeConfig = {
       title: 'Land on the Target',
       subtitle: 'STEP 3',
       demo: 'fixed-path',
-      body: 'Keep alternating: Number → Operator → Number → …\n\nEnd the chain by tapping a gold TARGET tile. If your result equals the target\'s number, it locks in with a ✓!\n\nFulfill every target on the board to win the level.',
+      body: "Keep alternating: Number → Operator → Number → …\n\nEnd the chain by tapping a gold TARGET tile. If your result equals the target's number, it locks in with a ✓!\n\nFulfill every target on the board to win the level.",
     },
     {
       icon: '⚛️',
@@ -334,7 +332,7 @@ export const QuantumChainMode: GameModeConfig = {
     if (!tappedTile) return null;
 
     const state: QuantumChainModeState = (modeState as QuantumChainModeState) || getInitialState();
-    const { activeChain, lastTilePosition, currentCalculation } = state;
+    const { activeChain, lastTilePosition: _lastTilePosition, currentCalculation } = state;
 
     // If tapping a tile already in chain, reset the chain
     if (activeChain.some((t) => t.id === tappedTile.id)) {
@@ -366,21 +364,14 @@ export const QuantumChainMode: GameModeConfig = {
       };
     }
 
-    // Subsequent tiles must be adjacent
-    if (
-      !lastTilePosition ||
-      !isAdjacent(tappedTile, { ...tappedTile, x: lastTilePosition.x, y: lastTilePosition.y })
-    ) {
-      // Check if tapped tile is adjacent to last tile in chain
-      const lastChainTile = activeChain[activeChain.length - 1];
-      if (!isAdjacent(tappedTile, lastChainTile)) {
-        // Not adjacent - reset chain
-        return {
-          tiles,
-          valid: true,
-          customState: getInitialState(),
-        };
-      }
+    // Subsequent tiles must be adjacent to the last tile in the chain
+    const lastChainTile = activeChain[activeChain.length - 1];
+    if (!isAdjacent(tappedTile, lastChainTile)) {
+      return {
+        tiles,
+        valid: true,
+        customState: getInitialState(),
+      };
     }
 
     const lastTile = activeChain[activeChain.length - 1];
@@ -531,11 +522,6 @@ export const QuantumChainMode: GameModeConfig = {
     modeState?: Record<string, unknown>
   ): string | null {
     const state: QuantumChainModeState = (modeState as QuantumChainModeState) || getInitialState();
-
-    // Show wrong click message
-    if (state.wrongClickMessage) {
-      return state.wrongClickMessage;
-    }
 
     // Show chain progress
     if (state.activeChain.length > 0) {

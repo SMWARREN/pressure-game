@@ -37,7 +37,19 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   const [step, setStep] = useState(0); // index into engine.snapshots
   const [playing, setPlaying] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(0); // 0=800ms, 1=400ms, 2=200ms
+  const [vw, setVw] = useState(window.innerWidth);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Keep board size in sync with window resizes / orientation changes
+  useEffect(() => {
+    const update = () => setVw(window.innerWidth);
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+    };
+  }, []);
 
   const SPEEDS = [800, 400, 200];
   const SPEED_LABELS = ['1×', '2×', '4×'];
@@ -46,9 +58,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   const gridSize = engine.level.gridSize;
   const mode = getModeById(event.modeId);
   const gap = gridSize >= 9 ? 2 : gridSize > 5 ? 3 : 4;
-  const tileSize = Math.floor(
-    (Math.min(window.innerWidth * 0.9, 380) - gap * (gridSize - 1) - 16) / gridSize
-  );
+  const tileSize = Math.floor((Math.min(vw * 0.9, 380) - gap * (gridSize - 1) - 16) / gridSize);
   const totalMoves = engine.totalMoves;
   const boardW = tileSize * gridSize + gap * (gridSize - 1);
 

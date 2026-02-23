@@ -296,12 +296,13 @@ export const ShoppingSpreeMode: GameModeConfig = {
       next = reshuffle(next);
     }
 
-    // Update mode state
+    // Update mode state — also store scoreDelta so getNotification can read it
     let newState: ShoppingModeState = {
       ...state,
       cartItems: newCartItems,
       cartBonus: cartBonus,
       lastGroupSize: group.length,
+      scoreDelta,
       flashSaleTapsLeft: flashSaleBonus ? state.flashSaleTapsLeft - 1 : state.flashSaleTapsLeft,
       flashSaleItem: state.flashSaleTapsLeft <= 1 ? null : state.flashSaleItem,
     };

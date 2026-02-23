@@ -24,16 +24,21 @@ import {
 // ── Per-tile display data ─────────────────────────────────────────────────────
 
 interface OutbreakData extends Record<string, unknown> {
-  colorIndex: number;  // 0-4 → OUTBREAK_COLORS / OUTBREAK_ICONS
-  owned:      boolean; // true = player controls this cell
-  isNew:      boolean; // true = absorbed on this tap (triggers flash)
+  colorIndex: number; // 0-4 → OUTBREAK_COLORS / OUTBREAK_ICONS
+  owned: boolean; // true = player controls this cell
+  isNew: boolean; // true = absorbed on this tap (triggers flash)
   isFrontier?: boolean; // directly adjacent to territory = tappable
-  groupSize?:  number;  // how many cells this tap would absorb
+  groupSize?: number; // how many cells this tap would absorb
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const DIRS: [number, number][] = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+const DIRS: [number, number][] = [
+  [0, -1],
+  [0, 1],
+  [-1, 0],
+  [1, 0],
+];
 
 function buildMap(tiles: Tile[]): Map<string, Tile> {
   const m = new Map<string, Tile>();
@@ -41,12 +46,12 @@ function buildMap(tiles: Tile[]): Map<string, Tile> {
   return m;
 }
 
-function bfsSameColor(x: number, y: number, colorIndex: number, map: Map<string, Tile>): Tile[] {
+function dfsSameColor(x: number, y: number, colorIndex: number, map: Map<string, Tile>): Tile[] {
   const visited = new Set<string>();
-  const queue: string[] = [`${x},${y}`];
+  const stack: string[] = [`${x},${y}`];
   const group: Tile[] = [];
-  while (queue.length) {
-    const key = queue.shift()!;
+  while (stack.length) {
+    const key = stack.pop()!;
     if (visited.has(key)) continue;
     visited.add(key);
     const t = map.get(key);
@@ -56,7 +61,7 @@ function bfsSameColor(x: number, y: number, colorIndex: number, map: Map<string,
     group.push(t);
     for (const [dx, dy] of DIRS) {
       const nk = `${t.x + dx},${t.y + dy}`;
-      if (!visited.has(nk)) queue.push(nk);
+      if (!visited.has(nk)) stack.push(nk);
     }
   }
   return group;
@@ -77,7 +82,8 @@ function touchesTerritory(group: Tile[], map: Map<string, Tile>): boolean {
 export const OutbreakMode: GameModeConfig = {
   id: 'outbreak',
   name: 'Outbreak',
-  description: 'Spread your infection. Tap groups to absorb them — numbers show how many cells you gain!',
+  description:
+    'Spread your infection. Tap groups to absorb them — numbers show how many cells you gain!',
   icon: '🦠',
   color: '#06b6d4',
 
@@ -113,8 +119,8 @@ export const OutbreakMode: GameModeConfig = {
       const d = tile.displayData as OutbreakData;
       if (!d) return { background: '#080810', border: '1px solid #1a1a2a' };
 
-      const lit  = OUTBREAK_COLORS[d.colorIndex] ?? '#888';
-      const dark = OUTBREAK_DARK[d.colorIndex]   ?? '#111';
+      const lit = OUTBREAK_COLORS[d.colorIndex] ?? '#888';
+      const dark = OUTBREAK_DARK[d.colorIndex] ?? '#111';
 
       // ── OWNED ──────────────────────────────────────────────────────────────
       if (d.owned) {
@@ -140,7 +146,7 @@ export const OutbreakMode: GameModeConfig = {
           background: `linear-gradient(160deg, #0e0e1c 0%, ${dark}bb 100%)`,
           border: `2px solid ${lit}cc`,
           boxShadow: `0 0 10px ${lit}44`,
-          color: lit,  // number label in the tile's own color
+          color: lit, // number label in the tile's own color
         };
       }
 
@@ -175,18 +181,19 @@ export const OutbreakMode: GameModeConfig = {
     const d = tapped.displayData as OutbreakData;
     if (!d || d.owned) return null;
 
-    const group = bfsSameColor(x, y, d.colorIndex, map);
+    const group = dfsSameColor(x, y, d.colorIndex, map);
     if (group.length === 0) return null;
     if (!touchesTerritory(group, map)) return null;
 
-    const groupKeys = new Set(group.map(t => `${t.x},${t.y}`));
+    const groupKeys = new Set(group.map((t) => `${t.x},${t.y}`));
 
     // Absorb group + clear previous isNew flags
-    const absorbed = tiles.map(t => {
+    const absorbed = tiles.map((t) => {
       const td = t.displayData as OutbreakData;
       if (!td) return t;
-      if (groupKeys.has(`${t.x},${t.y}`)) return { ...t, displayData: { ...td, owned: true, isNew: true } };
-      if (td.isNew)                         return { ...t, displayData: { ...td, isNew: false } };
+      if (groupKeys.has(`${t.x},${t.y}`))
+        return { ...t, displayData: { ...td, owned: true, isNew: true } };
+      if (td.isNew) return { ...t, displayData: { ...td, isNew: false } };
       return t;
     });
 
@@ -197,20 +204,20 @@ export const OutbreakMode: GameModeConfig = {
   },
 
   checkWin(_t, _g, _m, _max, modeState): WinResult {
-    const score  = (modeState?.score  as number) ?? 0;
+    const score = (modeState?.score as number) ?? 0;
     const target = (modeState?.targetScore as number) ?? Infinity;
     return { won: score >= target };
   },
 
   checkLoss(_t, _w, moves, maxMoves, modeState): LossResult {
-    const score  = (modeState?.score  as number) ?? 0;
+    const score = (modeState?.score as number) ?? 0;
     const target = (modeState?.targetScore as number) ?? Infinity;
     if (moves >= maxMoves && score < target) return { lost: true, reason: 'Contained!' };
     return { lost: false };
   },
 
   getWinTiles(tiles): Set<string> {
-    return new Set(tiles.map(t => `${t.x},${t.y}`));
+    return new Set(tiles.map((t) => `${t.x},${t.y}`));
   },
 
   // Always show frontier tiles as hints (the ones with colored borders)
@@ -224,18 +231,18 @@ export const OutbreakMode: GameModeConfig = {
 
   // ── Notifications ─────────────────────────────────────────────────────────
   getNotification(_tiles, _moves, modeState) {
-    const delta  = (modeState?.scoreDelta   as number) ?? 0;
+    const delta = (modeState?.scoreDelta as number) ?? 0;
     if (delta <= 0) return null;
 
-    const cells  = delta / 10;
-    const score  = (modeState?.score        as number) ?? 0;
-    const target = (modeState?.targetScore  as number) ?? 1;
+    const cells = delta / 10;
+    const score = (modeState?.score as number) ?? 0;
+    const target = (modeState?.targetScore as number) ?? 1;
 
     // Percentage now owned (score counts absorbed tiles; corner start = +1)
     const totalCells = Math.round(target / 10) + 1;
-    const ownedCells = Math.round(score  / 10) + 1;
-    const pct        = Math.min(100, Math.round((ownedCells / totalCells) * 100));
-    const prevPct    = Math.min(100, Math.round(((ownedCells - cells) / totalCells) * 100));
+    const ownedCells = Math.round(score / 10) + 1;
+    const pct = Math.min(100, Math.round((ownedCells / totalCells) * 100));
+    const prevPct = Math.min(100, Math.round(((ownedCells - cells) / totalCells) * 100));
 
     // Milestone messages — take priority over generic ones
     if (prevPct < 90 && pct >= 90) return `🔥 90% infected! Almost there!`;
@@ -245,7 +252,7 @@ export const OutbreakMode: GameModeConfig = {
 
     // Big burst messages
     if (cells >= 10) return `🦠 PANDEMIC! +${cells} cells · ${pct}%`;
-    if (cells >= 6)  return `🔥 OUTBREAK! +${cells} cells · ${pct}%`;
+    if (cells >= 6) return `🔥 OUTBREAK! +${cells} cells · ${pct}%`;
 
     // Default: always show cells gained + running percentage
     return `+${cells} cell${cells !== 1 ? 's' : ''} · ${pct}%`;
@@ -275,7 +282,7 @@ export const OutbreakMode: GameModeConfig = {
       title: 'Colors & Icons',
       subtitle: 'READ THE BOARD',
       demo: 'candy-gravity',
-      body: 'Bright colored border = tappable right now.\nDim cell with emoji = not reachable yet.\nSolid vivid color = already yours.\n\nThe emoji icons tell you each cell\'s strain color so you can plan ahead.',
+      body: "Bright colored border = tappable right now.\nDim cell with emoji = not reachable yet.\nSolid vivid color = already yours.\n\nThe emoji icons tell you each cell's strain color so you can plan ahead.",
     },
     {
       icon: '🗺️',
