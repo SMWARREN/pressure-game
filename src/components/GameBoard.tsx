@@ -186,29 +186,31 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const btnPrimary: React.CSSProperties = {
-  padding: '12px 22px',
+  padding: 'clamp(9px, 2.5vw, 12px) clamp(14px, 4vw, 22px)',
   borderRadius: 12,
   border: 'none',
   background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
   color: '#fff',
-  fontSize: 13,
+  fontSize: 'clamp(11px, 3vw, 13px)',
   fontWeight: 800,
   cursor: 'pointer',
   letterSpacing: '0.06em',
-  minHeight: 44,
+  minHeight: 40,
   boxShadow: '0 4px 16px rgba(99,102,241,0.35)',
+  whiteSpace: 'nowrap',
 };
 const btnSecondary: React.CSSProperties = {
-  padding: '12px 18px',
+  padding: 'clamp(9px, 2.5vw, 12px) clamp(12px, 3.5vw, 18px)',
   borderRadius: 12,
   border: '1.5px solid #1e1e35',
   background: 'rgba(255,255,255,0.03)',
   color: '#a5b4fc',
-  fontSize: 13,
+  fontSize: 'clamp(11px, 3vw, 13px)',
   fontWeight: 700,
   cursor: 'pointer',
   letterSpacing: '0.04em',
-  minHeight: 44,
+  minHeight: 40,
+  whiteSpace: 'nowrap',
 };
 
 interface OverlayProps {
@@ -1269,12 +1271,16 @@ export default function GameBoard() {
   }, [currentLevel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build replay engine whenever a replay is requested
+  // Falls back to generatedLevels so Workshop levels are also replayable
   const replayEngine = useMemo(() => {
     if (!replayEvent) return null;
-    const level = ReplayEngine.findLevel(replayEvent.levelId);
+    const level =
+      ReplayEngine.findLevel(replayEvent.levelId) ??
+      generatedLevels.find((l) => l.id === replayEvent.levelId) ??
+      null;
     if (!level) return null;
     return new ReplayEngine(replayEvent, level);
-  }, [replayEvent]);
+  }, [replayEvent]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (status === 'won' && animationsEnabled && boardRef.current) {
@@ -1365,6 +1371,10 @@ export default function GameBoard() {
 
   const winTitle = mode.overlayText?.win ?? 'CONNECTED';
   const lossTitle = lossReason ?? mode.overlayText?.loss ?? 'CRUSHED';
+
+  // Footer visibility — only show controls that make sense for the active mode
+  const showUndoBtn = mode.supportsUndo !== false;
+  const showHintBtn = solution !== null; // null for non-pipe modes (candy, outbreak, etc.)
 
   // Responsive board: header ~62px + stats ~52px + footer ~62px + gaps ~24px = ~200px
   const reserved = 200;
@@ -1618,23 +1628,25 @@ export default function GameBoard() {
           padding: 'clamp(8px, 1.5vh, 12px) 16px max(10px, env(safe-area-inset-bottom))',
         }}
       >
-        {/* Undo */}
-        <button
-          onClick={undoMove}
-          disabled={history.length === 0 || status !== 'playing'}
-          style={{ ...iconBtn, opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1 }}
-          title="Undo"
-        >
-          <span style={{ fontSize: 18 }}>⌫</span>
-        </button>
+        {/* Undo — only shown for modes that support it */}
+        {showUndoBtn && (
+          <button
+            onClick={undoMove}
+            disabled={history.length === 0 || status !== 'playing'}
+            style={{ ...iconBtn, opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1 }}
+            title="Undo"
+          >
+            <span style={{ fontSize: 18 }}>⌫</span>
+          </button>
+        )}
 
         {/* Timer display */}
         <div
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 48 }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 44 }}
         >
           <div
             style={{
-              fontSize: 'clamp(14px, 4vw, 18px)',
+              fontSize: 'clamp(13px, 3.5vw, 18px)',
               fontWeight: 900,
               fontVariantNumeric: 'tabular-nums',
               letterSpacing: '-0.02em',
@@ -1645,20 +1657,22 @@ export default function GameBoard() {
           <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
         </div>
 
-        {/* Hint */}
-        <button
-          onClick={() => setShowHint((h) => !h)}
-          disabled={!solution?.length || status !== 'playing'}
-          style={{
-            ...iconBtn,
-            opacity: !solution?.length || status !== 'playing' ? 0.25 : 1,
-            color: showHint ? '#fbbf24' : '#3a3a55',
-            border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
-          }}
-          title="Hint"
-        >
-          <span style={{ fontSize: 16 }}>💡</span>
-        </button>
+        {/* Hint — only shown for pipe modes that have a BFS solution */}
+        {showHintBtn && (
+          <button
+            onClick={() => setShowHint((h) => !h)}
+            disabled={!solution?.length || status !== 'playing'}
+            style={{
+              ...iconBtn,
+              opacity: !solution?.length || status !== 'playing' ? 0.25 : 1,
+              color: showHint ? '#fbbf24' : '#3a3a55',
+              border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
+            }}
+            title="Hint"
+          >
+            <span style={{ fontSize: 16 }}>💡</span>
+          </button>
+        )}
 
         {/* FX toggle */}
         <button
