@@ -18,6 +18,7 @@ import {
   OUTBREAK_COLORS,
   OUTBREAK_DARK,
   OUTBREAK_ICONS,
+  OUTBREAK_OWNED_ICONS,
   computeFrontierData,
 } from './levels';
 
@@ -104,11 +105,11 @@ export const OutbreakMode: GameModeConfig = {
   //
   // Three clearly distinct visual states:
   //
-  //   OWNED      → vivid solid color fill + soft glow  (this is YOUR territory)
+  //   OWNED      → vivid solid color fill + zombie/biohazard icon overlay
   //   FRONTIER   → dark background + full-color border + group size number
-  //                (you can tap this right now)
-  //   INTERIOR   → near-black + barely visible tint
-  //                (not reachable yet — need to absorb the way there first)
+  //                (you can tap this right now — pulses to draw attention)
+  //   INTERIOR   → near-black + barely visible tint + zombie strain icon
+  //                (not reachable yet — plan your path using the icons)
   //
   tileRenderer: {
     type: 'outbreak',
@@ -125,49 +126,53 @@ export const OutbreakMode: GameModeConfig = {
       // ── OWNED ──────────────────────────────────────────────────────────────
       if (d.owned) {
         if (d.isNew) {
-          // Flash: white → vivid color gradient, strong glow
+          // Flash: white → vivid color gradient, strong glow — zombie absorbed!
           return {
-            background: `linear-gradient(160deg, #ffffff33 0%, ${lit}ee 60%, ${dark} 100%)`,
+            background: `linear-gradient(160deg, #ffffff44 0%, ${lit}ee 55%, ${dark} 100%)`,
             border: `2px solid #ffffff`,
-            boxShadow: `0 0 24px ${lit}, 0 0 8px #ffffff66`,
+            boxShadow: `0 0 28px ${lit}, 0 0 10px #ffffff88, inset 0 0 8px ${lit}44`,
           };
         }
-        // Stable territory: solid vivid fill so it reads unmistakably as "mine"
+        // Stable territory: solid vivid fill — clearly "mine"
         return {
-          background: `linear-gradient(160deg, ${lit}cc 0%, ${dark} 100%)`,
-          border: `2px solid ${lit}`,
-          boxShadow: `0 0 7px ${lit}55`,
+          background: `linear-gradient(160deg, ${lit}bb 0%, ${dark}ee 100%)`,
+          border: `2px solid ${lit}99`,
+          boxShadow: `0 0 6px ${lit}44`,
         };
       }
 
-      // ── FRONTIER (tappable) ────────────────────────────────────────────────
+      // ── FRONTIER (tappable) — pulsing border to signal "tap me!" ──────────
       if (d.isFrontier) {
         return {
-          background: `linear-gradient(160deg, #0e0e1c 0%, ${dark}bb 100%)`,
-          border: `2px solid ${lit}cc`,
-          boxShadow: `0 0 10px ${lit}44`,
+          background: `linear-gradient(160deg, #0d0d1a 0%, ${dark}cc 100%)`,
+          border: `2px solid ${lit}`,
+          boxShadow: `0 0 14px ${lit}66, inset 0 0 6px ${dark}88`,
           color: lit, // number label in the tile's own color
         };
       }
 
-      // ── INTERIOR (not yet reachable) ───────────────────────────────────────
+      // ── INTERIOR (not yet reachable) — dim with subtle tint ───────────────
       return {
-        background: `linear-gradient(160deg, #080810 0%, ${dark}44 100%)`,
-        border: `1px solid ${lit}1e`,
+        background: `linear-gradient(160deg, #080810 0%, ${dark}33 100%)`,
+        border: `1px solid ${lit}22`,
       };
     },
 
     getSymbol(tile) {
       const d = tile.displayData as OutbreakData;
-      if (!d || d.owned) return null;
+      if (!d) return null;
 
-      // Frontier: show group size so player knows the value of this tap
+      // ── OWNED tiles: show a small biohazard/lab icon to mark your territory
+      if (d.owned) {
+        return OUTBREAK_OWNED_ICONS[d.colorIndex] ?? '☣️';
+      }
+
+      // ── FRONTIER: show group size number (most important info for strategy)
       if (d.isFrontier && d.groupSize != null) {
         return String(d.groupSize);
       }
 
-      // Interior unowned: show the strain emoji so players can plan ahead
-      // (only when tileSize is big enough to be legible)
+      // ── INTERIOR unowned: show the zombie strain icon so players can plan
       return OUTBREAK_ICONS[d.colorIndex] ?? null;
     },
   },

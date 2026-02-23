@@ -23,8 +23,30 @@ export const OUTBREAK_COLORS = [
   '#da77f2', // 4  Pink Violet
 ];
 
-/** Strain emoji icons — shown on unowned frontier tiles for instant recognition */
-export const OUTBREAK_ICONS = ['🔴', '🟢', '🔵', '🟡', '🟣'];
+/**
+ * Zombie strain icons — each color has a unique undead character.
+ * Shown on interior (unreachable) tiles so players can plan ahead.
+ * On FRONTIER tiles the group-size number takes priority.
+ */
+export const OUTBREAK_ICONS = [
+  '🧟', // 0  Coral Red   — classic zombie
+  '🧟‍♂️', // 1  Vivid Green  — zombie man
+  '🧟‍♀️', // 2  Sky Blue    — zombie woman
+  '💀', // 3  Bright Yellow — skull
+  '🫀', // 4  Pink Violet  — beating heart (infected organ)
+];
+
+/**
+ * Owned-tile icons — shown inside YOUR territory to reinforce the "you absorbed it" feel.
+ * Smaller, so they don't compete with the vivid color fill.
+ */
+export const OUTBREAK_OWNED_ICONS = [
+  '☣️', // 0  biohazard
+  '🦠', // 1  microbe
+  '💉', // 2  syringe
+  '🔬', // 3  microscope
+  '⚗️', // 4  alembic
+];
 
 /** Deep saturated backgrounds for owned tiles — pairs with OUTBREAK_COLORS */
 export const OUTBREAK_DARK = [

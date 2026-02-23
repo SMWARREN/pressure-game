@@ -93,7 +93,7 @@ function Pipes({
 
 import type { TileRenderer, TileType, Direction } from '@/game/types';
 
-// Inject candy drop animation keyframes once into the document
+// Inject candy drop + outbreak zombie animation keyframes once into the document
 let candyStylesInjected = false;
 function ensureCandyStyles() {
   if (candyStylesInjected || typeof document === 'undefined') return;
@@ -105,6 +105,30 @@ function ensureCandyStyles() {
       55%  { opacity: 1; transform: translateY(4px) scale(1.07); }
       80%  { transform: translateY(-2px) scale(1.01); }
       100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes zombiePulse {
+      0%   { box-shadow: var(--zp-shadow-lo); }
+      50%  { box-shadow: var(--zp-shadow-hi); }
+      100% { box-shadow: var(--zp-shadow-lo); }
+    }
+    @keyframes zombieAbsorb {
+      0%   { transform: scale(1.18) rotate(-4deg); filter: brightness(2); }
+      40%  { transform: scale(0.92) rotate(2deg);  filter: brightness(1.4); }
+      70%  { transform: scale(1.05) rotate(-1deg); filter: brightness(1.1); }
+      100% { transform: scale(1)    rotate(0deg);  filter: brightness(1); }
+    }
+    @keyframes zombieIconDrop {
+      0%   { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+      60%  { opacity: 1; transform: scale(1.2) rotate(6deg); }
+      80%  { transform: scale(0.95) rotate(-2deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    @keyframes zombieShake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-2px) rotate(-3deg); }
+      40%     { transform: translateX(2px)  rotate(3deg); }
+      60%     { transform: translateX(-1px) rotate(-1deg); }
+      80%     { transform: translateX(1px)  rotate(1deg); }
     }
   `;
   document.head.appendChild(el);
@@ -265,9 +289,10 @@ function GameTileComponent({
       : 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)'
     : 'none';
 
-  // ── Custom mode renderer (slots, candy crush, match-3, etc.) ──────────────
+  // ── Custom mode renderer (slots, candy crush, match-3, outbreak, etc.) ────
   if (tileRenderer && tileRenderer.type !== 'pipe') {
-    if (tileRenderer.type === 'candy') ensureCandyStyles();
+    if (tileRenderer.type === 'candy' || tileRenderer.type === 'outbreak')
+      ensureCandyStyles();
 
     const ctx = {
       isHint,
@@ -301,6 +326,46 @@ function GameTileComponent({
     // isNew: tile just dropped in — play slide animation + glow border transition
     const isNewTile = !!displayData?.isNew;
 
+    // ── Outbreak-specific state flags ────────────────────────────────────────
+    const isOutbreak = tileRenderer.type === 'outbreak';
+    const obOwned = isOutbreak && !!displayData?.owned;
+    const obFrontier = isOutbreak && !obOwned && !!displayData?.isFrontier;
+    const obInterior = isOutbreak && !obOwned && !obFrontier;
+
+    // CSS custom properties for the zombiePulse animation (set per-tile color)
+    const zpColor = (customColors as Record<string, string> | undefined)?.color ?? '#888';
+    const zpShadowLo = (appliedBg as Record<string, string>)?.boxShadow ?? 'none';
+    const zpShadowHi = obFrontier
+      ? `0 0 22px ${zpColor}cc, 0 0 8px ${zpColor}88, inset 0 0 10px ${zpColor}33`
+      : zpShadowLo;
+
+    // Pick the right animation for each outbreak state
+    const outbreakAnimation = (() => {
+      if (!isOutbreak || !animationsEnabled) return undefined;
+      if (isNewTile) return 'zombieAbsorb 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+      if (obFrontier) return 'zombiePulse 2s ease-in-out infinite';
+      if (obInterior) return undefined; // static — just show the zombie icon
+      return undefined;
+    })();
+
+    // Icon animation: newly absorbed tiles get a spin-in for the owned icon
+    const iconAnimation =
+      isOutbreak && animationsEnabled && isNewTile && obOwned
+        ? 'zombieIconDrop 0.45s cubic-bezier(0.34,1.56,0.64,1)'
+        : undefined;
+
+    // Symbol font size: scale down on small tiles (10×10 grid)
+    const symSize = (() => {
+      if (!isOutbreak) return tileRenderer.symbolSize ?? '1.2rem';
+      if (obOwned) return tileSize <= 36 ? '0.6rem' : tileSize <= 48 ? '0.72rem' : '0.9rem';
+      if (obFrontier) {
+        // Number label — bold, slightly larger
+        return tileSize <= 36 ? '0.65rem' : tileSize <= 48 ? '0.78rem' : '0.95rem';
+      }
+      // Interior zombie icon
+      return tileSize <= 36 ? '0.62rem' : tileSize <= 48 ? '0.75rem' : '0.9rem';
+    })();
+
     return (
       <div
         onClick={handleClick}
@@ -311,21 +376,42 @@ function GameTileComponent({
           alignItems: 'center',
           justifyContent: 'center',
           cursor: canRotate ? 'pointer' : 'default',
-          // During isNew: slide-in animation drives transform; otherwise use press/rotate state
-          transform: isNewTile ? undefined : tileTransform,
+          transform: isNewTile && isOutbreak ? undefined : tileTransform,
           transition: isNewTile
             ? 'border-color 0.6s ease, box-shadow 0.6s ease'
-            : `${tileTransition}, border-color 0.6s ease, box-shadow 0.6s ease`,
-          animation:
+            : `${tileTransition}, border-color 0.4s ease, box-shadow 0.4s ease`,
+          animation: isOutbreak ? outbreakAnimation : (
             isNewTile && animationsEnabled
               ? 'candyDrop 0.42s cubic-bezier(0.34,1.56,0.64,1)'
-              : undefined,
-          fontSize: tileRenderer.symbolSize ?? '1.2rem',
+              : undefined
+          ),
+          fontSize: symSize,
+          fontWeight: isOutbreak && obFrontier ? 700 : undefined,
+          // CSS vars for zombiePulse keyframe
+          ['--zp-shadow-lo' as string]: zpShadowLo,
+          ['--zp-shadow-hi' as string]: zpShadowHi,
           ...appliedBg,
           overflow: 'hidden',
         }}
       >
-        {symbol && <span style={{ zIndex: 1, userSelect: 'none' }}>{symbol}</span>}
+        {symbol && (
+          <span
+            style={{
+              zIndex: 1,
+              userSelect: 'none',
+              display: 'block',
+              lineHeight: 1,
+              animation: iconAnimation,
+              // Dim interior zombie icons slightly so they don't compete with frontier numbers
+              opacity: isOutbreak && obInterior ? 0.55 : 1,
+              filter: isOutbreak && obOwned && !isNewTile
+                ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
+                : undefined,
+            }}
+          >
+            {symbol}
+          </span>
+        )}
         {!tileRenderer.hidePipes &&
           connections.length > 0 &&
           type !== 'wall' &&
