@@ -2,7 +2,7 @@
  * ReplayEngine — re-runs recorded moves against the initial level state
  * to produce a sequence of snapshots for step-by-step playback.
  */
-import { getModeById } from '@/game/modes';
+import { getModeById, GAME_MODES } from '@/game/modes';
 import { LEVELS } from '@/game/levels';
 import type { GameEndEvent, MoveRecord } from './types';
 import type { Tile, Level } from '@/game/types';
@@ -24,9 +24,20 @@ export class ReplayEngine {
   readonly event: GameEndEvent;
   readonly level: Level;
 
-  /** Look up a built-in level by ID. Returns null if not found. */
+  /**
+   * Look up a level by ID across all game modes (and the classic LEVELS list).
+   * Returns null if not found.
+   */
   static findLevel(levelId: number): Level | null {
-    return LEVELS.find((l) => l.id === levelId) ?? null;
+    // Search classic levels first
+    const classic = LEVELS.find((l) => l.id === levelId);
+    if (classic) return classic;
+    // Search every registered mode's level list
+    for (const mode of GAME_MODES) {
+      const found = mode.getLevels().find((l) => l.id === levelId);
+      if (found) return found;
+    }
+    return null;
   }
 
   constructor(event: GameEndEvent, level: Level) {

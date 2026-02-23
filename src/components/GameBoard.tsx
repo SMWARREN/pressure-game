@@ -868,6 +868,7 @@ function MenuScreen() {
     animationsEnabled,
     toggleAnimations,
     replayTutorial,
+    generatedLevels,
   } = useGameStore(
     useShallow((s) => ({
       completedLevels: s.completedLevels,
@@ -877,6 +878,7 @@ function MenuScreen() {
       animationsEnabled: s.animationsEnabled,
       toggleAnimations: s.toggleAnimations,
       replayTutorial: s.replayTutorial,
+      generatedLevels: s.generatedLevels,
     }))
   );
   const [view, setView] = useState<'levels' | 'workshop'>('levels');
@@ -905,6 +907,12 @@ function MenuScreen() {
       <StatsScreen
         onBack={() => setShowStats(false)}
         onReplay={(evt) => {
+          // Only open replay if we can actually find the level
+          const lvl =
+            ReplayEngine.findLevel(evt.levelId) ??
+            generatedLevels.find((l) => l.id === evt.levelId) ??
+            null;
+          if (!lvl) return;
           setReplayEventFromStats(evt);
           setShowStats(false);
         }}
