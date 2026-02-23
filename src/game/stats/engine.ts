@@ -3,7 +3,7 @@
 // whatever backend is registered. No changes to store.ts required.
 
 import { useGameStore } from '../store';
-import type { StatsBackend, StatEvent, GameStartEvent, GameEndEvent } from './types';
+import type { StatsBackend, StatEvent, GameStartEvent, GameEndEvent, MoveRecord } from './types';
 import type { GameState } from '../types';
 
 // Stable across the page's lifetime — groups events from the same browser session
@@ -12,6 +12,8 @@ const SESSION_ID = Math.random().toString(36).slice(2, 10);
 export class StatsEngine {
   private backend: StatsBackend;
   private unsubscribe: (() => void) | null = null;
+  private pendingMoveLog: MoveRecord[] = [];
+  private gameStartMs = 0;
 
   constructor(backend: StatsBackend) {
     this.backend = backend;
@@ -58,6 +60,8 @@ export class StatsEngine {
 
     // anything → playing
     if (prev.status !== 'playing' && state.status === 'playing') {
+      this.pendingMoveLog = [];
+      this.gameStartMs = Date.now();
       this.emit({ ...base, type: 'game_start' } satisfies GameStartEvent);
     }
 
@@ -71,6 +75,7 @@ export class StatsEngine {
         elapsedSeconds: state.elapsedSeconds,
         score: state.score,
         lossReason: null,
+        moveLog: [...this.pendingMoveLog],
       } satisfies GameEndEvent);
     }
 
@@ -84,7 +89,24 @@ export class StatsEngine {
         elapsedSeconds: state.elapsedSeconds,
         score: state.score,
         lossReason: state.lossReason,
+        moveLog: [...this.pendingMoveLog],
       } satisfies GameEndEvent);
+    }
+
+    // Detect new tap: moves increased and lastRotatedPos changed
+    if (
+      state.status === 'playing' &&
+      state.moves > prev.moves &&
+      state.lastRotatedPos !== null &&
+      (state.lastRotatedPos.x !== prev.lastRotatedPos?.x ||
+        state.lastRotatedPos.y !== prev.lastRotatedPos?.y ||
+        state.moves !== prev.moves)
+    ) {
+      this.pendingMoveLog.push({
+        x: state.lastRotatedPos.x,
+        y: state.lastRotatedPos.y,
+        t: Date.now() - this.gameStartMs,
+      });
     }
   }
 }

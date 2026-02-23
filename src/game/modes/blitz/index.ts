@@ -19,7 +19,7 @@ export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Welcome to Blitz',
     subtitle: 'SPEED IS EVERYTHING',
     demo: 'fixed-path',
-    body: "Blitz is the most intense mode. No move limit — but the walls never stop closing.\n\nConnect the pipes before you're crushed.",
+    body: "Blitz is the most unforgiving mode. The walls never stop — not between moves, not ever.\n\nRotate the orange tiles, connect all goal nodes, and get out before the walls arrive.",
   },
   {
     icon: '🔄',
@@ -27,7 +27,7 @@ export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Tap Fast',
     subtitle: 'EVERY SECOND COUNTS',
     demo: 'rotatable',
-    body: 'Tap tiles to rotate them. In Blitz, speed matters more than efficiency. No undo — commit to every move.',
+    body: "Tap an orange tile to rotate it 90°. There's no move limit, but there's no undo either.\n\nEvery tap is permanent. Make it count.",
   },
   {
     icon: '🟢',
@@ -35,7 +35,7 @@ export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Protect the Nodes',
     subtitle: 'ONE CRUSH = GAME OVER',
     demo: 'node',
-    body: 'If a single goal node gets crushed by the walls, you lose instantly. In classic mode you can afford mistakes — in Blitz you cannot.',
+    body: "A single wall touching a single goal node ends your run instantly. No second chances, no recovery.\n\nKeep your nodes connected and out of the walls' path.",
   },
   {
     icon: '💀',
@@ -43,7 +43,7 @@ export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Walls Never Stop',
     subtitle: 'RELENTLESS PRESSURE',
     demo: 'walls',
-    body: 'The walls advance on a short timer and never pause. No undo means no second chances — scan the board fast and move with purpose.',
+    body: "In Classic mode the walls pause between ticks. In Blitz they advance constantly on a short, merciless timer.\n\nScan the board before you tap. There's no undoing a wrong rotation.",
   },
   {
     icon: '✦',
@@ -51,7 +51,7 @@ export const BLITZ_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Survive!',
     subtitle: 'CONNECT OR DIE',
     demo: 'blitz-ready',
-    body: 'No undo. Walls never stop. One crushed node ends the run.\n\nThink fast. Move faster.',
+    body: "No undo. Walls never stop. One crushed node ends it all.\n\nThink fast. Move faster.",
   },
 ];
 

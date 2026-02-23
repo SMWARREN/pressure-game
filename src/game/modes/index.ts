@@ -9,6 +9,7 @@ import { BlitzMode } from './blitz/index';
 import { CandyMode } from './candy/index';
 import { QuantumChainMode } from './quantumChain/index';
 import { ShoppingSpreeMode } from './shoppingSpree/index';
+import { OutbreakMode } from './outbreak/index';
 
 export const GAME_MODES: GameModeConfig[] = [
   ClassicMode,
@@ -17,6 +18,7 @@ export const GAME_MODES: GameModeConfig[] = [
   CandyMode,
   QuantumChainMode,
   ShoppingSpreeMode,
+  OutbreakMode,
 ];
 
 export const DEFAULT_MODE_ID = 'classic';

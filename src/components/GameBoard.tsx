@@ -11,6 +11,8 @@ import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
 import { statsEngine } from '@/game/stats';
 import type { GameEndEvent } from '@/game/stats/types';
+import ReplayOverlay from '@/components/game/ReplayOverlay';
+import { ReplayEngine } from '@/game/stats/replay';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NOTIFICATION FLOAT ANIMATION
@@ -225,6 +227,7 @@ interface OverlayProps {
   finalScore?: number;
   targetScore?: number;
   levelRecord?: { wins: number; attempts: number };
+  onReplay?: () => void;
 }
 
 function Overlay({
@@ -243,6 +246,7 @@ function Overlay({
   finalScore,
   targetScore,
   levelRecord,
+  onReplay,
 }: OverlayProps) {
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
@@ -288,7 +292,7 @@ function Overlay({
             attempt{levelRecord.attempts !== 1 ? 's' : ''}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14 }}>
+        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14, flexWrap: 'wrap', justifyContent: 'center' }}>
           {hasNext && (
             <button onClick={onNext} style={btnPrimary}>
               NEXT →
@@ -300,6 +304,11 @@ function Overlay({
           <button onClick={onMenu} style={btnSecondary}>
             MENU
           </button>
+          {onReplay && (
+            <button onClick={onReplay} style={btnSecondary}>
+              ▶ REPLAY
+            </button>
+          )}
         </div>
       </div>
     );
@@ -507,7 +516,7 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
             <input
               type="range"
               min={4}
-              max={8}
+              max={10}
               value={gridSize}
               onChange={(e) => setGridSize(+e.target.value)}
               style={{ width: '100%', accentColor: '#6366f1' }}
@@ -675,6 +684,7 @@ function MenuScreen() {
   const [world, setWorld] = useState(1);
   const [showModeModal, setShowModeModal] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [replayEventFromStats, setReplayEventFromStats] = useState<GameEndEvent | null>(null);
 
   const activeMode = getModeById(currentModeId);
   const levels = activeMode.getLevels();
@@ -690,7 +700,16 @@ function MenuScreen() {
   const totalDone = levels.filter((l) => completedLevels.includes(l.id)).length;
   const pct = Math.round((totalDone / levels.length) * 100);
 
-  if (showStats) return <StatsScreen onBack={() => setShowStats(false)} />;
+  if (showStats)
+    return (
+      <StatsScreen
+        onBack={() => setShowStats(false)}
+        onReplay={(evt) => {
+          setReplayEventFromStats(evt);
+          setShowStats(false);
+        }}
+      />
+    );
 
   return (
     <div
@@ -1133,6 +1152,20 @@ function MenuScreen() {
 
       {/* ── MODE SELECTOR MODAL ─────────────────────────────────── */}
       <ModeSelectorModal visible={showModeModal} onClose={() => setShowModeModal(false)} />
+
+      {/* ── REPLAY OVERLAY (launched from stats screen) ─────────── */}
+      {replayEventFromStats && (() => {
+        const level = ReplayEngine.findLevel(replayEventFromStats.levelId);
+        if (!level) return null;
+        const engine = new ReplayEngine(replayEventFromStats, level);
+        return (
+          <ReplayOverlay
+            event={replayEventFromStats}
+            engine={engine}
+            onClose={() => setReplayEventFromStats(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -1208,6 +1241,7 @@ export default function GameBoard() {
     isScore: boolean;
   } | null>(null);
   const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
   const { w: vw, h: vh } = useViewport();
 
   // Inject notification CSS once on mount
@@ -1233,6 +1267,14 @@ export default function GameBoard() {
       .filter((e): e is GameEndEvent => e.type === 'game_end' && e.levelId === currentLevel.id);
     return { attempts: ends.length, wins: ends.filter((e) => e.outcome === 'won').length };
   }, [currentLevel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Build replay engine whenever a replay is requested
+  const replayEngine = useMemo(() => {
+    if (!replayEvent) return null;
+    const level = ReplayEngine.findLevel(replayEvent.levelId);
+    if (!level) return null;
+    return new ReplayEngine(replayEvent, level);
+  }, [replayEvent]);
 
   useEffect(() => {
     if (status === 'won' && animationsEnabled && boardRef.current) {
@@ -1326,11 +1368,11 @@ export default function GameBoard() {
 
   // Responsive board: header ~62px + stats ~52px + footer ~62px + gaps ~24px = ~200px
   const reserved = 200;
-  const maxByWidth = Math.min(vw * 0.94, 440);
+  const maxByWidth = Math.min(vw * 0.97, 460);
   const maxByHeight = Math.max(vh - reserved, 160);
   const boardPx = Math.min(maxByWidth, maxByHeight);
-  const gap = gs > 5 ? 3 : 4;
-  const padding = gs > 5 ? 8 : 10;
+  const gap = gs >= 9 ? 2 : gs > 5 ? 3 : 4;
+  const padding = gs >= 9 ? 4 : gs > 5 ? 8 : 10;
   const tileSize = Math.floor((boardPx - padding * 2 - gap * (gs - 1)) / gs);
 
   const mins = Math.floor(elapsedSeconds / 60);
@@ -1347,6 +1389,21 @@ export default function GameBoard() {
   const levelStatsDisplay = currentLevel.timeLimit
     ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
     : undefined;
+
+  // Compute the onReplay callback for the win overlay: find the latest game_end event for this level
+  const onReplayForOverlay = (() => {
+    if (status !== 'won') return undefined;
+    const allEnds = statsEngine
+      .getBackend()
+      .getAll()
+      .filter(
+        (e): e is GameEndEvent =>
+          e.type === 'game_end' && e.levelId === (currentLevel?.id ?? -1)
+      );
+    const latest = allEnds[allEnds.length - 1];
+    if (!latest || !latest.moveLog?.length) return undefined;
+    return () => setReplayEvent(latest);
+  })();
 
   return (
     <div
@@ -1530,9 +1587,19 @@ export default function GameBoard() {
             finalScore={score}
             targetScore={currentLevel.targetScore}
             levelRecord={levelRecord}
+            onReplay={onReplayForOverlay}
           />
         </div>
       </div>
+
+      {/* ── REPLAY OVERLAY ──────────────────────────────────────── */}
+      {replayEngine && replayEvent && (
+        <ReplayOverlay
+          event={replayEvent}
+          engine={replayEngine}
+          onClose={() => setReplayEvent(null)}
+        />
+      )}
 
       {/* ── FOOTER / CONTROLS ───────────────────────────────────── */}
       <footer

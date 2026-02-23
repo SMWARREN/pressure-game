@@ -19,7 +19,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Welcome to Pressure',
     subtitle: 'THE PIPE PUZZLE',
     demo: 'fixed-path',
-    body: "Pipes fill the board. Fixed pipes (blue) can't move — they show you the path.\n\nYour job: connect all the glowing goal nodes.",
+    body: "The board is full of pipe tiles. Blue tiles are locked in place — they anchor the path.\n\nTap the orange tiles to rotate them and complete the connection.",
   },
   {
     icon: '🔄',
@@ -27,7 +27,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Tap to Rotate',
     subtitle: 'YOUR MAIN MOVE',
     demo: 'rotatable',
-    body: 'Tap any orange tile to rotate it 90°. Line up the pipe openings so the connection flows from node to node.',
+    body: "Tap any orange tile and it rotates 90° clockwise. Align the openings so pipe flows continuously from node to node.\n\nOne tap can change everything.",
   },
   {
     icon: '🟢',
@@ -35,7 +35,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Goal Nodes',
     subtitle: 'CONNECT THEM ALL',
     demo: 'node',
-    body: 'Green glowing tiles are goal nodes. They need to be connected to each other through a continuous pipe path to win.',
+    body: "Every green glowing tile is a goal node. Connect them all through an unbroken pipe path — that's your win condition.\n\nMiss even one and the puzzle stays open.",
   },
   {
     icon: '🧱',
@@ -43,7 +43,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'The Walls Are Closing',
     subtitle: 'ACT FAST',
     demo: 'walls',
-    body: 'Red walls close in from all sides on a timer. Tiles caught in the walls get crushed — and if a goal node is crushed, you lose.\n\nEvery move counts.',
+    body: "Red walls advance from every edge on a timer. Any tile they reach gets crushed.\n\nIf a wall crushes a goal node, it's game over. Solve the puzzle before they meet in the middle.",
   },
   {
     icon: '🎮',
@@ -51,7 +51,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Undo & Hints',
     subtitle: 'YOUR TOOLS',
     demo: 'controls',
-    body: "Stuck? Use Undo (⎌) to take back a move, or tap the Hint (💡) to see the next best rotation. Use them wisely — the walls won't wait.",
+    body: "Tap ⎌ to undo your last rotation. Tap 💡 to reveal the next correct move.\n\nBoth cost precious time — the walls keep moving while you think.",
   },
   {
     icon: '✦',
@@ -59,7 +59,7 @@ export const CLASSIC_TUTORIAL_STEPS: TutorialStep[] = [
     title: "You're Ready!",
     subtitle: 'CONNECT BEFORE THE CRUSH',
     demo: 'ready',
-    body: "Connect all nodes before the walls close in. Watch your move count. Good luck — you'll need it.",
+    body: "Rotate the orange tiles. Connect all goal nodes. Beat the walls.\n\nThe clock is already ticking.",
   },
 ];
 
