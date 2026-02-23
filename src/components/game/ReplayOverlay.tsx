@@ -33,6 +33,9 @@ function fmtElapsed(ms: number): string {
    COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
 
+const REPLAY_SPEEDS = [800, 400, 200];
+const REPLAY_SPEED_LABELS = ['1×', '2×', '4×'];
+
 export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayProps) {
   const [step, setStep] = useState(0); // index into engine.snapshots
   const [playing, setPlaying] = useState(false);
@@ -50,9 +53,6 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
       window.removeEventListener('orientationchange', update);
     };
   }, []);
-
-  const SPEEDS = [800, 400, 200];
-  const SPEED_LABELS = ['1×', '2×', '4×'];
 
   const snapshot: ReplaySnapshot = engine.snapshots[step];
   const gridSize = engine.level.gridSize;
@@ -74,7 +74,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
         }
         return s + 1;
       });
-    }, SPEEDS[speedIdx]);
+    }, REPLAY_SPEEDS[speedIdx]);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -388,7 +388,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
 
         {/* Speed toggle */}
         <button
-          onClick={() => setSpeedIdx((i) => (i + 1) % SPEEDS.length)}
+          onClick={() => setSpeedIdx((i) => (i + 1) % REPLAY_SPEEDS.length)}
           style={{
             ...ctrlBtn,
             width: 46,
@@ -400,7 +400,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
           }}
           title="Playback speed"
         >
-          {SPEED_LABELS[speedIdx]}
+          {REPLAY_SPEED_LABELS[speedIdx]}
         </button>
       </div>
     </div>

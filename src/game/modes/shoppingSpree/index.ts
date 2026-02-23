@@ -263,10 +263,8 @@ export const ShoppingSpreeMode: GameModeConfig = {
     let baseValue = ITEM_VALUES[symbol] ?? 10;
 
     // ⚡ FLASH SALE BONUS - 3× value if this item is on sale!
-    let flashSaleBonus = false;
     if (state.flashSaleItem === symbol && state.flashSaleTapsLeft > 0) {
       baseValue *= 3;
-      flashSaleBonus = true;
     }
 
     // Calculate score: base value × group size × combo multiplier
@@ -296,6 +294,10 @@ export const ShoppingSpreeMode: GameModeConfig = {
       next = reshuffle(next);
     }
 
+    // Tick down flash sale on every tap (not just matching taps)
+    const newFlashSaleTapsLeft = state.flashSaleTapsLeft > 0 ? state.flashSaleTapsLeft - 1 : 0;
+    const newFlashSaleItem = newFlashSaleTapsLeft <= 0 ? null : state.flashSaleItem;
+
     // Update mode state — also store scoreDelta so getNotification can read it
     let newState: ShoppingModeState = {
       ...state,
@@ -303,8 +305,8 @@ export const ShoppingSpreeMode: GameModeConfig = {
       cartBonus: cartBonus,
       lastGroupSize: group.length,
       scoreDelta,
-      flashSaleTapsLeft: flashSaleBonus ? state.flashSaleTapsLeft - 1 : state.flashSaleTapsLeft,
-      flashSaleItem: state.flashSaleTapsLeft <= 1 ? null : state.flashSaleItem,
+      flashSaleTapsLeft: newFlashSaleTapsLeft,
+      flashSaleItem: newFlashSaleItem,
     };
 
     // Maybe trigger a new flash sale

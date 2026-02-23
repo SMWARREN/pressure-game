@@ -1504,9 +1504,13 @@ export default function GameBoard() {
         let notifText: string | null = null;
         if (tappedMode.getNotification) {
           const freshState = useGameStore.getState();
-          notifText = tappedMode.getNotification(freshState.tiles, freshState.moves, {
-            scoreDelta,
-          });
+          // Merge scoreDelta into modeState so every mode's getNotification can read it
+          const notifModeState = { ...(freshState.modeState ?? {}), scoreDelta };
+          notifText = tappedMode.getNotification(
+            freshState.tiles,
+            freshState.moves,
+            notifModeState
+          );
         }
         if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;
         if (notifText) showNotification(notifText, scoreDelta > 0);

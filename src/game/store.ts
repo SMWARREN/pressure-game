@@ -318,9 +318,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       _winCheckPending: false,
     });
 
-    // Check if already solved (e.g., pre-solved demo levels)
-    // Only start timer if the game is genuinely in 'playing' state and not won immediately
-    if (get().status === 'playing' && !get().checkWin()) {
+    // Check if already solved (e.g., pre-solved demo levels).
+    // Start the timer ONLY if the level isn't immediately won — avoids a
+    // 600ms window where the timer runs before checkWin's safeTimeout fires.
+    const alreadyWon = get().checkWin();
+    if (!alreadyWon && get().status === 'playing') {
       startGameTimer();
     }
   },
