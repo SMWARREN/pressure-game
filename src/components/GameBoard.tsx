@@ -1548,9 +1548,8 @@ export default function GameBoard() {
     ? generatedLevels
     : [...mode.getLevels(), ...generatedLevels];
   const currentIndex = allLevels.findIndex((l) => l.id === currentLevel.id);
-  const nextLevel = currentIndex >= 0 && currentIndex < allLevels.length - 1
-    ? allLevels[currentIndex + 1]
-    : null;
+  const nextLevel =
+    currentIndex >= 0 && currentIndex < allLevels.length - 1 ? allLevels[currentIndex + 1] : null;
 
   // Compute display level number (1-based position in mode's level list)
   const modeLevels = mode.getLevels();

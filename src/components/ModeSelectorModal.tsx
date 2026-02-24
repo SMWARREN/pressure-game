@@ -133,9 +133,7 @@ function ModeCard({
       <span
         style={{
           fontSize: 26,
-          filter: active
-            ? `drop-shadow(0 0 10px ${mode.color}90)`
-            : 'grayscale(0.6) opacity(0.5)',
+          filter: active ? `drop-shadow(0 0 10px ${mode.color}90)` : 'grayscale(0.6) opacity(0.5)',
           transition: 'filter 0.2s',
           flexShrink: 0,
         }}
@@ -155,9 +153,7 @@ function ModeCard({
         >
           {mode.name}
         </div>
-        <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>
-          {mode.description}
-        </div>
+        <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>{mode.description}</div>
       </div>
 
       {/* Feature badges */}
@@ -182,7 +178,15 @@ function ModeCard({
 
 // ── Group section header ──────────────────────────────────────────────────────
 
-function GroupHeader({ label, tagline, accentColor }: { label: string; tagline?: string; accentColor: string }) {
+function GroupHeader({
+  label,
+  tagline,
+  accentColor,
+}: {
+  label: string;
+  tagline?: string;
+  accentColor: string;
+}) {
   return (
     <div
       style={{
@@ -205,12 +209,18 @@ function GroupHeader({ label, tagline, accentColor }: { label: string; tagline?:
         }}
       />
       <div>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', color: accentColor, textTransform: 'uppercase' }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 900,
+            letterSpacing: '0.08em',
+            color: accentColor,
+            textTransform: 'uppercase',
+          }}
+        >
           {label}
         </div>
-        {tagline && (
-          <div style={{ fontSize: 10, color: '#2a2a40', marginTop: 1 }}>{tagline}</div>
-        )}
+        {tagline && <div style={{ fontSize: 10, color: '#2a2a40', marginTop: 1 }}>{tagline}</div>}
       </div>
     </div>
   );
