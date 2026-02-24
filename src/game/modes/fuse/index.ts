@@ -25,6 +25,7 @@ import { Tile, GameState } from '../../types';
 import { FUSE_LEVELS, FUSE_WORLDS } from './levels';
 import { FUSE_TUTORIAL_STEPS } from './tutorial';
 import { renderFuseDemo } from './demo';
+import { FUSE_WALKTHROUGH } from './walkthrough';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -134,6 +135,7 @@ export const FuseMode: GameModeConfig = {
   useMoveLimit: true,
   tutorialSteps: FUSE_TUTORIAL_STEPS,
   renderDemo: renderFuseDemo,
+  walkthrough: FUSE_WALKTHROUGH,
   getLevels: () => FUSE_LEVELS,
   worlds: FUSE_WORLDS,
   supportsWorkshop: false,

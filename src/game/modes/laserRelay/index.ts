@@ -13,6 +13,7 @@ import { Tile } from '../../types';
 import { LASER_LEVELS, LASER_WORLDS } from './levels';
 import { LASER_TUTORIAL_STEPS } from './tutorial';
 import { renderLaserDemo } from './demo';
+import { LASER_WALKTHROUGH } from './walkthrough';
 
 // ── Mirror reflection tables ──────────────────────────────────────────────────
 
@@ -196,6 +197,7 @@ export const LaserRelayMode: GameModeConfig = {
   useMoveLimit: true,
   tutorialSteps: LASER_TUTORIAL_STEPS,
   renderDemo: renderLaserDemo,
+  walkthrough: LASER_WALKTHROUGH,
   getLevels: () => LASER_LEVELS,
   worlds: LASER_WORLDS,
   supportsWorkshop: false,
