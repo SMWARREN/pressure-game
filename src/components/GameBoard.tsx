@@ -5,6 +5,7 @@ import { getSolution, generateLevel, verifyLevel } from '@/game/levels';
 import TutorialScreen from './TutorialScreen';
 import ModeSelectorModal from './ModeSelectorModal';
 import StatsScreen from './StatsScreen';
+import { WalkthroughOverlay, useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '../game/modes';
 import { Level } from '@/game/types';
 import GameGrid from './game/GameGrid';
@@ -1541,7 +1542,26 @@ export default function GameBoard() {
     [status, tiles, currentLevel, tapTile, animationsEnabled, currentModeId, showNotification]
   );
 
-  // CHANGE 3: Only check status for tutorial, not showTutorial
+  // ── WALKTHROUGH SYSTEM ────────────────────────────────────────────────────
+  // Get walkthrough config from the mode itself (hooks must be called before early returns)
+  const walkthroughConfig = useMemo(() => {
+    if (!currentLevel || currentLevel.isGenerated) return null;
+    // Check if this level matches the walkthrough's target level
+    const config = mode.walkthrough;
+    if (!config || config.levelId !== currentLevel.id) return null;
+    return config;
+  }, [currentLevel, mode.walkthrough]);
+
+  // Use walkthrough hook to manage state
+  const {
+    isActive: walkthroughActive,
+    currentStepIndex: walkthroughStepIndex,
+    currentStep: walkthroughStep,
+    advance: advanceWalkthrough,
+    skip: skipWalkthrough,
+  } = useWalkthrough(walkthroughConfig, boardRef);
+
+  // Early returns for tutorial and menu screens (must come AFTER all hooks)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
   if (status === 'menu' || !currentLevel) return <MenuScreen />;
 
@@ -1801,6 +1821,19 @@ export default function GameBoard() {
           event={replayEvent}
           engine={replayEngine}
           onClose={() => setReplayEvent(null)}
+        />
+      )}
+
+      {/* ── WALKTHROUGH OVERLAY ──────────────────────────────────── */}
+      {walkthroughActive && walkthroughConfig && (
+        <WalkthroughOverlay
+          steps={walkthroughConfig.steps}
+          currentStepIndex={walkthroughStepIndex}
+          onAdvance={advanceWalkthrough}
+          onSkip={skipWalkthrough}
+          targetTile={walkthroughStep?.targetTile}
+          boardRef={boardRef}
+          gridSize={gs}
         />
       )}
 

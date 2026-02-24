@@ -28,6 +28,7 @@ import {
 } from './levels';
 import { GRAVITY_TUTORIAL_STEPS } from './tutorial';
 import { renderGravityDropDemo } from './demo';
+import { GRAVITY_DROP_WALKTHROUGH } from './walkthrough';
 
 // ── Colours per number value ──────────────────────────────────────────────────
 const VAL_COLORS: Record<number, { bg: string; border: string; glow: string }> = {
@@ -434,4 +435,5 @@ export const GravityDropMode: GameModeConfig = {
 
   tutorialSteps: GRAVITY_TUTORIAL_STEPS,
   renderDemo: renderGravityDropDemo,
+  walkthrough: GRAVITY_DROP_WALKTHROUGH,
 };

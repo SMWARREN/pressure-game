@@ -7,6 +7,7 @@ import { CLASSIC_LEVELS } from '../classic/levels';
 import { Tile } from '../../types';
 import { BLITZ_TUTORIAL_STEPS } from './tutorial';
 import { renderBlitzDemo } from './demo';
+import { BLITZ_WALKTHROUGH } from './walkthrough';
 
 export const BLITZ_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Warm up', color: '#fb923c', icon: '◈' },
@@ -52,4 +53,5 @@ export const BlitzMode: GameModeConfig = {
     moves: 'TAPS',
     compression: 'INCOMING',
   },
+  walkthrough: BLITZ_WALKTHROUGH,
 };

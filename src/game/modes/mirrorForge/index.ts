@@ -26,6 +26,7 @@ import {
 } from './levels';
 import { MIRROR_TUTORIAL_STEPS } from './tutorial';
 import { renderMirrorForgeDemo } from './demo';
+import { MIRROR_FORGE_WALKTHROUGH } from './walkthrough';
 import { checkConnected } from '../utils';
 
 // ── Rotate one tile's connections by 1 step CW ───────────────────────────────
@@ -196,4 +197,5 @@ export const MirrorForgeMode: GameModeConfig = {
 
   tutorialSteps: MIRROR_TUTORIAL_STEPS,
   renderDemo: renderMirrorForgeDemo,
+  walkthrough: MIRROR_FORGE_WALKTHROUGH,
 };

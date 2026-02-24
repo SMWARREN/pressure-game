@@ -12,6 +12,7 @@ import { Tile } from '../../types';
 import { CANDY_LEVELS, CANDY_WORLDS, CANDY_SYMBOLS } from './levels';
 import { CANDY_TUTORIAL_STEPS } from './tutorial';
 import { renderCandyDemo } from './demo';
+import { CANDY_WALKTHROUGH } from './walkthrough';
 
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 
@@ -301,4 +302,5 @@ export const CandyMode: GameModeConfig = {
 
   statsLabels: { moves: 'TAPS' },
   statsDisplay: [{ type: 'score' }, { type: 'moves' }],
+  walkthrough: CANDY_WALKTHROUGH,
 };

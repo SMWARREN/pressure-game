@@ -6,6 +6,7 @@ import { rotateTileTap, checkConnected } from '../utils';
 import { CLASSIC_LEVELS } from '../classic/levels';
 import { ZEN_TUTORIAL_STEPS } from './tutorial';
 import { renderZenDemo } from './demo';
+import { ZEN_WALKTHROUGH } from './walkthrough';
 
 export const ZEN_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
@@ -42,4 +43,5 @@ export const ZenMode: GameModeConfig = {
   statsLabels: {
     moves: 'MOVES',
   },
+  walkthrough: ZEN_WALKTHROUGH,
 };

@@ -27,6 +27,7 @@ import type {
 import { QUANTUM_CHAIN_LEVELS } from './levels';
 import { QUANTUM_CHAIN_TUTORIAL_STEPS } from './tutorial';
 import { renderQuantumChainDemo } from './demo';
+import { QUANTUM_CHAIN_WALKTHROUGH } from './walkthrough';
 
 // ── Mode State Interface ─────────────────────────────────────────────────────
 
@@ -272,6 +273,7 @@ export const QuantumChainMode: GameModeConfig = {
 
   tutorialSteps: QUANTUM_CHAIN_TUTORIAL_STEPS,
   renderDemo: renderQuantumChainDemo,
+  walkthrough: QUANTUM_CHAIN_WALKTHROUGH,
 
   worlds: [{ id: 1, name: 'Quantum', tagline: 'Chain reactions', color: '#8b5cf6', icon: '🔗' }],
 

@@ -7,6 +7,7 @@
 //   3. Register in modes/index.ts
 
 import { Tile, Position, GameState, Level } from '../types';
+import { WalkthroughConfig } from '../../components/WalkthroughOverlay';
 
 export type WallCompressionSetting = 'always' | 'never' | 'optional';
 
@@ -333,4 +334,11 @@ export interface GameModeConfig {
     goalNodes: Position[],
     modeState?: Record<string, unknown>
   ) => Set<string>;
+
+  /**
+   * Optional: walkthrough configuration for the first level of this mode.
+   * If provided, the walkthrough overlay will be shown when the player
+   * starts the specified level for the first time.
+   */
+  walkthrough?: WalkthroughConfig;
 }
