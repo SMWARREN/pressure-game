@@ -187,6 +187,9 @@ function GameTileComponent({
   const pressedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rippleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Ensure danger pulse keyframes are injected (needed for default pipe renderer)
+  ensureCandyStyles();
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {

@@ -13,7 +13,11 @@ src/game/modes/
   yourmode/
     index.ts      ← GameModeConfig lives here
     levels.ts     ← level array (required by getLevels)
+    tutorial.ts   ← tutorial steps for this mode
+    demo.tsx      ← demo visuals for tutorial screen
 ```
+
+Each mode is self-contained with its own tutorial and demo files.
 
 ---
 
@@ -310,23 +314,67 @@ statsLabels: { moves: 'TAPS' },   // candy renames the counter
 
 ### Tutorial
 
+Each mode defines its own tutorial steps and demo visuals in separate files:
+
+#### `tutorial.ts` — Tutorial steps
+
 ```ts
-tutorialSteps: [
+// src/game/modes/yourmode/tutorial.ts
+import { TutorialStep } from '../../types';
+
+export const YOUR_MODE_TUTORIAL_STEPS: TutorialStep[] = [
   {
     icon: '🍎',
     iconColor: '#ef4444',
     title: 'Tap a Group',
     subtitle: 'YOUR MOVE',
-    demo: 'candy-group',   // maps to a visual in TutorialScreen.tsx
+    demo: 'candy-group',   // demo type passed to renderDemo
     body: 'Tap any candy to clear its connected group...',
   },
   // up to as many steps as you need
-],
+];
 ```
 
-To add a new demo visual, add a case to `TutorialDemoType` in
-`src/game/modes/types.ts` and a matching `case` in the `DemoVisual` switch in
-`src/components/TutorialScreen.tsx`.
+#### `demo.tsx` — Demo visuals
+
+```tsx
+// src/game/modes/yourmode/demo.tsx
+import { ReactNode } from 'react';
+import { TutorialDemoType } from '../../types';
+
+export function renderYourModeDemo(type: TutorialDemoType, modeColor: string): ReactNode | null {
+  switch (type) {
+    case 'candy-group':
+      return (
+        <div style={{ display: 'flex', gap: 4 }}>
+          {/* Render your demo tiles here */}
+          <div style={{ fontSize: 24 }}>🍎</div>
+          <div style={{ fontSize: 24 }}>🍎</div>
+          <div style={{ fontSize: 24 }}>🍎</div>
+        </div>
+      );
+    // Add more demo cases as needed
+    default:
+      return null;
+  }
+}
+```
+
+#### Register in `index.ts`
+
+```ts
+// src/game/modes/yourmode/index.ts
+import { YOUR_MODE_TUTORIAL_STEPS } from './tutorial';
+import { renderYourModeDemo } from './demo';
+
+export const YourMode: GameModeConfig = {
+  // ... other config
+  tutorialSteps: YOUR_MODE_TUTORIAL_STEPS,
+  renderDemo: renderYourModeDemo,
+};
+```
+
+The `TutorialScreen` component will automatically use your mode's `renderDemo` function to display visuals for each tutorial step.
 
 ---
 
@@ -465,6 +513,8 @@ The store automatically clears it after 1.5 s.
 
 - [ ] `src/game/modes/yourmode/index.ts` — exports `GameModeConfig`
 - [ ] `src/game/modes/yourmode/levels.ts` — exports `Level[]`
+- [ ] `src/game/modes/yourmode/tutorial.ts` — exports tutorial steps
+- [ ] `src/game/modes/yourmode/demo.tsx` — exports `renderDemo` function
 - [ ] Registered in `src/game/modes/index.ts`
 - [ ] Level IDs don't collide with other modes (classic 1-10, candy 101-112, pick 200+)
 - [ ] `wallCompression` set correctly (`'never'` for score/time modes)
@@ -472,4 +522,4 @@ The store automatically clears it after 1.5 s.
 - [ ] `tileRenderer` defined if you need custom visuals (not pipes)
 - [ ] `overlayText` set so win/loss screen text makes sense
 - [ ] `statsDisplay` configured so the right stats show during play
-- [ ] `tutorialSteps` added (or omit to inherit the generic pipe tutorial)
+- [ ] `tutorialSteps` and `renderDemo` added to config

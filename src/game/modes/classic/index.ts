@@ -2,7 +2,8 @@
 // The original pipe puzzle with closing walls.
 // Connect all goal nodes before the walls crush them.
 
-import { GameModeConfig, TapResult, WinResult } from '../types';
+import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
+import { Tile } from '../../types';
 import { rotateTileTap, checkConnected } from '../utils';
 import { CLASSIC_LEVELS } from './levels';
 import { CLASSIC_TUTORIAL_STEPS } from './tutorial';
@@ -38,6 +39,14 @@ export const ClassicMode: GameModeConfig = {
   checkWin(tiles, goalNodes): WinResult {
     const won = checkConnected(tiles, goalNodes);
     return { won, reason: won ? 'All nodes connected!' : undefined };
+  },
+
+  checkLoss(tiles): LossResult {
+    const crushedGoal = tiles.some((t: Tile) => t.isGoalNode && t.type === 'crushed');
+    return {
+      lost: crushedGoal,
+      reason: crushedGoal ? 'A goal was crushed' : undefined,
+    };
   },
 
   statsLabels: {

@@ -1,665 +1,265 @@
 // PRESSURE - Game Store (Zustand v5)
-// Delegates tap handling, win/loss checking to the active GameMode plugin.
-// Reentrancy guards live in Zustand state (not module scope) so they can
-// never be stranded by clearAllTimers() calls.
+// Pure state management - all game mechanics delegated to the PressureEngine.
+// The store is now a thin wrapper that coordinates state with the engine.
 
 import { create } from 'zustand';
 import { GameState, GameActions, Level } from './types';
-import { getModeById, DEFAULT_MODE_ID } from './modes';
+import { getModeById } from './modes';
 import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
+import { getEngine, initEngine, type PressureEngine, type SoundEffect } from './engine';
 
 // Re-export utilities so existing imports don't break
 export { checkConnected, getConnectedTiles, createTileMap };
 
-const STORAGE_KEY = 'pressure_save_v3';
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   CENTRALIZED TIMER SYSTEM
-   All timeouts are tracked so we can reliably cancel them.
-   The game interval is stored separately for clean teardown.
-═══════════════════════════════════════════════════════════════════════════ */
-
-const activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
-let gameTimerInterval: ReturnType<typeof setInterval> | null = null;
-
-function safeTimeout(fn: () => void, delay: number): ReturnType<typeof setTimeout> {
-  const id = setTimeout(() => {
-    activeTimeouts.delete(id);
-    fn();
-  }, delay);
-  activeTimeouts.add(id);
-  return id;
-}
-
-export function clearAllTimers() {
-  activeTimeouts.forEach((id) => clearTimeout(id));
-  activeTimeouts.clear();
-  stopGameTimer();
-}
-
-// Keep the old name as an alias so nothing breaks
-export const clearAllTimeouts = clearAllTimers;
-
-function startGameTimer() {
-  stopGameTimer();
-  gameTimerInterval = setInterval(() => {
-    // Always read fresh state from store — no closure staleness
-    useGameStore.getState().tickTimer();
-  }, 1000);
-}
-
-function stopGameTimer() {
-  if (gameTimerInterval) {
-    clearInterval(gameTimerInterval);
-    gameTimerInterval = null;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   AUDIO
-═══════════════════════════════════════════════════════════════════════════ */
-
-// Single shared AudioContext — browsers cap concurrent instances (~6).
-// Created lazily on first sound so it's safe in SSR/test environments.
-let _audioCtx: AudioContext | null = null;
-function getAudioCtx(): AudioContext | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    if (!_audioCtx || _audioCtx.state === 'closed') {
-      _audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-    return _audioCtx;
-  } catch {
-    return null;
-  }
-}
-
-function playTone(freq: number, type: OscillatorType = 'sine', dur = 0.08, vol = 0.18) {
-  try {
-    const ctx = getAudioCtx();
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = type;
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(vol, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + dur);
-  } catch {}
-}
-
-function sfx(name: 'rotate' | 'win' | 'lose' | 'crush' | 'start' | 'undo') {
-  switch (name) {
-    case 'rotate':
-      playTone(440, 'triangle', 0.06, 0.12);
-      break;
-    case 'win':
-      playTone(523, 'sine', 0.2, 0.25);
-      safeTimeout(() => playTone(659, 'sine', 0.2, 0.25), 150);
-      safeTimeout(() => playTone(784, 'sine', 0.3, 0.35), 300);
-      break;
-    case 'lose':
-      playTone(220, 'sawtooth', 0.4, 0.35);
-      safeTimeout(() => playTone(180, 'sawtooth', 0.4, 0.4), 200);
-      break;
-    case 'crush':
-      playTone(150, 'square', 0.15, 0.3);
-      break;
-    case 'start':
-      playTone(392, 'triangle', 0.12, 0.18);
-      break;
-    case 'undo':
-      playTone(330, 'triangle', 0.06, 0.1);
-      break;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   PERSISTENCE
-═══════════════════════════════════════════════════════════════════════════ */
-
-type PersistedState = Pick<
-  GameState,
-  | 'completedLevels'
-  | 'bestMoves'
-  | 'showTutorial'
-  | 'generatedLevels'
-  | 'currentModeId'
-  | 'seenTutorials'
-  | 'animationsEnabled'
->;
-
-function loadSaved(): PersistedState {
-  const fallback: PersistedState = {
-    completedLevels: [],
-    bestMoves: {},
-    showTutorial: true,
-    generatedLevels: [],
-    currentModeId: DEFAULT_MODE_ID,
-    seenTutorials: [DEFAULT_MODE_ID],
-    animationsEnabled: true,
-  };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return fallback;
-    const p = JSON.parse(raw);
-    return {
-      completedLevels: p.completedLevels || [],
-      bestMoves: p.bestMoves || {},
-      showTutorial: p.showTutorial !== false,
-      generatedLevels: p.generatedLevels || [],
-      currentModeId: p.currentModeId || DEFAULT_MODE_ID,
-      seenTutorials: p.seenTutorials || (p.showTutorial === false ? [DEFAULT_MODE_ID] : []),
-      animationsEnabled: p.animationsEnabled !== false,
-    };
-  } catch {
-    return fallback;
-  }
-}
-
-function persist(data: PersistedState) {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
-}
-
-// Helper to build persist payload from current state
-function buildPersistPayload(s: GameState): PersistedState {
-  return {
-    completedLevels: s.completedLevels,
-    bestMoves: s.bestMoves,
-    showTutorial: s.showTutorial,
-    generatedLevels: s.generatedLevels,
-    currentModeId: s.currentModeId,
-    seenTutorials: s.seenTutorials,
-    animationsEnabled: s.animationsEnabled,
-  };
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   COMPRESSION RESOLUTION
-   Priority: level.compressionEnabled → mode.wallCompression → compressionOverride
-═══════════════════════════════════════════════════════════════════════════ */
-
-function resolveCompressionEnabled(
-  level: Level | null,
-  modeId: string,
-  override: boolean | null
-): boolean {
-  if (level?.compressionEnabled !== undefined) return level.compressionEnabled;
-  const mode = getModeById(modeId);
-  if (mode.wallCompression === 'always') return true;
-  if (mode.wallCompression === 'never') return false;
-  return override !== null ? override : true;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   INITIAL STATE
-═══════════════════════════════════════════════════════════════════════════ */
-
-const saved = loadSaved();
-const needsTutorial = saved.showTutorial || !saved.seenTutorials.includes(saved.currentModeId);
-
-const initialState: GameState = {
-  currentLevel: null,
-  tiles: [],
-  wallOffset: 0,
-  compressionActive: false,
-  compressionDelay: 10000,
-  moves: 0,
-  status: needsTutorial ? 'tutorial' : 'menu',
-  completedLevels: saved.completedLevels,
-  bestMoves: saved.bestMoves,
-  history: [],
-  lastRotatedPos: null,
-  showTutorial: saved.showTutorial,
-  seenTutorials: saved.seenTutorials,
-  generatedLevels: saved.generatedLevels,
-  elapsedSeconds: 0,
-  screenShake: false,
-  timeUntilCompression: 0,
-  wallsJustAdvanced: false,
-  showingWin: false,
-  connectedTiles: new Set(),
-  currentModeId: saved.currentModeId,
-  compressionOverride: null,
-  animationsEnabled: saved.animationsEnabled,
-  score: 0,
-  lossReason: null,
-  modeState: {},
-  // Reentrancy guards — in Zustand state so they reset with loadLevel/restart
-  _winCheckPending: false,
-};
-
 /* ═══════════════════════════════════════════════════════════════════════════
    STORE
+   The store is now a thin state container. All mechanics (timers, audio,
+   persistence, compression) are handled by the PressureEngine.
 ═══════════════════════════════════════════════════════════════════════════ */
 
-export const useGameStore = create<GameState & GameActions>((set, get) => ({
-  ...initialState,
+export const useGameStore = create<GameState & GameActions>((set, get) => {
+  // Initialize the engine with store access
+  const engine = initEngine(get, set);
 
-  setGameMode: (modeId: string) => {
-    const { seenTutorials } = get();
-    const alreadySeen = seenTutorials.includes(modeId);
-    set({ currentModeId: modeId, status: alreadySeen ? 'menu' : 'tutorial', currentLevel: null });
-    persist(buildPersistPayload({ ...get(), currentModeId: modeId }));
-  },
+  // Get initial state from engine (loads from persistence)
+  const initialState = engine.getInitialState();
 
-  toggleAnimations: () => {
-    set((s) => {
-      const next = !s.animationsEnabled;
-      persist(buildPersistPayload({ ...s, animationsEnabled: next }));
-      return { animationsEnabled: next };
-    });
-  },
+  return {
+    ...initialState,
 
-  setCompressionOverride: (enabled: boolean | null) => {
-    set({ compressionOverride: enabled });
-  },
+    setGameMode: (modeId: string) => {
+      const { seenTutorials } = get();
+      const alreadySeen = seenTutorials.includes(modeId);
+      set({ currentModeId: modeId, status: alreadySeen ? 'menu' : 'tutorial', currentLevel: null });
+      engine.persist({ ...get(), currentModeId: modeId });
+    },
 
-  loadLevel: (level: Level) => {
-    clearAllTimers();
-    const mode = getModeById(get().currentModeId);
-    const initialModeState = mode.initialState ? mode.initialState(get()) : {};
-    set({
-      currentLevel: level,
-      tiles: level.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
-      wallOffset: 0,
-      compressionActive: false,
-      compressionDelay: level.compressionDelay,
-      moves: 0,
-      status: 'idle',
-      history: [],
-      lastRotatedPos: null,
-      elapsedSeconds: 0,
-      screenShake: false,
-      timeUntilCompression: level.compressionDelay,
-      wallsJustAdvanced: false,
-      showingWin: false,
-      connectedTiles: new Set(),
-      score: 0,
-      lossReason: null,
-      modeState: initialModeState,
-      _winCheckPending: false,
-    });
-  },
-
-  restartLevel: () => {
-    clearAllTimers();
-    const { currentLevel } = get();
-    if (currentLevel) get().loadLevel(currentLevel);
-  },
-
-  startGame: () => {
-    const { currentLevel, status, currentModeId, compressionOverride } = get();
-    if (!currentLevel) return;
-    if (status === 'playing' || status === 'won' || status === 'lost') return;
-
-    // Clear any existing timers before starting a new game (fix for freezing on rapid restarts)
-    clearAllTimers();
-
-    const compressionEnabled = resolveCompressionEnabled(
-      currentLevel,
-      currentModeId,
-      compressionOverride
-    );
-
-    sfx('start');
-    set({
-      status: 'playing',
-      elapsedSeconds: 0,
-      timeUntilCompression: currentLevel.compressionDelay,
-      showingWin: false,
-      compressionActive: compressionEnabled,
-      _winCheckPending: false,
-    });
-
-    // Check if already solved (e.g., pre-solved demo levels).
-    // Start the timer ONLY if the level isn't immediately won — avoids a
-    // 600ms window where the timer runs before checkWin's safeTimeout fires.
-    const alreadyWon = get().checkWin();
-    if (!alreadyWon && get().status === 'playing') {
-      startGameTimer();
-    }
-  },
-
-  tapTile: (x: number, y: number) => {
-    const state = get();
-    const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState } = state;
-
-    if (status !== 'playing' || showingWin) return;
-
-    const mode = getModeById(currentModeId);
-
-    if (mode.useMoveLimit !== false && currentLevel && moves >= currentLevel.maxMoves) return;
-
-    const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeState);
-    if (!result || !result.valid) return;
-
-    sfx('rotate');
-
-    const prevTiles =
-      mode.supportsUndo !== false
-        ? tiles.map((t) => ({ ...t, connections: [...t.connections] }))
-        : null;
-
-    set((s) => ({
-      tiles: result.tiles,
-      moves: s.moves + 1,
-      score: s.score + (result.scoreDelta ?? 0),
-      history: prevTiles ? [...s.history, prevTiles] : s.history,
-      lastRotatedPos: { x, y },
-      modeState: result.customState ?? s.modeState,
-    }));
-
-    // Clear justRotated flag after animation
-    safeTimeout(() => {
-      set((s) => ({
-        tiles: s.tiles.map((t) => (t.justRotated ? { ...t, justRotated: false } : t)),
-      }));
-    }, 300);
-
-    // Clear "new tile" glow after it has had time to show (candy mode drop-in effect)
-    safeTimeout(() => {
+    toggleAnimations: () => {
       set((s) => {
-        if (!s.tiles.some((t) => t.displayData?.isNew)) return {};
-        return {
-          tiles: s.tiles.map((t) =>
-            t.displayData?.isNew ? { ...t, displayData: { ...t.displayData, isNew: false } } : t
-          ),
-        };
+        const next = !s.animationsEnabled;
+        engine.persist({ ...s, animationsEnabled: next });
+        return { animationsEnabled: next };
       });
-    }, 1500);
+    },
 
-    get().checkWin();
+    setCompressionOverride: (enabled: boolean | null) => {
+      set({ compressionOverride: enabled });
+    },
 
-    // Check for move-limit loss (e.g. candy mode runs out of taps without winning)
-    const afterWin = get();
-    if (
-      afterWin.status === 'playing' &&
-      mode.checkLoss &&
-      afterWin.currentLevel &&
-      mode.useMoveLimit !== false &&
-      afterWin.moves >= afterWin.currentLevel.maxMoves
-    ) {
-      const { lost, reason } = mode.checkLoss(
-        afterWin.tiles,
-        afterWin.wallOffset,
-        afterWin.moves,
-        afterWin.currentLevel.maxMoves,
-        { score: afterWin.score, targetScore: afterWin.currentLevel.targetScore }
+    loadLevel: (level: Level) => {
+      engine.clearTimers();
+      const levelState = engine.getInitialLevelState(level);
+      set(levelState);
+    },
+
+    restartLevel: () => {
+      engine.clearTimers();
+      const { currentLevel } = get();
+      if (currentLevel) get().loadLevel(currentLevel);
+    },
+
+    startGame: () => {
+      const { currentLevel, status, currentModeId, compressionOverride } = get();
+      if (!currentLevel) return;
+      if (status === 'playing' || status === 'won' || status === 'lost') return;
+
+      // Clear any existing timers before starting a new game
+      engine.clearTimers();
+
+      const compressionEnabled = engine.resolveCompressionEnabled(
+        currentLevel,
+        currentModeId,
+        compressionOverride
       );
-      if (lost) {
-        set({ status: 'lost', lossReason: reason ?? null });
-        stopGameTimer();
-        sfx('lose');
-      }
-    }
-  },
 
-  checkWin: () => {
-    const { tiles, currentLevel, status, showingWin, moves, currentModeId, _winCheckPending } =
-      get();
-
-    // Guard: don't re-enter while a win animation is pending
-    if (!currentLevel || status !== 'playing' || showingWin || _winCheckPending) return false;
-
-    const mode = getModeById(currentModeId);
-    const modeState = { score: get().score, targetScore: currentLevel.targetScore };
-    const { won } = mode.checkWin(
-      tiles,
-      currentLevel.goalNodes,
-      moves,
-      currentLevel.maxMoves,
-      modeState
-    );
-
-    if (!won) return false;
-
-    // Mark win pending immediately to prevent re-entry.
-    // Modes can provide their own win-highlight logic (e.g. candy crush matched tiles).
-    const connected = mode.getWinTiles
-      ? mode.getWinTiles(tiles, currentLevel.goalNodes)
-      : getConnectedTiles(tiles, currentLevel.goalNodes);
-    stopGameTimer();
-    set({
-      showingWin: true,
-      connectedTiles: connected,
-      compressionActive: false,
-      _winCheckPending: true,
-    });
-    sfx('win');
-
-    safeTimeout(() => {
-      const s = get();
-      const newCompleted = [...new Set([...s.completedLevels, currentLevel.id])];
-      const newBest = { ...s.bestMoves };
-      if (!newBest[currentLevel.id] || moves < newBest[currentLevel.id]) {
-        newBest[currentLevel.id] = moves;
-      }
-      persist(
-        buildPersistPayload({
-          ...s,
-          completedLevels: newCompleted,
-          bestMoves: newBest,
-          showTutorial: false,
-        })
-      );
+      engine.playSound('start');
       set({
-        status: 'won',
-        completedLevels: newCompleted,
-        bestMoves: newBest,
+        status: 'playing',
+        elapsedSeconds: 0,
+        timeUntilCompression: currentLevel.compressionDelay,
+        showingWin: false,
+        compressionActive: compressionEnabled,
         _winCheckPending: false,
       });
-    }, 600);
 
-    return true;
-  },
-
-  undoMove: () => {
-    const { history, status, currentModeId } = get();
-    const mode = getModeById(currentModeId);
-    if (mode.supportsUndo === false) return;
-    if (status !== 'playing' || history.length === 0) return;
-
-    const prev = history[history.length - 1];
-    sfx('undo');
-    set((s) => ({
-      tiles: prev,
-      moves: Math.max(0, s.moves - 1),
-      history: s.history.slice(0, -1),
-      lastRotatedPos: null,
-    }));
-  },
-
-  advanceWalls: () => {
-    const { tiles, wallOffset, currentLevel, status, currentModeId } = get();
-    if (!currentLevel || status !== 'playing') return;
-
-    const gs = currentLevel.gridSize;
-    const maxOff = Math.floor(gs / 2);
-    const newOffset = wallOffset + 1;
-
-    if (newOffset > maxOff) return;
-
-    const newTiles = tiles.map((tile) => {
-      const dist = Math.min(tile.x, tile.y, gs - 1 - tile.x, gs - 1 - tile.y);
-      if (dist < newOffset && tile.type !== 'wall' && tile.type !== 'crushed') {
-        return { ...tile, type: 'crushed' as const, justCrushed: true };
+      // Check if already solved (e.g., pre-solved demo levels)
+      const alreadyWon = get().checkWin();
+      if (!alreadyWon && get().status === 'playing') {
+        engine.startTimer();
       }
-      return tile;
-    });
+    },
 
-    // Check mode-specific loss condition
-    const mode = getModeById(currentModeId);
-    if (mode.checkLoss) {
-      const { lost, reason } = mode.checkLoss(
-        newTiles,
-        newOffset,
-        get().moves,
-        currentLevel.maxMoves,
-        {
-          score: get().score,
-          targetScore: currentLevel.targetScore,
-        }
-      );
-      if (lost) {
-        set({
-          tiles: newTiles,
-          wallOffset: newOffset,
-          status: 'lost',
-          wallsJustAdvanced: true,
-          lossReason: reason ?? null,
+    tapTile: (x: number, y: number) => {
+      const state = get();
+      const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState } = state;
+
+      if (status !== 'playing' || showingWin) return;
+
+      const mode = getModeById(currentModeId);
+
+      if (mode.useMoveLimit !== false && currentLevel && moves >= currentLevel.maxMoves) return;
+
+      const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeState);
+      if (!result || !result.valid) return;
+
+      engine.playSound('rotate');
+
+      const prevTiles =
+        mode.supportsUndo !== false
+          ? tiles.map((t) => ({ ...t, connections: [...t.connections] }))
+          : null;
+
+      set((s) => ({
+        tiles: result.tiles,
+        moves: s.moves + 1,
+        score: s.score + (result.scoreDelta ?? 0),
+        history: prevTiles ? [...s.history, prevTiles] : s.history,
+        lastRotatedPos: { x, y },
+        modeState: result.customState ?? s.modeState,
+      }));
+
+      // Clear justRotated flag after animation
+      engine.setTimeout(() => {
+        set((s) => ({
+          tiles: s.tiles.map((t) => (t.justRotated ? { ...t, justRotated: false } : t)),
+        }));
+      }, 300);
+
+      // Clear "new tile" glow after it has had time to show
+      engine.setTimeout(() => {
+        set((s) => {
+          if (!s.tiles.some((t) => t.displayData?.isNew)) return {};
+          return {
+            tiles: s.tiles.map((t) =>
+              t.displayData?.isNew ? { ...t, displayData: { ...t.displayData, isNew: false } } : t
+            ),
+          };
         });
-        stopGameTimer();
-        sfx('lose');
-        return;
+      }, 1500);
+
+      get().checkWin();
+
+      // Check for move-limit loss
+      const afterWin = get();
+      if (
+        afterWin.status === 'playing' &&
+        mode.checkLoss &&
+        afterWin.currentLevel &&
+        mode.useMoveLimit !== false &&
+        afterWin.moves >= afterWin.currentLevel.maxMoves
+      ) {
+        const { lost, reason } = mode.checkLoss(
+          afterWin.tiles,
+          afterWin.wallOffset,
+          afterWin.moves,
+          afterWin.currentLevel.maxMoves,
+          { score: afterWin.score, targetScore: afterWin.currentLevel.targetScore }
+        );
+        if (lost) {
+          set({ status: 'lost', lossReason: reason ?? null });
+          engine.stopTimer();
+          engine.playSound('lose');
+        }
       }
-    }
+    },
 
-    // Check if all goal nodes were crushed
-    const allGoalsCrushed = currentLevel.goalNodes.every(
-      (g) => newTiles.find((t) => t.x === g.x && t.y === g.y)?.type === 'crushed'
-    );
+    checkWin: () => {
+      const { tiles, currentLevel, status, showingWin, moves, currentModeId, _winCheckPending } =
+        get();
 
-    if (allGoalsCrushed) {
+      if (!currentLevel || status !== 'playing' || showingWin || _winCheckPending) return false;
+
+      const mode = getModeById(currentModeId);
+      const modeState = { score: get().score, targetScore: currentLevel.targetScore };
+      const { won } = mode.checkWin(
+        tiles,
+        currentLevel.goalNodes,
+        moves,
+        currentLevel.maxMoves,
+        modeState
+      );
+
+      if (!won) return false;
+
+      // Use engine to handle win
+      engine.handleWin(tiles, currentLevel.goalNodes);
+      return true;
+    },
+
+    undoMove: () => {
+      const { history, status, currentModeId } = get();
+      const mode = getModeById(currentModeId);
+      if (mode.supportsUndo === false) return;
+      if (status !== 'playing' || history.length === 0) return;
+
+      const prev = history[history.length - 1];
+      engine.playSound('undo');
+      set((s) => ({
+        tiles: prev,
+        moves: Math.max(0, s.moves - 1),
+        history: s.history.slice(0, -1),
+        lastRotatedPos: null,
+      }));
+    },
+
+    advanceWalls: () => {
+      engine.advanceWalls();
+    },
+
+    tickTimer: () => {
+      const updates = engine.onTick();
+      if (updates) {
+        set(updates);
+      }
+    },
+
+    // Legacy alias — tickTimer now handles compression
+    tickCompressionTimer: () => {},
+
+    triggerShake: () => {
+      set({ screenShake: true });
+      engine.setTimeout(() => set({ screenShake: false }), 400);
+    },
+
+    goToMenu: () => {
+      engine.clearTimers();
       set({
-        tiles: newTiles,
-        wallOffset: newOffset,
-        status: 'lost',
-        wallsJustAdvanced: true,
-        lossReason: null,
+        status: 'menu',
+        currentLevel: null,
+        compressionActive: false,
+        showingWin: false,
+        _winCheckPending: false,
       });
-      stopGameTimer();
-      sfx('lose');
-      return;
-    }
+    },
 
-    sfx('crush');
-    set({ tiles: newTiles, wallOffset: newOffset, wallsJustAdvanced: true });
+    replayTutorial: () => {
+      set({ status: 'tutorial', currentLevel: null });
+    },
 
-    safeTimeout(() => {
-      set({ wallsJustAdvanced: false });
-    }, 600);
-  },
+    completeTutorial: () => {
+      const state = get();
+      const newSeenTutorials = [...new Set([...state.seenTutorials, state.currentModeId])];
+      engine.persist({ ...state, showTutorial: false, seenTutorials: newSeenTutorials });
+      set({ showTutorial: false, seenTutorials: newSeenTutorials, status: 'menu' });
+    },
 
-  tickTimer: () => {
-    const {
-      status,
-      timeUntilCompression,
-      compressionActive,
-      currentLevel,
-      currentModeId,
-      compressionOverride,
-      elapsedSeconds,
-    } = get();
-    if (status !== 'playing') return;
+    addGeneratedLevel: (level: Level) => {
+      set((state) => {
+        const generatedLevels = [...state.generatedLevels, level];
+        engine.persist({ ...state, generatedLevels });
+        return { generatedLevels };
+      });
+    },
 
-    const newElapsedSeconds = elapsedSeconds + 1;
-    let stateChanges: Partial<GameState> = { elapsedSeconds: newElapsedSeconds };
+    deleteGeneratedLevel: (id: number) => {
+      set((state) => {
+        const generatedLevels = state.generatedLevels.filter((l) => l.id !== id);
+        engine.persist({ ...state, generatedLevels });
+        return { generatedLevels };
+      });
+    },
+  };
+});
 
-    // Call mode's per-tick hook (e.g. candy freeze mechanic)
-    const mode = getModeById(currentModeId);
-    if (mode.onTick && currentLevel) {
-      const modeState = {
-        score: get().score,
-        targetScore: currentLevel.targetScore,
-        timeLeft: currentLevel.timeLimit
-          ? Math.max(0, currentLevel.timeLimit - newElapsedSeconds)
-          : undefined,
-      };
-      const modeChanges = mode.onTick(get(), modeState);
-      if (modeChanges) {
-        Object.assign(stateChanges, modeChanges);
-      }
-    }
-
-    // Time-based loss: when the clock hits zero and score < target
-    if (currentLevel?.timeLimit && newElapsedSeconds >= currentLevel.timeLimit) {
-      const currentScore = get().score;
-      const targetScore = currentLevel.targetScore ?? Infinity;
-      if (currentScore < targetScore) {
-        set({ ...stateChanges, status: 'lost', lossReason: "Time's up!" });
-        stopGameTimer();
-        sfx('lose');
-        return;
-      }
-    }
-
-    if (!compressionActive || !currentLevel) {
-      set(stateChanges);
-      return;
-    }
-
-    const compressionEnabled = resolveCompressionEnabled(
-      currentLevel,
-      currentModeId,
-      compressionOverride
-    );
-    if (!compressionEnabled) {
-      set(stateChanges);
-      return;
-    }
-
-    let newTimeUntilCompression = timeUntilCompression - 1000;
-    if (newTimeUntilCompression <= 0) {
-      newTimeUntilCompression = currentLevel.compressionDelay;
-      get().advanceWalls();
-    }
-    stateChanges.timeUntilCompression = newTimeUntilCompression;
-
-    set(stateChanges);
-  },
-
-  // Legacy alias — tickTimer now handles compression
-  tickCompressionTimer: () => {},
-
-  triggerShake: () => {
-    set({ screenShake: true });
-    safeTimeout(() => set({ screenShake: false }), 400);
-  },
-
-  goToMenu: () => {
-    clearAllTimers();
-    set({
-      status: 'menu',
-      currentLevel: null,
-      compressionActive: false,
-      showingWin: false,
-      _winCheckPending: false,
-    });
-  },
-
-  replayTutorial: () => {
-    set({ status: 'tutorial', currentLevel: null });
-  },
-
-  completeTutorial: () => {
-    const state = get();
-    const newSeenTutorials = [...new Set([...state.seenTutorials, state.currentModeId])];
-    persist(
-      buildPersistPayload({ ...state, showTutorial: false, seenTutorials: newSeenTutorials })
-    );
-    set({ showTutorial: false, seenTutorials: newSeenTutorials, status: 'menu' });
-  },
-
-  addGeneratedLevel: (level: Level) => {
-    set((state) => {
-      const generatedLevels = [...state.generatedLevels, level];
-      persist(buildPersistPayload({ ...state, generatedLevels }));
-      return { generatedLevels };
-    });
-  },
-
-  deleteGeneratedLevel: (id: number) => {
-    set((state) => {
-      const generatedLevels = state.generatedLevels.filter((l) => l.id !== id);
-      persist(buildPersistPayload({ ...state, generatedLevels }));
-      return { generatedLevels };
-    });
-  },
-}));
+// Export engine access for advanced use cases
+export { getEngine, type PressureEngine, type SoundEffect };
