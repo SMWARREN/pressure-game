@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "test:game": "npx tsx src/cli/game-tester.ts"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -16,6 +17,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@types/node": "^25.3.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.4",

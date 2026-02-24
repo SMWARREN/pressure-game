@@ -65,19 +65,17 @@ export class CompressionSystem {
       }
     }
 
-    // Check if all goal nodes were crushed
-    const allGoalsCrushed =
-      level.goalNodes.length > 0 &&
-      level.goalNodes.every(
-        (g: Position) => newTiles.find((t) => t.x === g.x && t.y === g.y)?.type === 'crushed'
-      );
+    // Check if any goal node was crushed - game over if even one goal is destroyed
+    const anyGoalCrushed = level.goalNodes.some(
+      (g: Position) => newTiles.find((t) => t.x === g.x && t.y === g.y)?.type === 'crushed'
+    );
 
-    if (allGoalsCrushed) {
+    if (anyGoalCrushed) {
       return {
         tiles: newTiles,
         newOffset,
         gameOver: true,
-        lossReason: null,
+        lossReason: 'Goal destroyed!',
       };
     }
 
