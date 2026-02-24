@@ -52,7 +52,25 @@ export type TutorialDemoType =
   | 'candy-group'
   | 'candy-score'
   | 'candy-gravity'
-  | 'candy-ready';
+  | 'candy-ready'
+  // Outbreak mode demos
+  | 'outbreak-start'
+  | 'outbreak-frontier'
+  | 'outbreak-colors'
+  | 'outbreak-ready'
+  // Quantum Chain mode demos
+  | 'quantum-chain'
+  | 'quantum-start'
+  | 'quantum-extend'
+  | 'quantum-target'
+  | 'quantum-flux'
+  | 'quantum-ready'
+  // Shopping Spree mode demos
+  | 'shopping-group'
+  | 'shopping-values'
+  | 'shopping-flash'
+  | 'shopping-cart'
+  | 'shopping-ready';
 
 export interface TutorialStep {
   icon: string;

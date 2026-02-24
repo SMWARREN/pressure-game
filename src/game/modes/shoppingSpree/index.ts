@@ -14,6 +14,7 @@
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
 import { SHOPPING_LEVELS, SHOPPING_WORLDS, SHOPPING_ITEMS, ITEM_VALUES } from './levels';
+import { SHOPPING_SPREE_TUTORIAL_STEPS } from '../../tutorials';
 
 // ── Mode State for Flash Sales & Cart ────────────────────────────────────────
 
@@ -338,48 +339,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
     return new Set(tiles.filter((t) => t.canRotate).map((t) => `${t.x},${t.y}`));
   },
 
-  tutorialSteps: [
-    {
-      icon: '👗',
-      iconColor: '#ec4899',
-      title: 'Tap to Buy',
-      subtitle: 'YOUR MOVE',
-      demo: 'candy-group',
-      body: 'Tap any item to instantly buy every connected tile of the same type. The whole group is yours!\n\nYou need at least 2 touching same-item tiles to make a purchase. Solo items stay put.',
-    },
-    {
-      icon: '💰',
-      iconColor: '#f59e0b',
-      title: 'Know Your Prices',
-      subtitle: 'EARN CASH',
-      demo: 'candy-score',
-      body: 'Every item has a base value per tile:\n💄 Lipstick = $10 · 👗 Dress = $15 · 👠 Heels = $20 · 👜 Handbag = $25 · 💎 Diamond = $50\n\nBigger groups multiply your earnings: 5+ tiles = 2×, 7+ = 3×, 10+ = 4× — go for the mega haul.',
-    },
-    {
-      icon: '⚡',
-      iconColor: '#fbbf24',
-      title: 'Flash Sale — Act Fast!',
-      subtitle: 'LIMITED TIME',
-      demo: 'candy-gravity',
-      body: 'A random item can go on FLASH SALE for 3× its value — but only for 3 taps!\n\nWhen you see the ⚡ alert, drop everything and clear that item before the deal expires.',
-    },
-    {
-      icon: '🛒',
-      iconColor: '#22c55e',
-      title: 'Fill Your Cart',
-      subtitle: 'BONUS REWARDS',
-      demo: 'candy-gravity',
-      body: 'Every 10 items you buy triggers a $50 cart bonus — on top of what you already earned.\n\nClear big groups to rack up cart bonuses fast and watch your cash explode.',
-    },
-    {
-      icon: '🛍️',
-      iconColor: '#ec4899',
-      title: 'Spend Smart, Win Big',
-      subtitle: "LET'S GO",
-      demo: 'candy-ready',
-      body: 'Reach the cash target before your taps run out. Prioritize 💎 diamonds, catch every flash sale, and chain cart bonuses.\n\nHappy shopping!',
-    },
-  ],
+  tutorialSteps: SHOPPING_SPREE_TUTORIAL_STEPS,
 
   getNotification(_tiles, _moves, modeState) {
     const state = (modeState as ShoppingModeState) || getInitialState();

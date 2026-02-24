@@ -21,6 +21,7 @@ import {
   OUTBREAK_OWNED_ICONS,
   computeFrontierData,
 } from './levels';
+import { OUTBREAK_TUTORIAL_STEPS } from '../../tutorials';
 
 // ── Per-tile display data ─────────────────────────────────────────────────────
 
@@ -264,38 +265,5 @@ export const OutbreakMode: GameModeConfig = {
   },
 
   // ── Tutorial ──────────────────────────────────────────────────────────────
-  tutorialSteps: [
-    {
-      icon: '🦠',
-      iconColor: '#06b6d4',
-      title: 'You Are The Infection',
-      subtitle: 'MISSION BRIEFING',
-      demo: 'candy-group',
-      body: 'You start with one infected cell in the corner.\n\nYour goal: infect EVERY cell on the board before moves run out.',
-    },
-    {
-      icon: '🔢',
-      iconColor: '#51cf66',
-      title: 'Numbers Are Your Guide',
-      subtitle: 'KEY MECHANIC',
-      demo: 'candy-score',
-      body: 'Every cell that borders your territory shows a NUMBER.\n\nThat number = how many cells you absorb in one tap. Always chase the biggest number!',
-    },
-    {
-      icon: '🎨',
-      iconColor: '#74c0fc',
-      title: 'Colors & Icons',
-      subtitle: 'READ THE BOARD',
-      demo: 'candy-gravity',
-      body: "Bright colored border = tappable right now.\nDim cell with emoji = not reachable yet.\nSolid vivid color = already yours.\n\nThe emoji icons tell you each cell's strain color so you can plan ahead.",
-    },
-    {
-      icon: '🗺️',
-      iconColor: '#ffd43b',
-      title: 'Think Ahead',
-      subtitle: 'STRATEGY',
-      demo: 'candy-ready',
-      body: 'Absorbing one group unlocks new groups of other colors.\n\nAvoid tiny single-cell taps — every wasted move could cost you the game!',
-    },
-  ],
+  tutorialSteps: OUTBREAK_TUTORIAL_STEPS,
 };
