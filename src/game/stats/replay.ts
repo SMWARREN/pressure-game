@@ -3,7 +3,7 @@
  * to produce a sequence of snapshots for step-by-step playback.
  */
 import { getModeById, GAME_MODES } from '@/game/modes';
-import { LEVELS } from '@/game/levels';
+import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
 import type { GameEndEvent, MoveRecord } from './types';
 import type { Tile, Level } from '@/game/types';
 
@@ -30,7 +30,7 @@ export class ReplayEngine {
    */
   static findLevel(levelId: number): Level | null {
     // Search classic levels first
-    const classic = LEVELS.find((l) => l.id === levelId);
+    const classic = CLASSIC_LEVELS.find((l) => l.id === levelId);
     if (classic) return classic;
     // Search every registered mode's level list
     for (const mode of GAME_MODES) {

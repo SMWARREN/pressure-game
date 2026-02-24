@@ -1169,7 +1169,7 @@ function MenuScreen() {
                 >
                   {levels
                     .filter((l) => l.world === world)
-                    .map((level, idx) => {
+                    .map((level) => {
                       const done = completedLevels.includes(level.id);
                       const best = bestMoves[level.id];
                       const wm = worldMap.get(world) ?? activeMode.worlds[0];

@@ -3,7 +3,7 @@
 
 import { GameModeConfig, TapResult, WinResult, TutorialStep } from '../types';
 import { rotateTileTap, checkConnected } from '../utils';
-import { LEVELS } from '../../levels';
+import { CLASSIC_LEVELS } from '../classic/levels';
 
 export const ZEN_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
@@ -64,7 +64,7 @@ export const ZenMode: GameModeConfig = {
   supportsUndo: true,
   useMoveLimit: false,
   tutorialSteps: ZEN_TUTORIAL_STEPS,
-  getLevels: () => LEVELS,
+  getLevels: () => CLASSIC_LEVELS,
   worlds: ZEN_WORLDS,
   supportsWorkshop: true,
 

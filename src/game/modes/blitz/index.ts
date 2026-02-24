@@ -3,7 +3,7 @@
 
 import { GameModeConfig, TapResult, WinResult, LossResult, TutorialStep } from '../types';
 import { rotateTileTap, checkConnected } from '../utils';
-import { LEVELS } from '../../levels';
+import { CLASSIC_LEVELS } from '../classic/levels';
 import { Tile } from '../../types';
 
 export const BLITZ_WORLDS = [
@@ -65,7 +65,7 @@ export const BlitzMode: GameModeConfig = {
   supportsUndo: false,
   useMoveLimit: false,
   tutorialSteps: BLITZ_TUTORIAL_STEPS,
-  getLevels: () => LEVELS,
+  getLevels: () => CLASSIC_LEVELS,
   worlds: BLITZ_WORLDS,
   supportsWorkshop: true,
 
