@@ -80,6 +80,13 @@ export const SHOPPING_WORLDS = [
     color: '#f59e0b',
     icon: '👑',
   },
+  {
+    id: 4,
+    name: 'Unlimited',
+    tagline: 'Combos add time — shop forever!',
+    color: '#22c55e',
+    icon: '♾️',
+  },
 ];
 
 // ── Levels ────────────────────────────────────────────────────────────────────
@@ -233,5 +240,46 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 3000,
+  },
+
+  // World 4: Unlimited — Combos add time! Survive as long as you can!
+  {
+    id: 313,
+    name: 'Endless Shopping',
+    world: 4,
+    gridSize: 10,
+    tiles: makeGrid(10, SHOPPING_ITEMS, 313),
+    goalNodes: [],
+    maxMoves: 999,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 99999, // Effectively endless
+    timeLimit: 45, // Start with 45 seconds, combos add time
+  },
+  {
+    id: 314,
+    name: 'Mall Marathon',
+    world: 4,
+    gridSize: 10,
+    tiles: makeGrid(10, SHOPPING_ITEMS, 314),
+    goalNodes: [],
+    maxMoves: 999,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 99999,
+    timeLimit: 35,
+  },
+  {
+    id: 315,
+    name: 'Shopaholic',
+    world: 4,
+    gridSize: 10,
+    tiles: makeGrid(10, SHOPPING_ITEMS, 315),
+    goalNodes: [],
+    maxMoves: 999,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 99999,
+    timeLimit: 25,
   },
 ];

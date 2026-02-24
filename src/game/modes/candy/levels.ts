@@ -17,6 +17,13 @@ export const CANDY_WORLDS = [
     color: '#60a5fa',
     icon: '❄️',
   },
+  {
+    id: 5,
+    name: 'Unlimited',
+    tagline: 'Combos add time — survive forever!',
+    color: '#22c55e',
+    icon: '♾️',
+  },
 ];
 
 // ── Seeded PRNG (mulberry32) ──────────────────────────────────────────────────
@@ -201,6 +208,40 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     maxMoves: 999,
     seed: 1618,
     timeLimit: 45,
+  },
+  // World 5: Unlimited — Combos add time! Survive as long as you can!
+  {
+    id: 113,
+    name: 'Endless Candy',
+    world: 5,
+    gridSize: 10,
+    numSymbols: 5,
+    targetScore: 99999, // Effectively endless
+    maxMoves: 999,
+    seed: 7777,
+    timeLimit: 45, // Start with 45 seconds, combos add time
+  },
+  {
+    id: 114,
+    name: 'Sugar Rush',
+    world: 5,
+    gridSize: 10,
+    numSymbols: 5,
+    targetScore: 99999,
+    maxMoves: 999,
+    seed: 8888,
+    timeLimit: 35,
+  },
+  {
+    id: 115,
+    name: 'Infinite Bliss',
+    world: 5,
+    gridSize: 10,
+    numSymbols: 5,
+    targetScore: 99999,
+    maxMoves: 999,
+    seed: 9999,
+    timeLimit: 25,
   },
 ];
 

@@ -317,7 +317,19 @@ export const ShoppingSpreeMode: GameModeConfig = {
       newState = maybeTriggerFlashSale(newState);
     }
 
-    return { tiles: next, valid: true, scoreDelta, customState: newState };
+    // Time bonus for Unlimited world (world 4) — bigger groups = more time!
+    const timeLeft = modeState?.timeLeft as number | undefined;
+    let timeBonus = 0;
+    if (timeLeft !== undefined) {
+      // This is a timed level — add time bonus based on group size
+      if (group.length >= 7) timeBonus = 10;
+      else if (group.length >= 5) timeBonus = 6;
+      else if (group.length >= 4) timeBonus = 4;
+      else if (group.length >= 3) timeBonus = 3;
+      else if (group.length >= 2) timeBonus = 2;
+    }
+
+    return { tiles: next, valid: true, scoreDelta, customState: newState, timeBonus };
   },
 
   checkWin(_tiles, _goalNodes, _moves, _maxMoves, modeState): WinResult {
@@ -348,6 +360,8 @@ export const ShoppingSpreeMode: GameModeConfig = {
   getNotification(_tiles, _moves, modeState) {
     const state = (modeState as ShoppingModeState) || getInitialState();
     const delta = (modeState?.scoreDelta as number) ?? 0;
+    const timeBonus = (modeState?.timeBonus as number) ?? 0;
+    const timeLeft = modeState?.timeLeft as number | undefined;
 
     // Flash sale announcement
     if (state.flashSaleItem && state.flashSaleTapsLeft === 3) {
@@ -361,7 +375,15 @@ export const ShoppingSpreeMode: GameModeConfig = {
 
     if (delta <= 0) return null;
 
-    // Give feedback based on score earned
+    // In timed/Unlimited mode, show time bonus
+    if (timeLeft !== undefined && timeBonus > 0) {
+      if (delta >= 300) return `+$${delta} ⏱️+${timeBonus}s 💎 JACKPOT!`;
+      if (delta >= 150) return `+$${delta} ⏱️+${timeBonus}s 🔥 SUPER!`;
+      if (delta >= 75) return `+$${delta} ⏱️+${timeBonus}s ✨`;
+      return `+$${delta} ⏱️+${timeBonus}s`;
+    }
+
+    // Non-timed mode notifications
     if (delta >= 300) return `+$${delta} 💎 JACKPOT!`;
     if (delta >= 150) return `+$${delta} 🔥 SUPER DEAL!`;
     if (delta >= 75) return `+$${delta} ✨ GREAT BUY!`;

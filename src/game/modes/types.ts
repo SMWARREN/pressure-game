@@ -16,6 +16,8 @@ export interface TapResult {
   valid: boolean;
   scoreDelta?: number;
   customState?: Record<string, unknown>;
+  /** Time bonus in seconds to add to the timer (for unlimited/survival modes) */
+  timeBonus?: number;
 }
 
 export interface WinResult {

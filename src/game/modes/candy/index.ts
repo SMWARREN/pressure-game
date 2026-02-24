@@ -217,7 +217,7 @@ export const CandyMode: GameModeConfig = {
     },
   },
 
-  onTileTap(x, y, tiles, gridSize): TapResult | null {
+  onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
     const group = findGroup(x, y, tiles);
     if (group.length < 2) return null; // Need 2+ connected same-color tiles
 
@@ -234,7 +234,20 @@ export const CandyMode: GameModeConfig = {
     // Score: n² × 5 — clearing 5 tiles scores 125, clearing 10 scores 500
     const scoreDelta = group.length * group.length * 5;
 
-    return { tiles: next, valid: true, scoreDelta };
+    // Time bonus for Unlimited world (world 5) — bigger groups = more time!
+    // Group of 3 = +3s, 4 = +4s, 5 = +6s, 6 = +8s, 7+ = +10s
+    const timeLeft = modeState?.timeLeft as number | undefined;
+    let timeBonus = 0;
+    if (timeLeft !== undefined) {
+      // This is a timed level — add time bonus based on group size
+      if (group.length >= 7) timeBonus = 10;
+      else if (group.length >= 5) timeBonus = 6;
+      else if (group.length >= 4) timeBonus = 4;
+      else if (group.length >= 3) timeBonus = 3;
+      else if (group.length >= 2) timeBonus = 2;
+    }
+
+    return { tiles: next, valid: true, scoreDelta, timeBonus };
   },
 
   onTick(state, modeState) {
@@ -291,9 +304,23 @@ export const CandyMode: GameModeConfig = {
 
   getNotification(_tiles, _moves, modeState) {
     const delta = (modeState?.scoreDelta as number) ?? 0;
+    const timeBonus = (modeState?.timeBonus as number) ?? 0;
+    const timeLeft = modeState?.timeLeft as number | undefined;
+
     if (delta <= 0) return null;
+
     // Derive group size from score formula: n² × 5
     const n = Math.round(Math.sqrt(delta / 5));
+
+    // In timed/Unlimited mode, show time bonus
+    if (timeLeft !== undefined && timeBonus > 0) {
+      if (n >= 7) return `+${delta} ⏱️+${timeBonus}s 🔥 COMBO!`;
+      if (n >= 5) return `+${delta} ⏱️+${timeBonus}s ✨`;
+      if (n >= 3) return `+${delta} ⏱️+${timeBonus}s`;
+      return `+${delta} ⏱️+${timeBonus}s`;
+    }
+
+    // Non-timed mode notifications
     if (n >= 9) return `+${delta} 💥 MEGA COMBO!`;
     if (n >= 6) return `+${delta} 🔥 GREAT!`;
     if (n >= 4) return `+${delta} ✨ NICE!`;

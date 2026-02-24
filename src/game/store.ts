@@ -99,7 +99,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       if (mode.useMoveLimit !== false && currentLevel && moves >= currentLevel.maxMoves) return;
 
-      const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeState);
+      // Calculate timeLeft for timed levels and pass to mode
+      const timeLimit = currentLevel?.timeLimit;
+      const timeLeft = timeLimit ? Math.max(0, timeLimit - state.elapsedSeconds) : undefined;
+      const modeStateWithTime = { ...modeState, timeLeft };
+
+      const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeStateWithTime);
       if (!result || !result.valid) return;
 
       engine.playSound('rotate');
@@ -109,13 +114,28 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
           ? tiles.map((t) => ({ ...t, connections: [...t.connections] }))
           : null;
 
+      // Calculate new elapsed time with time bonus
+      const newElapsedSeconds = result.timeBonus
+        ? Math.max(0, state.elapsedSeconds - result.timeBonus)
+        : state.elapsedSeconds;
+
+      // Calculate updated timeLeft for timed levels
+      const updatedTimeLeft = timeLimit ? Math.max(0, timeLimit - newElapsedSeconds) : undefined;
+
       set((s) => ({
         tiles: result.tiles,
         moves: s.moves + 1,
         score: s.score + (result.scoreDelta ?? 0),
+        // Time bonus: reduce elapsed time (adds time to countdown)
+        elapsedSeconds: newElapsedSeconds,
         history: prevTiles ? [...s.history, prevTiles] : s.history,
         lastRotatedPos: { x, y },
-        modeState: result.customState ?? s.modeState,
+        modeState: {
+          ...(result.customState ?? s.modeState),
+          scoreDelta: result.scoreDelta,
+          timeBonus: result.timeBonus,
+          timeLeft: updatedTimeLeft,
+        },
       }));
 
       // Clear justRotated flag after animation

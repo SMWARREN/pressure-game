@@ -94,8 +94,8 @@ export function WalkthroughOverlay({
       return;
     }
 
-    const position = currentStep.position || 'center';
-    const offset = 16;
+    const position = currentStep.position || 'bottom';
+    const offset = 20;
 
     let x: number;
     let y: number;
@@ -107,27 +107,27 @@ export function WalkthroughOverlay({
 
       switch (position) {
         case 'top':
-          y = highlightRect.top - offset;
+          y = highlightRect.top - offset - 60; // Account for tooltip height
           break;
         case 'bottom':
-          y = highlightRect.bottom + offset;
+          y = highlightRect.bottom + offset + 60;
           break;
         case 'left':
-          x = highlightRect.left - offset;
+          x = highlightRect.left - offset - 140;
           break;
         case 'right':
-          x = highlightRect.right + offset;
+          x = highlightRect.right + offset + 140;
           break;
       }
     } else {
-      // Centered on screen (default for steps without targetTile)
+      // Position at bottom of screen for steps without targetTile (intro steps)
       x = window.innerWidth / 2;
-      y = window.innerHeight / 2;
+      y = window.innerHeight - 120; // Near bottom, above footer
     }
 
-    // Clamp to screen bounds
-    x = Math.max(150, Math.min(window.innerWidth - 150, x));
-    y = Math.max(80, Math.min(window.innerHeight - 100, y));
+    // Clamp to screen bounds with more padding
+    x = Math.max(160, Math.min(window.innerWidth - 160, x));
+    y = Math.max(100, Math.min(window.innerHeight - 100, y));
 
     setTooltipPos({ x, y });
   }, [highlightRect, currentStep]);

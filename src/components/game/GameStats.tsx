@@ -302,6 +302,9 @@ export default function GameStats({
   timeLimit,
   statsDisplayOverride,
 }: GameStatsProps) {
+  // Ensure score is always a valid number (guard against NaN/undefined)
+  const safeScore = Number.isFinite(score) ? score : 0;
+  const safeTimeLeft = Number.isFinite(timeLeft) ? timeLeft : 0;
   const activeMode = getModeById(currentModeId);
   const statsDisplay = statsDisplayOverride ??
     activeMode.statsDisplay ?? [
@@ -344,9 +347,9 @@ export default function GameStats({
               />
             );
           case 'score':
-            return <ScoreDisplay key="score" score={score} targetScore={targetScore} />;
+            return <ScoreDisplay key="score" score={safeScore} targetScore={targetScore} />;
           case 'timeleft':
-            return <TimeleftDisplay key="timeleft" timeLeft={timeLeft} timeLimit={timeLimit} />;
+            return <TimeleftDisplay key="timeleft" timeLeft={safeTimeLeft} timeLimit={timeLimit} />;
           default:
             return null;
         }
