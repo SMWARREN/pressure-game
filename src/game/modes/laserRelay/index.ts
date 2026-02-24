@@ -11,6 +11,8 @@
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { Tile } from '../../types';
 import { LASER_LEVELS, LASER_WORLDS } from './levels';
+import { LASER_TUTORIAL_STEPS } from './tutorial';
+import { renderLaserDemo } from './demo';
 
 // ── Mirror reflection tables ──────────────────────────────────────────────────
 
@@ -192,6 +194,8 @@ export const LaserRelayMode: GameModeConfig = {
   wallCompression: 'never',
   supportsUndo: true,
   useMoveLimit: true,
+  tutorialSteps: LASER_TUTORIAL_STEPS,
+  renderDemo: renderLaserDemo,
   getLevels: () => LASER_LEVELS,
   worlds: LASER_WORLDS,
   supportsWorkshop: false,

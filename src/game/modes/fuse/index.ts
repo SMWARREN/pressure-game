@@ -23,6 +23,8 @@
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { Tile, GameState } from '../../types';
 import { FUSE_LEVELS, FUSE_WORLDS } from './levels';
+import { FUSE_TUTORIAL_STEPS } from './tutorial';
+import { renderFuseDemo } from './demo';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -130,6 +132,8 @@ export const FuseMode: GameModeConfig = {
   wallCompression: 'never',
   supportsUndo: true,
   useMoveLimit: true,
+  tutorialSteps: FUSE_TUTORIAL_STEPS,
+  renderDemo: renderFuseDemo,
   getLevels: () => FUSE_LEVELS,
   worlds: FUSE_WORLDS,
   supportsWorkshop: false,

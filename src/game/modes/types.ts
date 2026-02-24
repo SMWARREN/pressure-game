@@ -91,7 +91,25 @@ export type TutorialDemoType =
   | 'mirror-tap'
   | 'mirror-connect'
   | 'mirror-plan'
-  | 'mirror-ready';
+  | 'mirror-ready'
+  // Laser Relay mode demos
+  | 'laser-source'
+  | 'laser-mirror'
+  | 'laser-beam'
+  | 'laser-target'
+  | 'laser-ready'
+  // Voltage mode demos
+  | 'voltage-cell'
+  | 'voltage-charge'
+  | 'voltage-discharge'
+  | 'voltage-hotcold'
+  | 'voltage-ready'
+  // Fuse mode demos
+  | 'fuse-plant'
+  | 'fuse-chain'
+  | 'fuse-relay'
+  | 'fuse-detonate'
+  | 'fuse-ready';
 
 export interface TutorialStep {
   icon: string;

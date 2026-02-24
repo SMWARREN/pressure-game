@@ -15,6 +15,8 @@
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { Tile } from '../../types';
 import { VOLTAGE_LEVELS, VOLTAGE_WORLDS } from './levels';
+import { VOLTAGE_TUTORIAL_STEPS } from './tutorial';
+import { renderVoltageDemo } from './demo';
 
 // ── Charge constants ──────────────────────────────────────────────────────────
 
@@ -80,6 +82,8 @@ export const VoltageMode: GameModeConfig = {
   wallCompression: 'never',
   supportsUndo: false,
   useMoveLimit: true,
+  tutorialSteps: VOLTAGE_TUTORIAL_STEPS,
+  renderDemo: renderVoltageDemo,
   getLevels: () => VOLTAGE_LEVELS,
   worlds: VOLTAGE_WORLDS,
   supportsWorkshop: false,
