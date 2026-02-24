@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
-import { LEVELS, getSolution, generateLevel, verifyLevel } from '@/game/levels';
+import { getSolution, generateLevel, verifyLevel } from '@/game/levels';
 import TutorialScreen from './TutorialScreen';
 import ModeSelectorModal from './ModeSelectorModal';
 import StatsScreen from './StatsScreen';
@@ -1169,10 +1169,13 @@ function MenuScreen() {
                 >
                   {levels
                     .filter((l) => l.world === world)
-                    .map((level) => {
+                    .map((level, idx) => {
                       const done = completedLevels.includes(level.id);
                       const best = bestMoves[level.id];
                       const wm = worldMap.get(world) ?? activeMode.worlds[0];
+                      // Display level number as 1-based index within this world
+                      const worldLevels = levels.filter((l) => l.world === world);
+                      const displayNum = worldLevels.findIndex((l) => l.id === level.id) + 1;
                       return (
                         <button
                           key={level.id}
@@ -1195,7 +1198,7 @@ function MenuScreen() {
                             minHeight: 48,
                           }}
                         >
-                          {level.id}
+                          {displayNum}
                           {best !== undefined && (
                             <div
                               style={{
@@ -1425,7 +1428,6 @@ export default function GameBoard() {
     notifTimeoutRef.current = setTimeout(() => setNotification(null), 1400);
   }, []);
 
-  const allLevels = [...LEVELS, ...generatedLevels];
   const solution = currentLevel ? getSolution(currentLevel) : null;
 
   // Level-specific all-time record — computed once per level load, not reactive
@@ -1539,7 +1541,20 @@ export default function GameBoard() {
   const comprPct = Math.round((wallOffset / maxOff) * 100);
   const mode = getModeById(currentModeId);
   const hintPos = showHint && solution?.length ? solution[0] : null;
-  const nextLevel = allLevels.find((l) => l.id === currentLevel.id + 1) ?? null;
+
+  // Use the active mode's level list so NEXT works in every mode (Candy, Blitz, etc.)
+  // For generated/workshop levels, navigate within the generatedLevels list by position.
+  const allLevels = currentLevel.isGenerated
+    ? generatedLevels
+    : [...mode.getLevels(), ...generatedLevels];
+  const currentIndex = allLevels.findIndex((l) => l.id === currentLevel.id);
+  const nextLevel = currentIndex >= 0 && currentIndex < allLevels.length - 1
+    ? allLevels[currentIndex + 1]
+    : null;
+
+  // Compute display level number (1-based position in mode's level list)
+  const modeLevels = mode.getLevels();
+  const levelDisplayNum = modeLevels.findIndex((l) => l.id === currentLevel.id) + 1;
 
   const winTitle = mode.overlayText?.win ?? 'CONNECTED';
   const lossTitle = lossReason ?? mode.overlayText?.loss ?? 'CRUSHED';
@@ -1650,7 +1665,7 @@ export default function GameBoard() {
               marginTop: 2,
             }}
           >
-            LEVEL {currentLevel.id}
+            LEVEL {levelDisplayNum || currentLevel.id}
             {currentLevel.isGenerated ? ' · CUSTOM' : ''}
           </div>
         </div>
