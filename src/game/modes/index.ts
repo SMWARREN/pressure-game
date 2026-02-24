@@ -1,6 +1,12 @@
 // PRESSURE - Game Mode Registry
 // Add new modes here and they automatically appear in the UI.
 // Each mode lives in its own folder so it's fully self-contained and swappable.
+//
+// GROUPS
+// ──────
+// Modes are organized into display groups for the mode-selector menu.
+// Each group has a label and an ordered list of mode IDs.
+// Modes not listed in any group fall into an implicit "Other" bucket.
 
 import { GameModeConfig } from './types';
 import { ClassicMode } from './classic/index';
@@ -19,6 +25,36 @@ export const GAME_MODES: GameModeConfig[] = [
   QuantumChainMode,
   ShoppingSpreeMode,
   OutbreakMode,
+];
+
+// ── Mode Groups ───────────────────────────────────────────────────────────────
+// Controls how modes are sectioned in the mode-selector modal.
+
+export interface ModeGroup {
+  /** Section heading shown above the cards */
+  label: string;
+  /** Optional one-liner shown below the heading */
+  tagline?: string;
+  /** Ordered list of mode IDs that belong to this group */
+  modeIds: string[];
+}
+
+export const MODE_GROUPS: ModeGroup[] = [
+  {
+    label: 'Pressure Series',
+    tagline: 'The original pipe puzzle — three ways to play',
+    modeIds: ['classic', 'blitz', 'zen'],
+  },
+  {
+    label: 'Arcade',
+    tagline: 'Match, clear, and score',
+    modeIds: ['candy', 'shoppingSpree'],
+  },
+  {
+    label: 'Strategy',
+    tagline: 'Unique mechanics, deeper thinking',
+    modeIds: ['quantum_chain', 'outbreak'],
+  },
 ];
 
 export const DEFAULT_MODE_ID = 'classic';
