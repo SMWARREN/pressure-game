@@ -14,6 +14,8 @@ import { statsEngine } from '@/game/stats';
 import type { GameEndEvent } from '@/game/stats/types';
 import ReplayOverlay from '@/components/game/ReplayOverlay';
 import { ReplayEngine } from '@/game/stats/replay';
+import UnlimitedRulesDialog from './UnlimitedRulesDialog';
+import { getUnlimitedHighScore, setUnlimitedHighScore } from '@/game/unlimited';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NOTIFICATION FLOAT ANIMATION
@@ -1416,6 +1418,8 @@ export default function GameBoard() {
     };
   }, []);
   const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
+  const [showUnlimitedRules, setShowUnlimitedRules] = useState(false);
+  const [unlimitedPreviousScore, setUnlimitedPreviousScore] = useState<number | null>(null);
   const { w: vw, h: vh } = useViewport();
 
   // Inject notification CSS once on mount
@@ -1560,6 +1564,49 @@ export default function GameBoard() {
     advance: advanceWalkthrough,
     skip: skipWalkthrough,
   } = useWalkthrough(walkthroughConfig, boardRef);
+
+  // ── UNLIMITED LEVEL HANDLING ─────────────────────────────────────────────
+  // Show rules dialog when an Unlimited level is loaded (status = idle)
+  const isUnlimited = currentLevel?.isUnlimited ?? false;
+
+  useEffect(() => {
+    if (currentLevel?.isUnlimited && status === 'idle') {
+      // Load previous high score
+      const highScore = getUnlimitedHighScore(currentModeId, currentLevel.id);
+      setUnlimitedPreviousScore(highScore);
+      setShowUnlimitedRules(true);
+    } else {
+      setShowUnlimitedRules(false);
+    }
+  }, [currentLevel?.id, currentLevel?.isUnlimited, status, currentModeId]);
+
+  // Handle Unlimited level win/loss based on high score
+  const handleUnlimitedStart = useCallback(() => {
+    setShowUnlimitedRules(false);
+    startGame();
+  }, [startGame]);
+
+  // Check for Unlimited level game over (time runs out)
+  useEffect(() => {
+    if (
+      currentLevel?.isUnlimited &&
+      status === 'playing' &&
+      currentLevel.timeLimit &&
+      elapsedSeconds >= currentLevel.timeLimit
+    ) {
+      // Time's up - check if player beat their high score
+      const previousBest = getUnlimitedHighScore(currentModeId, currentLevel.id) ?? 0;
+
+      if (score > previousBest) {
+        // New high score! Save it and mark as win
+        setUnlimitedHighScore(currentModeId, currentLevel.id, score);
+        // The win will be triggered by the normal game flow
+      } else {
+        // Didn't beat high score - mark as loss
+        // This is handled by the normal time-out loss check
+      }
+    }
+  }, [currentLevel, status, elapsedSeconds, score, currentModeId]);
 
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
@@ -1793,25 +1840,27 @@ export default function GameBoard() {
             </div>
           )}
 
-          {/* Overlay screens */}
-          <Overlay
-            status={status}
-            moves={moves}
-            levelName={currentLevel.name}
-            onStart={startGame}
-            onNext={() => nextLevel && loadLevel(nextLevel)}
-            onMenu={goToMenu}
-            onRetry={restartLevel}
-            solution={solution}
-            hasNext={!!nextLevel}
-            elapsedSeconds={elapsedSeconds}
-            winTitle={winTitle}
-            lossTitle={lossTitle}
-            finalScore={score}
-            targetScore={currentLevel.targetScore}
-            levelRecord={levelRecord}
-            onReplay={onReplayForOverlay}
-          />
+          {/* Overlay screens - hide for Unlimited levels when rules dialog is shown */}
+          {!(isUnlimited && showUnlimitedRules) && (
+            <Overlay
+              status={status}
+              moves={moves}
+              levelName={currentLevel.name}
+              onStart={isUnlimited ? handleUnlimitedStart : startGame}
+              onNext={() => nextLevel && loadLevel(nextLevel)}
+              onMenu={goToMenu}
+              onRetry={restartLevel}
+              solution={solution}
+              hasNext={!!nextLevel}
+              elapsedSeconds={elapsedSeconds}
+              winTitle={winTitle}
+              lossTitle={lossTitle}
+              finalScore={score}
+              targetScore={currentLevel.targetScore}
+              levelRecord={levelRecord}
+              onReplay={onReplayForOverlay}
+            />
+          )}
         </div>
       </div>
 
@@ -1834,6 +1883,17 @@ export default function GameBoard() {
           targetTile={walkthroughStep?.targetTile}
           boardRef={boardRef}
           gridSize={gs}
+        />
+      )}
+
+      {/* ── UNLIMITED RULES DIALOG ────────────────────────────────── */}
+      {showUnlimitedRules && currentLevel && (
+        <UnlimitedRulesDialog
+          levelName={currentLevel.name}
+          previousScore={unlimitedPreviousScore}
+          onStart={handleUnlimitedStart}
+          onBack={goToMenu}
+          modeId={currentModeId}
         />
       )}
 

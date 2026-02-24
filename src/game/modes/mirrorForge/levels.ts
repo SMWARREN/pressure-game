@@ -523,4 +523,85 @@ export const MIRROR_LEVELS: Level[] = [
       { x: 6, y: 6 },
     ]
   ),
+
+  // ── Bonus levels — one per world ──────────────────────────────────────────
+
+  // World 1: Reflection (5×5) — "Echo Chamber"
+  // Four nodes at two heights; the symmetric path dips and rises.
+  level5x5(
+    706,
+    'Echo Chamber',
+    1,
+    20,
+    [
+      { x: 0, y: 0, connections: ['right', 'down'], isGoalNode: true },
+      { x: 1, y: 0, connections: ['left', 'right'] },
+      { x: 0, y: 1, connections: ['up', 'right'] },
+      { x: 1, y: 1, connections: ['left', 'right'] },
+      { x: 0, y: 3, connections: ['right', 'down'], isGoalNode: true },
+      { x: 1, y: 3, connections: ['left', 'down'] },
+      { x: 0, y: 4, connections: ['up', 'right'] },
+      { x: 1, y: 4, connections: ['up', 'left', 'right'] },
+    ],
+    [
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+      { x: 0, y: 3 },
+      { x: 4, y: 3 },
+    ]
+  ),
+
+  // World 2: Symmetry (7×7) — "Hall of Mirrors"
+  // Two goal nodes at top corners; path snakes inward then dives down the center.
+  level7x7(
+    716,
+    'Hall of Mirrors',
+    2,
+    28,
+    [
+      { x: 0, y: 0, connections: ['right', 'down'], isGoalNode: true },
+      { x: 1, y: 0, connections: ['left', 'right'] },
+      { x: 2, y: 0, connections: ['left', 'down'] },
+      { x: 0, y: 1, connections: ['up', 'right'] },
+      { x: 1, y: 1, connections: ['left', 'right'] },
+      { x: 2, y: 1, connections: ['left', 'right'] },
+      // Center column spine (x=3) stays default — player bridges it
+      { x: 2, y: 2, connections: ['right'] },
+    ],
+    [
+      { x: 0, y: 0 },
+      { x: 6, y: 0 },
+    ]
+  ),
+
+  // World 3: Fracture (7×7) — "Prism Break"
+  // Four nodes; path branches through a T-junction on each side, meeting at center.
+  level7x7(
+    726,
+    'Prism Break',
+    3,
+    40,
+    [
+      { x: 0, y: 0, connections: ['right', 'down'], isGoalNode: true },
+      { x: 1, y: 0, connections: ['left', 'right'] },
+      { x: 2, y: 0, connections: ['left', 'right'] },
+      { x: 0, y: 1, connections: ['up', 'down'] },
+      { x: 0, y: 2, connections: ['up', 'right'] },
+      { x: 1, y: 2, connections: ['left', 'down'] },
+      { x: 1, y: 3, connections: ['up', 'right'] },
+      { x: 2, y: 3, connections: ['left', 'right'] },
+      { x: 0, y: 5, connections: ['right', 'down'], isGoalNode: true },
+      { x: 1, y: 5, connections: ['left', 'right'] },
+      { x: 2, y: 5, connections: ['left', 'right'] },
+      { x: 0, y: 6, connections: ['up', 'right'] },
+      { x: 1, y: 6, connections: ['left', 'right'] },
+      { x: 2, y: 6, connections: ['left', 'right'] },
+    ],
+    [
+      { x: 0, y: 0 },
+      { x: 6, y: 0 },
+      { x: 0, y: 5 },
+      { x: 6, y: 5 },
+    ]
+  ),
 ];

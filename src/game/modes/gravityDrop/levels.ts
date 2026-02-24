@@ -149,4 +149,12 @@ export const GRAVITY_LEVELS: Level[] = [
   makeLevel(623, 'Void Walker', 3, 7, 32, 1800, 6023, 0.55),
   makeLevel(624, 'Event Horizon', 3, 7, 30, 2100, 6024, 0.6),
   makeLevel(625, 'Singularity', 3, 7, 28, 2500, 6025, 0.65),
+
+  // ── Bonus levels — one per world, pushing the upper limit of each tier ────
+  // World 1: Freefall — densest 5×5, fewest moves, highest score target
+  makeLevel(606, 'Turbo Drop', 1, 5, 12, 700, 6006, 0.65),
+  // World 2: Cascade — 6×6, one move below The Waterfall, more score pressure
+  makeLevel(616, 'Rapid Cascade', 2, 6, 18, 1600, 6016, 0.65),
+  // World 3: Abyss — 7×7 filled to the brim, chain or perish
+  makeLevel(626, 'Black Hole', 3, 7, 25, 3000, 6026, 0.72),
 ];

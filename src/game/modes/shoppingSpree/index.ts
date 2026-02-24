@@ -8,6 +8,7 @@
 // 🎫 Coupon Tiles - Match adjacent to coupons for 2× bonus!
 // ⚡ Flash Sales - Random item gets 3× value for next 3 taps!
 // 🛒 Shopping Cart - Build up cart bonus for mega rewards!
+// 🦹 Thief - In Unlimited mode, thieves steal items! Can't tap while thief is there!
 //
 // Win: reach targetScore within maxMoves. Loss: moves exhausted without hitting target.
 
@@ -18,7 +19,7 @@ import { SHOPPING_SPREE_TUTORIAL_STEPS } from './tutorial';
 import { renderShoppingSpreeDemo } from './demo';
 import { SHOPPING_SPREE_WALKTHROUGH } from './walkthrough';
 
-// ── Mode State for Flash Sales & Cart ────────────────────────────────────────
+// ── Mode State for Flash Sales, Cart & Thief ────────────────────────────────────────
 
 interface ShoppingModeState extends Record<string, unknown> {
   flashSaleItem: string | null; // Which item is on sale
@@ -26,6 +27,8 @@ interface ShoppingModeState extends Record<string, unknown> {
   cartItems: number; // Items in shopping cart
   cartBonus: number; // Bonus when cart is full (every 10 items)
   lastGroupSize: number; // For combo notifications
+  thiefPositions: string[]; // "x,y" positions where thief is hiding
+  thiefWarning?: string; // Warning message when thief appears
 }
 
 function getInitialState(): ShoppingModeState {
@@ -35,6 +38,7 @@ function getInitialState(): ShoppingModeState {
     cartItems: 0,
     cartBonus: 0,
     lastGroupSize: 0,
+    thiefPositions: [],
   };
 }
 
@@ -220,6 +224,15 @@ export const ShoppingSpreeMode: GameModeConfig = {
     symbolSize: '1.5rem',
 
     getColors(tile, _ctx) {
+      // Thief tile — dark red ominous styling
+      if (tile.displayData?.hasThief) {
+        return {
+          background: 'linear-gradient(145deg, #2d0a0a 0%, #1a0505 100%)',
+          border: '2px solid #ef4444',
+          boxShadow: '0 0 16px rgba(239,68,68,0.6), 0 0 4px rgba(239,68,68,0.3)',
+        };
+      }
+
       if (!tile.canRotate) {
         return { background: 'rgba(10,10,20,0)', border: '1px solid transparent' };
       }
@@ -248,6 +261,8 @@ export const ShoppingSpreeMode: GameModeConfig = {
     },
 
     getSymbol(tile) {
+      // Show thief emoji on thief tiles
+      if (tile.displayData?.hasThief) return '🦹';
       if (!tile.canRotate) return null;
       return (tile.displayData?.symbol as string) ?? null;
     },
@@ -255,11 +270,97 @@ export const ShoppingSpreeMode: GameModeConfig = {
 
   initialState: () => getInitialState(),
 
+  onTick(state, modeState) {
+    const timeLeft = modeState?.timeLeft as number | undefined;
+    const levelId = modeState?.levelId as number | undefined;
+
+    // Only run thief spawning on Unlimited world levels (314, 315)
+    // Level 313 is PEACEFUL - no thieves!
+    const isUnlimitedWithThieves = levelId !== undefined && levelId >= 314 && levelId <= 315;
+    if (!isUnlimitedWithThieves || timeLeft === undefined) return null;
+
+    const currentState: ShoppingModeState = (modeState as ShoppingModeState) || getInitialState();
+    const tiles = state.tiles;
+
+    // Progressive thief difficulty per level:
+    // Level 313 (easiest): thieves only in last 20s, max 1 thief
+    // Level 314 (medium): thieves in last 25s, max 2 thieves
+    // Level 315 (hardest): thieves throughout, max 3 thieves
+    let spawnChance = 0;
+    let numThieves = 1;
+
+    if (levelId === 313) {
+      // Easiest - thieves only appear late, 1 at a time
+      if (timeLeft < 10) spawnChance = 0.3;
+      else if (timeLeft < 20) spawnChance = 0.15;
+      numThieves = 1;
+    } else if (levelId === 314) {
+      // Medium - thieves appear mid-game, up to 2
+      if (timeLeft < 10) spawnChance = 0.4;
+      else if (timeLeft < 20) spawnChance = 0.25;
+      else if (timeLeft < 25) spawnChance = 0.15;
+      numThieves = timeLeft < 15 ? 2 : 1;
+    } else {
+      // Hardest (315) - thieves throughout, up to 3
+      if (timeLeft < 10) spawnChance = 0.55;
+      else if (timeLeft < 20) spawnChance = 0.4;
+      else if (timeLeft < 30) spawnChance = 0.25;
+      else spawnChance = 0.15;
+      numThieves = timeLeft < 10 ? 3 : timeLeft < 20 ? 2 : 1;
+    }
+
+    // Don't spawn if random check fails
+    if (Math.random() > spawnChance) return null;
+
+    // Find tiles that don't already have a thief
+    const existingThieves = new Set(currentState.thiefPositions || []);
+    const candidates = tiles.filter((t) => t.canRotate && !existingThieves.has(`${t.x},${t.y}`));
+
+    if (candidates.length === 0) return null;
+
+    const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+    const newThiefPositions: string[] = [];
+
+    for (let i = 0; i < Math.min(numThieves, shuffled.length); i++) {
+      newThiefPositions.push(`${shuffled[i].x},${shuffled[i].y}`);
+    }
+
+    if (newThiefPositions.length === 0) return null;
+
+    // Mark tiles as having a thief (set canRotate to false temporarily)
+    const thiefSet = new Set(newThiefPositions);
+    const updatedTiles = tiles.map((t) => {
+      if (thiefSet.has(`${t.x},${t.y}`)) {
+        return {
+          ...t,
+          canRotate: false,
+          displayData: { ...t.displayData, hasThief: true },
+        };
+      }
+      return t;
+    });
+
+    return {
+      tiles: updatedTiles,
+      customState: {
+        ...currentState,
+        thiefPositions: [...existingThieves, ...newThiefPositions],
+        thiefWarning: '🦹 THIEF! Match big groups to scare them away!',
+      },
+    };
+  },
+
   onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
+    const state: ShoppingModeState = (modeState as ShoppingModeState) || getInitialState();
+
+    // Check if this tile has a thief - can't tap!
+    const tileKey = `${x},${y}`;
+    if (state.thiefPositions?.includes(tileKey)) {
+      return { tiles, valid: false, scoreDelta: 0, customState: state };
+    }
+
     const group = findGroup(x, y, tiles);
     if (group.length < 2) return null; // Need 2+ connected same-item tiles
-
-    const state: ShoppingModeState = (modeState as ShoppingModeState) || getInitialState();
 
     // Get the item type and its value
     const symbol = group[0].displayData?.symbol as string;
@@ -290,7 +391,40 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const clearedKeys = new Set(group.map((t) => `${t.x},${t.y}`));
     const remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
 
-    let next = applyGravity(remaining, gridSize);
+    // 🦹 THIEF SCARING - Big combos (4+) scare away nearby thieves!
+    // Groups of 4-5 scare thieves within 1 tile, 6+ scares within 2 tiles
+    const scaredThiefKeys = new Set<string>();
+    let thiefScared = false;
+    if (group.length >= 4 && state.thiefPositions?.length) {
+      const radius = group.length >= 6 ? 2 : 1;
+      for (const clearedTile of group) {
+        for (let dy = -radius; dy <= radius; dy++) {
+          for (let dx = -radius; dx <= radius; dx++) {
+            const key = `${clearedTile.x + dx},${clearedTile.y + dy}`;
+            if (state.thiefPositions.includes(key)) {
+              scaredThiefKeys.add(key);
+              thiefScared = true;
+            }
+          }
+        }
+      }
+    }
+
+    // Remove scared thieves from remaining tiles and restore canRotate
+    const remainingWithThiefClear = remaining.map((t) => {
+      const key = `${t.x},${t.y}`;
+      if (scaredThiefKeys.has(key) && t.displayData?.hasThief) {
+        return { ...t, canRotate: true, displayData: { ...t.displayData, hasThief: false } };
+      }
+      return t;
+    });
+
+    // Update thief positions list
+    const newThiefPositions = (state.thiefPositions || []).filter(
+      (pos) => !scaredThiefKeys.has(pos)
+    );
+
+    let next = applyGravity(remainingWithThiefClear, gridSize);
 
     // If refill produces a deadlock, reshuffle
     if (!hasValidMove(next)) {
@@ -310,6 +444,8 @@ export const ShoppingSpreeMode: GameModeConfig = {
       scoreDelta,
       flashSaleTapsLeft: newFlashSaleTapsLeft,
       flashSaleItem: newFlashSaleItem,
+      thiefPositions: newThiefPositions,
+      thiefWarning: thiefScared ? undefined : state.thiefWarning,
     };
 
     // Maybe trigger a new flash sale
@@ -318,15 +454,25 @@ export const ShoppingSpreeMode: GameModeConfig = {
     }
 
     // Time bonus for Unlimited world (world 4) — bigger groups = more time!
+    // Progressive difficulty: Level 1 = 2+, Level 2 = 3+, Level 3 = 4+ for time bonus
     const timeLeft = modeState?.timeLeft as number | undefined;
+    const levelId = modeState?.levelId as number | undefined;
     let timeBonus = 0;
     if (timeLeft !== undefined) {
-      // This is a timed level — add time bonus based on group size
-      if (group.length >= 7) timeBonus = 10;
-      else if (group.length >= 5) timeBonus = 6;
-      else if (group.length >= 4) timeBonus = 4;
-      else if (group.length >= 3) timeBonus = 3;
-      else if (group.length >= 2) timeBonus = 2;
+      // Determine minimum group size for time bonus based on level
+      // Level 313 (easiest): 2+, Level 314 (medium): 3+, Level 315 (hardest): 4+
+      let minGroupForTime = 4;
+      if (levelId === 313) minGroupForTime = 2;
+      else if (levelId === 314) minGroupForTime = 3;
+
+      if (group.length >= minGroupForTime) {
+        if (group.length >= 10) timeBonus = 8;
+        else if (group.length >= 7) timeBonus = 5;
+        else if (group.length >= 5) timeBonus = 3;
+        else if (group.length >= 4) timeBonus = 2;
+        else if (group.length >= 3) timeBonus = 2;
+        else if (group.length >= 2) timeBonus = 1;
+      }
     }
 
     return { tiles: next, valid: true, scoreDelta, customState: newState, timeBonus };
@@ -362,6 +508,16 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const delta = (modeState?.scoreDelta as number) ?? 0;
     const timeBonus = (modeState?.timeBonus as number) ?? 0;
     const timeLeft = modeState?.timeLeft as number | undefined;
+
+    // Thief warning announcement
+    if (state.thiefWarning) {
+      return state.thiefWarning;
+    }
+
+    // Thief scared away notification
+    if (modeState?.thiefScared) {
+      return '🦹 Thief scared away!';
+    }
 
     // Flash sale announcement
     if (state.flashSaleItem && state.flashSaleTapsLeft === 3) {

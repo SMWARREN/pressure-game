@@ -317,6 +317,101 @@ export const CLASSIC_LEVELS: Level[] = [
       { x: 3, y: 3 },
     ],
   }),
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // NEW LEVELS — One per world, each with a unique gimmick
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Level 11: Overpass — fixed obstacle forces a scenic detour (World 1)
+  // The vertical pipe at center can't be rotated; route the flow over the top.
+  createLevel({
+    id: 11,
+    name: 'Overpass',
+    world: 1,
+    gridSize: 5,
+    tiles: [
+      ...createWalls(5),
+      tile('node', 1, 2, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      tile('node', 3, 2, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      // Fixed blocker in the direct lane — cannot be rotated
+      tile('path', 2, 2, { connections: ['up', 'down'] }),
+      // Detour route through row 1 (all scrambled wrong)
+      tile('path', 1, 1, { connections: ['left', 'up'], canRotate: true }), // needs ['right','down']
+      tile('path', 2, 1, { connections: ['up', 'down'], canRotate: true }), // needs ['left','right']
+      tile('path', 3, 1, { connections: ['up', 'right'], canRotate: true }), // needs ['down','left']
+      // Red-herring pipe below — looks useful, isn't
+      tile('path', 2, 3, { connections: ['left', 'right'], canRotate: true }),
+    ],
+    compressionDelay: 8500,
+    maxMoves: 7,
+    goalNodes: [
+      { x: 1, y: 2 },
+      { x: 3, y: 2 },
+    ],
+  }),
+
+  // Level 12: Star — four nodes in a compass rose, linked by a T-junction + side path (World 2)
+  // The T-pipe at center connects three arms; the fourth sneaks through a back alley.
+  createLevel({
+    id: 12,
+    name: 'Star',
+    world: 2,
+    gridSize: 5,
+    tiles: [
+      ...createWalls(5),
+      tile('node', 2, 1, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      tile('node', 1, 2, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      tile('node', 3, 2, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      tile('node', 2, 3, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      // T-junction linking top, left, right arms — needs ['left','up','right']
+      tile('path', 2, 2, { connections: ['down', 'left', 'up'], canRotate: true }), // 1 rotation
+      // Side alley connecting left node down to bottom node — needs ['up','right']
+      tile('path', 1, 3, { connections: ['down', 'left'], canRotate: true }), // 2 rotations
+      // Decoy in the corner — tempts but dead-ends
+      tile('path', 3, 3, { connections: ['up', 'right'], canRotate: true }),
+    ],
+    compressionDelay: 5500,
+    maxMoves: 6,
+    goalNodes: [
+      { x: 2, y: 1 },
+      { x: 1, y: 2 },
+      { x: 3, y: 2 },
+      { x: 2, y: 3 },
+    ],
+  }),
+
+  // Level 13: Rungs — connect all four corners through an H-shaped ladder (World 3)
+  // Two T-junctions act as crossbars; a single straight pipe is the spine. Decoys on the sides.
+  createLevel({
+    id: 13,
+    name: 'Rungs',
+    world: 3,
+    gridSize: 5,
+    tiles: [
+      ...createWalls(5),
+      tile('node', 1, 1, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      tile('node', 3, 1, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      tile('node', 1, 3, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      tile('node', 3, 3, { connections: ['up', 'down', 'left', 'right'], isGoalNode: true }),
+      // Top crossbar T-pipe (connects left, right, and down) — needs ['right','down','left']
+      tile('path', 2, 1, { connections: ['left', 'up', 'right'], canRotate: true }), // 2 rotations
+      // Spine connecting the two crossbars — needs ['up','down']
+      tile('path', 2, 2, { connections: ['left', 'right'], canRotate: true }), // 1 rotation
+      // Bottom crossbar T-pipe (connects left, right, and up) — needs ['left','up','right']
+      tile('path', 2, 3, { connections: ['right', 'down', 'left'], canRotate: true }), // 2 rotations
+      // Side decoys that look like they bridge the corners but don't
+      tile('path', 1, 2, { connections: ['left', 'up'], canRotate: true }),
+      tile('path', 3, 2, { connections: ['right', 'down'], canRotate: true }),
+    ],
+    compressionDelay: 4000,
+    maxMoves: 8,
+    goalNodes: [
+      { x: 1, y: 1 },
+      { x: 3, y: 1 },
+      { x: 1, y: 3 },
+      { x: 3, y: 3 },
+    ],
+  }),
 ];
 
 export function getLevelsByWorld(world: number): Level[] {

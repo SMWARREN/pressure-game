@@ -20,7 +20,7 @@ export const CANDY_WORLDS = [
   {
     id: 5,
     name: 'Unlimited',
-    tagline: 'Combos add time — survive forever!',
+    tagline: 'Big combos unfreeze tiles & add time!',
     color: '#22c55e',
     icon: '♾️',
   },
@@ -79,6 +79,7 @@ interface CandyLevelConfig {
   maxMoves: number;
   seed: number;
   timeLimit?: number; // seconds — undefined = no time limit
+  isUnlimited?: boolean; // endless mode — beat your high score
 }
 
 const LEVEL_CONFIGS: CandyLevelConfig[] = [
@@ -113,6 +114,17 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     maxMoves: 15,
     seed: 99,
   },
+  // Bonus World 1 level — tight budget, cluster hunting
+  {
+    id: 116,
+    name: 'Jelly Roll',
+    world: 1,
+    gridSize: 5,
+    numSymbols: 3,
+    targetScore: 180,
+    maxMoves: 10,
+    seed: 11111,
+  },
   // World 2: Sour — 6×6 grid, 4-5 colors, need deliberate group targeting
   {
     id: 104,
@@ -144,6 +156,17 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     maxMoves: 22,
     seed: 789,
   },
+  // Bonus World 2 level — 5-color chaos, requires deliberate sweeps
+  {
+    id: 117,
+    name: 'Violet Swirl',
+    world: 2,
+    gridSize: 6,
+    numSymbols: 4,
+    targetScore: 480,
+    maxMoves: 20,
+    seed: 55555,
+  },
   // World 3: Spicy — 6×6 grid, 5 colors, tight budgets, chain planning required
   {
     id: 107,
@@ -174,6 +197,17 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 850,
     maxMoves: 28,
     seed: 9999,
+  },
+  // Bonus World 3 level — high target, 5 colors, demands chain planning
+  {
+    id: 118,
+    name: 'Ember Burst',
+    world: 3,
+    gridSize: 6,
+    numSymbols: 5,
+    targetScore: 750,
+    maxMoves: 24,
+    seed: 12345,
   },
   // World 4: Frozen — 7×7 grid, 5 colors, race the clock; tiles freeze in the last 15 seconds
   {
@@ -209,39 +243,82 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 1618,
     timeLimit: 45,
   },
+  // Bonus World 4 level — between Deep Freeze and Absolute Zero in severity
+  {
+    id: 119,
+    name: 'Ice Veil',
+    world: 4,
+    gridSize: 7,
+    numSymbols: 5,
+    targetScore: 1650,
+    maxMoves: 999,
+    seed: 5432,
+    timeLimit: 48,
+  },
   // World 5: Unlimited — Combos add time! Survive as long as you can!
+  // Level 113: PEACEFUL MODE! No ice cubes, just pure combo fun!
   {
     id: 113,
-    name: 'Endless Candy',
+    name: 'Peaceful Candy',
     world: 5,
     gridSize: 10,
     numSymbols: 5,
-    targetScore: 99999, // Effectively endless
+    targetScore: 99999,
     maxMoves: 999,
     seed: 7777,
-    timeLimit: 45, // Start with 45 seconds, combos add time
+    timeLimit: 30, // Generous time - no ice to worry about!
+    isUnlimited: true,
   },
+  // Levels 114-115: Ice cubes appear - big combos unfreeze them!
   {
     id: 114,
-    name: 'Sugar Rush',
+    name: 'Endless Candy',
     world: 5,
     gridSize: 10,
     numSymbols: 5,
     targetScore: 99999,
     maxMoves: 999,
     seed: 8888,
-    timeLimit: 35,
+    timeLimit: 20,
+    isUnlimited: true,
   },
   {
     id: 115,
-    name: 'Infinite Bliss',
+    name: 'Sugar Rush',
     world: 5,
     gridSize: 10,
     numSymbols: 5,
     targetScore: 99999,
     maxMoves: 999,
     seed: 9999,
-    timeLimit: 25,
+    timeLimit: 15, // Very tight!
+    isUnlimited: true,
+  },
+  // Bonus World 5 level — sits between Sugar Rush and Infinite Bliss in tension
+  {
+    id: 120,
+    name: 'Storm Surge',
+    world: 5,
+    gridSize: 10,
+    numSymbols: 5,
+    targetScore: 99999,
+    maxMoves: 999,
+    seed: 6543,
+    timeLimit: 12, // 12 seconds — hit a big combo fast or drown
+    isUnlimited: true,
+  },
+  // World 5: Unlimited — PEACEFUL MODE! No ice cubes, just pure combo fun!
+  {
+    id: 121,
+    name: 'Peaceful Candy',
+    world: 5,
+    gridSize: 10,
+    numSymbols: 5,
+    targetScore: 99999,
+    maxMoves: 999,
+    seed: 12345,
+    timeLimit: 30, // Generous time - no ice to worry about!
+    isUnlimited: true,
   },
 ];
 
@@ -257,4 +334,5 @@ export const CANDY_LEVELS: Level[] = LEVEL_CONFIGS.map((cfg) => ({
   compressionEnabled: false,
   targetScore: cfg.targetScore,
   timeLimit: cfg.timeLimit,
+  isUnlimited: cfg.isUnlimited,
 }));

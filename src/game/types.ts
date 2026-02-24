@@ -110,6 +110,8 @@ export interface Level {
   targetScore?: number;
   /** Time-based modes: game over when elapsedSeconds reaches this value (in seconds) */
   timeLimit?: number;
+  /** Unlimited/endless mode: beat your previous high score to win */
+  isUnlimited?: boolean;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

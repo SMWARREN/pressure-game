@@ -293,9 +293,18 @@ const DEFS: {
   { world: 3, gridSize: 7, numColors: 5, maxMoves: 20, seed: 0x8bdce1f2 },
 ];
 
-export const OUTBREAK_LEVELS: Level[] = DEFS.map((d, i) =>
-  makeLevel(501 + i, d.world, `Level ${i + 1}`, d.gridSize, d.numColors, d.maxMoves, d.seed)
-);
+export const OUTBREAK_LEVELS: Level[] = [
+  ...DEFS.map((d, i) =>
+    makeLevel(501 + i, d.world, `Level ${i + 1}`, d.gridSize, d.numColors, d.maxMoves, d.seed)
+  ),
+  // ── Bonus levels — one per world, custom names, new seeds ──────────────────
+  // World 1: Spore — tighter cluster, seed produces a trickier color split
+  makeLevel(525, 1, 'Static Surge', 5, 3, 12, 0xdeadbeef),
+  // World 2: Colony — 4 colors, move budget squeezed by one vs. the last W2 level
+  makeLevel(526, 2, 'Colony Creep', 6, 4, 15, 0xcafebabe),
+  // World 3: Plague — 5 colors on a 7×7, demands precise frontier reads
+  makeLevel(527, 3, 'Viral Tide', 7, 5, 19, 0xf00dbabe),
+];
 
 // ── Infinite World 4 generator ────────────────────────────────────────────────
 

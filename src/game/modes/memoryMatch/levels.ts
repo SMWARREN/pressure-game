@@ -169,4 +169,12 @@ export const MEMORY_LEVELS: Level[] = [
   makeLevel(523, 'Total Recall', 3, 8, 64, WORLD_3_SYMBOLS, 3003),
   makeLevel(524, 'Eidetic', 3, 8, 60, WORLD_3_SYMBOLS, 3004),
   makeLevel(525, 'Perfect Memory', 3, 8, 56, WORLD_3_SYMBOLS, 3005),
+
+  // ── Bonus levels — one per world, tighter budgets ─────────────────────────
+  // World 1: Recall — hardest 4×4, just above perfect minimum
+  makeLevel(506, 'Instant Recall', 1, 4, 10, WORLD_1_SYMBOLS, 1006),
+  // World 2: Sharp — 6×6, 2 fewer flips than Recall Pro
+  makeLevel(516, 'Neural Flash', 2, 6, 24, WORLD_2_SYMBOLS, 2006),
+  // World 3: Genius — 8×8, demands near-perfect recall
+  makeLevel(526, 'Transcendent', 3, 8, 50, WORLD_3_SYMBOLS, 3006),
 ];

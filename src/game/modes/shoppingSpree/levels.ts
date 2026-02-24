@@ -243,9 +243,10 @@ export const SHOPPING_LEVELS: Level[] = [
   },
 
   // World 4: Unlimited — Combos add time! Survive as long as you can!
+  // Level 313: PEACEFUL MODE! No thieves, just pure combo fun!
   {
     id: 313,
-    name: 'Endless Shopping',
+    name: 'Peaceful Shopping',
     world: 4,
     gridSize: 10,
     tiles: makeGrid(10, SHOPPING_ITEMS, 313),
@@ -253,12 +254,14 @@ export const SHOPPING_LEVELS: Level[] = [
     maxMoves: 999,
     compressionDelay: 999999,
     compressionEnabled: false,
-    targetScore: 99999, // Effectively endless
-    timeLimit: 45, // Start with 45 seconds, combos add time
+    targetScore: 99999,
+    timeLimit: 40, // Generous time - no thieves to worry about!
+    isUnlimited: true,
   },
+  // Levels 314-315: Thieves spawn — big combos scare them away!
   {
     id: 314,
-    name: 'Mall Marathon',
+    name: 'Endless Shopping',
     world: 4,
     gridSize: 10,
     tiles: makeGrid(10, SHOPPING_ITEMS, 314),
@@ -267,7 +270,8 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 99999,
-    timeLimit: 35,
+    timeLimit: 30,
+    isUnlimited: true,
   },
   {
     id: 315,
@@ -280,6 +284,78 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 99999,
-    timeLimit: 25,
+    timeLimit: 20, // Extreme challenge!
+    isUnlimited: true,
+  },
+
+  // ── Bonus levels — one per world ──────────────────────────────────────────
+  // World 1: Boutique — tight move cap, forces early deliberate combos
+  {
+    id: 316,
+    name: 'Clearance Sale',
+    world: 1,
+    gridSize: 5,
+    tiles: makeGrid(5, SHOPPING_ITEMS, 316),
+    goalNodes: [],
+    maxMoves: 15,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 350,
+  },
+  // World 2: Mall — 7×7, score sits between Shoe Store and Accessory Shop
+  {
+    id: 317,
+    name: 'Department Store',
+    world: 2,
+    gridSize: 7,
+    tiles: makeGrid(7, SHOPPING_ITEMS, 317),
+    goalNodes: [],
+    maxMoves: 23,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 1100,
+  },
+  // World 3: Luxury — 8×8, every tap must count
+  {
+    id: 318,
+    name: 'Black Friday',
+    world: 3,
+    gridSize: 8,
+    tiles: makeGrid(8, SHOPPING_ITEMS, 318),
+    goalNodes: [],
+    maxMoves: 27,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 2200,
+  },
+  // World 4: Unlimited — 30-second start, chain diamonds or go home
+  {
+    id: 319,
+    name: 'Luxury Rush',
+    world: 4,
+    gridSize: 10,
+    tiles: makeGrid(10, SHOPPING_ITEMS, 319),
+    goalNodes: [],
+    maxMoves: 999,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 99999,
+    timeLimit: 30,
+    isUnlimited: true,
+  },
+  // World 4: Unlimited — PEACEFUL MODE! No thieves, just pure combo fun!
+  {
+    id: 320,
+    name: 'Peaceful Shopping',
+    world: 4,
+    gridSize: 10,
+    tiles: makeGrid(10, SHOPPING_ITEMS, 320),
+    goalNodes: [],
+    maxMoves: 999,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 99999,
+    timeLimit: 40, // Generous time - no thieves to worry about!
+    isUnlimited: true,
   },
 ];

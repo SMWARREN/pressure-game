@@ -224,7 +224,30 @@ export const CandyMode: GameModeConfig = {
     const clearedKeys = new Set(group.map((t) => `${t.x},${t.y}`));
     const remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
 
-    let next = applyGravity(remaining, gridSize);
+    // Unfreeze nearby frozen tiles based on combo size!
+    // Groups of 4+ unfreeze adjacent frozen tiles (within 1 tile radius)
+    // Groups of 6+ unfreeze frozen tiles within 2 tile radius
+    const unfrozenKeys = new Set<string>();
+    if (group.length >= 4) {
+      const radius = group.length >= 6 ? 2 : 1;
+      for (const clearedTile of group) {
+        for (let dy = -radius; dy <= radius; dy++) {
+          for (let dx = -radius; dx <= radius; dx++) {
+            unfrozenKeys.add(`${clearedTile.x + dx},${clearedTile.y + dy}`);
+          }
+        }
+      }
+    }
+
+    // Apply unfreezing to remaining tiles
+    const remainingWithUnfrozen = remaining.map((t) => {
+      if (t.displayData?.frozen && unfrozenKeys.has(`${t.x},${t.y}`)) {
+        return { ...t, canRotate: true, displayData: { ...t.displayData, frozen: false } };
+      }
+      return t;
+    });
+
+    let next = applyGravity(remainingWithUnfrozen, gridSize);
 
     // If refill produces a deadlock, reshuffle so the player can always move
     if (!hasValidMove(next)) {
@@ -235,16 +258,25 @@ export const CandyMode: GameModeConfig = {
     const scoreDelta = group.length * group.length * 5;
 
     // Time bonus for Unlimited world (world 5) — bigger groups = more time!
-    // Group of 3 = +3s, 4 = +4s, 5 = +6s, 6 = +8s, 7+ = +10s
+    // Progressive difficulty: Level 1 = 2+, Level 2 = 3+, Level 3 = 4+ for time bonus
     const timeLeft = modeState?.timeLeft as number | undefined;
+    const levelId = modeState?.levelId as number | undefined;
     let timeBonus = 0;
     if (timeLeft !== undefined) {
-      // This is a timed level — add time bonus based on group size
-      if (group.length >= 7) timeBonus = 10;
-      else if (group.length >= 5) timeBonus = 6;
-      else if (group.length >= 4) timeBonus = 4;
-      else if (group.length >= 3) timeBonus = 3;
-      else if (group.length >= 2) timeBonus = 2;
+      // Determine minimum group size for time bonus based on level
+      // Level 113 (easiest): 2+, Level 114 (medium): 3+, Level 115 (hardest): 4+
+      let minGroupForTime = 4;
+      if (levelId === 113) minGroupForTime = 2;
+      else if (levelId === 114) minGroupForTime = 3;
+
+      if (group.length >= minGroupForTime) {
+        if (group.length >= 7) timeBonus = 5;
+        else if (group.length >= 6) timeBonus = 4;
+        else if (group.length >= 5) timeBonus = 3;
+        else if (group.length >= 4) timeBonus = 2;
+        else if (group.length >= 3) timeBonus = 2;
+        else if (group.length >= 2) timeBonus = 1;
+      }
     }
 
     return { tiles: next, valid: true, scoreDelta, timeBonus };
@@ -252,10 +284,33 @@ export const CandyMode: GameModeConfig = {
 
   onTick(state, modeState) {
     const timeLeft = modeState?.timeLeft as number | undefined;
+    const levelId = modeState?.levelId as number | undefined;
     // Only run on timed levels
     if (timeLeft === undefined) return null;
 
-    const freezeCount = timeLeft <= 8 ? 2 : timeLeft <= 15 ? 1 : 0;
+    // World 5 (Unlimited) levels: 114, 115 - progressive freezing difficulty!
+    // Level 113 is PEACEFUL - no ice cubes!
+    const isUnlimitedWithIce = levelId !== undefined && levelId >= 114 && levelId <= 115;
+
+    let freezeCount = 0;
+    if (isUnlimitedWithIce) {
+      // Progressive difficulty for ice cubes:
+      // Level 113 (easiest): freezes only in last 10s, max 1 tile
+      // Level 114 (medium): freezes in last 15s, max 2 tiles
+      // Level 115 (hardest): freezes in last 20s, max 3 tiles
+      if (levelId === 113) {
+        freezeCount = timeLeft < 5 ? 1 : timeLeft < 10 ? 1 : 0;
+      } else if (levelId === 114) {
+        freezeCount = timeLeft < 5 ? 2 : timeLeft < 10 ? 2 : timeLeft < 15 ? 1 : 0;
+      } else {
+        // Level 115 - most aggressive
+        freezeCount = timeLeft < 5 ? 3 : timeLeft < 10 ? 2 : timeLeft < 20 ? 1 : 0;
+      }
+    } else {
+      // World 4 (Frozen): original behavior
+      freezeCount = timeLeft <= 8 ? 2 : timeLeft <= 15 ? 1 : 0;
+    }
+
     if (freezeCount === 0) return null;
 
     const tiles = state.tiles;
