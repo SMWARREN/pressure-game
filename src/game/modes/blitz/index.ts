@@ -5,7 +5,8 @@ import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { rotateTileTap, checkConnected } from '../utils';
 import { CLASSIC_LEVELS } from '../classic/levels';
 import { Tile } from '../../types';
-import { BLITZ_TUTORIAL_STEPS } from '../../tutorials';
+import { BLITZ_TUTORIAL_STEPS } from './tutorial';
+import { renderBlitzDemo } from './demo';
 
 export const BLITZ_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Warm up', color: '#fb923c', icon: '◈' },
@@ -23,6 +24,7 @@ export const BlitzMode: GameModeConfig = {
   supportsUndo: false,
   useMoveLimit: false,
   tutorialSteps: BLITZ_TUTORIAL_STEPS,
+  renderDemo: renderBlitzDemo,
   getLevels: () => CLASSIC_LEVELS,
   worlds: BLITZ_WORLDS,
   supportsWorkshop: true,

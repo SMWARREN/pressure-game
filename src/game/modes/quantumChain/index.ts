@@ -25,7 +25,8 @@ import type {
   QuantumFluxEffect,
 } from '@/game/types';
 import { QUANTUM_CHAIN_LEVELS } from './levels';
-import { QUANTUM_CHAIN_TUTORIAL_STEPS } from '../../tutorials';
+import { QUANTUM_CHAIN_TUTORIAL_STEPS } from './tutorial';
+import { renderQuantumChainDemo } from './demo';
 
 // ── Mode State Interface ─────────────────────────────────────────────────────
 
@@ -270,6 +271,7 @@ export const QuantumChainMode: GameModeConfig = {
   statsDisplay: [{ type: 'score' }],
 
   tutorialSteps: QUANTUM_CHAIN_TUTORIAL_STEPS,
+  renderDemo: renderQuantumChainDemo,
 
   worlds: [{ id: 1, name: 'Quantum', tagline: 'Chain reactions', color: '#8b5cf6', icon: '🔗' }],
 

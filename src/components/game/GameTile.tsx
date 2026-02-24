@@ -106,6 +106,11 @@ function ensureCandyStyles() {
       80%  { transform: translateY(-2px) scale(1.01); }
       100% { transform: translateY(0) scale(1); }
     }
+    @keyframes nodeDangerPulse {
+      0%   { box-shadow: 0 0 10px rgba(251,146,60,0.35), inset 0 1px 0 rgba(255,255,255,0.05); }
+      50%  { box-shadow: 0 0 28px rgba(251,146,60,0.75), inset 0 1px 0 rgba(255,255,255,0.05); }
+      100% { box-shadow: 0 0 10px rgba(251,146,60,0.35), inset 0 1px 0 rgba(255,255,255,0.05); }
+    }
     @keyframes zombiePulse {
       0%   { box-shadow: var(--zp-shadow-lo); }
       50%  { box-shadow: var(--zp-shadow-hi); }

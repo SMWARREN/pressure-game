@@ -10,7 +10,8 @@
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
 import { CANDY_LEVELS, CANDY_WORLDS, CANDY_SYMBOLS } from './levels';
-import { CANDY_TUTORIAL_STEPS } from '../../tutorials';
+import { CANDY_TUTORIAL_STEPS } from './tutorial';
+import { renderCandyDemo } from './demo';
 
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 
@@ -285,6 +286,7 @@ export const CandyMode: GameModeConfig = {
   },
 
   tutorialSteps: CANDY_TUTORIAL_STEPS,
+  renderDemo: renderCandyDemo,
 
   getNotification(_tiles, _moves, modeState) {
     const delta = (modeState?.scoreDelta as number) ?? 0;

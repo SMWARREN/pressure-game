@@ -21,7 +21,8 @@ import {
   OUTBREAK_OWNED_ICONS,
   computeFrontierData,
 } from './levels';
-import { OUTBREAK_TUTORIAL_STEPS } from '../../tutorials';
+import { OUTBREAK_TUTORIAL_STEPS } from './tutorial';
+import { renderOutbreakDemo } from './demo';
 
 // ── Per-tile display data ─────────────────────────────────────────────────────
 
@@ -266,4 +267,5 @@ export const OutbreakMode: GameModeConfig = {
 
   // ── Tutorial ──────────────────────────────────────────────────────────────
   tutorialSteps: OUTBREAK_TUTORIAL_STEPS,
+  renderDemo: renderOutbreakDemo,
 };

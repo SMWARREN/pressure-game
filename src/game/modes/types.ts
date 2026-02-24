@@ -184,6 +184,12 @@ export interface GameModeConfig {
   tutorialSteps?: TutorialStep[];
 
   /**
+   * Renders a tutorial demo visual for this mode.
+   * Returns React node to display in the tutorial screen.
+   */
+  renderDemo?: (type: TutorialDemoType, modeColor: string) => React.ReactNode | null;
+
+  /**
    * Called when a tile is tapped. Returns the new tile state or null if invalid.
    * This is the primary hook for custom game logic — implement match-3 swaps,
    * slot spins, etc. here.

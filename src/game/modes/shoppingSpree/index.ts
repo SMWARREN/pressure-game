@@ -14,7 +14,8 @@
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
 import { SHOPPING_LEVELS, SHOPPING_WORLDS, SHOPPING_ITEMS, ITEM_VALUES } from './levels';
-import { SHOPPING_SPREE_TUTORIAL_STEPS } from '../../tutorials';
+import { SHOPPING_SPREE_TUTORIAL_STEPS } from './tutorial';
+import { renderShoppingSpreeDemo } from './demo';
 
 // ── Mode State for Flash Sales & Cart ────────────────────────────────────────
 
@@ -340,6 +341,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
   },
 
   tutorialSteps: SHOPPING_SPREE_TUTORIAL_STEPS,
+  renderDemo: renderShoppingSpreeDemo,
 
   getNotification(_tiles, _moves, modeState) {
     const state = (modeState as ShoppingModeState) || getInitialState();
