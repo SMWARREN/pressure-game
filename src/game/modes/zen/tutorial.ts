@@ -9,7 +9,7 @@ export const ZEN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Relax & Connect',
     subtitle: 'NO PRESSURE',
     demo: 'zen-ready',
-    body: 'Take your time. There\'s no timer, no walls closing in. Just you and the pipes.',
+    body: "Take your time. There's no timer, no walls closing in. Just you and the pipes.",
   },
   {
     icon: '🔄',

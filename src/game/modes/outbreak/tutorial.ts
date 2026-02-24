@@ -17,7 +17,7 @@ export const OUTBREAK_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Frontier Numbers',
     subtitle: 'TAP TO CAPTURE',
     demo: 'outbreak-frontier',
-    body: 'Numbers show how many cells you\'ll capture. Bigger groups = more territory!',
+    body: "Numbers show how many cells you'll capture. Bigger groups = more territory!",
   },
   {
     icon: '🎨',

@@ -90,7 +90,10 @@ const rotateDot = (
   />
 );
 
-export function renderClassicDemo(type: TutorialDemoType, modeColor: string): React.ReactNode | null {
+export function renderClassicDemo(
+  type: TutorialDemoType,
+  modeColor: string
+): React.ReactNode | null {
   if (type === 'fixed-path') {
     return (
       <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>

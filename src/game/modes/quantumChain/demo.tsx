@@ -2,7 +2,13 @@
 
 import { TutorialDemoType } from '../types';
 
-function QuantumTile({ type, value, symbol, fulfilled = false, small = false }: {
+function QuantumTile({
+  type,
+  value,
+  symbol,
+  fulfilled = false,
+  small = false,
+}: {
   type: 'number' | 'operator' | 'target' | 'flux';
   value?: number;
   symbol?: string;
@@ -46,7 +52,8 @@ function QuantumTile({ type, value, symbol, fulfilled = false, small = false }: 
     },
   };
 
-  const displayValue = type === 'target' ? (fulfilled ? '✓' : value) : type === 'flux' ? symbol : value;
+  const displayValue =
+    type === 'target' ? (fulfilled ? '✓' : value) : type === 'flux' ? symbol : value;
 
   return (
     <div
@@ -67,7 +74,10 @@ function QuantumTile({ type, value, symbol, fulfilled = false, small = false }: 
   );
 }
 
-export function renderQuantumChainDemo(type: TutorialDemoType, _modeColor: string): React.ReactNode | null {
+export function renderQuantumChainDemo(
+  type: TutorialDemoType,
+  _modeColor: string
+): React.ReactNode | null {
   if (type === 'quantum-chain') {
     return (
       <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>

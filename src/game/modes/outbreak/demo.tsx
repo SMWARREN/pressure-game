@@ -18,7 +18,13 @@ const OUTBREAK_ICONS: Record<number, string> = {
   4: '🫀',
 };
 
-function OutbreakTile({ colorIndex, owned = false, frontier = false, groupSize, small = false }: {
+function OutbreakTile({
+  colorIndex,
+  owned = false,
+  frontier = false,
+  groupSize,
+  small = false,
+}: {
   colorIndex: number;
   owned?: boolean;
   frontier?: boolean;
@@ -93,7 +99,10 @@ function OutbreakTile({ colorIndex, owned = false, frontier = false, groupSize, 
   );
 }
 
-export function renderOutbreakDemo(type: TutorialDemoType, _modeColor: string): React.ReactNode | null {
+export function renderOutbreakDemo(
+  type: TutorialDemoType,
+  _modeColor: string
+): React.ReactNode | null {
   if (type === 'outbreak-start') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -114,7 +123,9 @@ export function renderOutbreakDemo(type: TutorialDemoType, _modeColor: string): 
             <OutbreakTile colorIndex={2} />
           </div>
         </div>
-        <div style={{ fontSize: 10, color: '#06b6d4', letterSpacing: '0.1em', textAlign: 'center' }}>
+        <div
+          style={{ fontSize: 10, color: '#06b6d4', letterSpacing: '0.1em', textAlign: 'center' }}
+        >
           YOU START IN THE CORNER
         </div>
       </div>

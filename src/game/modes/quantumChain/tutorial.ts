@@ -33,7 +33,7 @@ export const QUANTUM_CHAIN_TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Hit Targets',
     subtitle: 'MATCH THE VALUE',
     demo: 'quantum-target',
-    body: 'When your chain\'s result matches a target tile, you score! Clear all targets to win.',
+    body: "When your chain's result matches a target tile, you score! Clear all targets to win.",
   },
   {
     icon: '⚡',

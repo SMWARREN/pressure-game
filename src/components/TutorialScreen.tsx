@@ -58,9 +58,17 @@ const FALLBACK_STEPS: TutorialStep[] = [
    DEMO VISUAL WRAPPER
 ═══════════════════════════════════════════════════════════════════════════ */
 
-function DemoVisual({ type, modeId, modeColor }: { type: TutorialDemoType; modeId: string; modeColor: string }) {
+function DemoVisual({
+  type,
+  modeId,
+  modeColor,
+}: {
+  type: TutorialDemoType;
+  modeId: string;
+  modeColor: string;
+}) {
   const mode = getModeById(modeId);
-  
+
   // Use the mode's renderDemo function if available
   if (mode.renderDemo) {
     const demoContent = mode.renderDemo(type, modeColor);
@@ -68,14 +76,16 @@ function DemoVisual({ type, modeId, modeColor }: { type: TutorialDemoType; modeI
       return <>{demoContent}</>;
     }
   }
-  
+
   // Fallback placeholder
   return (
-    <div style={{ 
-      fontSize: 32, 
-      opacity: 0.5,
-      filter: `drop-shadow(0 0 12px ${modeColor}50)` 
-    }}>
+    <div
+      style={{
+        fontSize: 32,
+        opacity: 0.5,
+        filter: `drop-shadow(0 0 12px ${modeColor}50)`,
+      }}
+    >
       ✦
     </div>
   );

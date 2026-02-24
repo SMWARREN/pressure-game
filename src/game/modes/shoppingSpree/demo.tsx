@@ -10,7 +10,12 @@ const SHOPPING_COLORS: Record<string, string> = {
   '💎': '#06b6d4',
 };
 
-function ShoppingTile({ sym, highlight = false, small = false, flashSale = false }: {
+function ShoppingTile({
+  sym,
+  highlight = false,
+  small = false,
+  flashSale = false,
+}: {
   sym: string;
   highlight?: boolean;
   small?: boolean;
@@ -28,9 +33,15 @@ function ShoppingTile({ sym, highlight = false, small = false, flashSale = false
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: small ? '1rem' : '1.2rem',
-        background: highlight ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)` : 'rgba(10,10,20,0.6)',
+        background: highlight
+          ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)`
+          : 'rgba(10,10,20,0.6)',
         border: flashSale ? '2px solid #fbbf24' : highlight ? `2px solid ${col}` : `${col}30`,
-        boxShadow: flashSale ? '0 0 18px rgba(251,191,36,0.8)' : highlight ? `0 0 12px ${col}70` : 'none',
+        boxShadow: flashSale
+          ? '0 0 18px rgba(251,191,36,0.8)'
+          : highlight
+            ? `0 0 12px ${col}70`
+            : 'none',
         opacity: highlight ? 1 : 0.35,
       }}
     >
@@ -39,7 +50,10 @@ function ShoppingTile({ sym, highlight = false, small = false, flashSale = false
   );
 }
 
-export function renderShoppingSpreeDemo(type: TutorialDemoType, _modeColor: string): React.ReactNode | null {
+export function renderShoppingSpreeDemo(
+  type: TutorialDemoType,
+  _modeColor: string
+): React.ReactNode | null {
   if (type === 'shopping-group') {
     const grid = [
       ['👗', '👗', '👠'],
@@ -56,7 +70,15 @@ export function renderShoppingSpreeDemo(type: TutorialDemoType, _modeColor: stri
             ))}
           </div>
         ))}
-        <div style={{ marginTop: 8, fontSize: 10, color: '#ec4899', letterSpacing: '0.1em', textAlign: 'center' }}>
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 10,
+            color: '#ec4899',
+            letterSpacing: '0.1em',
+            textAlign: 'center',
+          }}
+        >
           GROUP OF 3 — TAP TO BUY ALL
         </div>
       </div>
@@ -119,7 +141,9 @@ export function renderShoppingSpreeDemo(type: TutorialDemoType, _modeColor: stri
         </div>
         <div style={{ fontSize: 20, color: '#22c55e' }}>→</div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-          <div style={{ fontSize: 24, filter: 'drop-shadow(0 0 10px rgba(34,197,94,0.6))' }}>💰</div>
+          <div style={{ fontSize: 24, filter: 'drop-shadow(0 0 10px rgba(34,197,94,0.6))' }}>
+            💰
+          </div>
           <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 700 }}>+$50 BONUS!</div>
         </div>
       </div>
