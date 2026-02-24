@@ -243,6 +243,7 @@ export const SHOPPING_LEVELS: Level[] = [
   },
 
   // World 4: Unlimited — Combos add time! Survive as long as you can!
+  // Ordered from easiest to hardest - time limits get tighter!
   // Level 313: PEACEFUL MODE! No thieves, just pure combo fun!
   {
     id: 313,
@@ -255,7 +256,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 99999,
-    timeLimit: 40, // Generous time - no thieves to worry about!
+    timeLimit: 30, // Reduced from 40 - still generous but not too easy
     isUnlimited: true,
   },
   // Levels 314-315: Thieves spawn — big combos scare them away!
@@ -270,7 +271,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 99999,
-    timeLimit: 30,
+    timeLimit: 22, // Reduced from 30
     isUnlimited: true,
   },
   {
@@ -284,7 +285,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 99999,
-    timeLimit: 20, // Extreme challenge!
+    timeLimit: 15, // Reduced from 20 - now challenging!
     isUnlimited: true,
   },
 
@@ -328,7 +329,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionEnabled: false,
     targetScore: 2200,
   },
-  // World 4: Unlimited — 30-second start, chain diamonds or go home
+  // World 4: Unlimited — hardest unlimited level! Chain diamonds or go home
   {
     id: 319,
     name: 'Luxury Rush',
@@ -340,22 +341,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 99999,
-    timeLimit: 30,
-    isUnlimited: true,
-  },
-  // World 4: Unlimited — PEACEFUL MODE! No thieves, just pure combo fun!
-  {
-    id: 320,
-    name: 'Peaceful Shopping',
-    world: 4,
-    gridSize: 10,
-    tiles: makeGrid(10, SHOPPING_ITEMS, 320),
-    goalNodes: [],
-    maxMoves: 999,
-    compressionDelay: 999999,
-    compressionEnabled: false,
-    targetScore: 99999,
-    timeLimit: 40, // Generous time - no thieves to worry about!
+    timeLimit: 10, // Reduced from 30 - extreme challenge!
     isUnlimited: true,
   },
 ];

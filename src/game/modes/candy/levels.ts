@@ -256,6 +256,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     timeLimit: 48,
   },
   // World 5: Unlimited — Combos add time! Survive as long as you can!
+  // Ordered from easiest to hardest - time limits get tighter!
   // Level 113: PEACEFUL MODE! No ice cubes, just pure combo fun!
   {
     id: 113,
@@ -266,7 +267,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 99999,
     maxMoves: 999,
     seed: 7777,
-    timeLimit: 30, // Generous time - no ice to worry about!
+    timeLimit: 25, // Still generous but not too easy
     isUnlimited: true,
   },
   // Levels 114-115: Ice cubes appear - big combos unfreeze them!
@@ -279,7 +280,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 99999,
     maxMoves: 999,
     seed: 8888,
-    timeLimit: 20,
+    timeLimit: 18, // Reduced from 20
     isUnlimited: true,
   },
   {
@@ -291,10 +292,10 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 99999,
     maxMoves: 999,
     seed: 9999,
-    timeLimit: 15, // Very tight!
+    timeLimit: 12, // Reduced from 15 - now challenging!
     isUnlimited: true,
   },
-  // Bonus World 5 level — sits between Sugar Rush and Infinite Bliss in tension
+  // Bonus World 5 level — hardest unlimited level!
   {
     id: 120,
     name: 'Storm Surge',
@@ -304,20 +305,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 99999,
     maxMoves: 999,
     seed: 6543,
-    timeLimit: 12, // 12 seconds — hit a big combo fast or drown
-    isUnlimited: true,
-  },
-  // World 5: Unlimited — PEACEFUL MODE! No ice cubes, just pure combo fun!
-  {
-    id: 121,
-    name: 'Peaceful Candy',
-    world: 5,
-    gridSize: 10,
-    numSymbols: 5,
-    targetScore: 99999,
-    maxMoves: 999,
-    seed: 12345,
-    timeLimit: 30, // Generous time - no ice to worry about!
+    timeLimit: 8, // Reduced from 12 - extreme challenge!
     isUnlimited: true,
   },
 ];

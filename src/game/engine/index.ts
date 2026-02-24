@@ -106,6 +106,22 @@ export class PressureEngine implements IPressureEngine {
         const updates = this.onTick();
         if (updates) {
           this.setState(updates);
+          // After applying tick updates, check win condition.
+          // This enables tick-driven win detection (e.g. Fuse chain reaction
+          // reaching all relays) without bypassing the win animation.
+          const s = this.getState();
+          if (s.status === 'playing' && s.currentLevel) {
+            const mode = getModeById(s.currentModeId);
+            const ms = { score: s.score, targetScore: s.currentLevel.targetScore };
+            const { won } = mode.checkWin(
+              s.tiles,
+              s.currentLevel.goalNodes,
+              s.moves,
+              s.currentLevel.maxMoves,
+              ms
+            );
+            if (won) this.handleWin(s.tiles, s.currentLevel.goalNodes);
+          }
         }
       }
     });

@@ -19,6 +19,9 @@ import { OutbreakMode } from './outbreak/index';
 import { MemoryMatchMode } from './memoryMatch/index';
 import { GravityDropMode } from './gravityDrop/index';
 import { MirrorForgeMode } from './mirrorForge/index';
+import { LaserRelayMode } from './laserRelay/index';
+import { VoltageMode } from './voltage/index';
+import { FuseMode } from './fuse/index';
 
 export const GAME_MODES: GameModeConfig[] = [
   ClassicMode,
@@ -31,6 +34,9 @@ export const GAME_MODES: GameModeConfig[] = [
   MemoryMatchMode,
   GravityDropMode,
   MirrorForgeMode,
+  LaserRelayMode,
+  VoltageMode,
+  FuseMode,
 ];
 
 // ── Mode Groups ───────────────────────────────────────────────────────────────
@@ -70,6 +76,11 @@ export const MODE_GROUPS: ModeGroup[] = [
     label: 'Arcade+',
     tagline: 'Creative twists on familiar ideas',
     modeIds: ['gravityDrop', 'mirrorForge'],
+  },
+  {
+    label: 'Experimental',
+    tagline: 'Modes that push the engine in new directions',
+    modeIds: ['laserRelay', 'voltage', 'fuse'],
   },
 ];
 
