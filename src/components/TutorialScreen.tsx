@@ -793,7 +793,9 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
             <OutbreakTile colorIndex={2} />
           </div>
         </div>
-        <div style={{ fontSize: 10, color: '#06b6d4', letterSpacing: '0.1em', textAlign: 'center' }}>
+        <div
+          style={{ fontSize: 10, color: '#06b6d4', letterSpacing: '0.1em', textAlign: 'center' }}
+        >
           YOU START IN THE CORNER
         </div>
       </div>
@@ -916,7 +918,8 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
       },
     };
 
-    const displayValue = type === 'target' ? (fulfilled ? '✓' : value) : type === 'flux' ? symbol : value;
+    const displayValue =
+      type === 'target' ? (fulfilled ? '✓' : value) : type === 'flux' ? symbol : value;
 
     return (
       <div
@@ -1079,11 +1082,7 @@ function DemoVisual({ type, modeColor }: { type: TutorialDemoType; modeColor: st
           background: highlight
             ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)`
             : 'rgba(10,10,20,0.6)',
-          border: flashSale
-            ? '2px solid #fbbf24'
-            : highlight
-              ? `2px solid ${col}`
-              : `${col}30`,
+          border: flashSale ? '2px solid #fbbf24' : highlight ? `2px solid ${col}` : `${col}30`,
           boxShadow: flashSale
             ? '0 0 18px rgba(251,191,36,0.8)'
             : highlight
