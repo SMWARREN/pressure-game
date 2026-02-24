@@ -118,13 +118,13 @@ interface OBData extends Record<string, unknown> {
   groupSize?: number;
 }
 
-/** BFS flood-fill over unowned same-color tiles starting from (sx, sy). */
-function bfsGroup(sx: number, sy: number, colorIndex: number, map: Map<string, Tile>): string[] {
+/** DFS flood-fill over unowned same-color tiles starting from (sx, sy). */
+function dfsGroup(sx: number, sy: number, colorIndex: number, map: Map<string, Tile>): string[] {
   const visited = new Set<string>();
-  const queue: string[] = [`${sx},${sy}`];
+  const stack: string[] = [`${sx},${sy}`];
   const result: string[] = [];
-  while (queue.length) {
-    const key = queue.shift()!;
+  while (stack.length) {
+    const key = stack.pop()!;
     if (visited.has(key)) continue;
     visited.add(key);
     const t = map.get(key);
@@ -134,7 +134,7 @@ function bfsGroup(sx: number, sy: number, colorIndex: number, map: Map<string, T
     result.push(key);
     for (const [dx, dy] of F_DIRS) {
       const nk = `${t.x + dx},${t.y + dy}`;
-      if (!visited.has(nk)) queue.push(nk);
+      if (!visited.has(nk)) stack.push(nk);
     }
   }
   return result;
@@ -165,13 +165,13 @@ export function computeFrontierData(tiles: Tile[]): Tile[] {
     }
   }
 
-  // 2. BFS each unique color-group that touches the frontier; record its size
+  // 2. DFS each unique color-group that touches the frontier; record its size
   const groupSizeByKey = new Map<string, number>();
   const processed = new Set<string>();
   for (const startKey of frontierSet) {
     if (processed.has(startKey)) continue;
     const st = map.get(startKey)!;
-    const group = bfsGroup(st.x, st.y, (st.displayData as unknown as OBData).colorIndex, map);
+    const group = dfsGroup(st.x, st.y, (st.displayData as unknown as OBData).colorIndex, map);
     for (const k of group) {
       groupSizeByKey.set(k, group.length);
       processed.add(k);
