@@ -16,6 +16,9 @@ import { CandyMode } from './candy/index';
 import { QuantumChainMode } from './quantumChain/index';
 import { ShoppingSpreeMode } from './shoppingSpree/index';
 import { OutbreakMode } from './outbreak/index';
+import { MemoryMatchMode } from './memoryMatch/index';
+import { GravityDropMode } from './gravityDrop/index';
+import { MirrorForgeMode } from './mirrorForge/index';
 
 export const GAME_MODES: GameModeConfig[] = [
   ClassicMode,
@@ -25,6 +28,9 @@ export const GAME_MODES: GameModeConfig[] = [
   QuantumChainMode,
   ShoppingSpreeMode,
   OutbreakMode,
+  MemoryMatchMode,
+  GravityDropMode,
+  MirrorForgeMode,
 ];
 
 // ── Mode Groups ───────────────────────────────────────────────────────────────
@@ -55,6 +61,16 @@ export const MODE_GROUPS: ModeGroup[] = [
     tagline: 'Unique mechanics, deeper thinking',
     modeIds: ['quantum_chain', 'outbreak'],
   },
+  {
+    label: 'Brain Games',
+    tagline: 'Memory, recall, and pattern recognition',
+    modeIds: ['memoryMatch'],
+  },
+  {
+    label: 'Arcade+',
+    tagline: 'Creative twists on familiar ideas',
+    modeIds: ['gravityDrop', 'mirrorForge'],
+  },
 ];
 
 export const DEFAULT_MODE_ID = 'classic';
@@ -63,6 +79,16 @@ export function getModeById(id: string): GameModeConfig {
   return GAME_MODES.find((m) => m.id === id) ?? ClassicMode;
 }
 
-export { ClassicMode, ZenMode, BlitzMode, CandyMode, QuantumChainMode, ShoppingSpreeMode };
+export {
+  ClassicMode,
+  ZenMode,
+  BlitzMode,
+  CandyMode,
+  QuantumChainMode,
+  ShoppingSpreeMode,
+  MemoryMatchMode,
+  GravityDropMode,
+  MirrorForgeMode,
+};
 // Export type from local modes/types (not from ../types which re-exports this)
 export type { GameModeConfig } from './types';

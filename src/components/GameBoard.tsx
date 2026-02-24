@@ -1428,7 +1428,16 @@ export default function GameBoard() {
     notifTimeoutRef.current = setTimeout(() => setNotification(null), 1400);
   }, []);
 
-  const solution = currentLevel ? getSolution(currentLevel) : null;
+  // Get mode early for solution check
+  const mode = getModeById(currentModeId);
+
+  // Only compute solution for pipe-based modes (classic, blitz, zen, quantum_chain, etc.)
+  // Non-pipe modes (gravity, memory, candy, etc.) have their own win conditions
+  const isPipeMode =
+    !mode.tileRenderer ||
+    mode.tileRenderer.type === 'default' ||
+    mode.tileRenderer.hidePipes === false;
+  const solution = currentLevel && isPipeMode ? getSolution(currentLevel) : null;
 
   // Level-specific all-time record — computed once per level load, not reactive
   const levelRecord = useMemo(() => {
@@ -1539,7 +1548,6 @@ export default function GameBoard() {
   const gs = currentLevel.gridSize;
   const maxOff = Math.floor(gs / 2);
   const comprPct = Math.round((wallOffset / maxOff) * 100);
-  const mode = getModeById(currentModeId);
   const hintPos = showHint && solution?.length ? solution[0] : null;
 
   // Use the active mode's level list so NEXT works in every mode (Candy, Blitz, etc.)

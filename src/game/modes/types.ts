@@ -70,7 +70,25 @@ export type TutorialDemoType =
   | 'shopping-values'
   | 'shopping-flash'
   | 'shopping-cart'
-  | 'shopping-ready';
+  | 'shopping-ready'
+  // Memory Match mode demos
+  | 'memory-hidden'
+  | 'memory-flip'
+  | 'memory-nomatch'
+  | 'memory-combo'
+  | 'memory-ready'
+  // Gravity Drop mode demos
+  | 'gravity-board'
+  | 'gravity-chain'
+  | 'gravity-commit'
+  | 'gravity-specials'
+  | 'gravity-ready'
+  // Mirror Forge mode demos
+  | 'mirror-grid'
+  | 'mirror-tap'
+  | 'mirror-connect'
+  | 'mirror-plan'
+  | 'mirror-ready';
 
 export interface TutorialStep {
   icon: string;
