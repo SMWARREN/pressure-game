@@ -2107,7 +2107,10 @@ export default function GameBoard() {
                 );
               if (!ends.length) return undefined;
               const best = ends.reduce((b, e) => (e.score > b.score ? e : b));
-              return () => setReplayEvent(best);
+              return () => {
+                setShowUnlimitedRules(false);
+                setReplayEvent(best);
+              };
             })()}
           />
         )}
