@@ -1928,29 +1928,6 @@ export default function GameBoard() {
             rejectedPos={rejectedPos}
           />
 
-          {/* Score / mode notification — floats above the board, fades out */}
-          {notification && (
-            <div
-              key={notification.key}
-              style={{
-                position: 'absolute',
-                top: 14,
-                left: '50%',
-                animation: 'notifFloat 1.4s ease forwards',
-                fontSize: 15,
-                fontWeight: 900,
-                color: notification.isScore ? mode.color : '#fbbf24',
-                letterSpacing: '0.05em',
-                pointerEvents: 'none',
-                zIndex: 20,
-                whiteSpace: 'nowrap',
-                textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
-              }}
-            >
-              {notification.text}
-            </div>
-          )}
-
           {/* Pause overlay */}
           {isPaused && (
             <div style={overlayStyle}>
@@ -1993,6 +1970,28 @@ export default function GameBoard() {
               onReplay={onReplayForOverlay}
               newHighScore={isNewHighScore}
             />
+          )}
+          {/* Score / mode notification — floats above the board, fades out */}
+          {notification && (
+            <div
+              key={notification.key}
+              style={{
+                position: 'absolute',
+                top: -24,
+                left: '50%',
+                animation: 'notifFloat 1.4s ease forwards',
+                fontSize: 15,
+                fontWeight: 900,
+                color: notification.isScore ? mode.color : '#fbbf24',
+                letterSpacing: '0.05em',
+                pointerEvents: 'none',
+                zIndex: 20,
+                whiteSpace: 'nowrap',
+                textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
+              }}
+            >
+              {notification.text}
+            </div>
           )}
         </div>
       </div>
