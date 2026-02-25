@@ -73,7 +73,11 @@ export type TutorialDemoType =
   | 'shopping-values'
   | 'shopping-flash'
   | 'shopping-cart'
+  | 'shopping-thief'
+  | 'shopping-unlock'
   | 'shopping-ready'
+  | 'candy-ice'
+  | 'candy-unlock'
   // Memory Match mode demos
   | 'memory-hidden'
   | 'memory-flip'

@@ -234,6 +234,7 @@ interface OverlayProps {
   targetScore?: number;
   levelRecord?: { wins: number; attempts: number };
   onReplay?: () => void;
+  newHighScore?: boolean;
 }
 
 function Overlay({
@@ -253,6 +254,7 @@ function Overlay({
   targetScore,
   levelRecord,
   onReplay,
+  newHighScore,
 }: OverlayProps) {
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
@@ -329,10 +331,20 @@ function Overlay({
   if (status === 'lost')
     return (
       <div style={overlayStyle}>
-        <div style={{ fontSize: 32, marginBottom: 4 }}>✕</div>
-        <div style={{ fontSize: 20, fontWeight: 900, color: '#ef4444', marginBottom: 4 }}>
+        <div style={{ fontSize: 32, marginBottom: 4 }}>{newHighScore ? '🏆' : '✕'}</div>
+        {newHighScore && (
+          <div style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.12em', fontWeight: 800, marginBottom: 4 }}>
+            NEW HIGH SCORE!
+          </div>
+        )}
+        <div style={{ fontSize: 20, fontWeight: 900, color: newHighScore ? '#fbbf24' : '#ef4444', marginBottom: 4 }}>
           {lossTitle.toUpperCase()}
         </div>
+        {finalScore !== undefined && targetScore === undefined && finalScore > 0 && (
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
+            {finalScore.toLocaleString()} pts
+          </div>
+        )}
         <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
           {isScoreMode
             ? `${moves} tap${moves !== 1 ? 's' : ''}`
@@ -344,13 +356,18 @@ function Overlay({
             attempt{levelRecord.attempts !== 1 ? 's' : ''}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14 }}>
+        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14, flexWrap: 'wrap', justifyContent: 'center' }}>
           <button onClick={onRetry} style={btnPrimary}>
             ↺ RETRY
           </button>
           <button onClick={onMenu} style={btnSecondary}>
             MENU
           </button>
+          {onReplay && (
+            <button onClick={onReplay} style={btnSecondary}>
+              ▶ REPLAY
+            </button>
+          )}
         </div>
       </div>
     );
@@ -1455,6 +1472,7 @@ export default function GameBoard() {
     isScore: boolean;
   } | null>(null);
   const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [notifLog, setNotifLog] = useState<Array<{ id: number; text: string; isScore: boolean }>>([]);
 
   // Clean up notification timeout on unmount to avoid state updates on unmounted component
   useEffect(() => {
@@ -1463,6 +1481,7 @@ export default function GameBoard() {
     };
   }, []);
   const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
   const [showUnlimitedRules, setShowUnlimitedRules] = useState(false);
   const [unlimitedPreviousScore, setUnlimitedPreviousScore] = useState<number | null>(null);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
@@ -1487,8 +1506,10 @@ export default function GameBoard() {
 
   const showNotification = useCallback((text: string, isScore = false) => {
     if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
-    setNotification({ text, key: Date.now(), isScore });
+    const id = Date.now();
+    setNotification({ text, key: id, isScore });
     notifTimeoutRef.current = setTimeout(() => setNotification(null), 1400);
+    setNotifLog((prev) => [...prev.slice(-9), { id, text, isScore }]);
   }, []);
 
   // Get mode early for solution check
@@ -1644,27 +1665,22 @@ export default function GameBoard() {
     startGame();
   }, [startGame]);
 
-  // Check for Unlimited level game over (time runs out)
+  // Save unlimited high score and detect new record whenever survival game ends
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    if (
-      currentLevel?.isUnlimited &&
-      status === 'playing' &&
-      currentLevel.timeLimit &&
-      elapsedSeconds >= currentLevel.timeLimit
-    ) {
-      // Time's up - check if player beat their high score
+    if (!isUnlimited || !currentLevel) return;
+    if (status === 'lost' || status === 'won') {
       const previousBest = getUnlimitedHighScore(currentModeId, currentLevel.id) ?? 0;
-
-      if (score > previousBest) {
-        // New high score! Save it and mark as win
-        setUnlimitedHighScore(currentModeId, currentLevel.id, score);
-        // The win will be triggered by the normal game flow
-      } else {
-        // Didn't beat high score - mark as loss
-        // This is handled by the normal time-out loss check
-      }
+      setUnlimitedHighScore(currentModeId, currentLevel.id, score);
+      setIsNewHighScore(score > previousBest);
+    } else if (status === 'idle') {
+      setIsNewHighScore(false);
     }
-  }, [currentLevel, status, elapsedSeconds, score, currentModeId]);
+  }, [status]); // eslint-disable-line
+
+  // Clear notification log when a new level loads or the game resets to idle
+  useEffect(() => { setNotifLog([]); }, [currentLevel?.id]); // eslint-disable-line
+  useEffect(() => { if (status === 'idle') setNotifLog([]); }, [status]); // eslint-disable-line
 
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
@@ -1719,21 +1735,28 @@ export default function GameBoard() {
     ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
     : undefined;
 
-  // Compute the onReplay callback for the win overlay: find the latest game_end event for this level
+  // Compute the onReplay callback: win overlay uses latest, unlimited loss uses best-score game
   const onReplayForOverlay = (() => {
-    if (status !== 'won') return undefined;
+    const show = status === 'won' || (isUnlimited && status === 'lost');
+    if (!show) return undefined;
     const allEnds = statsEngine
       .getBackend()
       .getAll()
       .filter(
-        (e): e is GameEndEvent => e.type === 'game_end' && e.levelId === (currentLevel?.id ?? -1)
+        (e): e is GameEndEvent =>
+          e.type === 'game_end' &&
+          e.levelId === (currentLevel?.id ?? -1) &&
+          (e.moveLog?.length ?? 0) > 0
       );
-    const latest = allEnds[allEnds.length - 1];
-    if (!latest || !latest.moveLog?.length) return undefined;
-    return () => setReplayEvent(latest);
+    if (!allEnds.length) return undefined;
+    const target = isUnlimited
+      ? allEnds.reduce((best, e) => (e.score > best.score ? e : best))
+      : allEnds[allEnds.length - 1];
+    return () => setReplayEvent(target);
   })();
 
   return (
+    <>
     <div
       style={{
         position: 'fixed',
@@ -1917,6 +1940,7 @@ export default function GameBoard() {
               targetScore={currentLevel.targetScore}
               levelRecord={levelRecord}
               onReplay={onReplayForOverlay}
+              newHighScore={isNewHighScore}
             />
           )}
         </div>
@@ -1953,6 +1977,15 @@ export default function GameBoard() {
           onStart={handleUnlimitedStart}
           onBack={goToMenu}
           modeId={currentModeId}
+          onWatchBest={(() => {
+            const ends = statsEngine.getBackend().getAll().filter(
+              (e): e is GameEndEvent =>
+                e.type === 'game_end' && e.levelId === currentLevel.id && (e.moveLog?.length ?? 0) > 0
+            );
+            if (!ends.length) return undefined;
+            const best = ends.reduce((b, e) => (e.score > b.score ? e : b));
+            return () => setReplayEvent(best);
+          })()}
         />
       )}
 
@@ -2049,5 +2082,48 @@ export default function GameBoard() {
       {/* How to Play Modal */}
       {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
     </div>
+
+    {/* ── NOTIFICATION LOG — fixed right panel, escapes overflow:hidden ── */}
+    {vw >= 560 && notifLog.length > 0 && status === 'playing' && (
+      <div
+        style={{
+          position: 'fixed',
+          left: `calc(50% + ${Math.min(vw * 0.485, 238)}px)`,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: Math.min(vw - Math.min(vw * 0.485, 238) * 2 - 16, 320),
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          pointerEvents: 'none',
+          zIndex: 9999,
+        }}
+      >
+        {notifLog.slice().reverse().map((entry, i) => {
+          const opacity = Math.max(0.15, 1 - i * 0.1);
+          return (
+            <div
+              key={entry.id}
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: entry.isScore ? mode.color : '#fbbf24',
+                opacity,
+                letterSpacing: '0.03em',
+                lineHeight: 1.4,
+                textShadow: `0 0 10px ${entry.isScore ? mode.color : '#fbbf24'}60`,
+                padding: '4px 10px',
+                background: 'rgba(0,0,0,0.55)',
+                borderRadius: 6,
+                borderLeft: `3px solid ${entry.isScore ? mode.color : '#fbbf24'}`,
+              }}
+            >
+              {entry.text}
+            </div>
+          );
+        })}
+      </div>
+    )}
+    </>
   );
 }

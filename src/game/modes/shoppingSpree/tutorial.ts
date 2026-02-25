@@ -35,4 +35,20 @@ export const SHOPPING_SPREE_TUTORIAL_STEPS: TutorialStep[] = [
     demo: 'shopping-cart',
     body: 'Every 10 items you buy gives a $50 bonus! Keep shopping to stack rewards.',
   },
+  {
+    icon: '🦹',
+    iconColor: '#ef4444',
+    title: 'Thieves!',
+    subtitle: 'WATCH OUT',
+    demo: 'shopping-thief',
+    body: 'In Unlimited mode, thieves sneak onto items! Match 3+ nearby items (worlds 1–2) or 4+ (worlds 3–4) to scare them away.',
+  },
+  {
+    icon: '✨',
+    iconColor: '#fbbf24',
+    title: 'Luxury Items',
+    subtitle: 'EXCLUSIVE FINDS',
+    demo: 'shopping-unlock',
+    body: 'Match 5+ items to unlock a rare luxury find: 🎀=$20 👒=$25 🧣=$30 💍=$45 🧥=$35 🕶️=$25. Worth 2× until they appear evenly on the board!',
+  },
 ];
