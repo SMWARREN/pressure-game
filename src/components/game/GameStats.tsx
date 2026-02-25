@@ -315,6 +315,7 @@ interface GameStatsProps {
   timeLeft?: number;
   timeLimit?: number;
   statsDisplayOverride?: StatComponentConfig[];
+  isPaused?: boolean;
 }
 
 /**
@@ -332,6 +333,7 @@ export default function GameStats({
   timeLeft = 0,
   timeLimit,
   statsDisplayOverride,
+  isPaused = false,
 }: GameStatsProps) {
   // Ensure score is always a valid number (guard against NaN/undefined)
   const safeScore = Number.isFinite(score) ? score : 0;
@@ -357,6 +359,29 @@ export default function GameStats({
         zIndex: 1,
       }}
     >
+      {/* Paused indicator */}
+      {isPaused && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: 'rgba(251,191,36,0.15)',
+            border: '1px solid rgba(251,191,36,0.5)',
+            borderRadius: 8,
+            padding: '4px 12px',
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: '0.15em',
+            color: '#fbbf24',
+            zIndex: 10,
+            animation: 'pulse 1s ease-in-out infinite',
+          }}
+        >
+          ⏸ PAUSED
+        </div>
+      )}
       {statsDisplay.map((stat: StatComponentConfig) => {
         switch (stat.type) {
           case 'moves':

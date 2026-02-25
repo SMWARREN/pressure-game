@@ -257,12 +257,17 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     },
 
     pauseGame: () => {
-      engine.stopTimer();
+      const { status } = get();
+      if (status === 'playing') {
+        engine.stopTimer();
+        set({ isPaused: true });
+      }
     },
 
     resumeGame: () => {
-      const { status } = get();
-      if (status === 'playing') {
+      const { isPaused } = get();
+      if (isPaused) {
+        set({ isPaused: false });
         engine.startTimer();
       }
     },

@@ -335,6 +335,9 @@ export class PressureEngine implements IPressureEngine {
     const mode = getModeById(state.currentModeId);
     const initialModeState = mode.initialState ? mode.initialState(state) : {};
 
+    // Clear any pending timeouts from previous game
+    this.clearTimers();
+
     return {
       currentLevel: level,
       tiles: level.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
@@ -355,6 +358,7 @@ export class PressureEngine implements IPressureEngine {
       lossReason: null,
       modeState: initialModeState,
       _winCheckPending: false,
+      isPaused: false,
     };
   }
 
@@ -393,6 +397,7 @@ export class PressureEngine implements IPressureEngine {
       lossReason: null,
       modeState: {},
       _winCheckPending: false,
+      isPaused: false,
     };
   }
 
@@ -404,6 +409,9 @@ export class PressureEngine implements IPressureEngine {
 
     const state = this.getState();
     const mode = getModeById(state.currentModeId);
+
+    // Store the level ID we're winning for - if it changes, abort
+    const winningLevelId = state.currentLevel?.id;
 
     const connected = mode.getWinTiles
       ? mode.getWinTiles(tiles, goalNodes)
@@ -424,6 +432,13 @@ export class PressureEngine implements IPressureEngine {
       if (!this.getState || !this.setState) return;
 
       const s = this.getState();
+      
+      // Guard: if we've already moved to a different level, abort
+      if (s.currentLevel?.id !== winningLevelId) return;
+      
+      // Guard: if status changed (e.g., loaded new level), abort
+      if (s.status !== 'playing' && s.status !== 'won') return;
+
       const level = s.currentLevel!;
       const newCompleted = [...new Set([...s.completedLevels, level.id])];
       const newBest = { ...s.bestMoves };

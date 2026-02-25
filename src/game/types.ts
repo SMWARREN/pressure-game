@@ -118,7 +118,7 @@ export interface Level {
    GAME STATE
 ═══════════════════════════════════════════════════════════════════════════ */
 
-export type GameStatus = 'menu' | 'idle' | 'playing' | 'won' | 'lost' | 'tutorial';
+export type GameStatus = 'menu' | 'idle' | 'playing' | 'won' | 'lost' | 'tutorial' | 'paused';
 
 export interface GameState {
   currentLevel: Level | null;
@@ -153,6 +153,8 @@ export interface GameState {
   _replayWalkthrough?: number;
   /** Reason for the current loss — shown in the game-over overlay */
   lossReason: string | null;
+  /** Whether the game is currently paused */
+  isPaused: boolean;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

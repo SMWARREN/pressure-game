@@ -483,21 +483,47 @@ function GameTileComponent({
         />
       )}
 
-      {/* Rotatable indicator dot */}
-      {canRotate && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 3,
-            right: 3,
-            width: 4,
-            height: 4,
-            borderRadius: '50%',
-            background: isHint ? '#fde68a' : inDanger ? '#fca5a5' : '#fcd34d',
-            boxShadow: `0 0 4px ${isHint ? 'rgba(253,230,138,0.8)' : 'rgba(252,211,77,0.6)'}`,
-          }}
-        />
-      )}
+      {/* Check if this tile is a decoy */}
+      {(() => {
+        const isDecoy = displayData?.isDecoy === true;
+        return (
+          <>
+            {/* Rotatable indicator dot - hidden for decoys */}
+            {canRotate && !isDecoy && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 3,
+                  right: 3,
+                  width: 4,
+                  height: 4,
+                  borderRadius: '50%',
+                  background: isHint ? '#fde68a' : inDanger ? '#fca5a5' : '#fcd34d',
+                  boxShadow: `0 0 4px ${isHint ? 'rgba(253,230,138,0.8)' : 'rgba(252,211,77,0.6)'}`,
+                }}
+              />
+            )}
+
+            {/* Decoy indicator - circle outline */}
+            {isDecoy && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '70%',
+                  height: '70%',
+                  borderRadius: '50%',
+                  border: `2px solid ${isHint ? 'rgba(253,230,138,0.6)' : inDanger ? 'rgba(252,165,165,0.5)' : 'rgba(252,211,77,0.4)'}`,
+                  boxShadow: `0 0 6px ${isHint ? 'rgba(253,230,138,0.3)' : inDanger ? 'rgba(239,68,68,0.3)' : 'rgba(252,211,77,0.2)'}`,
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+          </>
+        );
+      })()}
 
       {/* Crushed tile X marker */}
       {type === 'crushed' && (

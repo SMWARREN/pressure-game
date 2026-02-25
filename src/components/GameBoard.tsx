@@ -1413,6 +1413,7 @@ export default function GameBoard() {
     modeState,
     pauseGame,
     resumeGame,
+    isPaused,
   } = useGameStore(
     useShallow((s) => ({
       currentLevel: s.currentLevel,
@@ -1442,6 +1443,7 @@ export default function GameBoard() {
       modeState: s.modeState,
       pauseGame: s.pauseGame,
       resumeGame: s.resumeGame,
+      isPaused: s.isPaused,
     }))
   );
 
@@ -1819,6 +1821,7 @@ export default function GameBoard() {
         timeLeft={timeLeft}
         timeLimit={currentLevel.timeLimit}
         statsDisplayOverride={levelStatsDisplay}
+        isPaused={isPaused}
       />
 
       {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
@@ -1898,8 +1901,29 @@ export default function GameBoard() {
             </div>
           )}
 
-          {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active */}
-          {!(isUnlimited && showUnlimitedRules) && !walkthroughActive && (
+          {/* Pause overlay */}
+          {isPaused && (
+            <div style={overlayStyle}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>⏸</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#a5b4fc', marginBottom: 8 }}>
+                PAUSED
+              </div>
+              <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 24 }}>
+                Take a break — your game is waiting
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button onClick={resumeGame} style={btnPrimary}>
+                  ▶ RESUME
+                </button>
+                <button onClick={goToMenu} style={btnSecondary}>
+                  MENU
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active, or when paused */}
+          {!(isUnlimited && showUnlimitedRules) && !walkthroughActive && !isPaused && (
             <Overlay
               status={status}
               moves={moves}
@@ -2018,6 +2042,21 @@ export default function GameBoard() {
             <span style={{ fontSize: 16 }}>💡</span>
           </button>
         )}
+
+        {/* Pause button */}
+        <button
+          onClick={isPaused ? resumeGame : pauseGame}
+          disabled={status !== 'playing' && !isPaused}
+          style={{
+            ...iconBtn,
+            opacity: status !== 'playing' && !isPaused ? 0.25 : 1,
+            color: isPaused ? '#22c55e' : '#3a3a55',
+            border: isPaused ? '1px solid #22c55e40' : '1px solid #12122a',
+          }}
+          title={isPaused ? 'Resume' : 'Pause'}
+        >
+          <span style={{ fontSize: 16 }}>{isPaused ? '▶' : '⏸'}</span>
+        </button>
 
         {/* How to Play */}
         <button
