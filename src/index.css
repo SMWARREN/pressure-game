@@ -131,3 +131,13 @@ button, [role="button"] {
     font-size: 13px;
   }
 }
+
+/* Pulse animation for warnings */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

@@ -65,18 +65,25 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
  * MovesCounter - Shows current moves vs max moves
  */
 function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) {
+  const outOfMoves = moves >= maxMoves;
+  const color = outOfMoves ? '#ef4444' : '#fff';
+  const bgColor = outOfMoves ? 'rgba(239,68,68,0.1)' : '#07070e';
+  const borderColor = outOfMoves ? '#ef444460' : '#12122a';
+
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        background: '#07070e',
-        border: '1px solid #12122a',
+        background: bgColor,
+        border: `1px solid ${borderColor}`,
         borderRadius: 10,
         padding: '6px 12px',
         flexShrink: 0,
         minWidth: 54,
+        transition: 'all 0.3s',
+        boxShadow: outOfMoves ? '0 0 12px rgba(239,68,68,0.3)' : 'none',
       }}
     >
       <div
@@ -85,13 +92,37 @@ function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) 
           fontWeight: 900,
           lineHeight: 1,
           fontVariantNumeric: 'tabular-nums',
+          color,
+          transition: 'color 0.3s',
         }}
       >
         {moves}
       </div>
-      <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.12em', marginTop: 2 }}>
+      <div
+        style={{
+          fontSize: 8,
+          color: outOfMoves ? '#ef4444' : '#3a3a55',
+          letterSpacing: '0.12em',
+          marginTop: 2,
+          transition: 'color 0.3s',
+        }}
+      >
         / {maxMoves}
       </div>
+      {outOfMoves && (
+        <div
+          style={{
+            fontSize: 7,
+            color: '#ef4444',
+            letterSpacing: '0.08em',
+            marginTop: 2,
+            fontWeight: 700,
+            animation: 'pulse 1s ease-in-out infinite',
+          }}
+        >
+          NO MOVES
+        </div>
+      )}
     </div>
   );
 }
