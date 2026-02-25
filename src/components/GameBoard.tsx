@@ -15,7 +15,7 @@ import type { GameEndEvent } from '@/game/stats/types';
 import ReplayOverlay from '@/components/game/ReplayOverlay';
 import { ReplayEngine } from '@/game/stats/replay';
 import UnlimitedRulesDialog from './UnlimitedRulesDialog';
-import { getUnlimitedHighScore, setUnlimitedHighScore } from '@/game/unlimited';
+import { getUnlimitedHighScore, getUnlimitedHighScores, setUnlimitedHighScore } from '@/game/unlimited';
 import HowToPlayModal from './HowToPlayModal';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -958,8 +958,29 @@ function MenuScreen() {
 
   const worldMap = new Map(activeMode.worlds.map((w) => [w.id, w]));
 
-  const totalDone = levels.filter((l) => completedLevels.includes(l.id)).length;
+  // Unlimited levels are "done" when the player has any high score for them
+  const unlimitedHighScores = getUnlimitedHighScores();
+  const isLevelDone = (level: Level) =>
+    completedLevels.includes(level.id) ||
+    !!(level.isUnlimited && (unlimitedHighScores[`${currentModeId}:${level.id}`] ?? 0) > 0);
+
+  const totalDone = levels.filter((l) => isLevelDone(l)).length;
   const pct = Math.round((totalDone / levels.length) * 100);
+
+  // Best score per level for score-based modes (candy, shopping spree, etc.)
+  // Computed once from the stats backend so we don't re-query inside every level card
+  const bestScores = useMemo(() => {
+    const map: Record<number, number> = {};
+    const ends = statsEngine.getBackend().getAll().filter(
+      (e): e is GameEndEvent => e.type === 'game_end' && e.modeId === currentModeId && e.outcome === 'won'
+    );
+    for (const e of ends) {
+      if (e.score > 0 && (!map[e.levelId] || e.score > map[e.levelId])) {
+        map[e.levelId] = e.score;
+      }
+    }
+    return map;
+  }, [currentModeId]); // eslint-disable-line
 
   if (showStats)
     return (
@@ -1160,7 +1181,7 @@ function MenuScreen() {
               >
                 {activeMode.worlds.map((wDef) => {
                   const lvls = levels.filter((l) => l.world === wDef.id);
-                  const done = lvls.filter((l) => completedLevels.includes(l.id)).length;
+                  const done = lvls.filter((l) => isLevelDone(l)).length;
                   const active = world === wDef.id;
                   return (
                     <button
@@ -1229,8 +1250,14 @@ function MenuScreen() {
                   {levels
                     .filter((l) => l.world === world)
                     .map((level) => {
-                      const done = completedLevels.includes(level.id);
+                      const done = isLevelDone(level);
                       const best = bestMoves[level.id];
+                      const unlimitedBest = level.isUnlimited
+                        ? unlimitedHighScores[`${currentModeId}:${level.id}`] ?? 0
+                        : 0;
+                      const scoreBest = !level.isUnlimited && level.targetScore
+                        ? bestScores[level.id]
+                        : undefined;
                       const wm = worldMap.get(world) ?? activeMode.worlds[0];
                       // Display level number as 1-based index within this world
                       const worldLevels = levels.filter((l) => l.world === world);
@@ -1258,28 +1285,33 @@ function MenuScreen() {
                           }}
                         >
                           {displayNum}
-                          {best !== undefined && (
+                          {/* Badge: 🏆 score for unlimited, pts for score modes, ★ for pipe moves */}
+                          {(level.isUnlimited && unlimitedBest > 0) || scoreBest !== undefined || best !== undefined ? (
                             <div
                               style={{
                                 position: 'absolute',
-                                top: -4,
-                                right: -4,
-                                width: 18,
-                                height: 18,
-                                borderRadius: '50%',
+                                top: -6,
+                                right: -6,
+                                borderRadius: 8,
                                 background: '#fbbf24',
+                                padding: '1px 5px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: 10,
+                                gap: 2,
+                                fontSize: 9,
                                 color: '#000',
                                 fontWeight: 900,
                                 boxShadow: '0 0 8px rgba(251,191,36,0.6)',
+                                whiteSpace: 'nowrap',
                               }}
                             >
-                              ★
+                              {level.isUnlimited && unlimitedBest > 0
+                                ? `🏆 ${unlimitedBest >= 1000 ? `${Math.floor(unlimitedBest / 1000)}k` : unlimitedBest}`
+                                : scoreBest !== undefined
+                                  ? `★ ${scoreBest >= 1000 ? `${Math.floor(scoreBest / 1000)}k` : scoreBest}`
+                                  : `★ ${best}`}
                             </div>
-                          )}
+                          ) : null}
                         </button>
                       );
                     })}
