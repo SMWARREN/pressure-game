@@ -176,6 +176,8 @@ export class PressureEngine implements IPressureEngine {
       const modeState = {
         score: state.score,
         targetScore: currentLevel.targetScore,
+        levelId: currentLevel.id,
+        world: currentLevel.world,
         timeLeft: currentLevel.timeLimit
           ? Math.max(0, currentLevel.timeLimit - newElapsedSeconds)
           : undefined,

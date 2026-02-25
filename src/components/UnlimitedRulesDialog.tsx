@@ -10,6 +10,7 @@ interface UnlimitedRulesDialogProps {
   onStart: () => void;
   onBack: () => void;
   modeId?: string;
+  onWatchBest?: () => void;
 }
 
 export default function UnlimitedRulesDialog({
@@ -18,6 +19,7 @@ export default function UnlimitedRulesDialog({
   onStart,
   onBack,
   modeId = 'classic',
+  onWatchBest,
 }: UnlimitedRulesDialogProps) {
   const [visible, setVisible] = useState(false);
 
@@ -168,11 +170,12 @@ export default function UnlimitedRulesDialog({
         )}
 
         {/* Buttons */}
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
             onClick={onBack}
             style={{
               flex: 1,
+              minWidth: 60,
               padding: '14px',
               borderRadius: 12,
               border: '1px solid #1e1e35',
@@ -186,10 +189,31 @@ export default function UnlimitedRulesDialog({
           >
             BACK
           </button>
+          {onWatchBest && (
+            <button
+              onClick={onWatchBest}
+              style={{
+                flex: 1,
+                minWidth: 80,
+                padding: '14px',
+                borderRadius: 12,
+                border: '1px solid #a5b4fc40',
+                background: 'rgba(165,180,252,0.08)',
+                color: '#a5b4fc',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                letterSpacing: '0.05em',
+              }}
+            >
+              ▶ BEST
+            </button>
+          )}
           <button
             onClick={onStart}
             style={{
               flex: 2,
+              minWidth: 80,
               padding: '14px',
               borderRadius: 12,
               border: 'none',

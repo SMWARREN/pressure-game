@@ -102,7 +102,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       // Calculate timeLeft for timed levels and pass to mode
       const timeLimit = currentLevel?.timeLimit;
       const timeLeft = timeLimit ? Math.max(0, timeLimit - state.elapsedSeconds) : undefined;
-      const modeStateWithTime = { ...modeState, timeLeft };
+      const modeStateWithTime = { ...modeState, timeLeft, levelId: currentLevel?.id, world: currentLevel?.world };
 
       const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeStateWithTime);
       if (!result || !result.valid) return;
