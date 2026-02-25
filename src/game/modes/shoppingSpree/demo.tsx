@@ -150,6 +150,110 @@ export function renderShoppingSpreeDemo(
     );
   }
 
+  if (type === 'shopping-thief') {
+    const grid = [
+      ['👗', '🦹', '👠'],
+      ['👗', '👗', '🦹'],
+      ['💄', '👜', '💎'],
+    ];
+    const inGroup = (r: number, c: number) =>
+      (r === 1 && c === 0) || (r === 1 && c === 1) || (r === 0 && c === 0);
+    const isThief = (r: number, c: number) => grid[r][c] === '🦹';
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {grid.map((row, r) => (
+            <div key={r} style={{ display: 'flex', gap: 3 }}>
+              {row.map((sym, c) =>
+                isThief(r, c) ? (
+                  <div
+                    key={c}
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 7,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      background: 'linear-gradient(145deg, #ef444433, #ef444411)',
+                      border: '2px solid #ef444480',
+                      boxShadow: '0 0 10px #ef444440',
+                    }}
+                  >
+                    🦹
+                  </div>
+                ) : (
+                  <ShoppingTile key={c} sym={sym} highlight={inGroup(r, c)} />
+                )
+              )}
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, color: '#ef4444', letterSpacing: '0.1em', textAlign: 'center' }}>
+          MATCH 3+ NEARBY → SCARE THIEF
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'shopping-unlock') {
+    const bonusItems: Array<{ sym: string; price: string }> = [
+      { sym: '🎀', price: '$20' },
+      { sym: '👒', price: '$25' },
+      { sym: '💍', price: '$45' },
+    ];
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {['👗', '👗', '👗'].map((sym, i) => (
+                <ShoppingTile key={i} sym={sym} highlight small />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {['👗', '👗'].map((sym, i) => (
+                <ShoppingTile key={i} sym={sym} highlight small />
+              ))}
+            </div>
+            <div style={{ fontSize: 9, color: '#ec4899' }}>5+ COMBO</div>
+          </div>
+          <div style={{ fontSize: 18, color: '#fbbf24' }}>→</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {bonusItems.map(({ sym, price }) => (
+                <div key={sym} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <div
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.1rem',
+                      background: 'linear-gradient(145deg, #fbbf2433, #fbbf2411)',
+                      border: '2px solid #fbbf24',
+                      boxShadow: '0 0 12px #fbbf2470',
+                    }}
+                  >
+                    {sym}
+                  </div>
+                  <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 700 }}>{price}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 700 }}>2× VALUE ✨</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.08em', textAlign: 'center' }}>
+          NEW ITEM UNTIL EVENLY SPREAD
+        </div>
+      </div>
+    );
+  }
+
   if (type === 'shopping-ready') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>

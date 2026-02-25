@@ -168,6 +168,104 @@ export function renderCandyDemo(
     );
   }
 
+  if (type === 'candy-ice') {
+    const grid = [
+      ['🍎', '🧊', '🍊'],
+      ['🍎', '🍎', '🧊'],
+      ['🍋', '🫐', '🍓'],
+    ];
+    const inGroup = (r: number, c: number) =>
+      (r === 1 && c === 0) || (r === 1 && c === 1) || (r === 0 && c === 0);
+    const isIce = (r: number, c: number) => grid[r][c] === '🧊';
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {grid.map((row, r) => (
+            <div key={r} style={{ display: 'flex', gap: 3 }}>
+              {row.map((sym, c) =>
+                isIce(r, c) ? (
+                  <div
+                    key={c}
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 7,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      background: 'linear-gradient(145deg, #a5b4fc33, #818cf811)',
+                      border: '2px solid #a5b4fc80',
+                      boxShadow: '0 0 10px #a5b4fc40',
+                    }}
+                  >
+                    🧊
+                  </div>
+                ) : (
+                  <CandyTile key={c} sym={sym} highlight={inGroup(r, c)} />
+                )
+              )}
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, color: '#a5b4fc', letterSpacing: '0.1em', textAlign: 'center' }}>
+          MATCH 3+ NEARBY → SMASH ICE
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'candy-unlock') {
+    const bonusSymbols = ['🍇', '🥝', '🍒'];
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {['🍎', '🍎', '🍎'].map((sym, i) => (
+                <CandyTile key={i} sym={sym} highlight />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {['🍎', '🍎'].map((sym, i) => (
+                <CandyTile key={i} sym={sym} highlight />
+              ))}
+            </div>
+            <div style={{ fontSize: 9, color: '#ef4444' }}>5+ COMBO</div>
+          </div>
+          <div style={{ fontSize: 18, color: '#fbbf24' }}>→</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {bonusSymbols.map((sym) => (
+                <div
+                  key={sym}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.2rem',
+                    background: 'linear-gradient(145deg, #fbbf2433, #fbbf2411)',
+                    border: '2px solid #fbbf24',
+                    boxShadow: '0 0 12px #fbbf2470',
+                  }}
+                >
+                  {sym}
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 700 }}>2× SCORE ✨</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.08em', textAlign: 'center' }}>
+          NEW FLAVOR UNTIL EVENLY SPREAD
+        </div>
+      </div>
+    );
+  }
+
   if (type === 'candy-ready') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>

@@ -28,6 +28,22 @@ export const CANDY_TUTORIAL_STEPS: TutorialStep[] = [
     body: 'When you clear candies, the ones above fall down and new candies appear at the top.',
   },
   {
+    icon: '🧊',
+    iconColor: '#a5b4fc',
+    title: 'Ice Blocks',
+    subtitle: 'FROZEN TILES',
+    demo: 'candy-ice',
+    body: 'Sometimes candies get frozen! Match 3+ nearby candies (worlds 1–2) or 4+ (worlds 3–4) to smash the ice and free the tile.',
+  },
+  {
+    icon: '✨',
+    iconColor: '#fbbf24',
+    title: 'Bonus Candies',
+    subtitle: 'NEW FLAVORS',
+    demo: 'candy-unlock',
+    body: 'Match 5+ candies to unlock a rare new flavor: 🍇🥝🍒🥭🍑🍍. New candies score 2× until they spread evenly across the board!',
+  },
+  {
     icon: '🎯',
     iconColor: '#f472b6',
     title: 'Target Score',
