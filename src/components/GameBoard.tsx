@@ -16,6 +16,7 @@ import ReplayOverlay from '@/components/game/ReplayOverlay';
 import { ReplayEngine } from '@/game/stats/replay';
 import UnlimitedRulesDialog from './UnlimitedRulesDialog';
 import { getUnlimitedHighScore, setUnlimitedHighScore } from '@/game/unlimited';
+import HowToPlayModal from './HowToPlayModal';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NOTIFICATION FLOAT ANIMATION
@@ -682,6 +683,8 @@ interface SettingsPanelProps {
   onToggleAnimations: () => void;
   onShowStats: () => void;
   onHowToPlay: () => void;
+  onRewatchWalkthrough: () => void;
+  hasWalkthrough: boolean;
 }
 
 function SettingsPanel({
@@ -691,6 +694,8 @@ function SettingsPanel({
   onToggleAnimations,
   onShowStats,
   onHowToPlay,
+  onRewatchWalkthrough,
+  hasWalkthrough,
 }: SettingsPanelProps) {
   if (!visible) return null;
   return (
@@ -857,6 +862,38 @@ function SettingsPanel({
           </div>
           <span style={{ fontSize: 14, color: '#3a3a55' }}>›</span>
         </button>
+
+        {/* Rewatch Walkthrough row */}
+        {hasWalkthrough && (
+          <button
+            onClick={() => {
+              onRewatchWalkthrough();
+              onClose();
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              padding: '14px 16px',
+              borderRadius: 14,
+              border: '1px solid #12122a',
+              background: '#07070e',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ fontSize: 20 }}>🎯</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc' }}>
+                Rewatch Walkthrough
+              </div>
+              <div style={{ fontSize: 11, color: '#25253a', marginTop: 2 }}>
+                Replay the level guide
+              </div>
+            </div>
+            <span style={{ fontSize: 14, color: '#3a3a55' }}>›</span>
+          </button>
+        )}
       </div>
     </>
   );
@@ -871,6 +908,7 @@ function MenuScreen() {
     animationsEnabled,
     toggleAnimations,
     replayTutorial,
+    replayWalkthrough,
     generatedLevels,
   } = useGameStore(
     useShallow((s) => ({
@@ -881,6 +919,7 @@ function MenuScreen() {
       animationsEnabled: s.animationsEnabled,
       toggleAnimations: s.toggleAnimations,
       replayTutorial: s.replayTutorial,
+      replayWalkthrough: s.replayWalkthrough,
       generatedLevels: s.generatedLevels,
     }))
   );
@@ -1316,6 +1355,8 @@ function MenuScreen() {
         onToggleAnimations={toggleAnimations}
         onShowStats={() => setShowStats(true)}
         onHowToPlay={replayTutorial}
+        onRewatchWalkthrough={replayWalkthrough}
+        hasWalkthrough={!!activeMode.walkthrough}
       />
 
       {/* ── MODE SELECTOR MODAL ─────────────────────────────────── */}
@@ -1370,6 +1411,8 @@ export default function GameBoard() {
     score,
     lossReason,
     modeState,
+    pauseGame,
+    resumeGame,
   } = useGameStore(
     useShallow((s) => ({
       currentLevel: s.currentLevel,
@@ -1397,6 +1440,8 @@ export default function GameBoard() {
       score: s.score,
       lossReason: s.lossReason,
       modeState: s.modeState,
+      pauseGame: s.pauseGame,
+      resumeGame: s.resumeGame,
     }))
   );
 
@@ -1420,7 +1465,20 @@ export default function GameBoard() {
   const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
   const [showUnlimitedRules, setShowUnlimitedRules] = useState(false);
   const [unlimitedPreviousScore, setUnlimitedPreviousScore] = useState<number | null>(null);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const { w: vw, h: vh } = useViewport();
+
+  // Pause game when How to Play modal is open
+  useEffect(() => {
+    if (showHowToPlay && status === 'playing') {
+      pauseGame();
+    }
+    return () => {
+      if (showHowToPlay && status === 'playing') {
+        resumeGame();
+      }
+    };
+  }, [showHowToPlay, status, pauseGame, resumeGame]);
 
   // Inject notification CSS once on mount
   useEffect(() => {
@@ -1840,8 +1898,8 @@ export default function GameBoard() {
             </div>
           )}
 
-          {/* Overlay screens - hide for Unlimited levels when rules dialog is shown */}
-          {!(isUnlimited && showUnlimitedRules) && (
+          {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active */}
+          {!(isUnlimited && showUnlimitedRules) && !walkthroughActive && (
             <Overlay
               status={status}
               moves={moves}
@@ -1883,6 +1941,7 @@ export default function GameBoard() {
           targetTile={walkthroughStep?.targetTile}
           boardRef={boardRef}
           gridSize={gs}
+          onStartGame={startGame}
         />
       )}
 
@@ -1960,6 +2019,19 @@ export default function GameBoard() {
           </button>
         )}
 
+        {/* How to Play */}
+        <button
+          onClick={() => setShowHowToPlay(true)}
+          disabled={status !== 'playing'}
+          style={{
+            ...iconBtn,
+            opacity: status !== 'playing' ? 0.25 : 1,
+          }}
+          title="How to Play"
+        >
+          <span style={{ fontSize: 16 }}>❓</span>
+        </button>
+
         {/* FX toggle */}
         <button
           onClick={toggleAnimations}
@@ -1973,6 +2045,9 @@ export default function GameBoard() {
           <span style={{ fontSize: 14 }}>{animationsEnabled ? '✨' : '◻'}</span>
         </button>
       </footer>
+
+      {/* How to Play Modal */}
+      {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
     </div>
   );
 }

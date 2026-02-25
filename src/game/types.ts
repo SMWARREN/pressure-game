@@ -149,6 +149,8 @@ export interface GameState {
   score: number;
   /** Guards against re-entrant win checks */
   _winCheckPending: boolean;
+  /** Timestamp to trigger walkthrough replay when set */
+  _replayWalkthrough?: number;
   /** Reason for the current loss — shown in the game-over overlay */
   lossReason: string | null;
 }
@@ -171,11 +173,14 @@ export interface GameActions {
   goToMenu: () => void;
   completeTutorial: () => void;
   replayTutorial: () => void;
+  replayWalkthrough: () => void;
   setGameMode: (modeId: string) => void;
   setCompressionOverride: (enabled: boolean | null) => void;
   addGeneratedLevel: (level: Level) => void;
   deleteGeneratedLevel: (id: number) => void;
   toggleAnimations: () => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

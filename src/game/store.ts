@@ -256,6 +256,36 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       set({ status: 'tutorial', currentLevel: null });
     },
 
+    pauseGame: () => {
+      engine.stopTimer();
+    },
+
+    resumeGame: () => {
+      const { status } = get();
+      if (status === 'playing') {
+        engine.startTimer();
+      }
+    },
+
+    replayWalkthrough: () => {
+      const { currentModeId } = get();
+      const mode = getModeById(currentModeId);
+      const walkthrough = mode.walkthrough;
+      if (walkthrough) {
+        // Clear the walkthrough seen flag from localStorage
+        localStorage.removeItem(`walkthrough-${walkthrough.modeId}-${walkthrough.levelId}`);
+        // Load the first level of this mode (where walkthrough is shown)
+        const levels = mode.getLevels();
+        const firstLevel = levels.find((l) => l.id === walkthrough.levelId) ?? levels[0];
+        if (firstLevel) {
+          engine.clearTimers();
+          const levelState = engine.getInitialLevelState(firstLevel);
+          // Set a flag to trigger walkthrough replay and reset moves to 0
+          set({ ...levelState, status: 'idle', _replayWalkthrough: Date.now() });
+        }
+      }
+    },
+
     completeTutorial: () => {
       const state = get();
       const newSeenTutorials = [...new Set([...state.seenTutorials, state.currentModeId])];

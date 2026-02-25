@@ -62,7 +62,8 @@ export function WalkthroughOverlay({
   targetTile,
   boardRef,
   gridSize,
-}: WalkthroughOverlayProps) {
+  onStartGame,
+}: WalkthroughOverlayProps & { onStartGame?: () => void }) {
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -73,18 +74,25 @@ export function WalkthroughOverlay({
   useEffect(() => {
     if (!boardRef.current || !targetTile) {
       setHighlightRect(null);
-      return; // Don't set tooltipPos to null - let the tooltip effect handle center position
+      return;
     }
 
     const board = boardRef.current;
     const boardRect = board.getBoundingClientRect();
-    const tileSize = boardRect.width / gridSize;
-    const padding = 10; // Board padding
+    
+    // Gap is applied between cells via CSS grid-gap
+    const gap = gridSize >= 9 ? 2 : gridSize > 5 ? 3 : 4;
+    
+    // Calculate actual tile size (same formula as GameBoard)
+    const padding = gridSize >= 9 ? 4 : gridSize > 5 ? 8 : 10;
+    const tileSize = Math.floor((boardRect.width - padding * 2 - gap * (gridSize - 1)) / gridSize);
+    
+    // Position: padding offset + (tile index * (tileSize + gap))
+    const x = padding + targetTile.x * (tileSize + gap);
+    const y = padding + targetTile.y * (tileSize + gap);
 
-    const x = padding + targetTile.x * tileSize;
-    const y = padding + targetTile.y * tileSize;
-
-    setHighlightRect(new DOMRect(boardRect.left + x, boardRect.top + y, tileSize, tileSize));
+    // Offset by 1px right and 1px down for better alignment
+    setHighlightRect(new DOMRect(boardRect.left + x + 2, boardRect.top + y + 2, tileSize, tileSize));
   }, [targetTile, boardRef, gridSize]);
 
   // Calculate tooltip position
@@ -96,6 +104,8 @@ export function WalkthroughOverlay({
 
     const position = currentStep.position || 'bottom';
     const offset = 20;
+    const tooltipWidth = 280;
+    const tooltipHeight = 200; // Approximate height
 
     let x: number;
     let y: number;
@@ -107,27 +117,28 @@ export function WalkthroughOverlay({
 
       switch (position) {
         case 'top':
-          y = highlightRect.top - offset - 60; // Account for tooltip height
+          y = highlightRect.top - offset - tooltipHeight / 2;
           break;
         case 'bottom':
-          y = highlightRect.bottom + offset + 60;
+          y = highlightRect.bottom + offset + tooltipHeight / 2;
           break;
         case 'left':
-          x = highlightRect.left - offset - 140;
+          x = highlightRect.left - offset - tooltipWidth / 2;
           break;
         case 'right':
-          x = highlightRect.right + offset + 140;
+          x = highlightRect.right + offset + tooltipWidth / 2;
           break;
       }
     } else {
-      // Position at bottom of screen for steps without targetTile (intro steps)
+      // Position at center of screen for steps without targetTile (intro steps)
       x = window.innerWidth / 2;
-      y = window.innerHeight - 120; // Near bottom, above footer
+      y = window.innerHeight / 2;
     }
 
-    // Clamp to screen bounds with more padding
-    x = Math.max(160, Math.min(window.innerWidth - 160, x));
-    y = Math.max(100, Math.min(window.innerHeight - 100, y));
+    // Clamp to screen bounds with padding
+    const padding = 20;
+    x = Math.max(tooltipWidth / 2 + padding, Math.min(window.innerWidth - tooltipWidth / 2 - padding, x));
+    y = Math.max(tooltipHeight / 2 + padding, Math.min(window.innerHeight - tooltipHeight / 2 - padding, y));
 
     setTooltipPos({ x, y });
   }, [highlightRect, currentStep]);
@@ -207,14 +218,15 @@ export function WalkthroughOverlay({
           <div
             style={{
               position: 'absolute',
-              left: highlightRect.left - 4,
-              top: highlightRect.top - 4,
-              width: highlightRect.width + 8,
-              height: highlightRect.height + 8,
-              border: '3px solid #fbbf24',
-              borderRadius: 14,
-              boxShadow: '0 0 20px rgba(251,191,36,0.6), inset 0 0 20px rgba(251,191,36,0.2)',
+              left: highlightRect.left - 2,
+              top: highlightRect.top - 2,
+              width: highlightRect.width + 4,
+              height: highlightRect.height + 4,
+              border: '2px solid #fbbf24',
+              borderRadius: 10,
+              boxShadow: '0 0 16px rgba(251,191,36,0.6)',
               animation: 'pulse 1.5s ease-in-out infinite',
+              zIndex: 10,
             }}
           />
         </>
@@ -235,6 +247,7 @@ export function WalkthroughOverlay({
           textAlign: 'center',
           boxShadow: '0 8px 32px rgba(0,0,0,0.8), 0 0 20px rgba(251,191,36,0.2)',
           pointerEvents: 'auto',
+          zIndex: 200,
         }}
       >
         {/* Step indicator */}
@@ -290,41 +303,46 @@ export function WalkthroughOverlay({
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <button
-            onClick={onSkip}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 10,
-              border: '1px solid #3a3a55',
-              background: 'transparent',
-              color: '#3a3a55',
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'pointer',
-              letterSpacing: '0.05em',
-            }}
-          >
-            SKIP
-          </button>
-          {currentStep.advanceOn === 'manual' && (
+          {!isLastStep && (
             <button
-              onClick={onAdvance}
+              onClick={onSkip}
               style={{
-                padding: '10px 20px',
+                padding: '10px 16px',
                 borderRadius: 10,
-                border: 'none',
-                background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                color: '#000',
+                border: '1px solid #3a3a55',
+                background: 'transparent',
+                color: '#3a3a55',
                 fontSize: 11,
-                fontWeight: 800,
+                fontWeight: 700,
                 cursor: 'pointer',
                 letterSpacing: '0.05em',
-                boxShadow: '0 4px 16px rgba(251,191,36,0.4)',
               }}
             >
-              {isLastStep ? 'GOT IT!' : 'NEXT'}
+              SKIP
             </button>
           )}
+          <button
+            onClick={() => {
+              onAdvance();
+              if (isLastStep && onStartGame) {
+                onStartGame();
+              }
+            }}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 10,
+              border: 'none',
+              background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+              color: '#000',
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: 'pointer',
+              letterSpacing: '0.05em',
+              boxShadow: '0 4px 16px rgba(251,191,36,0.4)',
+            }}
+          >
+            {isLastStep ? 'PLAY' : 'NEXT'}
+          </button>
         </div>
       </div>
 
@@ -363,21 +381,27 @@ export function useWalkthrough(
   const status = useGameStore((s) => s.status);
   const currentLevel = useGameStore((s) => s.currentLevel);
   const currentModeId = useGameStore((s) => s.currentModeId);
+  const replayWalkthrough = useGameStore((s) => s._replayWalkthrough);
 
-  // Start walkthrough when level is loaded (idle or playing) and no moves made
+  // Start walkthrough when level is loaded (idle only) and no moves made
+  // Also trigger when replayWalkthrough timestamp changes
   useEffect(() => {
     if (
       config &&
-      (status === 'idle' || status === 'playing') &&
+      status === 'idle' &&
       currentLevel?.id === config.levelId &&
       currentModeId === config.modeId &&
-      !hasSeenWalkthrough &&
+      (!hasSeenWalkthrough || replayWalkthrough) &&
       moves === 0
     ) {
       setIsActive(true);
       setCurrentStepIndex(0);
+      // Clear the replay trigger after starting
+      if (replayWalkthrough) {
+        setHasSeenWalkthrough(false);
+      }
     }
-  }, [config, status, currentLevel, currentModeId, hasSeenWalkthrough, moves]);
+  }, [config, status, currentLevel, currentModeId, hasSeenWalkthrough, moves, replayWalkthrough]);
 
   // Check if current step's showWhen condition is met
   const currentStep = config?.steps[currentStepIndex];
@@ -392,7 +416,8 @@ export function useWalkthrough(
 
     const nextIndex = currentStepIndex + 1;
     if (nextIndex >= config.steps.length) {
-      // Walkthrough complete
+      // Walkthrough complete - clear the replay trigger from the store
+      useGameStore.setState({ _replayWalkthrough: undefined });
       setIsActive(false);
       setHasSeenWalkthrough(true);
       localStorage.setItem(`walkthrough-${config.modeId}-${config.levelId}`, 'true');
@@ -404,6 +429,8 @@ export function useWalkthrough(
   // Skip walkthrough
   const skip = useCallback(() => {
     if (!config) return;
+    // Clear the replay trigger from the store
+    useGameStore.setState({ _replayWalkthrough: undefined });
     setIsActive(false);
     setHasSeenWalkthrough(true);
     localStorage.setItem(`walkthrough-${config.modeId}-${config.levelId}`, 'true');
