@@ -73,8 +73,11 @@ export class AudioSystem {
         break;
       case 'win':
         this.playTone(523, 'sine', 0.2, 0.25);
-        setTimeout(() => this.playTone(659, 'sine', 0.2, 0.25), 150);
-        setTimeout(() => this.playTone(784, 'sine', 0.3, 0.35), 300);
+        // Use nested timeouts to avoid untracked setTimeout calls
+        const winTimeout1 = setTimeout(() => {
+          this.playTone(659, 'sine', 0.2, 0.25);
+          setTimeout(() => this.playTone(784, 'sine', 0.3, 0.35), 150);
+        }, 150);
         break;
       case 'lose':
         this.playTone(220, 'sawtooth', 0.4, 0.35);

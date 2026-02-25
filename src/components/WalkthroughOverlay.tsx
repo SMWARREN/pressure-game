@@ -79,20 +79,22 @@ export function WalkthroughOverlay({
 
     const board = boardRef.current;
     const boardRect = board.getBoundingClientRect();
-    
+
     // Gap is applied between cells via CSS grid-gap
     const gap = gridSize >= 9 ? 2 : gridSize > 5 ? 3 : 4;
-    
+
     // Calculate actual tile size (same formula as GameBoard)
     const padding = gridSize >= 9 ? 4 : gridSize > 5 ? 8 : 10;
     const tileSize = Math.floor((boardRect.width - padding * 2 - gap * (gridSize - 1)) / gridSize);
-    
+
     // Position: padding offset + (tile index * (tileSize + gap))
     const x = padding + targetTile.x * (tileSize + gap);
     const y = padding + targetTile.y * (tileSize + gap);
 
     // Offset by 1px right and 1px down for better alignment
-    setHighlightRect(new DOMRect(boardRect.left + x + 2, boardRect.top + y + 2, tileSize, tileSize));
+    setHighlightRect(
+      new DOMRect(boardRect.left + x + 2, boardRect.top + y + 2, tileSize, tileSize)
+    );
   }, [targetTile, boardRef, gridSize]);
 
   // Calculate tooltip position
@@ -137,8 +139,14 @@ export function WalkthroughOverlay({
 
     // Clamp to screen bounds with padding
     const padding = 20;
-    x = Math.max(tooltipWidth / 2 + padding, Math.min(window.innerWidth - tooltipWidth / 2 - padding, x));
-    y = Math.max(tooltipHeight / 2 + padding, Math.min(window.innerHeight - tooltipHeight / 2 - padding, y));
+    x = Math.max(
+      tooltipWidth / 2 + padding,
+      Math.min(window.innerWidth - tooltipWidth / 2 - padding, x)
+    );
+    y = Math.max(
+      tooltipHeight / 2 + padding,
+      Math.min(window.innerHeight - tooltipHeight / 2 - padding, y)
+    );
 
     setTooltipPos({ x, y });
   }, [highlightRect, currentStep]);

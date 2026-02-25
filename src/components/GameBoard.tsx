@@ -15,7 +15,11 @@ import type { GameEndEvent } from '@/game/stats/types';
 import ReplayOverlay from '@/components/game/ReplayOverlay';
 import { ReplayEngine } from '@/game/stats/replay';
 import UnlimitedRulesDialog from './UnlimitedRulesDialog';
-import { getUnlimitedHighScore, getUnlimitedHighScores, setUnlimitedHighScore } from '@/game/unlimited';
+import {
+  getUnlimitedHighScore,
+  getUnlimitedHighScores,
+  setUnlimitedHighScore,
+} from '@/game/unlimited';
 import HowToPlayModal from './HowToPlayModal';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -68,6 +72,13 @@ const ParticleLayer = React.forwardRef<ParticleSystemHandle>((_, ref) => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const idRef = useRef(0);
   const frameRef = useRef<number | null>(null);
+  const particlesRef = useRef<Particle[]>([]);
+  const isRunningRef = useRef(false);
+
+  // Keep particlesRef in sync with state
+  useEffect(() => {
+    particlesRef.current = particles;
+  }, [particles]);
 
   const burst = useCallback(
     (x: number, y: number, color: string, count = 10, shape: 'circle' | 'star' = 'circle') => {
@@ -88,41 +99,62 @@ const ParticleLayer = React.forwardRef<ParticleSystemHandle>((_, ref) => {
           shape,
         };
       });
-      setParticles((p) => [...p, ...ps]);
+
+      // Add new particles and start animation if not running
+      particlesRef.current = [...particlesRef.current, ...ps];
+      setParticles([...particlesRef.current]);
+
+      if (!isRunningRef.current && particlesRef.current.length > 0) {
+        isRunningRef.current = true;
+        runAnimation();
+      }
     },
     []
   );
 
-  React.useImperativeHandle(ref, () => ({ burst }), [burst]);
-
-  useEffect(() => {
-    if (particles.length === 0) {
+  const runAnimation = useCallback(() => {
+    if (particlesRef.current.length === 0) {
+      isRunningRef.current = false;
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
         frameRef.current = null;
       }
       return;
     }
+
     frameRef.current = requestAnimationFrame(() => {
-      setParticles((ps) =>
-        ps
-          .map((p) => ({
-            ...p,
-            x: p.x + p.vx,
-            y: p.y + p.vy,
-            vy: p.vy + 0.18,
-            life: p.life - 0.025,
-          }))
-          .filter((p) => p.life > 0)
-      );
+      particlesRef.current = particlesRef.current
+        .map((p) => ({
+          ...p,
+          x: p.x + p.vx,
+          y: p.y + p.vy,
+          vy: p.vy + 0.18,
+          life: p.life - 0.025,
+        }))
+        .filter((p) => p.life > 0);
+
+      setParticles([...particlesRef.current]);
+
+      if (particlesRef.current.length > 0) {
+        runAnimation();
+      } else {
+        isRunningRef.current = false;
+      }
     });
+  }, []);
+
+  React.useImperativeHandle(ref, () => ({ burst }), [burst]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
+      isRunningRef.current = false;
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
         frameRef.current = null;
       }
     };
-  }, [particles]);
+  }, []);
 
   if (particles.length === 0) return null;
   return (
@@ -333,11 +365,26 @@ function Overlay({
       <div style={overlayStyle}>
         <div style={{ fontSize: 32, marginBottom: 4 }}>{newHighScore ? '🏆' : '✕'}</div>
         {newHighScore && (
-          <div style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.12em', fontWeight: 800, marginBottom: 4 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: '#fbbf24',
+              letterSpacing: '0.12em',
+              fontWeight: 800,
+              marginBottom: 4,
+            }}
+          >
             NEW HIGH SCORE!
           </div>
         )}
-        <div style={{ fontSize: 20, fontWeight: 900, color: newHighScore ? '#fbbf24' : '#ef4444', marginBottom: 4 }}>
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 900,
+            color: newHighScore ? '#fbbf24' : '#ef4444',
+            marginBottom: 4,
+          }}
+        >
           {lossTitle.toUpperCase()}
         </div>
         {finalScore !== undefined && targetScore === undefined && finalScore > 0 && (
@@ -356,7 +403,15 @@ function Overlay({
             attempt{levelRecord.attempts !== 1 ? 's' : ''}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 10, marginTop: levelRecord ? 0 : 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            marginTop: levelRecord ? 0 : 14,
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
           <button onClick={onRetry} style={btnPrimary}>
             ↺ RETRY
           </button>
@@ -970,9 +1025,13 @@ function MenuScreen() {
   // Best score per level for score-based modes (candy, shopping spree, etc.)
   const bestScores = useMemo(() => {
     const map: Record<number, number> = {};
-    const ends = statsEngine.getBackend().getAll().filter(
-      (e): e is GameEndEvent => e.type === 'game_end' && e.modeId === currentModeId && e.outcome === 'won'
-    );
+    const ends = statsEngine
+      .getBackend()
+      .getAll()
+      .filter(
+        (e): e is GameEndEvent =>
+          e.type === 'game_end' && e.modeId === currentModeId && e.outcome === 'won'
+      );
     for (const e of ends) {
       if (e.score > 0 && (!map[e.levelId] || e.score > map[e.levelId])) map[e.levelId] = e.score;
     }
@@ -1250,11 +1309,10 @@ function MenuScreen() {
                       const done = isLevelDone(level);
                       const best = bestMoves[level.id];
                       const unlimitedBest = level.isUnlimited
-                        ? unlimitedHighScores[`${currentModeId}:${level.id}`] ?? 0
+                        ? (unlimitedHighScores[`${currentModeId}:${level.id}`] ?? 0)
                         : 0;
-                      const scoreBest = !level.isUnlimited && level.targetScore
-                        ? bestScores[level.id]
-                        : undefined;
+                      const scoreBest =
+                        !level.isUnlimited && level.targetScore ? bestScores[level.id] : undefined;
                       const wm = worldMap.get(world) ?? activeMode.worlds[0];
                       // Display level number as 1-based index within this world
                       const worldLevels = levels.filter((l) => l.world === world);
@@ -1282,7 +1340,9 @@ function MenuScreen() {
                           }}
                         >
                           {displayNum}
-                          {(level.isUnlimited && unlimitedBest > 0) || scoreBest !== undefined || best !== undefined ? (
+                          {(level.isUnlimited && unlimitedBest > 0) ||
+                          scoreBest !== undefined ||
+                          best !== undefined ? (
                             <div
                               style={{
                                 position: 'absolute',
@@ -1501,7 +1561,9 @@ export default function GameBoard() {
     isScore: boolean;
   } | null>(null);
   const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [notifLog, setNotifLog] = useState<Array<{ id: number; text: string; isScore: boolean }>>([]);
+  const [notifLog, setNotifLog] = useState<Array<{ id: number; text: string; isScore: boolean }>>(
+    []
+  );
 
   // Clean up notification timeout on unmount to avoid state updates on unmounted component
   useEffect(() => {
@@ -1708,8 +1770,12 @@ export default function GameBoard() {
   }, [status]); // eslint-disable-line
 
   // Clear notification log when a new level loads or the game resets to idle
-  useEffect(() => { setNotifLog([]); }, [currentLevel?.id]); // eslint-disable-line
-  useEffect(() => { if (status === 'idle') setNotifLog([]); }, [status]); // eslint-disable-line
+  useEffect(() => {
+    setNotifLog([]);
+  }, [currentLevel?.id]); // eslint-disable-line
+  useEffect(() => {
+    if (status === 'idle') setNotifLog([]);
+  }, [status]); // eslint-disable-line
 
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
@@ -1786,409 +1852,422 @@ export default function GameBoard() {
 
   return (
     <>
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'radial-gradient(ellipse 70% 50% at 50% -5%, #0d0d22 0%, #06060f 100%)',
-        color: '#fff',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        overflow: 'hidden',
-        transform: animationsEnabled && screenShake ? 'translateX(-4px)' : 'none',
-        transition: animationsEnabled && screenShake ? 'none' : 'transform 0.05s ease',
-      }}
-    >
-      <StarField />
-
-      {/* Particles — isolated component, won't re-render the rest of the board */}
-      <ParticleLayer ref={particleRef} />
-
-      {/* ── HEADER ──────────────────────────────────────────────── */}
-      <header
-        style={{
-          width: '100%',
-          flexShrink: 0,
-          position: 'relative',
-          zIndex: 10,
-          borderBottom: '1px solid #0e0e22',
-          background: 'rgba(6,6,15,0.85)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'max(10px, env(safe-area-inset-top)) 12px 10px',
-          gap: 8,
-        }}
-      >
-        <button onClick={goToMenu} style={iconBtn} title="Menu">
-          <span style={{ fontSize: 16 }}>←</span>
-        </button>
-        <div style={{ textAlign: 'center', flex: 1, minWidth: 0, padding: '0 8px' }}>
-          <div
-            style={{
-              fontSize: 'clamp(14px, 4vw, 18px)',
-              fontWeight: 900,
-              letterSpacing: '-0.02em',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {currentLevel.name}
-          </div>
-          <div
-            style={{
-              fontSize: 'clamp(9px, 2.5vw, 10px)',
-              color: '#25253a',
-              letterSpacing: '0.15em',
-              marginTop: 2,
-            }}
-          >
-            LEVEL {levelDisplayNum || currentLevel.id}
-            {currentLevel.isGenerated ? ' · CUSTOM' : ''}
-          </div>
-        </div>
-        <button onClick={restartLevel} style={iconBtn} title="Restart">
-          <span style={{ fontSize: 16 }}>↺</span>
-        </button>
-      </header>
-
-      {/* ── STATS ROW ───────────────────────────────────────────── */}
-      <GameStats
-        moves={moves}
-        currentModeId={currentModeId}
-        maxMoves={currentLevel.maxMoves}
-        compressionPercent={comprPct}
-        compressionActive={compressionActive}
-        countdownSeconds={countdownSecs}
-        score={score}
-        targetScore={currentLevel.targetScore}
-        timeLeft={timeLeft}
-        timeLimit={currentLevel.timeLimit}
-        statsDisplayOverride={levelStatsDisplay}
-        isPaused={isPaused}
-      />
-
-      {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          position: 'relative',
-          zIndex: 1,
-          padding: '4px 0',
-        }}
-      >
-        <div
-          ref={boardRef}
-          style={{
-            position: 'relative',
-            width: boardPx,
-            height: boardPx,
-            background: 'linear-gradient(145deg, #0a0a16, #07070e)',
-            borderRadius: 18,
-            padding,
-            border: `2px solid ${wallsJustAdvanced ? '#ef444480' : '#12122a'}`,
-            boxShadow: wallsJustAdvanced
-              ? '0 0 40px rgba(239,68,68,0.3), inset 0 0 40px rgba(239,68,68,0.05)'
-              : '0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)',
-            transition: 'border-color 0.3s, box-shadow 0.3s',
-            flexShrink: 0,
-          }}
-        >
-          {/* Tile grid + wall overlay — delegated to GameGrid which passes
-              mode.tileRenderer down to each GameTile, enabling candy crush,
-              slots, match-3, or any custom visual without touching this file. */}
-          <GameGrid
-            tiles={tiles}
-            gridSize={gs}
-            gap={gap}
-            tileSize={tileSize}
-            wallOffset={wallOffset}
-            wallsJustAdvanced={wallsJustAdvanced}
-            compressionActive={compressionActive}
-            hintPos={hintPos}
-            hintTiles={
-              mode.getHintTiles
-                ? mode.getHintTiles(tiles, currentLevel.goalNodes, modeState)
-                : undefined
-            }
-            status={status}
-            onTileTap={handleTileTap}
-            animationsEnabled={animationsEnabled}
-            tileRenderer={mode.tileRenderer}
-            rejectedPos={rejectedPos}
-          />
-
-          {/* Pause overlay */}
-          {isPaused && (
-            <div style={overlayStyle}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>⏸</div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: '#a5b4fc', marginBottom: 8 }}>
-                PAUSED
-              </div>
-              <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 24 }}>
-                Take a break — your game is waiting
-              </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button onClick={resumeGame} style={btnPrimary}>
-                  ▶ RESUME
-                </button>
-                <button onClick={goToMenu} style={btnSecondary}>
-                  MENU
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active, or when paused */}
-          {!(isUnlimited && showUnlimitedRules) && !walkthroughActive && !isPaused && (
-            <Overlay
-              status={status}
-              moves={moves}
-              levelName={currentLevel.name}
-              onStart={isUnlimited ? handleUnlimitedStart : startGame}
-              onNext={() => nextLevel && loadLevel(nextLevel)}
-              onMenu={goToMenu}
-              onRetry={restartLevel}
-              solution={solution}
-              hasNext={!!nextLevel}
-              elapsedSeconds={elapsedSeconds}
-              winTitle={winTitle}
-              lossTitle={lossTitle}
-              finalScore={score}
-              targetScore={currentLevel.targetScore}
-              levelRecord={levelRecord}
-              onReplay={onReplayForOverlay}
-              newHighScore={isNewHighScore}
-            />
-          )}
-          {/* Score / mode notification — floats above the board, fades out */}
-          {notification && (
-            <div
-              key={notification.key}
-              style={{
-                position: 'absolute',
-                top: -24,
-                left: '50%',
-                animation: 'notifFloat 1.4s ease forwards',
-                fontSize: 15,
-                fontWeight: 900,
-                color: notification.isScore ? mode.color : '#fbbf24',
-                letterSpacing: '0.05em',
-                pointerEvents: 'none',
-                zIndex: 20,
-                whiteSpace: 'nowrap',
-                textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
-              }}
-            >
-              {notification.text}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── REPLAY OVERLAY ──────────────────────────────────────── */}
-      {replayEngine && replayEvent && (
-        <ReplayOverlay
-          event={replayEvent}
-          engine={replayEngine}
-          onClose={() => setReplayEvent(null)}
-        />
-      )}
-
-      {/* ── WALKTHROUGH OVERLAY ──────────────────────────────────── */}
-      {walkthroughActive && walkthroughConfig && (
-        <WalkthroughOverlay
-          steps={walkthroughConfig.steps}
-          currentStepIndex={walkthroughStepIndex}
-          onAdvance={advanceWalkthrough}
-          onSkip={skipWalkthrough}
-          targetTile={walkthroughStep?.targetTile}
-          boardRef={boardRef}
-          gridSize={gs}
-          onStartGame={startGame}
-        />
-      )}
-
-      {/* ── UNLIMITED RULES DIALOG ────────────────────────────────── */}
-      {showUnlimitedRules && currentLevel && (
-        <UnlimitedRulesDialog
-          levelName={currentLevel.name}
-          previousScore={unlimitedPreviousScore}
-          onStart={handleUnlimitedStart}
-          onBack={goToMenu}
-          modeId={currentModeId}
-          onWatchBest={(() => {
-            const ends = statsEngine.getBackend().getAll().filter(
-              (e): e is GameEndEvent =>
-                e.type === 'game_end' && e.levelId === currentLevel.id && (e.moveLog?.length ?? 0) > 0
-            );
-            if (!ends.length) return undefined;
-            const best = ends.reduce((b, e) => (e.score > b.score ? e : b));
-            return () => setReplayEvent(best);
-          })()}
-        />
-      )}
-
-      {/* ── FOOTER / CONTROLS ───────────────────────────────────── */}
-      <footer
-        style={{
-          width: '100%',
-          flexShrink: 0,
-          position: 'relative',
-          zIndex: 10,
-          borderTop: '1px solid #0e0e22',
-          background: 'rgba(6,6,15,0.85)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 'clamp(10px, 3vw, 20px)',
-          padding: 'clamp(8px, 1.5vh, 12px) 16px max(10px, env(safe-area-inset-bottom))',
-        }}
-      >
-        {/* Undo — only shown for modes that support it */}
-        {showUndoBtn && (
-          <button
-            onClick={undoMove}
-            disabled={history.length === 0 || status !== 'playing'}
-            style={{ ...iconBtn, opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1 }}
-            title="Undo"
-          >
-            <span style={{ fontSize: 18 }}>⌫</span>
-          </button>
-        )}
-
-        {/* Timer display */}
-        <div
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 44 }}
-        >
-          <div
-            style={{
-              fontSize: 'clamp(13px, 3.5vw, 18px)',
-              fontWeight: 900,
-              fontVariantNumeric: 'tabular-nums',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {timeStr || '—'}
-          </div>
-          <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
-        </div>
-
-        {/* Hint — only shown for pipe modes that have a BFS solution */}
-        {showHintBtn && (
-          <button
-            onClick={() => setShowHint((h) => !h)}
-            disabled={!solution?.length || status !== 'playing'}
-            style={{
-              ...iconBtn,
-              opacity: !solution?.length || status !== 'playing' ? 0.25 : 1,
-              color: showHint ? '#fbbf24' : '#3a3a55',
-              border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
-            }}
-            title="Hint"
-          >
-            <span style={{ fontSize: 16 }}>💡</span>
-          </button>
-        )}
-
-        {/* Pause button */}
-        <button
-          onClick={isPaused ? resumeGame : pauseGame}
-          disabled={status !== 'playing' && !isPaused}
-          style={{
-            ...iconBtn,
-            opacity: status !== 'playing' && !isPaused ? 0.25 : 1,
-            color: isPaused ? '#22c55e' : '#3a3a55',
-            border: isPaused ? '1px solid #22c55e40' : '1px solid #12122a',
-          }}
-          title={isPaused ? 'Resume' : 'Pause'}
-        >
-          <span style={{ fontSize: 16 }}>{isPaused ? '▶' : '⏸'}</span>
-        </button>
-
-        {/* How to Play */}
-        <button
-          onClick={() => setShowHowToPlay(true)}
-          disabled={status !== 'playing'}
-          style={{
-            ...iconBtn,
-            opacity: status !== 'playing' ? 0.25 : 1,
-          }}
-          title="How to Play"
-        >
-          <span style={{ fontSize: 16 }}>❓</span>
-        </button>
-
-        {/* FX toggle */}
-        <button
-          onClick={toggleAnimations}
-          style={{
-            ...iconBtn,
-            color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
-            border: animationsEnabled ? '1px solid #6366f140' : '1px solid #12122a',
-          }}
-          title={animationsEnabled ? 'Disable effects' : 'Enable effects'}
-        >
-          <span style={{ fontSize: 14 }}>{animationsEnabled ? '✨' : '◻'}</span>
-        </button>
-      </footer>
-
-      {/* How to Play Modal */}
-      {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
-    </div>
-
-    {/* ── NOTIFICATION LOG — fixed right panel, escapes overflow:hidden ── */}
-    {vw >= 560 && notifLog.length > 0 && status === 'playing' && (
       <div
         style={{
           position: 'fixed',
-          left: `calc(50% + ${Math.min(vw * 0.485, 238)}px)`,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: Math.min(vw - Math.min(vw * 0.485, 238) * 2 - 16, 320),
+          inset: 0,
           display: 'flex',
           flexDirection: 'column',
-          gap: 6,
-          pointerEvents: 'none',
-          zIndex: 9999,
+          alignItems: 'center',
+          background: 'radial-gradient(ellipse 70% 50% at 50% -5%, #0d0d22 0%, #06060f 100%)',
+          color: '#fff',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          overflow: 'hidden',
+          transform: animationsEnabled && screenShake ? 'translateX(-4px)' : 'none',
+          transition: animationsEnabled && screenShake ? 'none' : 'transform 0.05s ease',
         }}
       >
-        {notifLog.slice().reverse().map((entry, i) => {
-          const opacity = Math.max(0.15, 1 - i * 0.1);
-          return (
+        <StarField />
+
+        {/* Particles — isolated component, won't re-render the rest of the board */}
+        <ParticleLayer ref={particleRef} />
+
+        {/* ── HEADER ──────────────────────────────────────────────── */}
+        <header
+          style={{
+            width: '100%',
+            flexShrink: 0,
+            position: 'relative',
+            zIndex: 10,
+            borderBottom: '1px solid #0e0e22',
+            background: 'rgba(6,6,15,0.85)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'max(10px, env(safe-area-inset-top)) 12px 10px',
+            gap: 8,
+          }}
+        >
+          <button onClick={goToMenu} style={iconBtn} title="Menu">
+            <span style={{ fontSize: 16 }}>←</span>
+          </button>
+          <div style={{ textAlign: 'center', flex: 1, minWidth: 0, padding: '0 8px' }}>
             <div
-              key={entry.id}
               style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: entry.isScore ? mode.color : '#fbbf24',
-                opacity,
-                letterSpacing: '0.03em',
-                lineHeight: 1.4,
-                textShadow: `0 0 10px ${entry.isScore ? mode.color : '#fbbf24'}60`,
-                padding: '4px 10px',
-                background: 'rgba(0,0,0,0.55)',
-                borderRadius: 6,
-                borderLeft: `3px solid ${entry.isScore ? mode.color : '#fbbf24'}`,
+                fontSize: 'clamp(14px, 4vw, 18px)',
+                fontWeight: 900,
+                letterSpacing: '-0.02em',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
-              {entry.text}
+              {currentLevel.name}
             </div>
-          );
-        })}
+            <div
+              style={{
+                fontSize: 'clamp(9px, 2.5vw, 10px)',
+                color: '#25253a',
+                letterSpacing: '0.15em',
+                marginTop: 2,
+              }}
+            >
+              LEVEL {levelDisplayNum || currentLevel.id}
+              {currentLevel.isGenerated ? ' · CUSTOM' : ''}
+            </div>
+          </div>
+          <button onClick={restartLevel} style={iconBtn} title="Restart">
+            <span style={{ fontSize: 16 }}>↺</span>
+          </button>
+        </header>
+
+        {/* ── STATS ROW ───────────────────────────────────────────── */}
+        <GameStats
+          moves={moves}
+          currentModeId={currentModeId}
+          maxMoves={currentLevel.maxMoves}
+          compressionPercent={comprPct}
+          compressionActive={compressionActive}
+          countdownSeconds={countdownSecs}
+          score={score}
+          targetScore={currentLevel.targetScore}
+          timeLeft={timeLeft}
+          timeLimit={currentLevel.timeLimit}
+          statsDisplayOverride={levelStatsDisplay}
+          isPaused={isPaused}
+        />
+
+        {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            position: 'relative',
+            zIndex: 1,
+            padding: '4px 0',
+          }}
+        >
+          <div
+            ref={boardRef}
+            style={{
+              position: 'relative',
+              width: boardPx,
+              height: boardPx,
+              background: 'linear-gradient(145deg, #0a0a16, #07070e)',
+              borderRadius: 18,
+              padding,
+              border: `2px solid ${wallsJustAdvanced ? '#ef444480' : '#12122a'}`,
+              boxShadow: wallsJustAdvanced
+                ? '0 0 40px rgba(239,68,68,0.3), inset 0 0 40px rgba(239,68,68,0.05)'
+                : '0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)',
+              transition: 'border-color 0.3s, box-shadow 0.3s',
+              flexShrink: 0,
+            }}
+          >
+            {/* Tile grid + wall overlay — delegated to GameGrid which passes
+              mode.tileRenderer down to each GameTile, enabling candy crush,
+              slots, match-3, or any custom visual without touching this file. */}
+            <GameGrid
+              tiles={tiles}
+              gridSize={gs}
+              gap={gap}
+              tileSize={tileSize}
+              wallOffset={wallOffset}
+              wallsJustAdvanced={wallsJustAdvanced}
+              compressionActive={compressionActive}
+              hintPos={hintPos}
+              hintTiles={
+                mode.getHintTiles
+                  ? mode.getHintTiles(tiles, currentLevel.goalNodes, modeState)
+                  : undefined
+              }
+              status={status}
+              onTileTap={handleTileTap}
+              animationsEnabled={animationsEnabled}
+              tileRenderer={mode.tileRenderer}
+              rejectedPos={rejectedPos}
+            />
+
+            {/* Pause overlay */}
+            {isPaused && (
+              <div style={overlayStyle}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>⏸</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#a5b4fc', marginBottom: 8 }}>
+                  PAUSED
+                </div>
+                <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 24 }}>
+                  Take a break — your game is waiting
+                </div>
+                <div
+                  style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}
+                >
+                  <button onClick={resumeGame} style={btnPrimary}>
+                    ▶ RESUME
+                  </button>
+                  <button onClick={goToMenu} style={btnSecondary}>
+                    MENU
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active, or when paused */}
+            {!(isUnlimited && showUnlimitedRules) && !walkthroughActive && !isPaused && (
+              <Overlay
+                status={status}
+                moves={moves}
+                levelName={currentLevel.name}
+                onStart={isUnlimited ? handleUnlimitedStart : startGame}
+                onNext={() => nextLevel && loadLevel(nextLevel)}
+                onMenu={goToMenu}
+                onRetry={restartLevel}
+                solution={solution}
+                hasNext={!!nextLevel}
+                elapsedSeconds={elapsedSeconds}
+                winTitle={winTitle}
+                lossTitle={lossTitle}
+                finalScore={score}
+                targetScore={currentLevel.targetScore}
+                levelRecord={levelRecord}
+                onReplay={onReplayForOverlay}
+                newHighScore={isNewHighScore}
+              />
+            )}
+            {/* Score / mode notification — floats above the board, fades out */}
+            {notification && (
+              <div
+                key={notification.key}
+                style={{
+                  position: 'absolute',
+                  top: -24,
+                  left: '50%',
+                  animation: 'notifFloat 1.4s ease forwards',
+                  fontSize: 15,
+                  fontWeight: 900,
+                  color: notification.isScore ? mode.color : '#fbbf24',
+                  letterSpacing: '0.05em',
+                  pointerEvents: 'none',
+                  zIndex: 20,
+                  whiteSpace: 'nowrap',
+                  textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
+                }}
+              >
+                {notification.text}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── REPLAY OVERLAY ──────────────────────────────────────── */}
+        {replayEngine && replayEvent && (
+          <ReplayOverlay
+            event={replayEvent}
+            engine={replayEngine}
+            onClose={() => setReplayEvent(null)}
+          />
+        )}
+
+        {/* ── WALKTHROUGH OVERLAY ──────────────────────────────────── */}
+        {walkthroughActive && walkthroughConfig && (
+          <WalkthroughOverlay
+            steps={walkthroughConfig.steps}
+            currentStepIndex={walkthroughStepIndex}
+            onAdvance={advanceWalkthrough}
+            onSkip={skipWalkthrough}
+            targetTile={walkthroughStep?.targetTile}
+            boardRef={boardRef}
+            gridSize={gs}
+            onStartGame={startGame}
+          />
+        )}
+
+        {/* ── UNLIMITED RULES DIALOG ────────────────────────────────── */}
+        {showUnlimitedRules && currentLevel && (
+          <UnlimitedRulesDialog
+            levelName={currentLevel.name}
+            previousScore={unlimitedPreviousScore}
+            onStart={handleUnlimitedStart}
+            onBack={goToMenu}
+            modeId={currentModeId}
+            onWatchBest={(() => {
+              const ends = statsEngine
+                .getBackend()
+                .getAll()
+                .filter(
+                  (e): e is GameEndEvent =>
+                    e.type === 'game_end' &&
+                    e.levelId === currentLevel.id &&
+                    (e.moveLog?.length ?? 0) > 0
+                );
+              if (!ends.length) return undefined;
+              const best = ends.reduce((b, e) => (e.score > b.score ? e : b));
+              return () => setReplayEvent(best);
+            })()}
+          />
+        )}
+
+        {/* ── FOOTER / CONTROLS ───────────────────────────────────── */}
+        <footer
+          style={{
+            width: '100%',
+            flexShrink: 0,
+            position: 'relative',
+            zIndex: 10,
+            borderTop: '1px solid #0e0e22',
+            background: 'rgba(6,6,15,0.85)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 'clamp(10px, 3vw, 20px)',
+            padding: 'clamp(8px, 1.5vh, 12px) 16px max(10px, env(safe-area-inset-bottom))',
+          }}
+        >
+          {/* Undo — only shown for modes that support it */}
+          {showUndoBtn && (
+            <button
+              onClick={undoMove}
+              disabled={history.length === 0 || status !== 'playing'}
+              style={{
+                ...iconBtn,
+                opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1,
+              }}
+              title="Undo"
+            >
+              <span style={{ fontSize: 18 }}>⌫</span>
+            </button>
+          )}
+
+          {/* Timer display */}
+          <div
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 44 }}
+          >
+            <div
+              style={{
+                fontSize: 'clamp(13px, 3.5vw, 18px)',
+                fontWeight: 900,
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {timeStr || '—'}
+            </div>
+            <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
+          </div>
+
+          {/* Hint — only shown for pipe modes that have a BFS solution */}
+          {showHintBtn && (
+            <button
+              onClick={() => setShowHint((h) => !h)}
+              disabled={!solution?.length || status !== 'playing'}
+              style={{
+                ...iconBtn,
+                opacity: !solution?.length || status !== 'playing' ? 0.25 : 1,
+                color: showHint ? '#fbbf24' : '#3a3a55',
+                border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
+              }}
+              title="Hint"
+            >
+              <span style={{ fontSize: 16 }}>💡</span>
+            </button>
+          )}
+
+          {/* Pause button */}
+          <button
+            onClick={isPaused ? resumeGame : pauseGame}
+            disabled={status !== 'playing' && !isPaused}
+            style={{
+              ...iconBtn,
+              opacity: status !== 'playing' && !isPaused ? 0.25 : 1,
+              color: isPaused ? '#22c55e' : '#3a3a55',
+              border: isPaused ? '1px solid #22c55e40' : '1px solid #12122a',
+            }}
+            title={isPaused ? 'Resume' : 'Pause'}
+          >
+            <span style={{ fontSize: 16 }}>{isPaused ? '▶' : '⏸'}</span>
+          </button>
+
+          {/* How to Play */}
+          <button
+            onClick={() => setShowHowToPlay(true)}
+            disabled={status !== 'playing'}
+            style={{
+              ...iconBtn,
+              opacity: status !== 'playing' ? 0.25 : 1,
+            }}
+            title="How to Play"
+          >
+            <span style={{ fontSize: 16 }}>❓</span>
+          </button>
+
+          {/* FX toggle */}
+          <button
+            onClick={toggleAnimations}
+            style={{
+              ...iconBtn,
+              color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
+              border: animationsEnabled ? '1px solid #6366f140' : '1px solid #12122a',
+            }}
+            title={animationsEnabled ? 'Disable effects' : 'Enable effects'}
+          >
+            <span style={{ fontSize: 14 }}>{animationsEnabled ? '✨' : '◻'}</span>
+          </button>
+        </footer>
+
+        {/* How to Play Modal */}
+        {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
       </div>
-    )}
+
+      {/* ── NOTIFICATION LOG — fixed right panel, escapes overflow:hidden ── */}
+      {vw >= 560 && notifLog.length > 0 && status === 'playing' && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `calc(50% + ${Math.min(vw * 0.485, 238)}px)`,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: Math.min(vw - Math.min(vw * 0.485, 238) * 2 - 16, 320),
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            pointerEvents: 'none',
+            zIndex: 9999,
+          }}
+        >
+          {notifLog
+            .slice()
+            .reverse()
+            .map((entry, i) => {
+              const opacity = Math.max(0.15, 1 - i * 0.1);
+              return (
+                <div
+                  key={entry.id}
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: entry.isScore ? mode.color : '#fbbf24',
+                    opacity,
+                    letterSpacing: '0.03em',
+                    lineHeight: 1.4,
+                    textShadow: `0 0 10px ${entry.isScore ? mode.color : '#fbbf24'}60`,
+                    padding: '4px 10px',
+                    background: 'rgba(0,0,0,0.55)',
+                    borderRadius: 6,
+                    borderLeft: `3px solid ${entry.isScore ? mode.color : '#fbbf24'}`,
+                  }}
+                >
+                  {entry.text}
+                </div>
+              );
+            })}
+        </div>
+      )}
     </>
   );
 }

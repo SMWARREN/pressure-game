@@ -208,7 +208,9 @@ export function renderCandyDemo(
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 10, color: '#a5b4fc', letterSpacing: '0.1em', textAlign: 'center' }}>
+        <div
+          style={{ fontSize: 10, color: '#a5b4fc', letterSpacing: '0.1em', textAlign: 'center' }}
+        >
           MATCH 3+ NEARBY → SMASH ICE
         </div>
       </div>
@@ -259,7 +261,9 @@ export function renderCandyDemo(
             <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 700 }}>2× SCORE ✨</div>
           </div>
         </div>
-        <div style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.08em', textAlign: 'center' }}>
+        <div
+          style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.08em', textAlign: 'center' }}
+        >
           NEW FLAVOR UNTIL EVENLY SPREAD
         </div>
       </div>

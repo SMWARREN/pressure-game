@@ -40,6 +40,7 @@ export class TimerSystem {
    * Start the game timer that calls tickCallback on each interval
    */
   startTimer(callback: () => void): void {
+    // Always stop any existing timer first to prevent multiple intervals
     this.stopTimer();
     this.tickCallback = callback;
     this.gameTimerInterval = setInterval(() => {

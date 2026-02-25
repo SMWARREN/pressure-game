@@ -190,7 +190,9 @@ export function renderShoppingSpreeDemo(
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 10, color: '#ef4444', letterSpacing: '0.1em', textAlign: 'center' }}>
+        <div
+          style={{ fontSize: 10, color: '#ef4444', letterSpacing: '0.1em', textAlign: 'center' }}
+        >
           MATCH 3+ NEARBY → SCARE THIEF
         </div>
       </div>
@@ -223,7 +225,10 @@ export function renderShoppingSpreeDemo(
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{ display: 'flex', gap: 6 }}>
               {bonusItems.map(({ sym, price }) => (
-                <div key={sym} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <div
+                  key={sym}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
+                >
                   <div
                     style={{
                       width: 38,
@@ -247,7 +252,9 @@ export function renderShoppingSpreeDemo(
             <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 700 }}>2× VALUE ✨</div>
           </div>
         </div>
-        <div style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.08em', textAlign: 'center' }}>
+        <div
+          style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.08em', textAlign: 'center' }}
+        >
           NEW ITEM UNTIL EVENLY SPREAD
         </div>
       </div>

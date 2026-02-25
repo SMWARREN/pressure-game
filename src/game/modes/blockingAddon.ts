@@ -40,9 +40,7 @@ export function spawnBlockers(
 ): { tiles: Tile[]; newPositions: string[] } | null {
   if (Math.random() > config.spawnChance) return null;
 
-  const candidates = tiles.filter(
-    (t) => t.canRotate && !existingBlocked.has(`${t.x},${t.y}`)
-  );
+  const candidates = tiles.filter((t) => t.canRotate && !existingBlocked.has(`${t.x},${t.y}`));
   if (candidates.length === 0) return null;
 
   const shuffled = [...candidates].sort(() => Math.random() - 0.5);

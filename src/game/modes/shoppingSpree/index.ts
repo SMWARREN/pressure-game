@@ -216,18 +216,23 @@ const ITEM_COLORS: Record<string, { bg: string; border: string; glow: string }> 
   '💎': { bg: '#0f1f2d', border: '#06b6d4', glow: 'rgba(6,182,212,0.6)' }, // Cyan diamond
   // Bonus items — unlocked mid-game via 5+ combos
   '🎀': { bg: '#2d0f20', border: '#f472b6', glow: 'rgba(244,114,182,0.5)' }, // Ribbon $20
-  '👒': { bg: '#2d1d0a', border: '#ca8a04', glow: 'rgba(202,138,4,0.5)'  }, // Sun hat $25
+  '👒': { bg: '#2d1d0a', border: '#ca8a04', glow: 'rgba(202,138,4,0.5)' }, // Sun hat $25
   '🧣': { bg: '#0a2020', border: '#0d9488', glow: 'rgba(13,148,136,0.5)' }, // Scarf $30
   '💍': { bg: '#1a1505', border: '#d4af37', glow: 'rgba(212,175,55,0.6)' }, // Ring $45
   '🧥': { bg: '#0a0f20', border: '#3b82f6', glow: 'rgba(59,130,246,0.5)' }, // Coat $35
-  '🕶️': { bg: '#151515', border: '#94a3b8', glow: 'rgba(148,163,184,0.5)'}, // Sunglasses $25
+  '🕶️': { bg: '#151515', border: '#94a3b8', glow: 'rgba(148,163,184,0.5)' }, // Sunglasses $25
 };
 
 // Bonus items not in the base pool — unlocked one at a time via 5+ combos.
 // Values are defined in ITEM_VALUES (imported from levels) but extras live here.
 const SHOPPING_BONUS_ITEMS = ['🎀', '👒', '🧣', '💍', '🧥', '🕶️'];
 const BONUS_ITEM_VALUES: Record<string, number> = {
-  '🎀': 20, '👒': 25, '🧣': 30, '💍': 45, '🧥': 35, '🕶️': 25,
+  '🎀': 20,
+  '👒': 25,
+  '🧣': 30,
+  '💍': 45,
+  '🧥': 35,
+  '🕶️': 25,
 };
 
 // ── Mode config ───────────────────────────────────────────────────────────────
@@ -425,7 +430,10 @@ export const ShoppingSpreeMode: GameModeConfig = {
 
     // 🦹 THIEF SCARING — threshold and radius scale with world difficulty
     const { tiles: remainingWithThiefClear, unblocked: scaredThiefKeys } = unblockNearGroup(
-      group, remaining, 'hasThief', minGroupSize
+      group,
+      remaining,
+      'hasThief',
+      minGroupSize
     );
     const thiefScared = scaredThiefKeys.size > 0;
     const newThiefPositions = (state.thiefPositions || []).filter(

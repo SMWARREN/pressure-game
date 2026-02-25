@@ -76,7 +76,7 @@ export function updateFreshness(tiles: Tile[], state: SymbolUnlockState): Symbol
   if (!state.freshSymbols.length) return state;
   const active = tiles.filter((t) => t.canRotate);
   if (!active.length) return state;
-  const numSymbols = (active[0].displayData?.activeSymbols as string[] ?? []).length || 1;
+  const numSymbols = ((active[0].displayData?.activeSymbols as string[]) ?? []).length || 1;
   const evenShare = active.length / numSymbols;
   const stillFresh = state.freshSymbols.filter((sym) => {
     const count = active.filter((t) => t.displayData?.symbol === sym).length;

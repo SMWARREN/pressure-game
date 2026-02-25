@@ -197,7 +197,11 @@ export const CandyMode: GameModeConfig = {
       // Fresh (newly unlocked) tile — golden glow, worth 2×
       if (tile.displayData?.isFresh && tile.canRotate) {
         const sym = tile.displayData?.symbol as string;
-        const c = CANDY_COLORS[sym] ?? { bg: '#1a1a2e', border: '#fbbf24', glow: 'rgba(251,191,36,0.5)' };
+        const c = CANDY_COLORS[sym] ?? {
+          bg: '#1a1a2e',
+          border: '#fbbf24',
+          glow: 'rgba(251,191,36,0.5)',
+        };
         return {
           background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}cc 100%)`,
           border: '2px solid #fbbf24',
@@ -289,7 +293,12 @@ export const CandyMode: GameModeConfig = {
     }
 
     // Unfreeze nearby frozen tiles — threshold and radius scale with world difficulty
-    const { tiles: remainingWithUnfrozen } = unblockNearGroup(group, remaining, 'frozen', minGroupSize);
+    const { tiles: remainingWithUnfrozen } = unblockNearGroup(
+      group,
+      remaining,
+      'frozen',
+      minGroupSize
+    );
 
     let next = applyGravity(remainingWithUnfrozen, gridSize);
 
