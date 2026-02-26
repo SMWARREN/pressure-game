@@ -53,5 +53,7 @@ export const BlitzMode: GameModeConfig = {
     moves: 'TAPS',
     compression: 'INCOMING',
   },
+  // Blitz has walls but no move limit - show taps, compression bar, and countdown
+  statsDisplay: [{ type: 'moves' }, { type: 'compressionBar' }, { type: 'countdown' }],
   walkthrough: BLITZ_WALKTHROUGH,
 };

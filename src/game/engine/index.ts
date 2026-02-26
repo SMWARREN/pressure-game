@@ -409,6 +409,16 @@ export class PressureEngine implements IPressureEngine {
       isPaused: false,
       lastPlayedLevelId: saved.lastPlayedLevelId,
       selectedWorld: 1,
+      editor: {
+        enabled: false,
+        tool: null,
+        selectedTile: null,
+        moveSource: null,
+        connectionPreset: null,
+        gridSize: null,
+        compressionDirection: 'all',
+        savedState: null,
+      },
     };
   }
 

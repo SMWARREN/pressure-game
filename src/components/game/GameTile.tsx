@@ -147,6 +147,7 @@ export interface GameTileProps {
   connections: Direction[];
   canRotate: boolean;
   isGoalNode: boolean;
+  isDecoy?: boolean;
   isHint: boolean;
   inDanger: boolean;
   justRotated?: boolean;
@@ -158,6 +159,8 @@ export interface GameTileProps {
   displayData?: Record<string, unknown>;
   /** Tap was rejected (isolated tile) — show a brief red flash */
   isRejected?: boolean;
+  /** Editor mode - allows clicking on any cell including empty ones */
+  editorMode?: boolean;
 }
 
 /**
@@ -172,6 +175,7 @@ function GameTileComponent({
   connections,
   canRotate,
   isGoalNode,
+  isDecoy = false,
   isHint,
   inDanger,
   justRotated,
@@ -181,6 +185,7 @@ function GameTileComponent({
   tileRenderer,
   displayData,
   isRejected = false,
+  editorMode = false,
 }: GameTileProps) {
   const [pressed, setPressed] = useState(false);
   const [ripple, setRipple] = useState(false);
@@ -199,7 +204,8 @@ function GameTileComponent({
   }, []);
 
   const handleClick = () => {
-    if (!canRotate) return;
+    // In editor mode, always allow clicks. In game mode, only allow on rotatable tiles.
+    if (!editorMode && !canRotate) return;
 
     if (animationsEnabled) {
       setPressed(true);
@@ -237,6 +243,21 @@ function GameTileComponent({
           ? '0 0 20px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
           : '0 0 14px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
       };
+    // Decoy tiles - blue color like non-rotatable path tiles
+    if (type === 'path' && isDecoy)
+      return {
+        background: isHint
+          ? 'linear-gradient(145deg, #1e4060 0%, #153049 100%)'
+          : inDanger
+            ? 'linear-gradient(145deg, #3d1a1a 0%, #2d1010 100%)'
+            : 'linear-gradient(145deg, #1e3060 0%, #172349 100%)',
+        border: `2px solid ${isHint ? '#60a5fa' : inDanger ? '#ef4444' : '#3b82f6'}`,
+        boxShadow: isHint
+          ? '0 0 18px rgba(96,165,250,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'
+          : inDanger
+            ? '0 0 14px rgba(239,68,68,0.4)'
+            : '0 0 10px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
+      };
     if (type === 'path' && canRotate)
       return {
         background: isHint
@@ -265,24 +286,36 @@ function GameTileComponent({
       ? inDanger
         ? 'rgba(252,165,165,0.9)'
         : 'rgba(134,239,172,0.95)'
-      : canRotate
+      : isDecoy
         ? isHint
-          ? 'rgba(253,230,138,0.95)'
+          ? 'rgba(147,197,253,0.95)'
           : inDanger
             ? 'rgba(252,165,165,0.9)'
-            : 'rgba(252,211,77,0.92)'
-        : 'rgba(147,197,253,0.85)';
+            : 'rgba(147,197,253,0.85)'
+        : canRotate
+          ? isHint
+            ? 'rgba(253,230,138,0.95)'
+            : inDanger
+              ? 'rgba(252,165,165,0.9)'
+              : 'rgba(252,211,77,0.92)'
+          : 'rgba(147,197,253,0.85)';
 
   const connGlow =
     type === 'node'
       ? inDanger
         ? 'rgba(239,68,68,0.6)'
         : 'rgba(34,197,94,0.5)'
-      : canRotate
+      : isDecoy
         ? isHint
-          ? 'rgba(253,230,138,0.7)'
-          : 'rgba(245,158,11,0.5)'
-        : 'rgba(59,130,246,0.4)';
+          ? 'rgba(96,165,250,0.7)'
+          : inDanger
+            ? 'rgba(239,68,68,0.5)'
+            : 'rgba(59,130,246,0.4)'
+        : canRotate
+          ? isHint
+            ? 'rgba(253,230,138,0.7)'
+            : 'rgba(245,158,11,0.5)'
+          : 'rgba(59,130,246,0.4)';
 
   const tileTransform = animationsEnabled
     ? pressed
@@ -440,7 +473,7 @@ function GameTileComponent({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        cursor: canRotate ? 'pointer' : 'default',
+        cursor: editorMode ? 'pointer' : canRotate ? 'pointer' : 'default',
         transform: tileTransform,
         transition: tileTransition,
         ...bgStyle,

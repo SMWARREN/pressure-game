@@ -16,6 +16,7 @@ const DEFAULT_PERSISTED: PersistedState = {
   seenTutorials: ['classic'],
   animationsEnabled: true,
   lastPlayedLevelId: {},
+  editorEnabled: false,
 };
 
 /**
@@ -47,6 +48,7 @@ export class PersistenceSystem {
           p.seenTutorials || (p.showTutorial === false ? [DEFAULT_PERSISTED.currentModeId] : []),
         animationsEnabled: p.animationsEnabled !== false,
         lastPlayedLevelId: p.lastPlayedLevelId ?? {},
+        editorEnabled: p.editorEnabled ?? false,
       };
     } catch {
       return { ...DEFAULT_PERSISTED };
@@ -80,6 +82,7 @@ export class PersistenceSystem {
       seenTutorials: state.seenTutorials,
       animationsEnabled: state.animationsEnabled,
       lastPlayedLevelId: state.lastPlayedLevelId,
+      editorEnabled: state.editor?.enabled ?? false,
     };
   }
 

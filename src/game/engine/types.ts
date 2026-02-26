@@ -46,6 +46,7 @@ export interface PersistedState {
   seenTutorials: string[];
   animationsEnabled: boolean;
   lastPlayedLevelId: Record<string, number>;
+  editorEnabled: boolean;
 }
 
 /**

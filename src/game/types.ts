@@ -69,6 +69,8 @@ export interface Tile {
   connections: Direction[];
   canRotate: boolean;
   isGoalNode: boolean;
+  /** Decoy tiles look like path tiles but aren't part of the solution path */
+  isDecoy?: boolean;
   justRotated?: boolean;
   justCrushed?: boolean;
   /**
@@ -94,6 +96,25 @@ export interface Tile {
    LEVEL
 ═══════════════════════════════════════════════════════════════════════════ */
 
+/** Compression direction - which sides the walls compress from */
+export type CompressionDirection =
+  | 'all'
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'top-bottom'
+  | 'left-right'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'top-left-right'
+  | 'bottom-left-right'
+  | 'left-top-bottom'
+  | 'right-top-bottom'
+  | 'none';
+
 export interface Level {
   id: number;
   name: string;
@@ -104,6 +125,8 @@ export interface Level {
   maxMoves: number;
   compressionDelay: number;
   compressionEnabled?: boolean;
+  /** Which directions walls compress from. Default: 'all' (from all sides) */
+  compressionDirection?: CompressionDirection;
   isGenerated?: boolean;
   solution?: { x: number; y: number; rotations: number }[];
   /** Score-based modes: win when score reaches this value */
@@ -159,6 +182,32 @@ export interface GameState {
   selectedWorld: number;
   /** Last played level ID per mode — used to highlight the level in the menu */
   lastPlayedLevelId: Record<string, number>;
+  /** Editor state object */
+  editor: EditorState;
+}
+
+/** Editor state */
+export interface EditorState {
+  /** Whether the editor is enabled */
+  enabled: boolean;
+  /** Which tool is selected */
+  tool: 'select' | 'move' | 'node' | 'path' | 'wall' | 'eraser' | 'rotate' | 'decoy' | null;
+  /** Currently selected tile position */
+  selectedTile: { x: number; y: number } | null;
+  /** Move source tile (for move tool) */
+  moveSource: { x: number; y: number } | null;
+  /** Connection presets for path tiles */
+  connectionPreset: Direction[] | null;
+  /** Custom grid size for editor (null = use level's gridSize) */
+  gridSize: number | null;
+  /** Compression direction for the level */
+  compressionDirection: CompressionDirection;
+  /** Saved state before entering editor (to restore on exit) */
+  savedState: {
+    tiles: Tile[];
+    goalNodes: Position[];
+    gridSize: number;
+  } | null;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -188,6 +237,17 @@ export interface GameActions {
   pauseGame: () => void;
   resumeGame: () => void;
   setSelectedWorld: (world: number) => void;
+  toggleEditor: () => void;
+  setEditorTool: (
+    tool: 'select' | 'move' | 'node' | 'path' | 'wall' | 'eraser' | 'rotate' | 'decoy' | null
+  ) => void;
+  setEditorSelectedTile: (pos: { x: number; y: number } | null) => void;
+  editorUpdateTile: (x: number, y: number) => void;
+  editorRotateTile: (clockwise?: boolean) => void;
+  editorMoveTile: (fromX: number, fromY: number, toX: number, toY: number) => void;
+  editorToggleGoalNode: (x: number, y: number) => void;
+  exportLevel: () => string;
+  editorResizeGrid: (delta: number) => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

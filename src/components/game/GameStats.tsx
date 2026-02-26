@@ -63,9 +63,11 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
 
 /**
  * MovesCounter - Shows current moves vs max moves
+ * If maxMoves is 0 or undefined, shows just the move count (for modes without move limits)
  */
 function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) {
-  const outOfMoves = moves >= maxMoves;
+  const hasLimit = maxMoves && maxMoves > 0;
+  const outOfMoves = hasLimit && moves >= maxMoves;
   const color = outOfMoves ? '#ef4444' : '#fff';
   const bgColor = outOfMoves ? 'rgba(239,68,68,0.1)' : '#07070e';
   const borderColor = outOfMoves ? '#ef444460' : '#12122a';
@@ -81,7 +83,7 @@ function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) 
         borderRadius: 10,
         padding: '6px 12px',
         flexShrink: 0,
-        minWidth: 54,
+        minWidth: hasLimit ? 54 : 48,
         transition: 'all 0.3s',
         boxShadow: outOfMoves ? '0 0 12px rgba(239,68,68,0.3)' : 'none',
       }}
@@ -98,29 +100,44 @@ function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) 
       >
         {moves}
       </div>
-      <div
-        style={{
-          fontSize: 8,
-          color: outOfMoves ? '#ef4444' : '#3a3a55',
-          letterSpacing: '0.12em',
-          marginTop: 2,
-          transition: 'color 0.3s',
-        }}
-      >
-        / {maxMoves}
-      </div>
-      {outOfMoves && (
+      {hasLimit ? (
+        <>
+          <div
+            style={{
+              fontSize: 8,
+              color: outOfMoves ? '#ef4444' : '#3a3a55',
+              letterSpacing: '0.12em',
+              marginTop: 2,
+              transition: 'color 0.3s',
+            }}
+          >
+            / {maxMoves}
+          </div>
+          {outOfMoves && (
+            <div
+              style={{
+                fontSize: 7,
+                color: '#ef4444',
+                letterSpacing: '0.08em',
+                marginTop: 2,
+                fontWeight: 700,
+                animation: 'pulse 1s ease-in-out infinite',
+              }}
+            >
+              NO MOVES
+            </div>
+          )}
+        </>
+      ) : (
         <div
           style={{
-            fontSize: 7,
-            color: '#ef4444',
-            letterSpacing: '0.08em',
+            fontSize: 8,
+            color: '#3a3a55',
+            letterSpacing: '0.12em',
             marginTop: 2,
-            fontWeight: 700,
-            animation: 'pulse 1s ease-in-out infinite',
           }}
         >
-          NO MOVES
+          MOVES
         </div>
       )}
     </div>
@@ -316,6 +333,7 @@ interface GameStatsProps {
   timeLimit?: number;
   statsDisplayOverride?: StatComponentConfig[];
   isPaused?: boolean;
+  isEditor?: boolean;
 }
 
 /**
@@ -334,6 +352,7 @@ export default function GameStats({
   timeLimit,
   statsDisplayOverride,
   isPaused = false,
+  isEditor = false,
 }: GameStatsProps) {
   // Ensure score is always a valid number (guard against NaN/undefined)
   const safeScore = Number.isFinite(score) ? score : 0;
@@ -345,6 +364,40 @@ export default function GameStats({
       { type: 'compressionBar' },
       { type: 'countdown' },
     ];
+
+  // In editor mode, show a simplified editor stats bar instead of game stats
+  if (isEditor) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 16,
+          width: '100%',
+          maxWidth: 400,
+          marginBottom: 12,
+          position: 'relative',
+          zIndex: 1,
+          padding: '8px 16px',
+          background: 'rgba(168,85,247,0.08)',
+          border: '1px solid rgba(168,85,247,0.3)',
+          borderRadius: 12,
+        }}
+      >
+        <span style={{ fontSize: 14, color: '#a855f7' }}>🛠️</span>
+        <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', color: '#a855f7' }}>
+          LEVEL EDITOR
+        </span>
+        <span style={{ fontSize: 10, color: '#6b21a8' }}>|</span>
+        <span style={{ fontSize: 11, color: '#c084fc' }}>
+          Grid: {maxMoves}×{maxMoves}
+        </span>
+        <span style={{ fontSize: 10, color: '#6b21a8' }}>|</span>
+        <span style={{ fontSize: 10, color: '#3a3a55' }}>Tap tiles to edit</span>
+      </div>
+    );
+  }
 
   return (
     <div

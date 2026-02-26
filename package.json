@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "test:game": "npx tsx src/cli/game-tester.ts"
+    "test:game": "npx tsx src/cli/game-tester.ts",
+    "solve": "npx tsx src/cli/level-solver.ts",
+    "enhance": "npx tsx src/cli/level-enhancer.ts"
   },
   "dependencies": {
     "react": "^19.0.0",

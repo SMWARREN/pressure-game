@@ -7,7 +7,7 @@ import ModeSelectorModal from './ModeSelectorModal';
 import StatsScreen from './StatsScreen';
 import { WalkthroughOverlay, useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '../game/modes';
-import { Level } from '@/game/types';
+import { Level, Direction } from '@/game/types';
 import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
 import { statsEngine } from '@/game/stats';
@@ -449,6 +449,40 @@ const iconBtn: React.CSSProperties = {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   LOADING SPINNER
+═══════════════════════════════════════════════════════════════════════════ */
+
+function LoadingSpinner({ size = 24, color = '#6366f1' }: { size?: number; color?: string }) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        border: `3px solid ${color}20`,
+        borderTop: `3px solid ${color}`,
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }}
+    />
+  );
+}
+
+// Inject spinner animation
+let spinnerStylesInjected = false;
+function ensureSpinnerStyles() {
+  if (spinnerStylesInjected || typeof document === 'undefined') return;
+  spinnerStylesInjected = true;
+  const el = document.createElement('style');
+  el.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(el);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    STAR FIELD
 ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -676,9 +710,24 @@ function LevelGeneratorPanel({ onLoad }: { onLoad: (level: Level) => void }) {
           <button
             onClick={handleGenerate}
             disabled={generating}
-            style={{ ...btnPrimary, width: '100%', opacity: generating ? 0.7 : 1 }}
+            style={{
+              ...btnPrimary,
+              width: '100%',
+              opacity: generating ? 0.7 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
           >
-            {generating ? 'GENERATING...' : '⚡ GENERATE LEVEL'}
+            {generating ? (
+              <>
+                <LoadingSpinner size={16} color="#fff" />
+                <span>GENERATING...</span>
+              </>
+            ) : (
+              <span>⚡ GENERATE LEVEL</span>
+            )}
           </button>
         </div>
       )}
@@ -1017,7 +1066,7 @@ function MenuScreen() {
     // If there's a last played level for this mode, switch to its world
     const lastPlayedId = lastPlayedLevelId[currentModeId];
     if (lastPlayedId) {
-      const lastPlayedLevel = levels.find(l => l.id === lastPlayedId);
+      const lastPlayedLevel = levels.find((l) => l.id === lastPlayedId);
       if (lastPlayedLevel) {
         setSelectedWorld(lastPlayedLevel.world);
         if (!activeMode.supportsWorkshop) setView('levels');
@@ -1355,7 +1404,11 @@ function MenuScreen() {
                             fontSize: 'clamp(15px, 4vw, 18px)',
                             fontWeight: 900,
                             position: 'relative',
-                            boxShadow: isLastPlayed ? `0 0 16px #6366f130` : done ? `0 0 16px ${wm.color}15` : 'none',
+                            boxShadow: isLastPlayed
+                              ? `0 0 16px #6366f130`
+                              : done
+                                ? `0 0 16px ${wm.color}15`
+                                : 'none',
                             transition: 'all 0.15s',
                             minWidth: 48,
                             minHeight: 48,
@@ -1562,6 +1615,10 @@ export default function GameBoard() {
     pauseGame,
     resumeGame,
     isPaused,
+    toggleEditor,
+    editor,
+    setEditorTool,
+    editorUpdateTile,
   } = useGameStore(
     useShallow((s) => ({
       currentLevel: s.currentLevel,
@@ -1592,6 +1649,12 @@ export default function GameBoard() {
       pauseGame: s.pauseGame,
       resumeGame: s.resumeGame,
       isPaused: s.isPaused,
+      toggleEditor: s.toggleEditor,
+      editor: s.editor,
+      setEditorTool: s.setEditorTool,
+      setEditorSelectedTile: s.setEditorSelectedTile,
+      editorUpdateTile: s.editorUpdateTile,
+      editorRotateTile: s.editorRotateTile,
     }))
   );
 
@@ -1634,9 +1697,10 @@ export default function GameBoard() {
     };
   }, [showHowToPlay, status, pauseGame, resumeGame]);
 
-  // Inject notification CSS once on mount
+  // Inject notification CSS and spinner CSS once on mount
   useEffect(() => {
     ensureNotifStyles();
+    ensureSpinnerStyles();
   }, []);
 
   const showNotification = useCallback((text: string, isScore = false) => {
@@ -1652,11 +1716,43 @@ export default function GameBoard() {
 
   // Only compute solution for pipe-based modes (classic, blitz, zen, quantum_chain, etc.)
   // Non-pipe modes (gravity, memory, candy, etc.) have their own win conditions
+  // Skip solution computation in editor mode
+  // LAZY: Solution is only computed when user clicks hint, not on level load
   const isPipeMode =
     !mode.tileRenderer ||
     mode.tileRenderer.type === 'default' ||
     mode.tileRenderer.hidePipes === false;
-  const solution = currentLevel && isPipeMode ? getSolution(currentLevel) : null;
+  const [computedSolution, setComputedSolution] = useState<
+    { x: number; y: number; rotations: number }[] | null
+  >(null);
+  const [isComputingSolution, setIsComputingSolution] = useState(false);
+
+  // Compute solution lazily when hint is requested
+  const computeSolution = useCallback(() => {
+    if (
+      !currentLevel ||
+      !isPipeMode ||
+      editor.enabled ||
+      computedSolution !== null ||
+      isComputingSolution
+    )
+      return;
+    setIsComputingSolution(true);
+    // Use setTimeout to defer computation to next tick, allowing UI to render first
+    setTimeout(() => {
+      const sol = getSolution(currentLevel);
+      setComputedSolution(sol);
+      setIsComputingSolution(false);
+    }, 0);
+  }, [currentLevel, isPipeMode, editor.enabled, computedSolution, isComputingSolution]);
+
+  // Reset solution when level changes
+  useEffect(() => {
+    setComputedSolution(null);
+    setIsComputingSolution(false);
+  }, [currentLevel?.id]);
+
+  const solution = computedSolution;
 
   // Level-specific all-time record — computed once per level load, not reactive
   const levelRecord = useMemo(() => {
@@ -1707,8 +1803,15 @@ export default function GameBoard() {
     '🍓': '#ec4899',
   };
 
+  // Handle tile tap - routes to editor or game logic
   const handleTileTap = useCallback(
     (x: number, y: number) => {
+      // In editor mode, use editor actions
+      if (editor.enabled && editor.tool) {
+        editorUpdateTile(x, y);
+        return;
+      }
+
       if (status !== 'playing') return;
       const tile = tiles.find((t) => t.x === x && t.y === y);
       if (!tile?.canRotate) return;
@@ -1831,16 +1934,16 @@ export default function GameBoard() {
   const hintPos = showHint && solution?.length ? solution[0] : null;
 
   // Use the active mode's level list so NEXT works in every mode (Candy, Blitz, etc.)
-  // For generated/workshop levels, navigate within the generatedLevels list by position.
-  const allLevels = currentLevel.isGenerated
-    ? generatedLevels
-    : [...mode.getLevels(), ...generatedLevels];
+  // Check if this level is part of the mode's defined levels (even if procedurally generated)
+  const modeLevels = mode.getLevels();
+  const isInModeLevels = modeLevels.some((l) => l.id === currentLevel.id);
+  // For workshop levels (not in mode's level list), navigate within generatedLevels
+  const allLevels = isInModeLevels ? [...modeLevels, ...generatedLevels] : generatedLevels;
   const currentIndex = allLevels.findIndex((l) => l.id === currentLevel.id);
   const nextLevel =
     currentIndex >= 0 && currentIndex < allLevels.length - 1 ? allLevels[currentIndex + 1] : null;
 
   // Compute display level number (1-based position in mode's level list)
-  const modeLevels = mode.getLevels();
   const levelDisplayNum = modeLevels.findIndex((l) => l.id === currentLevel.id) + 1;
 
   const winTitle = mode.overlayText?.win ?? 'CONNECTED';
@@ -1911,6 +2014,7 @@ export default function GameBoard() {
           overflow: 'hidden',
           transform: animationsEnabled && screenShake ? 'translateX(-4px)' : 'none',
           transition: animationsEnabled && screenShake ? 'none' : 'transform 0.05s ease',
+          zIndex: 1,
         }}
       >
         <StarField />
@@ -1982,6 +2086,7 @@ export default function GameBoard() {
           timeLimit={currentLevel.timeLimit}
           statsDisplayOverride={levelStatsDisplay}
           isPaused={isPaused}
+          isEditor={editor.enabled}
         />
 
         {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
@@ -2036,10 +2141,11 @@ export default function GameBoard() {
               animationsEnabled={animationsEnabled}
               tileRenderer={mode.tileRenderer}
               rejectedPos={rejectedPos}
+              editorMode={editor.enabled}
             />
 
-            {/* Pause overlay */}
-            {isPaused && (
+            {/* Pause overlay - hide when editor is enabled */}
+            {isPaused && !editor.enabled && (
               <div style={overlayStyle}>
                 <div style={{ fontSize: 32, marginBottom: 8 }}>⏸</div>
                 <div style={{ fontSize: 20, fontWeight: 900, color: '#a5b4fc', marginBottom: 8 }}>
@@ -2061,28 +2167,33 @@ export default function GameBoard() {
               </div>
             )}
 
-            {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active, or when paused */}
-            {!(isUnlimited && showUnlimitedRules) && !walkthroughActive && !isPaused && (
-              <Overlay
-                status={status}
-                moves={moves}
-                levelName={currentLevel.name}
-                onStart={isUnlimited ? handleUnlimitedStart : startGame}
-                onNext={() => nextLevel && loadLevel(nextLevel)}
-                onMenu={goToMenu}
-                onRetry={restartLevel}
-                solution={solution}
-                hasNext={!!nextLevel}
-                elapsedSeconds={elapsedSeconds}
-                winTitle={winTitle}
-                lossTitle={lossTitle}
-                finalScore={score}
-                targetScore={currentLevel.targetScore}
-                levelRecord={levelRecord}
-                onReplay={onReplayForOverlay}
-                newHighScore={isNewHighScore}
-              />
-            )}
+            {/* Editor mode indicator in top bar - no blocking overlay */}
+
+            {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active, or when paused, or when editor is enabled */}
+            {!(isUnlimited && showUnlimitedRules) &&
+              !walkthroughActive &&
+              !isPaused &&
+              !editor.enabled && (
+                <Overlay
+                  status={status}
+                  moves={moves}
+                  levelName={currentLevel.name}
+                  onStart={isUnlimited ? handleUnlimitedStart : startGame}
+                  onNext={() => nextLevel && loadLevel(nextLevel)}
+                  onMenu={goToMenu}
+                  onRetry={restartLevel}
+                  solution={solution}
+                  hasNext={!!nextLevel}
+                  elapsedSeconds={elapsedSeconds}
+                  winTitle={winTitle}
+                  lossTitle={lossTitle}
+                  finalScore={score}
+                  targetScore={currentLevel.targetScore}
+                  levelRecord={levelRecord}
+                  onReplay={onReplayForOverlay}
+                  newHighScore={isNewHighScore}
+                />
+              )}
             {/* Score / mode notification — floats above the board, fades out */}
             {notification && (
               <div
@@ -2176,99 +2287,479 @@ export default function GameBoard() {
             padding: 'clamp(8px, 1.5vh, 12px) 16px max(10px, env(safe-area-inset-bottom))',
           }}
         >
-          {/* Undo — only shown for modes that support it */}
-          {showUndoBtn && (
-            <button
-              onClick={undoMove}
-              disabled={history.length === 0 || status !== 'playing'}
-              style={{
-                ...iconBtn,
-                opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1,
-              }}
-              title="Undo"
-            >
-              <span style={{ fontSize: 18 }}>⌫</span>
-            </button>
+          {/* Editor toggle - always visible */}
+          <button
+            onClick={toggleEditor}
+            style={{
+              ...iconBtn,
+              color: editor.enabled ? '#22c55e' : '#a855f7',
+              border: editor.enabled ? '1px solid #22c55e40' : '1px solid #a855f740',
+              background: editor.enabled ? 'rgba(34,197,94,0.1)' : 'transparent',
+            }}
+            title={editor.enabled ? 'Exit Editor' : 'Level Editor'}
+          >
+            <span style={{ fontSize: 16 }}>{editor.enabled ? '✓' : '🛠️'}</span>
+          </button>
+
+          {/* In editor mode, show simplified footer with grid controls */}
+          {editor.enabled ? (
+            <>
+              {/* Grid size controls */}
+              <button
+                onClick={() => useGameStore.getState().editorResizeGrid(-1)}
+                style={{
+                  ...iconBtn,
+                  color: '#a855f7',
+                  border: '1px solid #a855f740',
+                }}
+                title="Decrease Grid"
+              >
+                <span style={{ fontSize: 18 }}>−</span>
+              </button>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  minWidth: 44,
+                }}
+              >
+                <div style={{ fontSize: 14, fontWeight: 900, color: '#a855f7' }}>
+                  {editor.gridSize ?? gs}×{editor.gridSize ?? gs}
+                </div>
+                <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.1em' }}>GRID</div>
+              </div>
+              <button
+                onClick={() => useGameStore.getState().editorResizeGrid(1)}
+                style={{
+                  ...iconBtn,
+                  color: '#a855f7',
+                  border: '1px solid #a855f740',
+                }}
+                title="Increase Grid"
+              >
+                <span style={{ fontSize: 18 }}>+</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Undo — only shown for modes that support it */}
+              {showUndoBtn && (
+                <button
+                  onClick={undoMove}
+                  disabled={history.length === 0 || status !== 'playing'}
+                  style={{
+                    ...iconBtn,
+                    opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1,
+                  }}
+                  title="Undo"
+                >
+                  <span style={{ fontSize: 18 }}>⌫</span>
+                </button>
+              )}
+
+              {/* Timer display */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  minWidth: 44,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 'clamp(13px, 3.5vw, 18px)',
+                    fontWeight: 900,
+                    fontVariantNumeric: 'tabular-nums',
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  {timeStr || '—'}
+                </div>
+                <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
+              </div>
+
+              {/* Hint — only shown for pipe modes that have a BFS solution */}
+              {showHintBtn && (
+                <button
+                  onClick={() => {
+                    // Compute solution lazily on first hint click
+                    if (computedSolution === null && !isComputingSolution) {
+                      computeSolution();
+                    }
+                    setShowHint((h) => !h);
+                  }}
+                  disabled={isComputingSolution || status !== 'playing'}
+                  style={{
+                    ...iconBtn,
+                    opacity: isComputingSolution || status !== 'playing' ? 0.25 : 1,
+                    color: showHint ? '#fbbf24' : '#3a3a55',
+                    border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
+                  }}
+                  title={isComputingSolution ? 'Computing...' : 'Hint'}
+                >
+                  {isComputingSolution ? (
+                    <LoadingSpinner size={18} color="#fbbf24" />
+                  ) : (
+                    <span style={{ fontSize: 16 }}>💡</span>
+                  )}
+                </button>
+              )}
+
+              {/* Pause button */}
+              <button
+                onClick={isPaused ? resumeGame : pauseGame}
+                disabled={status !== 'playing' && !isPaused}
+                style={{
+                  ...iconBtn,
+                  opacity: status !== 'playing' && !isPaused ? 0.25 : 1,
+                  color: isPaused ? '#22c55e' : '#3a3a55',
+                  border: isPaused ? '1px solid #22c55e40' : '1px solid #12122a',
+                }}
+                title={isPaused ? 'Resume' : 'Pause'}
+              >
+                <span style={{ fontSize: 16 }}>{isPaused ? '▶' : '⏸'}</span>
+              </button>
+
+              {/* How to Play */}
+              <button
+                onClick={() => setShowHowToPlay(true)}
+                disabled={status !== 'playing'}
+                style={{
+                  ...iconBtn,
+                  opacity: status !== 'playing' ? 0.25 : 1,
+                }}
+                title="How to Play"
+              >
+                <span style={{ fontSize: 16 }}>❓</span>
+              </button>
+
+              {/* FX toggle */}
+              <button
+                onClick={toggleAnimations}
+                style={{
+                  ...iconBtn,
+                  color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
+                  border: animationsEnabled ? '1px solid #6366f140' : '1px solid #12122a',
+                }}
+                title={animationsEnabled ? 'Disable effects' : 'Enable effects'}
+              >
+                <span style={{ fontSize: 14 }}>{animationsEnabled ? '✨' : '◻'}</span>
+              </button>
+            </>
           )}
-
-          {/* Timer display */}
-          <div
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 44 }}
-          >
-            <div
-              style={{
-                fontSize: 'clamp(13px, 3.5vw, 18px)',
-                fontWeight: 900,
-                fontVariantNumeric: 'tabular-nums',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {timeStr || '—'}
-            </div>
-            <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
-          </div>
-
-          {/* Hint — only shown for pipe modes that have a BFS solution */}
-          {showHintBtn && (
-            <button
-              onClick={() => setShowHint((h) => !h)}
-              disabled={!solution?.length || status !== 'playing'}
-              style={{
-                ...iconBtn,
-                opacity: !solution?.length || status !== 'playing' ? 0.25 : 1,
-                color: showHint ? '#fbbf24' : '#3a3a55',
-                border: showHint ? '1px solid #fbbf2440' : '1px solid #12122a',
-              }}
-              title="Hint"
-            >
-              <span style={{ fontSize: 16 }}>💡</span>
-            </button>
-          )}
-
-          {/* Pause button */}
-          <button
-            onClick={isPaused ? resumeGame : pauseGame}
-            disabled={status !== 'playing' && !isPaused}
-            style={{
-              ...iconBtn,
-              opacity: status !== 'playing' && !isPaused ? 0.25 : 1,
-              color: isPaused ? '#22c55e' : '#3a3a55',
-              border: isPaused ? '1px solid #22c55e40' : '1px solid #12122a',
-            }}
-            title={isPaused ? 'Resume' : 'Pause'}
-          >
-            <span style={{ fontSize: 16 }}>{isPaused ? '▶' : '⏸'}</span>
-          </button>
-
-          {/* How to Play */}
-          <button
-            onClick={() => setShowHowToPlay(true)}
-            disabled={status !== 'playing'}
-            style={{
-              ...iconBtn,
-              opacity: status !== 'playing' ? 0.25 : 1,
-            }}
-            title="How to Play"
-          >
-            <span style={{ fontSize: 16 }}>❓</span>
-          </button>
-
-          {/* FX toggle */}
-          <button
-            onClick={toggleAnimations}
-            style={{
-              ...iconBtn,
-              color: animationsEnabled ? '#a5b4fc' : '#3a3a55',
-              border: animationsEnabled ? '1px solid #6366f140' : '1px solid #12122a',
-            }}
-            title={animationsEnabled ? 'Disable effects' : 'Enable effects'}
-          >
-            <span style={{ fontSize: 14 }}>{animationsEnabled ? '✨' : '◻'}</span>
-          </button>
         </footer>
 
         {/* How to Play Modal */}
         {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
+
+        {/* ── EDITOR TOOLBAR ─────────────────────────────────────── */}
+        {editor.enabled && (
+          <div
+            style={{
+              position: 'fixed',
+              left: '50%',
+              bottom: 100,
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              padding: '8px 12px',
+              background: 'rgba(10,10,22,0.95)',
+              borderRadius: 16,
+              border: '1px solid #a855f740',
+              boxShadow: '0 4px 24px rgba(168,85,247,0.2)',
+              zIndex: 100,
+              maxWidth: '95vw',
+            }}
+          >
+            {/* Top row: Tools - scrollable on mobile */}
+            <div
+              style={{
+                display: 'flex',
+                gap: 8,
+                alignItems: 'center',
+                overflowX: 'auto' as const,
+                WebkitOverflowScrolling: 'touch' as const,
+                paddingBottom: 4,
+                marginBottom: 4,
+              }}
+            >
+              {/* Editor mode indicator */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '0 8px',
+                  borderRight: '1px solid #a855f740',
+                  marginRight: 4,
+                }}
+              >
+                <span style={{ fontSize: 14, color: '#a855f7' }}>🛠️</span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#a855f7',
+                    letterSpacing: '0.1em',
+                  }}
+                >
+                  EDITOR
+                </span>
+              </div>
+
+              {/* Tool buttons */}
+              {(
+                ['select', 'move', 'rotate', 'node', 'path', 'wall', 'decoy', 'eraser'] as const
+              ).map((tool) => {
+                const icons: Record<typeof tool, string> = {
+                  select: '👆',
+                  move: '✥',
+                  rotate: '↻',
+                  node: '⬡',
+                  path: '┼',
+                  wall: '🧱',
+                  decoy: '🎭',
+                  eraser: '🗑️',
+                };
+                const labels: Record<typeof tool, string> = {
+                  select: 'Select',
+                  move: 'Move',
+                  rotate: 'Rotate',
+                  node: 'Node',
+                  path: 'Path',
+                  wall: 'Wall',
+                  decoy: 'Decoy',
+                  eraser: 'Erase',
+                };
+                const isActive = editor.tool === tool;
+                return (
+                  <button
+                    key={tool}
+                    onClick={() => setEditorTool(tool)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 2,
+                      padding: '6px 10px',
+                      borderRadius: 10,
+                      border: isActive ? '1px solid #a855f7' : '1px solid transparent',
+                      background: isActive ? 'rgba(168,85,247,0.2)' : 'transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      minWidth: 44,
+                    }}
+                    title={labels[tool]}
+                  >
+                    <span style={{ fontSize: 16 }}>{icons[tool]}</span>
+                    <span
+                      style={{
+                        fontSize: 8,
+                        color: isActive ? '#a855f7' : '#3a3a55',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {labels[tool].toUpperCase()}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {/* Export button */}
+              <div style={{ borderLeft: '1px solid #a855f740', marginLeft: 4, paddingLeft: 8 }}>
+                <button
+                  onClick={() => {
+                    const { exportLevel } = useGameStore.getState();
+                    const levelJson = exportLevel();
+                    if (levelJson) {
+                      navigator.clipboard
+                        .writeText(levelJson)
+                        .then(() => {
+                          showNotification('Level copied to clipboard!', false);
+                        })
+                        .catch(() => {
+                          showNotification('Failed to copy', false);
+                        });
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 2,
+                    padding: '6px 10px',
+                    borderRadius: 10,
+                    border: '1px solid #22c55e40',
+                    background: 'rgba(34,197,94,0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    minWidth: 44,
+                  }}
+                  title="Export Level"
+                >
+                  <span style={{ fontSize: 16 }}>📋</span>
+                  <span style={{ fontSize: 8, color: '#22c55e', fontWeight: 600 }}>EXPORT</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Compression direction selector */}
+            <div
+              style={{
+                display: 'flex',
+                gap: 4,
+                paddingTop: 8,
+                borderTop: '1px solid #a855f740',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 9,
+                  color: '#3a3a55',
+                  width: '100%',
+                  textAlign: 'center',
+                  marginBottom: 4,
+                }}
+              >
+                WALL DIRECTION
+              </span>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+                {[
+                  { dir: 'all' as const, label: '⬛', title: 'All sides' },
+                  { dir: 'top' as const, label: '⬇', title: 'From top' },
+                  { dir: 'bottom' as const, label: '⬆', title: 'From bottom' },
+                  { dir: 'left' as const, label: '➡', title: 'From left' },
+                  { dir: 'right' as const, label: '⬅', title: 'From right' },
+                  { dir: 'top-bottom' as const, label: '↕', title: 'Top & bottom' },
+                  { dir: 'left-right' as const, label: '↔', title: 'Left & right' },
+                  { dir: 'none' as const, label: '○', title: 'No walls' },
+                ].map(({ dir, label, title }) => {
+                  const isActive = editor.compressionDirection === dir;
+                  return (
+                    <button
+                      key={dir}
+                      onClick={() => {
+                        const newEditor = {
+                          ...useGameStore.getState().editor,
+                          compressionDirection: dir,
+                        };
+                        useGameStore.setState({ editor: newEditor });
+                      }}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 6,
+                        border: isActive ? '1px solid #ef4444' : '1px solid #12122a',
+                        background: isActive ? 'rgba(239,68,68,0.2)' : '#07070e',
+                        color: isActive ? '#ef4444' : '#a5b4fc',
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      title={title}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Connection presets row - shown when a path tile is selected */}
+            {editor.selectedTile &&
+              (() => {
+                const selectedTile = tiles.find(
+                  (t) => t.x === editor.selectedTile?.x && t.y === editor.selectedTile?.y
+                );
+                return (
+                  selectedTile?.type === 'path' && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 4,
+                        paddingTop: 8,
+                        borderTop: '1px solid #a855f740',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 9,
+                          color: '#3a3a55',
+                          width: '100%',
+                          textAlign: 'center',
+                          marginBottom: 4,
+                        }}
+                      >
+                        CONNECTIONS
+                      </span>
+                      {[
+                        { name: '─', connections: ['left', 'right'] as Direction[] },
+                        { name: '│', connections: ['up', 'down'] as Direction[] },
+                        { name: '┌', connections: ['down', 'right'] as Direction[] },
+                        { name: '┐', connections: ['down', 'left'] as Direction[] },
+                        { name: '└', connections: ['up', 'right'] as Direction[] },
+                        { name: '┘', connections: ['up', 'left'] as Direction[] },
+                        { name: '├', connections: ['up', 'down', 'right'] as Direction[] },
+                        { name: '┤', connections: ['up', 'down', 'left'] as Direction[] },
+                        { name: '┬', connections: ['down', 'left', 'right'] as Direction[] },
+                        { name: '┴', connections: ['up', 'left', 'right'] as Direction[] },
+                        { name: '┼', connections: ['up', 'down', 'left', 'right'] as Direction[] },
+                      ].map((preset) => {
+                        const isActive =
+                          JSON.stringify([...selectedTile.connections].sort()) ===
+                          JSON.stringify([...preset.connections].sort());
+                        return (
+                          <button
+                            key={preset.name}
+                            onClick={() => {
+                              const idx = tiles.findIndex(
+                                (t) =>
+                                  t.x === editor.selectedTile?.x && t.y === editor.selectedTile?.y
+                              );
+                              if (idx >= 0) {
+                                const newTiles = [...tiles];
+                                newTiles[idx] = {
+                                  ...newTiles[idx],
+                                  connections: preset.connections,
+                                };
+                                useGameStore.setState({ tiles: newTiles });
+                              }
+                            }}
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 6,
+                              border: isActive ? '1px solid #22c55e' : '1px solid #12122a',
+                              background: isActive ? 'rgba(34,197,94,0.2)' : '#07070e',
+                              color: isActive ? '#22c55e' : '#a5b4fc',
+                              fontSize: 14,
+                              fontFamily: 'monospace',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title={preset.connections.join(' + ')}
+                          >
+                            {preset.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )
+                );
+              })()}
+          </div>
+        )}
       </div>
 
       {/* ── NOTIFICATION LOG — fixed right panel, escapes overflow:hidden ── */}

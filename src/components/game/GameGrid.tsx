@@ -21,6 +21,8 @@ interface GameGridProps {
   tileRenderer?: TileRenderer;
   /** Position of last rejected (invalid) tap — shows red flash on that tile */
   rejectedPos?: { x: number; y: number } | null;
+  /** Editor mode - allows clicking on any cell including empty ones */
+  editorMode?: boolean;
 }
 
 /**
@@ -43,6 +45,7 @@ function GameGridComponent({
   animationsEnabled = true,
   tileRenderer,
   rejectedPos,
+  editorMode = false,
 }: GameGridProps) {
   // Create a Map for O(1) tile lookups instead of O(n) array.find()
   const tileMap = useMemo(() => {
@@ -122,6 +125,7 @@ function GameGridComponent({
               connections={tile?.connections || []}
               canRotate={tile?.canRotate || false}
               isGoalNode={tile?.isGoalNode || false}
+              isDecoy={tile?.isDecoy || false}
               isHint={isHint}
               inDanger={inDanger}
               justRotated={tile?.justRotated}
@@ -131,6 +135,7 @@ function GameGridComponent({
               tileRenderer={tileRenderer}
               displayData={tile?.displayData}
               isRejected={isRejected}
+              editorMode={editorMode}
             />
           );
         })}
