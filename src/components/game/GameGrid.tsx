@@ -1,5 +1,5 @@
 import { useMemo, memo } from 'react';
-import { Tile, TileRenderer } from '@/game/types';
+import { Tile, TileRenderer, CompressionDirection } from '@/game/types';
 import GameTile from './GameTile';
 import WallOverlay from './WallOverlay';
 
@@ -23,6 +23,8 @@ interface GameGridProps {
   rejectedPos?: { x: number; y: number } | null;
   /** Editor mode - allows clicking on any cell including empty ones */
   editorMode?: boolean;
+  /** Compression direction - which sides walls compress from */
+  compressionDirection?: CompressionDirection;
 }
 
 /**
@@ -46,6 +48,7 @@ function GameGridComponent({
   tileRenderer,
   rejectedPos,
   editorMode = false,
+  compressionDirection = 'all',
 }: GameGridProps) {
   // Create a Map for O(1) tile lookups instead of O(n) array.find()
   const tileMap = useMemo(() => {
@@ -148,6 +151,7 @@ function GameGridComponent({
         wallsJustAdvanced={wallsJustAdvanced}
         isPlaying={status === 'playing'}
         animationsEnabled={animationsEnabled}
+        compressionDirection={compressionDirection}
       />
     </>
   );

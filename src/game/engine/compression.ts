@@ -1,9 +1,82 @@
 // PRESSURE - Compression System
 // Handles wall compression mechanics for the game engine.
 
-import type { Tile, Level, Position } from '../types';
+import type { Tile, Level, Position, CompressionDirection } from '../types';
 import type { WallAdvanceResult, EngineContext } from './types';
 import { getModeById } from '../modes';
+
+/**
+ * Check if a position should be crushed based on compression direction
+ */
+function shouldCrushAtPosition(
+  x: number,
+  y: number,
+  gridSize: number,
+  wallOffset: number,
+  direction: CompressionDirection
+): boolean {
+  if (direction === 'none') return false;
+  
+  const maxIdx = gridSize - 1;
+  
+  // Calculate distance from each edge
+  const distFromTop = y;
+  const distFromBottom = maxIdx - y;
+  const distFromLeft = x;
+  const distFromRight = maxIdx - x;
+  
+  // Check if within crush zone based on direction
+  switch (direction) {
+    case 'all':
+      // Original behavior - crush from all sides
+      return Math.min(distFromTop, distFromBottom, distFromLeft, distFromRight) < wallOffset;
+    
+    case 'top':
+      return distFromTop < wallOffset;
+    
+    case 'bottom':
+      return distFromBottom < wallOffset;
+    
+    case 'left':
+      return distFromLeft < wallOffset;
+    
+    case 'right':
+      return distFromRight < wallOffset;
+    
+    case 'top-bottom':
+      return distFromTop < wallOffset || distFromBottom < wallOffset;
+    
+    case 'left-right':
+      return distFromLeft < wallOffset || distFromRight < wallOffset;
+    
+    case 'top-left':
+      return distFromTop < wallOffset || distFromLeft < wallOffset;
+    
+    case 'top-right':
+      return distFromTop < wallOffset || distFromRight < wallOffset;
+    
+    case 'bottom-left':
+      return distFromBottom < wallOffset || distFromLeft < wallOffset;
+    
+    case 'bottom-right':
+      return distFromBottom < wallOffset || distFromRight < wallOffset;
+    
+    case 'top-left-right':
+      return distFromTop < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset;
+    
+    case 'bottom-left-right':
+      return distFromBottom < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset;
+    
+    case 'left-top-bottom':
+      return distFromLeft < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset;
+    
+    case 'right-top-bottom':
+      return distFromRight < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset;
+    
+    default:
+      return false;
+  }
+}
 
 /**
  * Compression system that handles wall advancement and crushing mechanics.
@@ -30,17 +103,19 @@ export class CompressionSystem {
     const gridSize = level.gridSize;
     const maxOffset = Math.floor(gridSize / 2);
     const newOffset = wallOffset + 1;
+    const direction: CompressionDirection = level.compressionDirection ?? 'all';
 
     // Can't advance beyond the maximum
     if (newOffset > maxOffset) {
       return { tiles, newOffset: wallOffset, gameOver: false, lossReason: null };
     }
 
-    // Crush tiles that are now inside the wall boundary
+    // Crush tiles that are now inside the wall boundary based on compression direction
     const newTiles = tiles.map((tile) => {
-      const dist = Math.min(tile.x, tile.y, gridSize - 1 - tile.x, gridSize - 1 - tile.y);
+      // Use direction-aware crush check
+      const shouldCrush = shouldCrushAtPosition(tile.x, tile.y, gridSize, newOffset, direction);
 
-      if (dist < newOffset && tile.type !== 'wall' && tile.type !== 'crushed') {
+      if (shouldCrush && tile.type !== 'wall' && tile.type !== 'crushed') {
         return { ...tile, type: 'crushed' as const, justCrushed: true };
       }
       return tile;

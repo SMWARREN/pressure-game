@@ -2124,6 +2124,7 @@ export default function GameBoard() {
               slots, match-3, or any custom visual without touching this file. */}
             <GameGrid
               tiles={tiles}
+              compressionDirection={currentLevel?.compressionDirection ?? editor.compressionDirection ?? 'all'}
               gridSize={gs}
               gap={gap}
               tileSize={tileSize}
