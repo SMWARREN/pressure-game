@@ -24,8 +24,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
   // Get initial state from engine (loads from persistence)
   const initialState = engine.getInitialState();
 
+  // Get the default world from the current mode
+  const currentMode = getModeById(initialState.currentModeId);
+  const defaultWorld = currentMode.worlds[0]?.id ?? 1;
+
   return {
     ...initialState,
+    selectedWorld: initialState.selectedWorld ?? defaultWorld,
 
     setGameMode: (modeId: string) => {
       const { seenTutorials } = get();
@@ -49,7 +54,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     loadLevel: (level: Level) => {
       engine.clearTimers();
       const levelState = engine.getInitialLevelState(level);
-      set(levelState);
+      // Save the world so returning to menu goes back to the same world
+      set({ ...levelState, selectedWorld: level.world });
+    },
+
+    setSelectedWorld: (world: number) => {
+      set({ selectedWorld: world });
     },
 
     restartLevel: () => {

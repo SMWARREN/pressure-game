@@ -982,6 +982,9 @@ function MenuScreen() {
     replayTutorial,
     replayWalkthrough,
     generatedLevels,
+    selectedWorld,
+    setSelectedWorld,
+    lastPlayedLevelId,
   } = useGameStore(
     useShallow((s) => ({
       completedLevels: s.completedLevels,
@@ -993,10 +996,14 @@ function MenuScreen() {
       replayTutorial: s.replayTutorial,
       replayWalkthrough: s.replayWalkthrough,
       generatedLevels: s.generatedLevels,
+      selectedWorld: s.selectedWorld,
+      setSelectedWorld: s.setSelectedWorld,
+      lastPlayedLevelId: s.lastPlayedLevelId,
     }))
   );
   const [view, setView] = useState<'levels' | 'workshop'>('levels');
-  const [world, setWorld] = useState(1);
+  // Use selectedWorld from store instead of local state
+  const world = selectedWorld;
   const [showModeModal, setShowModeModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -1007,7 +1014,18 @@ function MenuScreen() {
 
   // Reset world + view when the active mode changes
   useEffect(() => {
-    setWorld(activeMode.worlds[0]?.id ?? 1);
+    // If there's a last played level for this mode, switch to its world
+    const lastPlayedId = lastPlayedLevelId[currentModeId];
+    if (lastPlayedId) {
+      const lastPlayedLevel = levels.find(l => l.id === lastPlayedId);
+      if (lastPlayedLevel) {
+        setSelectedWorld(lastPlayedLevel.world);
+        if (!activeMode.supportsWorkshop) setView('levels');
+        return;
+      }
+    }
+    // Otherwise default to first world
+    setSelectedWorld(activeMode.worlds[0]?.id ?? 1);
     if (!activeMode.supportsWorkshop) setView('levels');
   }, [currentModeId]);
 
@@ -1242,7 +1260,7 @@ function MenuScreen() {
                   return (
                     <button
                       key={wDef.id}
-                      onClick={() => setWorld(wDef.id)}
+                      onClick={() => setSelectedWorld(wDef.id)}
                       style={{
                         padding: '14px 8px',
                         borderRadius: 14,
@@ -1317,6 +1335,8 @@ function MenuScreen() {
                       // Display level number as 1-based index within this world
                       const worldLevels = levels.filter((l) => l.world === world);
                       const displayNum = worldLevels.findIndex((l) => l.id === level.id) + 1;
+                      // Check if this is the last played level for this mode
+                      const isLastPlayed = lastPlayedLevelId[currentModeId] === level.id;
                       return (
                         <button
                           key={level.id}
@@ -1325,21 +1345,45 @@ function MenuScreen() {
                             aspectRatio: '1',
                             borderRadius: 14,
                             cursor: 'pointer',
-                            border: `1.5px solid ${done ? wm.color + '50' : '#12122a'}`,
-                            background: done
-                              ? `linear-gradient(145deg, ${wm.color}18 0%, ${wm.color}0a 100%)`
-                              : 'linear-gradient(145deg, #0a0a16 0%, #07070e 100%)',
-                            color: done ? wm.color : '#2a2a3e',
+                            border: `1.5px solid ${isLastPlayed ? '#6366f1' : done ? wm.color + '50' : '#12122a'}`,
+                            background: isLastPlayed
+                              ? `linear-gradient(145deg, #6366f120 0%, #6366f108 100%)`
+                              : done
+                                ? `linear-gradient(145deg, ${wm.color}18 0%, ${wm.color}0a 100%)`
+                                : 'linear-gradient(145deg, #0a0a16 0%, #07070e 100%)',
+                            color: isLastPlayed ? '#a5b4fc' : done ? wm.color : '#2a2a3e',
                             fontSize: 'clamp(15px, 4vw, 18px)',
                             fontWeight: 900,
                             position: 'relative',
-                            boxShadow: done ? `0 0 16px ${wm.color}15` : 'none',
+                            boxShadow: isLastPlayed ? `0 0 16px #6366f130` : done ? `0 0 16px ${wm.color}15` : 'none',
                             transition: 'all 0.15s',
                             minWidth: 48,
                             minHeight: 48,
                           }}
                         >
                           {displayNum}
+                          {/* Last played indicator */}
+                          {isLastPlayed && !done && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: -6,
+                                right: -6,
+                                borderRadius: 8,
+                                background: '#6366f1',
+                                padding: '1px 5px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                fontSize: 9,
+                                color: '#fff',
+                                fontWeight: 900,
+                                boxShadow: '0 0 8px rgba(99,102,241,0.6)',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              ▶
+                            </div>
+                          )}
                           {(level.isUnlimited && unlimitedBest > 0) ||
                           scoreBest !== undefined ||
                           best !== undefined ? (

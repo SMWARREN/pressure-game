@@ -155,6 +155,10 @@ export interface GameState {
   lossReason: string | null;
   /** Whether the game is currently paused */
   isPaused: boolean;
+  /** Currently selected world in the menu — persisted so returning from a level goes back to the same world */
+  selectedWorld: number;
+  /** Last played level ID per mode — used to highlight the level in the menu */
+  lastPlayedLevelId: Record<string, number>;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -183,6 +187,7 @@ export interface GameActions {
   toggleAnimations: () => void;
   pauseGame: () => void;
   resumeGame: () => void;
+  setSelectedWorld: (world: number) => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

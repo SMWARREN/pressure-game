@@ -45,6 +45,7 @@ export interface PersistedState {
   currentModeId: string;
   seenTutorials: string[];
   animationsEnabled: boolean;
+  lastPlayedLevelId: Record<string, number>;
 }
 
 /**

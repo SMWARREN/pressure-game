@@ -341,6 +341,11 @@ export class PressureEngine implements IPressureEngine {
     // Clear any pending timeouts from previous game
     this.clearTimers();
 
+    // Save the last played level ID for this mode
+    const modeId = state.currentModeId;
+    const newLastPlayed = { ...state.lastPlayedLevelId, [modeId]: level.id };
+    this.persist({ ...state, lastPlayedLevelId: newLastPlayed });
+
     return {
       currentLevel: level,
       tiles: level.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
@@ -362,6 +367,7 @@ export class PressureEngine implements IPressureEngine {
       modeState: initialModeState,
       _winCheckPending: false,
       isPaused: false,
+      lastPlayedLevelId: newLastPlayed,
     };
   }
 
@@ -401,6 +407,8 @@ export class PressureEngine implements IPressureEngine {
       modeState: {},
       _winCheckPending: false,
       isPaused: false,
+      lastPlayedLevelId: saved.lastPlayedLevelId,
+      selectedWorld: 1,
     };
   }
 
