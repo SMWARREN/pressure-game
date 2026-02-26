@@ -6,6 +6,7 @@ import { TimerSystem, createTimerSystem } from './timer';
 import { AudioSystem, createAudioSystem } from './audio';
 import { PersistenceSystem, createPersistenceSystem } from './persistence';
 import { CompressionSystem, createCompressionSystem } from './compression';
+import { getAchievementEngine } from '../achievements/engine';
 import type {
   IPressureEngine,
   PressureEngineConfig,
@@ -317,6 +318,9 @@ export class PressureEngine implements IPressureEngine {
         wallsJustAdvanced: true,
       });
 
+      // Track walls survived for achievements
+      this.trackWallsSurvived();
+
       // Clear wallsJustAdvanced after animation
       this.setTimeout(() => {
         if (this.setState) {
@@ -480,7 +484,51 @@ export class PressureEngine implements IPressureEngine {
         bestMoves: newBest,
         _winCheckPending: false,
       });
+
+      // Check achievements after winning
+      this.checkAchievementsOnWin(s, level);
     }, 600);
+  }
+
+  /**
+   * Check achievements when a level is won
+   */
+  private checkAchievementsOnWin(state: GameState, level: Level): void {
+    const achievementEngine = getAchievementEngine();
+    
+    // Calculate stats for achievements
+    const levelsCompleted = state.completedLevels.length + 1; // +1 for current level
+    
+    // Check if this was a speedrun (under 10 seconds)
+    const speedruns = state.elapsedSeconds < 10 ? 1 : 0;
+    
+    // Check if moves were under par (par is typically maxMoves or a fraction of it)
+    const movesUnderPar = level.maxMoves && state.moves < level.maxMoves ? 1 : 0;
+    
+    // Get current mode for mode-specific achievements
+    const currentModeId = state.currentModeId;
+
+    achievementEngine.checkAchievements({
+      levelsCompleted,
+      movesUnderPar,
+      speedruns,
+      currentStreak: 0, // TODO: track daily streaks
+      noHintsLevels: 0, // TODO: track hint usage
+      perfectWorlds: 0, // TODO: track perfect worlds
+      wallsSurvived: 0, // Tracked separately via advanceWalls
+      currentModeId,
+      currentLevelId: level.id,
+    });
+  }
+
+  /**
+   * Track walls survived for achievements
+   */
+  private trackWallsSurvived(): void {
+    const achievementEngine = getAchievementEngine();
+    const progress = achievementEngine.getProgress('survivor');
+    const current = progress?.current ?? 0;
+    achievementEngine.updateProgress('survivor', current + 1);
   }
 }
 
