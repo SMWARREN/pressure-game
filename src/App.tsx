@@ -1,7 +1,13 @@
 import GameBoard from './components/GameBoard';
+import InstallPrompt from './components/InstallPrompt';
 
 function App() {
-  return <GameBoard />;
+  return (
+    <>
+      <GameBoard />
+      <InstallPrompt />
+    </>
+  );
 }
 
 export default App;
