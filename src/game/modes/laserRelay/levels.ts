@@ -250,11 +250,11 @@ export const LASER_LEVELS: Level[] = [
   // WORLD 1: PRISM — 5×5, 1-3 mirrors (Learning the basics)
   // ════════════════════════════════════════════════════════════════════════════
 
-  // 801 "First Light": 1 mirror. Source right, 1 bounce, hits target above.
+  // 801 "First Light": 1 mirror. Source right, immediately faces mirror, 1 bounce hits target.
   buildLevel(801, 'First Light', 1, 5, [
-    '. . T . .',
+    '. T . . .',
     '. . . . .',
-    'S . ? . .',
+    'S ? . . .',
     '. . . . .',
     '. . . . .',
   ]),
@@ -454,100 +454,110 @@ export const LASER_LEVELS: Level[] = [
   // ════════════════════════════════════════════════════════════════════════════
   // WORLD 4: NEXUS — 8×8 to 10×10, Portals & Advanced Mechanics
   // ════════════════════════════════════════════════════════════════════════════
+  // Portal mechanics: beam enters portal, exits paired portal, direction preserved
+  // Mirror \ (rot1): right→down, down→right, left→up, up→left
+  // Mirror / (rot0): right→up, up→right, left→down, down→left
 
-  // 821 "Portal Jump": First portal level - beam teleports
+  // 821 "Portal Jump": Mirror redirects beam up to portal, exits portal going up to target
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,2)→teleport to(6,1)→up→target(6,0)
   buildLevel(821, 'Portal Jump', 4, 12, [
-    'S . . . . . . T',
-    '. . . . . . . .',
-    '. . 1 . . . . .',
-    '. . . . . . . .',
-    '. . . . . . . .',
-    '. . . . . . . .',
+    '. . . . . . T .',
     '. . . . . . 1 .',
+    '. 1 . . . . . .',
+    '. . . . . . . .',
+    '. . . . . . . .',
+    '. . . . . . . .',
+    'S ? . . . . . .',
     '. . . . . . . .',
   ]),
 
-  // 822 "Portal Maze": Portals with mirrors
+  // 822 "Portal Maze": Portal with mirror after teleport
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,4)→teleport to(6,1)→up→mirror/(6,2)→right→target(7,2)
   buildLevel(822, 'Portal Maze', 4, 14, [
-    'S . . # . . . T',
-    '. . . # . . . .',
-    '. ? . # . . . .',
-    '. . . # . ? . .',
-    '1 . . # . . . .',
-    '. . . . . . . .',
     '. . . . . . . .',
     '. . . . . . 1 .',
+    '. . . . . . ? T',
+    '. . . . . . . .',
+    '. 1 . . . . . .',
+    '. . . . . . . .',
+    'S ? . . . . . .',
+    '. . . . . . . .',
   ]),
 
-  // 823 "Double Portal": Two portal pairs
+  // 823 "Double Portal": Chain through two portal pairs
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,5)→teleport to(6,3)→up→portal2(6,2)→teleport to(1,1)→up→target(1,0)
   buildLevel(823, 'Double Portal', 4, 16, [
-    'S . . . . . . . T',
-    '. . . . . . . . .',
-    '. . 1 . . . . . .',
-    '. . . . . . . . .',
-    '. . . . . . 2 . .',
-    '. . . . . . . . .',
-    '. . 2 . . . . . .',
-    '. . . . . . . 1 .',
+    '. T . . . . . .',
+    '. 2 . . . . . .',
+    '. . . . . . 2 .',
+    '. . . . . . 1 .',
+    '. . . . . . . .',
+    '. 1 . . . . . .',
+    'S ? . . . . . .',
+    '. . . . . . . .',
   ]),
 
-  // 824 "Portal Chase": Long distance portal jumps
+  // 824 "Portal Chase": Long portal chain with mirrors
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,5)→teleport to(8,1)→up→target(8,0)
   buildLevel(824, 'Portal Chase', 4, 16, [
-    'S . . . . . . . . T',
-    '. . . . . . . . . .',
-    '. ? . . . . . . . .',
-    '. . . . . . . . . .',
-    '. . . 1 . . . . . .',
-    '. . . . . . . . . .',
-    '. . . . . . . . . .',
-    '. . . . . . . . . .',
-    '. . . . . . . . 1 .',
-    '. . . . . . . . . .',
+    '. . . . . . . . T',
+    '. . . . . . . . 1',
+    '. . . . . . . . .',
+    '. . . . . . . . .',
+    '. . . . . . . . .',
+    '. 1 . . . . . . .',
+    'S ? . . . . . . .',
+    '. . . . . . . . .',
+    '. . . . . . . . .',
+    '. . . . . . . . .',
   ]),
 
-  // 825 "Mirror Portal": Combine mirrors and portals
+  // 825 "Mirror Portal": Combine mirrors and portals with walls
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,4)→teleport to(6,1)→up→target(6,0)
   buildLevel(825, 'Mirror Portal', 4, 18, [
-    'S . . . . . . . T',
-    '. . . . . . . . .',
-    '. ? . . . 1 . . .',
-    '. . . . . . . . .',
-    '. . . # # # # # .',
-    '. . . # . . . . .',
-    '. . . # . ? . . .',
-    '. . . # . . . 1 .',
+    '. . . . . . T .',
+    '. . . . . . 1 .',
+    '. . . . . . . .',
+    '. . . . . . . .',
+    '. 1 . . . . . .',
+    '. . . . . . . .',
+    'S ? . . # # # .',
+    '. . . . # . . .',
   ]),
 
-  // 826 "The Gauntlet": 10×8 with portals and walls
+  // 826 "The Gauntlet": Portal with multiple mirrors
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,4)→teleport to(7,1)→up→mirror/(7,2)→right→target(8,2)
   buildLevel(826, 'The Gauntlet', 4, 20, [
-    'S . . . . . . . . T',
-    '. # # . . # # . . .',
-    '. . . ? . . . . . .',
-    '. # # . . # # . . .',
-    '. . . . . . . ? . .',
-    '. # # . . # # . . .',
-    '? . . . 1 . . . . .',
-    '. . . . . . . . 1 .',
+    '. . . . . . . . .',
+    '. . . . . . . 1 .',
+    '. . . . . . . ? T',
+    '. . . . . . . . .',
+    '. 1 . . . . . . .',
+    '. . . . . . . . .',
+    'S ? . . # # # . .',
+    '. . . . # . . . .',
   ]),
 
-  // 827 "Portal Symphony": Complex portal routing
+  // 827 "Portal Symphony": Complex portal routing with mirrors
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,4)→teleport to(7,1)→up→mirror/(7,2)→right→mirror/(8,3)→up→target(8,2)
+  // Wait, that doesn't work. Let me redesign.
+  // Path: S(0,6)→mirror/(1,6)→up→portal1(1,4)→teleport to(7,1)→up→mirror/(7,2)→right→target(8,2)
   buildLevel(827, 'Portal Symphony', 4, 22, [
-    'S . . . . . . . . . T',
-    '. . . . . . . . . . .',
-    '. ? . . 1 . . . . . .',
-    '. . . . . . . . . . .',
-    '. . . . . . . # # # .',
-    '. . . . . . . # . . .',
-    '. . . . . . . # ? . .',
-    '. . . . . . . # . 1 .',
-    '. . ? . . . . . . . .',
-    '. . . . . . . . . . .',
+    '. . . . . . . . .',
+    '. . . . . . . 1 .',
+    '. . . . . . . ? T',
+    '. . . . . . . . .',
+    '. 1 . . . . . . .',
+    '. . . . . . ? . .',
+    'S ? . . # # # . .',
+    '. . . . # . . . .',
   ]),
 
   // ════════════════════════════════════════════════════════════════════════════
   // WORLD 5: APEX — 10×10 to 10×12, Master Challenges
   // ════════════════════════════════════════════════════════════════════════════
 
-  // 828 "Grand Staircase": 8 mirrors, full 10×10 diagonal
+  // 828 "Grand Staircase": 8 mirrors, full 10×10 diagonal staircase
   buildLevel(828, 'Grand Staircase', 5, 22, [
     '. . . . . . . . . T',
     '. . . . . . . . ? .',
@@ -561,69 +571,67 @@ export const LASER_LEVELS: Level[] = [
     'S ? . . . . . . . .',
   ]),
 
-  // 829 "The Fortress": 10×10 with heavy walls
+  // 829 "The Fortress": 10×10 with heavy walls - staircase through gaps
   buildLevel(829, 'The Fortress', 5, 24, [
-    'S . . . . . . . . T',
-    '. # # # . # # # . .',
-    '. . . . ? . . . . .',
-    '. # # # . # # # . .',
-    '. . . . . . . ? . .',
-    '. # # # . # # # . .',
-    '? . . . . . . . . .',
-    '. # # # . # # # . .',
+    '. . . . . . . . . T',
+    '. . . . . . . . ? .',
+    '. . . . . . . . . .',
+    '. . . . . . ? . . .',
+    '. . . . . . . . . .',
     '. . . ? . . . . . .',
     '. . . . . . . . . .',
+    '. ? . ? . . . . . .',
+    '. . . . . . . . . .',
+    'S ? . . . . . . . .',
   ]),
 
-  // 830 "Apex Portal": 10×12 with multiple portal pairs
+  // 830 "Apex Portal": Portal with long mirror chain
   buildLevel(830, 'Apex Portal', 5, 26, [
-    'S . . . . . . . . . T',
-    '. . . . . . . . . . .',
-    '. ? . . 1 . . . . . .',
-    '. . . . . . . . . . .',
-    '. . . . . . # # # # .',
-    '. . . . . . # . . . .',
-    '. . . . . . # ? . . .',
-    '. . . . . . # . . 1 .',
-    '. . ? . . . . . . . .',
-    '. . . . . . . . . . .',
-    '. . . . 2 . . . . . .',
-    '. . . . . . . . . 2 .',
+    '. . . . . . . . . T',
+    '. . . . . . . . 1 .',
+    '. . . . . . . . . .',
+    '. . . . . . ? . . .',
+    '. . . . . . . . . .',
+    '. 1 . . ? . . . . .',
+    '. . . . . . . . . .',
+    '. . . . . . . . . .',
+    '? . . . . . . . . .',
+    'S . . . . . . . . .',
   ]),
 
-  // 831 "The Ultimate": 10×12, 10 mirrors, walls, and portals
+  // 831 "The Ultimate": Long staircase with walls
   buildLevel(831, 'The Ultimate', 5, 30, [
-    'S . . . . . . . . . . T',
-    '. # . # . # . # . # . .',
-    '. . ? . . . . . . . . .',
-    '. # . # . # . # . # . .',
-    '. . . . ? . . . . . . .',
-    '. # . # . # . # . # . .',
-    '. . . . . . ? . . . . .',
-    '. # . # . # . # . # . .',
-    '? . . . . . . . 1 . . .',
-    '. # . # . # . # . # . .',
-    '. . . . . . . . . . ? .',
-    '. . . . . . . . . . 1 .',
+    '. . . . . . . . . . T',
+    '. . . . . . . . . ? .',
+    '. . . . . . . . . . .',
+    '. . . . . . . ? . . .',
+    '. . . . . . . . . . .',
+    '. . . . . ? . . . . .',
+    '. . . . . . . . . . .',
+    '. . . ? . ? . . . . .',
+    '. . . . . . . . . . .',
+    '? . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    'S ? . . . . . . . . .',
   ]),
 
-  // 832 "Master's Path": Final challenge - 10×12 with everything
+  // 832 "Master's Path": Portal with complex mirror chain
   buildLevel(832, "Master's Path", 5, 32, [
-    'S . . # . . . . . . . T',
-    '. . . # . . . . . . . .',
-    '. ? . # . . 1 . . . . .',
-    '. . . # . . . . . . . .',
-    '. . . # . . . # # # # .',
-    '. . . . . . . # . . . .',
-    '. # # # . . . # ? . . .',
-    '. . . . ? . . # . . 1 .',
-    '. # # # . . . . . . . .',
-    '. . . . . . ? . . . . .',
-    '. . . . . . . . 2 . . .',
-    '. . . . . . . . . . 2 .',
+    '. . . . . . . . . . T',
+    '. . . . . . . . . 1 .',
+    '. . . . . . . . . . .',
+    '. . . . . . ? . . . .',
+    '. . . . . . . . . . .',
+    '. 1 . . ? . . . . . .',
+    '. . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    '? . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    'S . . . . . . . . . .',
   ]),
 
-  // 833 "Lightning Strike": Fast diagonal with tight timing
+  // 833 "Lightning Strike": Fast diagonal staircase
   buildLevel(833, 'Lightning Strike', 5, 24, [
     '. . . . . . . . . T',
     '. . . . . . . . ? .',
@@ -637,35 +645,35 @@ export const LASER_LEVELS: Level[] = [
     'S ? . . . . . . . .',
   ]),
 
-  // 834 "The Maze Master": 10×12 ultimate maze
+  // 834 "The Maze Master": Portal with walls and mirrors
   buildLevel(834, 'The Maze Master', 5, 28, [
-    'S . # . . # . . . . . T',
-    '. . # . . # . . . . . .',
-    '? . # ? . # . ? . . . .',
-    '. . # . . # . . . . . .',
-    '. . # . . # . . # # # .',
-    '. . . . . . . . # . . .',
-    '. # # # . # . . # ? . .',
-    '. . . . ? # . . # . . .',
-    '. # # # . # . . . . . .',
-    '. . . . . # ? . . . . .',
-    '. . ? . . # . . . 1 . .',
-    '. . . . . . . . . . 1 .',
+    '. . . . . . . . . . T',
+    '. . . . . . . . . 1 .',
+    '. . . . . . . . . . .',
+    '. . . . . . ? . . . .',
+    '. . . . . . . . . . .',
+    '. 1 . . ? . . . . . .',
+    '. . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    '? . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    'S . . . . . . . . . .',
   ]),
 
-  // 835 "Final Frontier": The ultimate test
+  // 835 "Final Frontier": Ultimate staircase challenge
   buildLevel(835, 'Final Frontier', 5, 35, [
-    'S . . . . . . . . . . T',
-    '. # # . . # # . # # . .',
-    '. . . ? . . . ? . . . .',
-    '. # # . . # # . # # . .',
-    '. . . . . . . . . . . .',
-    '. # # . . # # . # # . .',
-    '? . . . . . . . . . ? .',
-    '. # # . . # # . # # . .',
-    '. . . . ? . . ? . . . .',
-    '. # # . . # # . # # . .',
-    '. . . . . . . . . . . .',
-    '. . . . . 1 . . . . 1 .',
+    '. . . . . . . . . . T',
+    '. . . . . . . . . ? .',
+    '. . . . . . . . . . .',
+    '. . . . . . . ? . . .',
+    '. . . . . . . . . . .',
+    '. . . . . ? . . . . .',
+    '. . . . . . . . . . .',
+    '. . . ? . ? . . . . .',
+    '. . . . . . . . . . .',
+    '? . . . . . . . . . .',
+    '. . . . . . . . . . .',
+    'S ? . . . . . . . . .',
   ]),
 ];

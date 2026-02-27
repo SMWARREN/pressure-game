@@ -2252,8 +2252,8 @@ export default function GameBoard() {
                 ['bombs', '#ef4444', '#2d000010', '#ef444440'],
                 ['comboChain', '#f97316', '#2d100010', '#f9731640'],
                 ['rain', '#60a5fa', '#00102d10', '#60a5fa40'],
-                ['ice', '#93c5fd', '#0f1f3d10', '#93c5fd40'],
-                ['thieves', '#f87171', '#2d000010', '#f8717140'],
+                ['ice', '#93c5fd', '#0f1f3d10', 'transparent'],
+                ['thieves', '#f87171', '#2d000010', 'transparent'],
               ] as [keyof typeof FEATURE_INFO, string, string, string][]
             ).map(
               ([key, color, bg, border]) =>
