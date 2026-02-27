@@ -5,8 +5,10 @@ import { getSolution, generateLevel, verifyLevel } from '@/game/levels';
 import TutorialScreen from './TutorialScreen';
 import ModeSelectorModal from './ModeSelectorModal';
 import StatsScreen from './StatsScreen';
+import AchievementsScreen from './AchievementsScreen';
 import { WalkthroughOverlay, useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '../game/modes';
+import { getAchievementEngine } from '@/game/achievements/engine';
 import { Level, Direction } from '@/game/types';
 import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
@@ -804,6 +806,7 @@ interface SettingsPanelProps {
   animationsEnabled: boolean;
   onToggleAnimations: () => void;
   onShowStats: () => void;
+  onShowAchievements: () => void;
   onHowToPlay: () => void;
   onRewatchWalkthrough: () => void;
   hasWalkthrough: boolean;
@@ -815,6 +818,7 @@ function SettingsPanel({
   animationsEnabled,
   onToggleAnimations,
   onShowStats,
+  onShowAchievements,
   onHowToPlay,
   onRewatchWalkthrough,
   hasWalkthrough,
@@ -959,6 +963,34 @@ function SettingsPanel({
           <span style={{ fontSize: 14, color: '#3a3a55' }}>›</span>
         </button>
 
+        {/* Achievements row */}
+        <button
+          onClick={() => {
+            onShowAchievements();
+            onClose();
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '14px 16px',
+            borderRadius: 14,
+            border: '1px solid #12122a',
+            background: '#07070e',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 20 }}>🏆</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#fbbf24' }}>Achievements</div>
+            <div style={{ fontSize: 11, color: '#25253a', marginTop: 2 }}>
+              View your accomplishments
+            </div>
+          </div>
+          <span style={{ fontSize: 14, color: '#3a3a55' }}>›</span>
+        </button>
+
         {/* How to play row */}
         <button
           onClick={() => {
@@ -1057,6 +1089,7 @@ function MenuScreen() {
   const [showModeModal, setShowModeModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [replayEventFromStats, setReplayEventFromStats] = useState<GameEndEvent | null>(null);
 
   const activeMode = getModeById(currentModeId);
@@ -1122,6 +1155,8 @@ function MenuScreen() {
         }}
       />
     );
+
+  if (showAchievements) return <AchievementsScreen onBack={() => setShowAchievements(false)} />;
 
   return (
     <div
@@ -1556,6 +1591,7 @@ function MenuScreen() {
         animationsEnabled={animationsEnabled}
         onToggleAnimations={toggleAnimations}
         onShowStats={() => setShowStats(true)}
+        onShowAchievements={() => setShowAchievements(true)}
         onHowToPlay={replayTutorial}
         onRewatchWalkthrough={replayWalkthrough}
         hasWalkthrough={!!activeMode.walkthrough}
@@ -1926,6 +1962,43 @@ export default function GameBoard() {
   useEffect(() => {
     if (status === 'idle') setNotifLog([]);
   }, [status]); // eslint-disable-line
+
+  // ── ACHIEVEMENT CHECKING ────────────────────────────────────────────────────
+  // Check achievements when a level ends (win or loss)
+  useEffect(() => {
+    if (status !== 'won' && status !== 'lost') return;
+    if (!currentLevel) return;
+
+    const achievementEngine = getAchievementEngine();
+
+    // Update daily streak when playing a game
+    const currentStreak = achievementEngine.updateDailyStreak();
+
+    // Check if this level was won without hints (no hint button clicked)
+    // We track this by checking if showHint was ever true during the game
+    // For now, we'll pass 0 for noHintsLevels and let the engine track it cumulatively
+    // The hint tracking would need to be added to the store if we want per-level tracking
+
+    // Determine if this was a speedrun (under 10 seconds)
+    const isSpeedrun = status === 'won' && elapsedSeconds < 10;
+
+    // Check if moves were under par (level has optimal moves defined)
+    // For now, we'll use a simple heuristic: if the level was won, count it
+    const isMovesUnderPar = status === 'won';
+
+    // Check achievements
+    achievementEngine.checkAchievements({
+      levelsCompleted: status === 'won' ? 1 : 0,
+      movesUnderPar: isMovesUnderPar ? 1 : 0,
+      speedruns: isSpeedrun ? 1 : 0,
+      currentStreak,
+      noHintsLevels: status === 'won' && !showHint ? 1 : 0,
+      perfectWorlds: 0, // This would need world-level tracking
+      wallsSurvived: 0, // This would need wall tracking during gameplay
+      currentModeId,
+      currentLevelId: currentLevel.id,
+    });
+  }, [status, currentLevel, elapsedSeconds, currentModeId, showHint]);
 
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;

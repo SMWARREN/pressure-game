@@ -5,6 +5,7 @@
 import { Achievement, AchievementProgress, AchievementState, DEFAULT_ACHIEVEMENTS } from './types';
 
 const STORAGE_KEY = 'pressure_achievements_v1';
+const STREAK_KEY = 'pressure_daily_streak_v1';
 
 type AchievementSubscriber = () => void;
 
@@ -315,6 +316,93 @@ class AchievementEngine {
     this.recentlyEarnedQueue = [];
     this.saveState();
     this.notifySubscribers();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     DAILY STREAK TRACKING
+  ══════════════════════════════════════════════════════════════════════════ */
+
+  /**
+   * Get current daily streak data
+   */
+  getStreakData(): { currentStreak: number; lastPlayDate: string | null } {
+    try {
+      const saved = localStorage.getItem(STREAK_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Failed to load streak data:', e);
+    }
+    return { currentStreak: 0, lastPlayDate: null };
+  }
+
+  /**
+   * Update streak when the player plays the game.
+   * Call this once per day when the app launches or a game is played.
+   * Returns the updated streak count.
+   */
+  updateDailyStreak(): number {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const streakData = this.getStreakData();
+
+    if (streakData.lastPlayDate === today) {
+      // Already played today, no change
+      return streakData.currentStreak;
+    }
+
+    let newStreak = 1;
+
+    if (streakData.lastPlayDate) {
+      const lastDate = new Date(streakData.lastPlayDate);
+      const todayDate = new Date(today);
+      const diffTime = todayDate.getTime() - lastDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        // Consecutive day - increment streak
+        newStreak = streakData.currentStreak + 1;
+      } else if (diffDays > 1) {
+        // Streak broken - start over
+        newStreak = 1;
+      }
+      // diffDays === 0 means same day (shouldn't happen due to check above)
+    }
+
+    // Save updated streak
+    const newData = { currentStreak: newStreak, lastPlayDate: today };
+    try {
+      localStorage.setItem(STREAK_KEY, JSON.stringify(newData));
+    } catch (e) {
+      console.warn('Failed to save streak data:', e);
+    }
+
+    return newStreak;
+  }
+
+  /**
+   * Get the current streak without updating it
+   */
+  getCurrentStreak(): number {
+    const streakData = this.getStreakData();
+    
+    // Check if streak is still valid (not broken)
+    if (streakData.lastPlayDate) {
+      const lastDate = new Date(streakData.lastPlayDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      lastDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = today.getTime() - lastDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      // If more than 1 day has passed, streak is broken
+      if (diffDays > 1) {
+        return 0;
+      }
+    }
+    
+    return streakData.currentStreak;
   }
 }
 

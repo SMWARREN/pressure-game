@@ -152,7 +152,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'speedrun',
     name: 'Speedrunner',
-    description: 'Complete a level in under 10 seconds',
+    description: 'Complete 10 levels in under 10 seconds each',
     icon: '🏃',
     rarity: 'rare',
     category: 'skill',
