@@ -291,6 +291,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 7777,
     timeLimit: 25, // Still generous but not too easy
     isUnlimited: true,
+    features: { wildcards: true },
   },
   // Levels 114-115: Ice cubes appear - big combos unfreeze them!
   {
@@ -304,6 +305,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 8888,
     timeLimit: 18, // Reduced from 20
     isUnlimited: true,
+    features: { wildcards: true, bombs: true },
   },
   {
     id: 115,
@@ -316,6 +318,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 9999,
     timeLimit: 12, // Reduced from 15 - now challenging!
     isUnlimited: true,
+    features: { wildcards: true, bombs: true, comboChain: true },
   },
   // ── World 6: Tropical — wildcards, bombs, combo chains & rain chaos ─────────
   {
@@ -382,6 +385,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 6543,
     timeLimit: 8, // Reduced from 12 - extreme challenge!
     isUnlimited: true,
+    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
   },
 ];
 

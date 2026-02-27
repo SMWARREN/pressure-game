@@ -11,6 +11,7 @@ interface UnlimitedRulesDialogProps {
   onBack: () => void;
   modeId?: string;
   onWatchBest?: () => void;
+  features?: Record<string, boolean>;
 }
 
 export default function UnlimitedRulesDialog({
@@ -20,6 +21,7 @@ export default function UnlimitedRulesDialog({
   onBack,
   modeId = 'classic',
   onWatchBest,
+  features,
 }: UnlimitedRulesDialogProps) {
   const [visible, setVisible] = useState(false);
 
@@ -34,6 +36,14 @@ export default function UnlimitedRulesDialog({
   const isShoppingMode = modeId === 'shoppingSpree';
   const isCandyMode = modeId === 'candy';
 
+  // Check for features from the level
+  const hasThieves = features?.thieves;
+  const hasIce = features?.ice;
+  const hasWildcards = features?.wildcards;
+  const hasBombs = features?.bombs;
+  const hasComboChain = features?.comboChain;
+  const hasRain = features?.rain;
+
   // Mode-specific rule sets
   const getRules = () => {
     const baseRules = [
@@ -42,25 +52,83 @@ export default function UnlimitedRulesDialog({
     ];
 
     if (isShoppingMode) {
-      return [
-        ...baseRules,
+      const shoppingRules = [...baseRules];
+      // Shopping mode always has thieves
+      shoppingRules.push(
         { icon: '🦹', text: 'Thieves spawn as time runs low — they block tiles!' },
-        { icon: '💥', text: 'Big combos (4+) scare away nearby thieves!' },
-        { icon: '🏆', text: 'Beat your high score to win!' },
-      ];
+        { icon: '💥', text: 'Big combos (4+) scare away nearby thieves!' }
+      );
+      // Add extra features if enabled
+      if (hasWildcards) {
+        shoppingRules.push({ icon: '⭐', text: 'Wildcards match any color!' });
+      }
+      if (hasBombs) {
+        shoppingRules.push({ icon: '💣', text: 'Bombs clear a 3×3 area when matched!' });
+      }
+      shoppingRules.push({ icon: '🏆', text: 'Beat your high score to win!' });
+      return shoppingRules;
     }
 
     if (isCandyMode) {
-      return [
-        ...baseRules,
+      const candyRules = [...baseRules];
+      // Add feature-specific rules for candy mode
+      if (hasIce) {
+        candyRules.push(
+          { icon: '🧊', text: 'Tiles freeze as time runs low!' },
+          { icon: '💥', text: 'Big combos (4+) unfreeze nearby tiles' }
+        );
+      }
+      if (hasWildcards) {
+        candyRules.push({ icon: '⭐', text: 'Wildcards match any color!' });
+      }
+      if (hasBombs) {
+        candyRules.push({ icon: '💣', text: 'Bombs clear a 3×3 area when matched!' });
+      }
+      if (hasComboChain) {
+        candyRules.push({ icon: '🔥', text: 'Chain combos multiply your score!' });
+      }
+      if (hasRain) {
+        candyRules.push({ icon: '🌧️', text: 'Tiles shuffle randomly every 10 seconds!' });
+      }
+      candyRules.push({ icon: '🏆', text: 'Beat your high score to win!' });
+      return candyRules;
+    }
+
+    // Build rules based on features for other modes
+    const featureRules = [];
+
+    if (hasThieves) {
+      featureRules.push(
+        { icon: '🦹', text: 'Thieves spawn as time runs low — they block tiles!' },
+        { icon: '💥', text: 'Big combos (4+) scare away nearby thieves!' }
+      );
+    }
+
+    if (hasIce) {
+      featureRules.push(
         { icon: '🧊', text: 'Tiles freeze as time runs low!' },
-        { icon: '💥', text: 'Big combos (4+) unfreeze nearby tiles' },
-        { icon: '🏆', text: 'Beat your high score to win!' },
-      ];
+        { icon: '💥', text: 'Big combos (4+) unfreeze nearby tiles' }
+      );
+    }
+
+    if (hasWildcards) {
+      featureRules.push({ icon: '⭐', text: 'Wildcards match any color!' });
+    }
+
+    if (hasBombs) {
+      featureRules.push({ icon: '💣', text: 'Bombs clear a 3×3 area when matched!' });
+    }
+
+    if (hasComboChain) {
+      featureRules.push({ icon: '🔥', text: 'Chain combos multiply your score!' });
+    }
+
+    if (hasRain) {
+      featureRules.push({ icon: '🌧️', text: 'Tiles shuffle randomly every 10 seconds!' });
     }
 
     // Default rules for other modes
-    return [...baseRules, { icon: '🏆', text: 'Beat your high score to win!' }];
+    return [...baseRules, ...featureRules, { icon: '🏆', text: 'Beat your high score to win!' }];
   };
 
   const rules = getRules();
@@ -170,21 +238,26 @@ export default function UnlimitedRulesDialog({
         )}
 
         {/* Buttons */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <button
             onClick={onBack}
             style={{
-              flex: 1,
-              minWidth: 60,
-              padding: '14px',
-              borderRadius: 12,
-              border: '1px solid #1e1e35',
-              background: 'transparent',
+              background: 'none',
+              border: 'none',
               color: '#3a3a55',
               fontSize: 12,
-              fontWeight: 700,
+              fontWeight: 600,
               cursor: 'pointer',
               letterSpacing: '0.05em',
+              padding: '8px 12px',
             }}
           >
             BACK
@@ -193,17 +266,14 @@ export default function UnlimitedRulesDialog({
             <button
               onClick={onWatchBest}
               style={{
-                flex: 1,
-                minWidth: 80,
-                padding: '14px',
-                borderRadius: 12,
-                border: '1px solid #a5b4fc40',
-                background: 'rgba(165,180,252,0.08)',
+                background: 'none',
+                border: 'none',
                 color: '#a5b4fc',
                 fontSize: 12,
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: 'pointer',
                 letterSpacing: '0.05em',
+                padding: '8px 12px',
               }}
             >
               ▶ BEST
@@ -212,9 +282,7 @@ export default function UnlimitedRulesDialog({
           <button
             onClick={onStart}
             style={{
-              flex: 2,
-              minWidth: 80,
-              padding: '14px',
+              padding: '14px 28px',
               borderRadius: 12,
               border: 'none',
               background: 'linear-gradient(135deg, #22c55e, #16a34a)',

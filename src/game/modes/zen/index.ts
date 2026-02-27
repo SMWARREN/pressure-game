@@ -4,13 +4,18 @@
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { rotateTileTap, checkConnected } from '../utils';
 import { CLASSIC_LEVELS } from '../classic/levels';
-import { ZEN_LEVELS_SET_2, STREAM_EDITED_LEVEL } from './levels';
+import { ZEN_LEVELS_SET_2, STREAM_EDITED_LEVEL, RIPPLE_EDITED_LEVEL } from './levels';
 import { ZEN_TUTORIAL_STEPS } from './tutorial';
 import { renderZenDemo } from './demo';
 import { ZEN_WALKTHROUGH } from './walkthrough';
 
-// Combine classic levels with Zen-specific levels (including custom level)
-const ALL_ZEN_LEVELS = [...CLASSIC_LEVELS, ...ZEN_LEVELS_SET_2, STREAM_EDITED_LEVEL];
+// Combine classic levels with Zen-specific levels (including custom levels)
+const ALL_ZEN_LEVELS = [
+  ...CLASSIC_LEVELS,
+  ...ZEN_LEVELS_SET_2,
+  STREAM_EDITED_LEVEL,
+  RIPPLE_EDITED_LEVEL,
+];
 
 export const ZEN_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },

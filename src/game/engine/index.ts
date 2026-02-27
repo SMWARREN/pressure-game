@@ -350,9 +350,15 @@ export class PressureEngine implements IPressureEngine {
     const newLastPlayed = { ...state.lastPlayedLevelId, [modeId]: level.id };
     this.persist({ ...state, lastPlayedLevelId: newLastPlayed });
 
+    // Copy tiles and apply mode-specific initialization (e.g., beam tracing for Laser Relay)
+    let tiles = level.tiles.map((t) => ({ ...t, connections: [...t.connections] }));
+    if (mode.initTiles) {
+      tiles = mode.initTiles(tiles, level);
+    }
+
     return {
       currentLevel: level,
-      tiles: level.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
+      tiles,
       wallOffset: 0,
       compressionActive: false,
       compressionDelay: level.compressionDelay,

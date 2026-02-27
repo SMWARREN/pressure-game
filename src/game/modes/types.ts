@@ -355,6 +355,13 @@ export interface GameModeConfig {
   initialState?: (state: GameState) => Record<string, unknown>;
 
   /**
+   * Optional: transform tiles when a level is loaded.
+   * This is called after copying level tiles, before the game starts.
+   * Use this to compute initial tile states (e.g., beam tracing in Laser Relay).
+   */
+  initTiles?: (tiles: Tile[], level: Level) => Tile[];
+
+  /**
    * Optional: return a set of tile keys ("x,y") to highlight as hints.
    * This is used to show the player which tiles are valid next moves.
    */

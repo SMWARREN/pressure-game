@@ -271,6 +271,7 @@ export const SHOPPING_LEVELS: Level[] = [
     targetScore: 99999,
     timeLimit: 30, // Reduced from 40 - still generous but not too easy
     isUnlimited: true,
+    features: { wildcards: true },
   },
   // Levels 314-315: Thieves spawn — big combos scare them away!
   {
@@ -286,6 +287,7 @@ export const SHOPPING_LEVELS: Level[] = [
     targetScore: 99999,
     timeLimit: 22, // Reduced from 30
     isUnlimited: true,
+    features: { wildcards: true, bombs: true },
   },
   {
     id: 315,
@@ -300,6 +302,7 @@ export const SHOPPING_LEVELS: Level[] = [
     targetScore: 99999,
     timeLimit: 15, // Reduced from 20 - now challenging!
     isUnlimited: true,
+    features: { wildcards: true, bombs: true, comboChain: true },
   },
 
   // ── Bonus levels — one per world ──────────────────────────────────────────
@@ -356,6 +359,7 @@ export const SHOPPING_LEVELS: Level[] = [
     targetScore: 99999,
     timeLimit: 10,
     isUnlimited: true,
+    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
   },
 
   // ── World 5: Black Friday — wildcards, bombs, combo chains & rain ────────────

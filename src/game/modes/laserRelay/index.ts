@@ -54,6 +54,34 @@ interface BeamResult {
   hitTarget: boolean;
 }
 
+// Get grid dimensions from tiles - handles sparse levels
+function getGridDimensions(tiles: Tile[]): {
+  gridSize: number;
+  gridCols: number;
+  gridRows: number;
+} {
+  // Find the level from the first tile's ID pattern (lrXXX-...)
+  const firstTile = tiles[0];
+  if (firstTile?.id?.startsWith('lr')) {
+    // These are generated levels - find max x and y to determine grid size
+    let maxX = 0;
+    let maxY = 0;
+    for (const t of tiles) {
+      if (t.x > maxX) maxX = t.x;
+      if (t.y > maxY) maxY = t.y;
+    }
+    // Grid size is max coordinate + 1 (0-indexed)
+    const gridCols = maxX + 1;
+    const gridRows = maxY + 1;
+    const gridSize = Math.max(gridCols, gridRows);
+    return { gridSize, gridCols, gridRows };
+  }
+
+  // Fallback: use sqrt of tile count (for dense grids)
+  const gridSize = Math.round(Math.sqrt(tiles.length));
+  return { gridSize, gridCols: gridSize, gridRows: gridSize };
+}
+
 export function traceLaser(
   tiles: Tile[],
   gridSize: number,
@@ -95,7 +123,14 @@ export function traceLaser(
 
     const key = `${x},${y}`;
     const tile = map.get(key);
-    if (!tile) break;
+
+    // Track beam position even for empty cells (no tile)
+    // This allows the beam to be visualized passing through empty space
+    beamKeys.add(key);
+
+    // No tile at this position = empty space, beam continues
+    if (!tile) continue;
+
     const kind = tile.displayData?.kind as string;
 
     if (kind === 'wall' || kind === 'source') break;
@@ -148,14 +183,62 @@ export function traceLaser(
   return { beamKeys, hitTarget };
 }
 
-function withBeamApplied(tiles: Tile[], gridSize: number): Tile[] {
-  const { beamKeys } = traceLaser(tiles, gridSize);
-  return tiles.map((t) => {
+function withBeamApplied(
+  tiles: Tile[],
+  level?: { gridSize: number; gridCols?: number; gridRows?: number }
+): Tile[] {
+  // Use level dimensions if provided, otherwise compute from tiles
+  let gridSize: number;
+  let gridCols: number | undefined;
+  let gridRows: number | undefined;
+
+  if (level) {
+    gridSize = level.gridSize;
+    gridCols = level.gridCols;
+    gridRows = level.gridRows;
+  } else {
+    const dims = getGridDimensions(tiles);
+    gridSize = dims.gridSize;
+    gridCols = dims.gridCols;
+    gridRows = dims.gridRows;
+  }
+
+  const { beamKeys } = traceLaser(tiles, gridSize, gridCols, gridRows);
+  const tileMap = buildTileMap(tiles);
+  const result: Tile[] = [];
+
+  // Update existing tiles with beam state
+  for (const t of tiles) {
     const isBeam = beamKeys.has(`${t.x},${t.y}`);
     const wasBeam = t.displayData?.beamOn as boolean;
-    if (wasBeam === isBeam) return t;
-    return { ...t, displayData: { ...t.displayData, beamOn: isBeam } };
-  });
+    if (wasBeam === isBeam) {
+      result.push(t);
+    } else {
+      result.push({ ...t, displayData: { ...t.displayData, beamOn: isBeam } });
+    }
+  }
+
+  // Add placeholder tiles for empty cells that are in the beam path
+  for (const key of beamKeys) {
+    if (!tileMap.has(key)) {
+      const [xStr, yStr] = key.split(',');
+      const x = parseInt(xStr, 10);
+      const y = parseInt(yStr, 10);
+      // Create a placeholder tile for empty cells in the beam path
+      result.push({
+        id: `beam-${x}-${y}`,
+        type: 'path',
+        x,
+        y,
+        connections: [],
+        canRotate: false,
+        isGoalNode: false,
+        displayData: { kind: 'empty', beamOn: true },
+      });
+    }
+  }
+
+  return result;
 }
 
 // ── Tile colors ───────────────────────────────────────────────────────────────
@@ -306,6 +389,9 @@ export const LaserRelayMode: GameModeConfig = {
   supportsWorkshop: false,
   overlayText: { win: 'TARGET HIT!', loss: 'OUT OF MOVES' },
 
+  // Initialize tiles with beam tracing when level loads
+  initTiles: (tiles, level) => withBeamApplied(tiles, level),
+
   tileRenderer: {
     type: 'laser',
     hidePipes: true,
@@ -314,7 +400,7 @@ export const LaserRelayMode: GameModeConfig = {
     getSymbol: getTileSymbol,
   },
 
-  onTileTap(x, y, tiles, gridSize): TapResult | null {
+  onTileTap(x, y, tiles, _gridSize): TapResult | null {
     const tile = tiles.find((t) => t.x === x && t.y === y);
     if (!tile || tile.displayData?.kind !== 'mirror') return null;
 
@@ -329,19 +415,19 @@ export const LaserRelayMode: GameModeConfig = {
         : t
     );
 
-    return { tiles: withBeamApplied(rotated, gridSize), valid: true };
+    return { tiles: withBeamApplied(rotated), valid: true };
   },
 
   checkWin(tiles, _goalNodes, _moves, _maxMoves): WinResult {
-    const gridSize = Math.round(Math.sqrt(tiles.length));
-    const { hitTarget } = traceLaser(tiles, gridSize);
+    const { gridSize, gridCols, gridRows } = getGridDimensions(tiles);
+    const { hitTarget } = traceLaser(tiles, gridSize, gridCols, gridRows);
     return { won: hitTarget, reason: hitTarget ? 'Target hit!' : undefined };
   },
 
   checkLoss(tiles, _wallOffset, moves, maxMoves): { lost: boolean; reason?: string } {
     if (moves >= maxMoves) {
-      const gridSize = Math.round(Math.sqrt(tiles.length));
-      if (!traceLaser(tiles, gridSize).hitTarget) {
+      const { gridSize, gridCols, gridRows } = getGridDimensions(tiles);
+      if (!traceLaser(tiles, gridSize, gridCols, gridRows).hitTarget) {
         return { lost: true, reason: 'Out of rotations!' };
       }
     }
@@ -349,8 +435,8 @@ export const LaserRelayMode: GameModeConfig = {
   },
 
   getWinTiles(tiles): Set<string> {
-    const gridSize = Math.round(Math.sqrt(tiles.length));
-    const { beamKeys } = traceLaser(tiles, gridSize);
+    const { gridSize, gridCols, gridRows } = getGridDimensions(tiles);
+    const { beamKeys } = traceLaser(tiles, gridSize, gridCols, gridRows);
     for (const t of tiles) {
       const k = t.displayData?.kind as string;
       if (k === 'source' || k === 'target') beamKeys.add(`${t.x},${t.y}`);

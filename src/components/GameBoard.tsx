@@ -2239,38 +2239,41 @@ export default function GameBoard() {
           <div
             style={{
               display: 'flex',
-              gap: 5,
+              gap: 10,
               justifyContent: 'center',
+              alignItems: 'center',
               flexWrap: 'wrap',
-              padding: '2px 12px',
+              padding: '4px 12px',
               flexShrink: 0,
             }}
           >
             {(
               [
-                ['wildcards', '#fbbf24', '#2d280010', '#fbbf2440'],
-                ['bombs', '#ef4444', '#2d000010', '#ef444440'],
-                ['comboChain', '#f97316', '#2d100010', '#f9731640'],
-                ['rain', '#60a5fa', '#00102d10', '#60a5fa40'],
-                ['ice', '#93c5fd', '#0f1f3d10', 'transparent'],
-                ['thieves', '#f87171', '#2d000010', 'transparent'],
-              ] as [keyof typeof FEATURE_INFO, string, string, string][]
+                ['wildcards', '#fbbf24'],
+                ['bombs', '#ef4444'],
+                ['comboChain', '#f97316'],
+                ['rain', '#60a5fa'],
+                ['ice', '#93c5fd'],
+                ['thieves', '#f87171'],
+              ] as [keyof typeof FEATURE_INFO, string][]
             ).map(
-              ([key, color, bg, border]) =>
+              ([key, color]) =>
                 currentLevel.features?.[key as keyof typeof currentLevel.features] && (
                   <button
                     key={key}
                     onClick={() => setShowFeatureInfo(FEATURE_INFO[key])}
                     style={{
-                      fontSize: 9,
-                      fontWeight: 800,
+                      fontSize: 11,
+                      fontWeight: 600,
                       color,
-                      background: bg,
-                      border: `1px solid ${border}`,
-                      borderRadius: 4,
-                      padding: '2px 6px',
+                      background: 'transparent',
+                      border: 'none',
+                      padding: 0,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
                     }}
                   >
                     {FEATURE_INFO[key].icon} {FEATURE_INFO[key].name}
@@ -2446,6 +2449,7 @@ export default function GameBoard() {
             onStart={handleUnlimitedStart}
             onBack={goToMenu}
             modeId={currentModeId}
+            features={currentLevel.features}
             onWatchBest={(() => {
               const ends = statsEngine
                 .getBackend()
