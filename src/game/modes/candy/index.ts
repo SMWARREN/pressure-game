@@ -393,30 +393,62 @@ export const CandyMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 0;
-    const features = modeState?.features as { rain?: boolean } | undefined;
+    const features = modeState?.features as
+      | { rain?: boolean; ice?: boolean }
+      | undefined;
+
+    // Accumulate tile/state changes so rain + ice can both fire in the same tick
+    let updatedState: Record<string, unknown> | null = null;
+    let updatedTiles = state.tiles;
 
     // ── Rain — scramble 2-3 tiles every 10s on Tropical levels ───────────────
     if (features?.rain) {
       const activeSymbols =
-        (state.tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ??
+        (updatedTiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ??
         CANDY_SYMBOLS;
       const lastRainAt = (state.modeState?.lastRainAt as number) ?? 0;
       const rainResult = tickRain(
-        state.tiles,
+        updatedTiles,
         state.elapsedSeconds,
         lastRainAt,
         activeSymbols,
         state.currentLevel?.gridSize ?? 8
       );
       if (rainResult) {
-        return {
-          tiles: rainResult.tiles,
-          modeState: { ...state.modeState, lastRainAt: rainResult.lastRainAt },
+        updatedTiles = rainResult.tiles;
+        updatedState = {
+          ...(state.modeState as Record<string, unknown>),
+          lastRainAt: rainResult.lastRainAt,
         };
       }
     }
 
-    // Only run ice freezing on timed levels
+    // ── Ice (Tropical) — spawn 1 frozen tile every 15s ────────────────────────
+    // Uses elapsed time so it works on move-limited levels (no timeLeft needed)
+    if (features?.ice) {
+      const lastIceAt = (state.modeState?.lastIceAt as number) ?? 0;
+      if (state.elapsedSeconds >= 15 && state.elapsedSeconds - lastIceAt >= 15) {
+        const existingFrozen = new Set(
+          updatedTiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`)
+        );
+        const iceResult = spawnBlockers(updatedTiles, 'frozen', existingFrozen, {
+          spawnChance: 1,
+          maxCount: 1,
+        });
+        if (iceResult) {
+          updatedTiles = iceResult.tiles;
+          updatedState = {
+            ...(updatedState ?? (state.modeState as Record<string, unknown>)),
+            lastIceAt: state.elapsedSeconds,
+            iceWarning: `🧊 Ice! Match 4+ to unfreeze!`,
+          };
+        }
+      }
+    }
+
+    if (updatedState !== null) return { tiles: updatedTiles, modeState: updatedState };
+
+    // Only run time-based ice freezing on timed levels (World 4 + Unlimited W5)
     if (timeLeft === undefined) return null;
 
     // World 5 (Unlimited) levels: 114, 115 - progressive freezing difficulty!
@@ -425,10 +457,6 @@ export const CandyMode: GameModeConfig = {
 
     let freezeCount = 0;
     if (isUnlimitedWithIce) {
-      // Progressive difficulty for ice cubes:
-      // Level 113 (easiest): freezes only in last 10s, max 1 tile
-      // Level 114 (medium): freezes in last 15s, max 2 tiles
-      // Level 115 (hardest): freezes in last 20s, max 3 tiles
       if (levelId === 113) {
         freezeCount = timeLeft < 5 ? 1 : timeLeft < 10 ? 1 : 0;
       } else if (levelId === 114) {
@@ -448,7 +476,7 @@ export const CandyMode: GameModeConfig = {
       state.tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`)
     );
     const result = spawnBlockers(state.tiles, 'frozen', existingFrozen, {
-      spawnChance: 1, // ice always spawns when freezeCount > 0
+      spawnChance: 1,
       maxCount: freezeCount,
     });
     if (!result) return null;
@@ -462,19 +490,15 @@ export const CandyMode: GameModeConfig = {
     };
   },
 
-  checkWin(_tiles, _goalNodes, _moves, _maxMoves, modeState): WinResult {
+  checkWin(_tiles, _goalNodes, moves, maxMoves, modeState): WinResult {
     const score = (modeState?.score as number) ?? 0;
     const target = (modeState?.targetScore as number) ?? Infinity;
+    if (moves >= maxMoves) return { won: true };
     const won = score >= target;
     return { won, reason: won ? 'Target reached!' : undefined };
   },
 
-  checkLoss(_tiles, _wallOffset, moves, maxMoves, modeState): LossResult {
-    const score = (modeState?.score as number) ?? 0;
-    const target = (modeState?.targetScore as number) ?? Infinity;
-    if (moves >= maxMoves && score < target) {
-      return { lost: true, reason: 'Out of moves!' };
-    }
+  checkLoss(_tiles, _wallOffset, _moves, _maxMoves, _modeState): LossResult {
     return { lost: false };
   },
 

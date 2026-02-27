@@ -98,10 +98,12 @@ interface GemLevelConfig {
   blastChance?: number;
   timeLimit?: number;
   isUnlimited?: boolean;
+  numColors?: number; // defaults to 5; fewer = more natural cascades in early worlds
 }
 
 const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
-  // World 1: Crystal Cave — 5×6. n²×3 scoring, 4-tile avg = 48 pts. ~25+ taps needed.
+  // World 1: Crystal Cave — 5×6, 3 colors. Few colors = big groups + natural cascades.
+  // Teaches cascade mechanics viscerally before blast gems appear.
   {
     id: 401,
     name: 'First Crystal',
@@ -109,9 +111,10 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 6,
     gridCols: 5,
     gridRows: 6,
-    targetScore: 1500,
+    targetScore: 5000,
     maxMoves: 22,
     seed: 4010,
+    numColors: 3,
   },
   {
     id: 402,
@@ -120,9 +123,10 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 6,
     gridCols: 5,
     gridRows: 6,
-    targetScore: 2500,
+    targetScore: 9000,
     maxMoves: 24,
     seed: 4020,
+    numColors: 3,
   },
   {
     id: 403,
@@ -131,9 +135,10 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 6,
     gridCols: 5,
     gridRows: 6,
-    targetScore: 3800,
+    targetScore: 14000,
     maxMoves: 26,
     seed: 4030,
+    numColors: 3,
   },
   {
     id: 404,
@@ -142,12 +147,14 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 6,
     gridCols: 5,
     gridRows: 6,
-    targetScore: 5500,
+    targetScore: 20000,
     maxMoves: 28,
     seed: 4040,
+    numColors: 3,
   },
 
-  // World 2: Gemstone Valley — 6×7, blast gems 3-4%. Radius blast, not whole-board clear.
+  // World 2: Gemstone Valley — 6×7, 4 colors, blast gems 3-5%.
+  // Stepping stone: more colors require blast gems to trigger cascades.
   {
     id: 405,
     name: 'Valley Entrance',
@@ -155,10 +162,11 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 7,
     gridCols: 6,
     gridRows: 7,
-    targetScore: 7000,
+    targetScore: 12000,
     maxMoves: 28,
     seed: 4050,
     blastChance: 0.03,
+    numColors: 4,
   },
   {
     id: 406,
@@ -167,10 +175,11 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 7,
     gridCols: 6,
     gridRows: 7,
-    targetScore: 10000,
+    targetScore: 18000,
     maxMoves: 28,
     seed: 4060,
-    blastChance: 0.03,
+    blastChance: 0.04,
+    numColors: 4,
   },
   {
     id: 407,
@@ -179,10 +188,11 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 7,
     gridCols: 6,
     gridRows: 7,
-    targetScore: 14000,
+    targetScore: 26000,
     maxMoves: 30,
     seed: 4070,
     blastChance: 0.04,
+    numColors: 4,
   },
   {
     id: 408,
@@ -191,13 +201,14 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 7,
     gridCols: 6,
     gridRows: 7,
-    targetScore: 19000,
+    targetScore: 36000,
     maxMoves: 32,
     seed: 4080,
-    blastChance: 0.04,
+    blastChance: 0.05,
+    numColors: 4,
   },
 
-  // World 3: Jewel Throne — 7×9, timed 90–70s. Score before time runs out.
+  // World 3: Jewel Throne — 7×9, 5 colors, timed 90–70s. Score before time runs out.
   {
     id: 409,
     name: 'Throne Approach',
@@ -205,7 +216,7 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 9,
     gridCols: 7,
     gridRows: 9,
-    targetScore: 12000,
+    targetScore: 20000,
     maxMoves: 999,
     seed: 4090,
     blastChance: 0.04,
@@ -218,10 +229,10 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 9,
     gridCols: 7,
     gridRows: 9,
-    targetScore: 18000,
+    targetScore: 32000,
     maxMoves: 999,
     seed: 4100,
-    blastChance: 0.04,
+    blastChance: 0.05,
     timeLimit: 80,
   },
   {
@@ -231,7 +242,7 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 9,
     gridCols: 7,
     gridRows: 9,
-    targetScore: 25000,
+    targetScore: 48000,
     maxMoves: 999,
     seed: 4110,
     blastChance: 0.05,
@@ -244,14 +255,14 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 9,
     gridCols: 7,
     gridRows: 9,
-    targetScore: 34000,
+    targetScore: 65000,
     maxMoves: 999,
     seed: 4120,
-    blastChance: 0.05,
+    blastChance: 0.06,
     timeLimit: 70,
   },
 
-  // World 4: Diamond Peak — 8×10, tighter time. Blast gems more common.
+  // World 4: Diamond Peak — 8×10, tighter time, blast gems more common.
   {
     id: 413,
     name: 'Mountain Base',
@@ -259,10 +270,10 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 10,
     gridCols: 8,
     gridRows: 10,
-    targetScore: 20000,
+    targetScore: 35000,
     maxMoves: 999,
     seed: 4130,
-    blastChance: 0.05,
+    blastChance: 0.06,
     timeLimit: 80,
   },
   {
@@ -272,7 +283,7 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 10,
     gridCols: 8,
     gridRows: 10,
-    targetScore: 30000,
+    targetScore: 55000,
     maxMoves: 999,
     seed: 4140,
     blastChance: 0.06,
@@ -285,7 +296,7 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 10,
     gridCols: 8,
     gridRows: 10,
-    targetScore: 42000,
+    targetScore: 80000,
     maxMoves: 999,
     seed: 4150,
     blastChance: 0.07,
@@ -298,14 +309,14 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 10,
     gridCols: 8,
     gridRows: 10,
-    targetScore: 58000,
+    targetScore: 110000,
     maxMoves: 999,
     seed: 4160,
     blastChance: 0.07,
     timeLimit: 55,
   },
 
-  // World 5: Gem Rush — 10×12 unlimited survival. Beat your high score.
+  // World 5: Gem Rush — 10×12. Three unlimited warm-ups + one fixed final boss.
   {
     id: 417,
     name: 'Avalanche',
@@ -316,7 +327,7 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     targetScore: 99999,
     maxMoves: 999,
     seed: 4170,
-    blastChance: 0.04,
+    blastChance: 0.05,
     timeLimit: 40,
     isUnlimited: true,
   },
@@ -330,7 +341,7 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     targetScore: 99999,
     maxMoves: 999,
     seed: 4180,
-    blastChance: 0.05,
+    blastChance: 0.06,
     timeLimit: 30,
     isUnlimited: true,
   },
@@ -344,10 +355,11 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     targetScore: 99999,
     maxMoves: 999,
     seed: 4190,
-    blastChance: 0.06,
+    blastChance: 0.07,
     timeLimit: 20,
     isUnlimited: true,
   },
+  // The final boss — fixed level, NOT unlimited. Requires mastering cascades + blast gems.
   {
     id: 420,
     name: 'Diamond Rain',
@@ -355,12 +367,11 @@ const GEM_LEVEL_CONFIGS: GemLevelConfig[] = [
     gridSize: 12,
     gridCols: 10,
     gridRows: 12,
-    targetScore: 99999,
+    targetScore: 150000,
     maxMoves: 999,
     seed: 4200,
-    blastChance: 0.07,
-    timeLimit: 12,
-    isUnlimited: true,
+    blastChance: 0.09,
+    timeLimit: 120,
   },
 ];
 
@@ -373,7 +384,7 @@ export const GEM_LEVELS: Level[] = GEM_LEVEL_CONFIGS.map((cfg) => ({
   gridRows: cfg.gridRows,
   tiles: generateGrid(
     cfg.gridCols ?? cfg.gridSize,
-    GEM_SYMBOLS,
+    GEM_SYMBOLS.slice(0, cfg.numColors ?? 5),
     cfg.seed,
     cfg.blastChance ?? 0,
     cfg.gridRows

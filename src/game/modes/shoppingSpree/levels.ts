@@ -372,7 +372,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 7000,
-    features: { wildcards: true },
+    features: { wildcards: true, thieves: true },
   },
   {
     id: 321,
@@ -387,7 +387,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 13000,
-    features: { wildcards: true, bombs: true },
+    features: { wildcards: true, bombs: true, thieves: true },
   },
   {
     id: 322,
@@ -402,7 +402,7 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 22000,
-    features: { wildcards: true, bombs: true, comboChain: true },
+    features: { wildcards: true, bombs: true, comboChain: true, thieves: true },
   },
   {
     id: 323,
@@ -417,6 +417,6 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 35000,
-    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
+    features: { wildcards: true, bombs: true, comboChain: true, rain: true, thieves: true },
   },
 ];

@@ -76,15 +76,15 @@ const SHOPPING_INFO: ModeInfo = {
 };
 
 const GEM_INFO: ModeInfo = {
-  scoreFormula: 'n² × 8 × cascade',
-  scoreNote: 'Cascade multiplier stacks to ×5!',
+  scoreFormula: 'n² × 3 × cascade',
+  scoreNote: '2× → 4× → 7× → 12× — chain for big points!',
   mechanics: [
     { icon: '💎', label: 'Tap gems', detail: '2+ matching to clear' },
-    { icon: '✨', label: 'Auto-cascade', detail: 'Falling gems auto-clear!' },
-    { icon: '💥', label: 'Blast gems', detail: 'Detonates a whole color' },
-    { icon: '⏱️', label: 'Timed worlds', detail: 'Diamond Peak & Gem Rush' },
+    { icon: '✨', label: 'Auto-cascade', detail: 'Falling gems auto-clear at 2×→12×!' },
+    { icon: '💥', label: 'Blast gems', detail: 'Detonates nearby color — trigger chains' },
+    { icon: '⏱️', label: 'Timed worlds', detail: 'Cascades add time — race the clock' },
   ],
-  worlds: '5 worlds — up to 10×10',
+  worlds: '5 worlds — up to 10×12 + final boss',
 };
 
 // ── Arcade mode definitions ───────────────────────────────────────────────────

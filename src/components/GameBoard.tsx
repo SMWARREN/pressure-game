@@ -1622,6 +1622,44 @@ function MenuScreen() {
    MAIN GAME BOARD COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
 
+const FEATURE_INFO: Record<string, { icon: string; name: string; description: string }> = {
+  wildcards: {
+    icon: '⭐',
+    name: 'Wildcards',
+    description:
+      'Star tiles match any color! Include them in any group to build bigger combos and reach new tiles.',
+  },
+  bombs: {
+    icon: '💣',
+    name: 'Bombs',
+    description:
+      'Bomb tiles explode in a 3×3 area when matched — clearing everything nearby for a big bonus.',
+  },
+  comboChain: {
+    icon: '🔥',
+    name: 'Combo Chain',
+    description:
+      'Keep matching! Each consecutive clear builds a multiplier that stacks your score higher.',
+  },
+  rain: {
+    icon: '🌧️',
+    name: 'Shuffle Rain',
+    description: 'Every 10 seconds a few tiles get scrambled. Plan ahead or adapt fast!',
+  },
+  ice: {
+    icon: '🧊',
+    name: 'Ice Tiles',
+    description:
+      'Frozen tiles periodically appear and block the grid. Match 4+ candies nearby to unfreeze them.',
+  },
+  thieves: {
+    icon: '🦹',
+    name: 'Thieves',
+    description:
+      'Thieves sneak onto the board and block your items! Match 4+ nearby items to scare them away.',
+  },
+};
+
 export default function GameBoard() {
   const {
     currentLevel,
@@ -1722,6 +1760,11 @@ export default function GameBoard() {
   const [showUnlimitedRules, setShowUnlimitedRules] = useState(false);
   const [unlimitedPreviousScore, setUnlimitedPreviousScore] = useState<number | null>(null);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showFeatureInfo, setShowFeatureInfo] = useState<{
+    icon: string;
+    name: string;
+    description: string;
+  } | null>(null);
   const { w: vw, h: vh } = useViewport();
 
   // Pause game when How to Play modal is open
@@ -1735,6 +1778,18 @@ export default function GameBoard() {
       }
     };
   }, [showHowToPlay, status, pauseGame, resumeGame]);
+
+  // Pause game when feature info sheet is open
+  useEffect(() => {
+    if (showFeatureInfo && status === 'playing') {
+      pauseGame();
+    }
+    return () => {
+      if (showFeatureInfo && status === 'playing') {
+        resumeGame();
+      }
+    };
+  }, [showFeatureInfo, status, pauseGame, resumeGame]);
 
   // Inject notification CSS and spinner CSS once on mount
   useEffect(() => {
@@ -2023,7 +2078,9 @@ export default function GameBoard() {
   // Compute display level number (1-based position in mode's level list)
   const levelDisplayNum = modeLevels.findIndex((l) => l.id === currentLevel.id) + 1;
 
-  const winTitle = mode.overlayText?.win ?? 'CONNECTED';
+  const reachedTarget = score >= (currentLevel.targetScore ?? Infinity);
+  const outOfTaps = !isUnlimited && moves >= currentLevel.maxMoves && !reachedTarget;
+  const winTitle = outOfTaps ? 'OUT OF TAPS' : (mode.overlayText?.win ?? 'CONNECTED');
   const lossTitle = lossReason ?? mode.overlayText?.loss ?? 'CRUSHED';
 
   // Footer visibility — only show controls that make sense for the active mode
@@ -2189,65 +2246,34 @@ export default function GameBoard() {
               flexShrink: 0,
             }}
           >
-            {currentLevel.features?.wildcards && (
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  color: '#fbbf24',
-                  background: '#2d280010',
-                  border: '1px solid #fbbf2440',
-                  borderRadius: 4,
-                  padding: '2px 6px',
-                }}
-              >
-                ⭐ Wildcards
-              </span>
-            )}
-            {currentLevel.features?.bombs && (
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  color: '#ef4444',
-                  background: '#2d000010',
-                  border: '1px solid #ef444440',
-                  borderRadius: 4,
-                  padding: '2px 6px',
-                }}
-              >
-                💣 Bombs
-              </span>
-            )}
-            {currentLevel.features?.comboChain && (
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  color: '#f97316',
-                  background: '#2d100010',
-                  border: '1px solid #f9731640',
-                  borderRadius: 4,
-                  padding: '2px 6px',
-                }}
-              >
-                🔥 Combo Chain
-              </span>
-            )}
-            {currentLevel.features?.rain && (
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 800,
-                  color: '#60a5fa',
-                  background: '#00102d10',
-                  border: '1px solid #60a5fa40',
-                  borderRadius: 4,
-                  padding: '2px 6px',
-                }}
-              >
-                🌧️ Shuffle Rain
-              </span>
+            {([
+              ['wildcards', '#fbbf24', '#2d280010', '#fbbf2440'],
+              ['bombs', '#ef4444', '#2d000010', '#ef444440'],
+              ['comboChain', '#f97316', '#2d100010', '#f9731640'],
+              ['rain', '#60a5fa', '#00102d10', '#60a5fa40'],
+              ['ice', '#93c5fd', '#0f1f3d10', '#93c5fd40'],
+              ['thieves', '#f87171', '#2d000010', '#f8717140'],
+            ] as [keyof typeof FEATURE_INFO, string, string, string][]).map(
+              ([key, color, bg, border]) =>
+                currentLevel.features?.[key as keyof typeof currentLevel.features] && (
+                  <button
+                    key={key}
+                    onClick={() => setShowFeatureInfo(FEATURE_INFO[key])}
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      color,
+                      background: bg,
+                      border: `1px solid ${border}`,
+                      borderRadius: 4,
+                      padding: '2px 6px',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {FEATURE_INFO[key].icon} {FEATURE_INFO[key].name}
+                  </button>
+                )
             )}
           </div>
         )}
@@ -2621,6 +2647,68 @@ export default function GameBoard() {
 
         {/* How to Play Modal */}
         {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
+
+        {/* Feature Info Sheet */}
+        {showFeatureInfo && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              zIndex: 200,
+            }}
+            onClick={() => setShowFeatureInfo(null)}
+          >
+            <div
+              style={{
+                background: '#0d0d1a',
+                border: '1px solid #2a2a45',
+                borderRadius: '16px 16px 0 0',
+                padding: '24px 24px 36px',
+                width: '100%',
+                maxWidth: 440,
+                textAlign: 'center',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ fontSize: 40, marginBottom: 8 }}>{showFeatureInfo.icon}</div>
+              <div
+                style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 10 }}
+              >
+                {showFeatureInfo.name}
+              </div>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: '#9999bb',
+                  lineHeight: 1.6,
+                  marginBottom: 20,
+                }}
+              >
+                {showFeatureInfo.description}
+              </div>
+              <button
+                onClick={() => setShowFeatureInfo(null)}
+                style={{
+                  background: '#1e1e35',
+                  border: '1px solid #3a3a60',
+                  borderRadius: 8,
+                  color: '#fff',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: '10px 32px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── EDITOR TOOLBAR ─────────────────────────────────────── */}
         {editor.enabled && (

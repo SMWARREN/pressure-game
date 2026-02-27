@@ -260,14 +260,16 @@ export const GemBlastMode: GameModeConfig = {
       totalScore += extraClearedKeys.size * 5;
     }
 
-    // Step 4: Cascade loop — each level adds 0.5× multiplier, cap at 3×
+    // Step 4: Cascade loop — exponential multiplier: 2× → 4× → 7× → 12×
+    // Each cascade level dramatically increases score to reward chain reactions
+    const CASCADE_MULTS = [1.0, 2.0, 4.0, 7.0, 12.0];
     let cascadeLevel = 1;
     while (true) {
       const newGroups = findAllGroups(remaining, 2);
       if (newGroups.length === 0) break;
 
-      cascadeLevel = Math.min(cascadeLevel + 1, 5);
-      cascadeMult = Math.min(1.0 + (cascadeLevel - 1) * 0.5, 3.0);
+      cascadeLevel = Math.min(cascadeLevel + 1, CASCADE_MULTS.length);
+      cascadeMult = CASCADE_MULTS[cascadeLevel - 1];
 
       for (const g of newGroups) {
         totalScore += Math.round(g.length * g.length * 3 * cascadeMult);
@@ -283,11 +285,12 @@ export const GemBlastMode: GameModeConfig = {
       remaining = reshuffle(remaining);
     }
 
-    // Time bonus for timed levels (World 3, 4, 5)
+    // Time bonus for timed levels (World 3, 4, 5) — bigger cascades = more time
     const timeLeft = modeState?.timeLeft as number | undefined;
     let timeBonus = 0;
     if (timeLeft !== undefined && group.length >= 3) {
-      if (cascadeLevel >= 4) timeBonus = 8;
+      if (cascadeLevel >= 5) timeBonus = 12;
+      else if (cascadeLevel >= 4) timeBonus = 8;
       else if (cascadeLevel >= 3) timeBonus = 5;
       else if (group.length >= 7) timeBonus = 4;
       else if (group.length >= 4) timeBonus = 2;
@@ -337,9 +340,10 @@ export const GemBlastMode: GameModeConfig = {
     const cascade = (modeState?.cascadeLevel as number) ?? 1;
     const mult = (modeState?.cascadeMult as number) ?? 1;
     if (delta <= 0) return null;
-    if (cascade >= 5) return `+${delta} 💎💥 MAX CASCADE ×${mult.toFixed(1)}!`;
-    if (cascade >= 3) return `+${delta} ✨ CASCADE ×${mult.toFixed(1)}!`;
-    if (cascade >= 2) return `+${delta} 🔗 CASCADE!`;
+    if (cascade >= 5) return `+${delta} 💎💥 MAX CASCADE ×${mult.toFixed(0)}!`;
+    if (cascade >= 4) return `+${delta} 🔥 CASCADE ×${mult.toFixed(0)}!`;
+    if (cascade >= 3) return `+${delta} ✨ CASCADE ×${mult.toFixed(0)}!`;
+    if (cascade >= 2) return `+${delta} 🔗 CASCADE ×${mult.toFixed(0)}!`;
     const n = Math.round(Math.sqrt(delta / 3));
     if (n >= 8) return `+${delta} 🔥 MEGA CHAIN!`;
     if (n >= 5) return `+${delta} GREAT!`;

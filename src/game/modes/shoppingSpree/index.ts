@@ -51,6 +51,7 @@ interface ShoppingModeState extends Record<string, unknown> {
   combo?: ComboState;
   // Rain
   lastRainAt?: number;
+  lastThiefAt?: number;
 }
 
 function getInitialState(): ShoppingModeState {
@@ -341,37 +342,63 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 4;
-    const features = modeState?.features as { rain?: boolean } | undefined;
+    const features = modeState?.features as
+      | { rain?: boolean; thieves?: boolean }
+      | undefined;
+
+    const storedState = (state.modeState as ShoppingModeState) || getInitialState();
+
+    // Accumulate tile/state changes so rain + thieves can both fire in the same tick
+    let updatedState: ShoppingModeState | null = null;
+    let updatedTiles = state.tiles;
 
     // ── Rain — scramble 2-3 tiles every 10s on Black Friday levels ───────────
     if (features?.rain) {
-      const activeSymbols = (state.tiles.find((t) => t.canRotate)?.displayData
+      const activeSymbols = (updatedTiles.find((t) => t.canRotate)?.displayData
         ?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
-      const storedState = (state.modeState as ShoppingModeState) || getInitialState();
       const lastRainAt = storedState.lastRainAt ?? 0;
       const rainResult = tickRain(
-        state.tiles,
+        updatedTiles,
         state.elapsedSeconds,
         lastRainAt,
         activeSymbols,
         state.currentLevel?.gridSize ?? 9
       );
       if (rainResult) {
-        return {
-          tiles: rainResult.tiles,
-          modeState: { ...storedState, lastRainAt: rainResult.lastRainAt },
-        };
+        updatedTiles = rainResult.tiles;
+        updatedState = { ...(updatedState ?? storedState), lastRainAt: rainResult.lastRainAt };
       }
     }
 
-    // Only run thief spawning on Unlimited world levels (314, 315)
+    // ── Thieves (Black Friday) — spawn 1 thief every 18s ─────────────────────
+    // Uses elapsed time so it works on move-limited levels (no timeLeft needed)
+    if (features?.thieves) {
+      const base = updatedState ?? storedState;
+      const lastThiefAt = base.lastThiefAt ?? 0;
+      if (state.elapsedSeconds >= 10 && state.elapsedSeconds - lastThiefAt >= 18) {
+        const existingThieves = new Set(base.thiefPositions || []);
+        const thiefResult = spawnBlockers(updatedTiles, 'hasThief', existingThieves, {
+          spawnChance: 0.7,
+          maxCount: 1,
+        });
+        if (thiefResult) {
+          updatedTiles = thiefResult.tiles;
+          updatedState = {
+            ...(updatedState ?? storedState),
+            lastThiefAt: state.elapsedSeconds,
+            thiefPositions: [...existingThieves, ...thiefResult.newPositions],
+            thiefWarning: `🦹 THIEF! Match 4+ to scare away!`,
+          };
+        }
+      }
+    }
+
+    if (updatedState !== null) return { tiles: updatedTiles, modeState: updatedState };
+
+    // Only run time-based thief spawning on Unlimited world levels (314, 315)
     // Level 313 is PEACEFUL - no thieves!
     const isUnlimitedWithThieves = levelId !== undefined && levelId >= 314 && levelId <= 315;
     if (!isUnlimitedWithThieves || timeLeft === undefined) return null;
-
-    // Use the stored modeState (not the ephemeral tick snapshot) for tracking thief positions
-    const storedState = (state.modeState as ShoppingModeState) || getInitialState();
-    const tiles = state.tiles;
 
     // Progressive thief difficulty per level:
     // Level 314 (medium): thieves in last 25s, up to 2 thieves
@@ -380,7 +407,6 @@ export const ShoppingSpreeMode: GameModeConfig = {
     let maxCount = 1;
 
     if (levelId === 314) {
-      // Medium - thieves appear mid-game, up to 2
       maxCount = timeLeft < 15 ? 2 : 1;
       if (timeLeft < 10) spawnChance = 0.4;
       else if (timeLeft < 20) spawnChance = 0.25;
@@ -397,7 +423,10 @@ export const ShoppingSpreeMode: GameModeConfig = {
     if (spawnChance === 0) return null;
 
     const existingThieves = new Set(storedState.thiefPositions || []);
-    const result = spawnBlockers(tiles, 'hasThief', existingThieves, { spawnChance, maxCount });
+    const result = spawnBlockers(updatedTiles, 'hasThief', existingThieves, {
+      spawnChance,
+      maxCount,
+    });
     if (!result) return null;
 
     const minGroupSize = world <= 2 ? 3 : 4;
@@ -568,19 +597,15 @@ export const ShoppingSpreeMode: GameModeConfig = {
     return { tiles: next, valid: true, scoreDelta, customState: newState, timeBonus };
   },
 
-  checkWin(_tiles, _goalNodes, _moves, _maxMoves, modeState): WinResult {
+  checkWin(_tiles, _goalNodes, moves, maxMoves, modeState): WinResult {
     const score = (modeState?.score as number) ?? 0;
     const target = (modeState?.targetScore as number) ?? Infinity;
+    if (moves >= maxMoves) return { won: true };
     const won = score >= target;
     return { won, reason: won ? 'Shopping goal reached!' : undefined };
   },
 
-  checkLoss(_tiles, _wallOffset, moves, maxMoves, modeState): LossResult {
-    const score = (modeState?.score as number) ?? 0;
-    const target = (modeState?.targetScore as number) ?? Infinity;
-    if (moves >= maxMoves && score < target) {
-      return { lost: true, reason: 'Out of taps!' };
-    }
+  checkLoss(_tiles, _wallOffset, _moves, _maxMoves, _modeState): LossResult {
     return { lost: false };
   },
 

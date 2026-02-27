@@ -93,7 +93,7 @@ interface CandyLevelConfig {
   seed: number;
   timeLimit?: number;
   isUnlimited?: boolean;
-  features?: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean };
+  features?: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean; ice?: boolean };
   gridCols?: number;
   gridRows?: number;
 }
@@ -323,7 +323,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 5500,
     maxMoves: 30,
     seed: 1210,
-    features: { wildcards: true },
+    features: { wildcards: true, ice: true },
   },
   {
     id: 122,
@@ -336,7 +336,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 10000,
     maxMoves: 28,
     seed: 1220,
-    features: { wildcards: true, bombs: true },
+    features: { wildcards: true, bombs: true, ice: true },
   },
   {
     id: 123,
@@ -349,7 +349,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 17000,
     maxMoves: 26,
     seed: 1230,
-    features: { wildcards: true, bombs: true, comboChain: true },
+    features: { wildcards: true, bombs: true, comboChain: true, ice: true },
   },
   {
     id: 124,
@@ -362,7 +362,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     targetScore: 28000,
     maxMoves: 24,
     seed: 1240,
-    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
+    features: { wildcards: true, bombs: true, comboChain: true, rain: true, ice: true },
   },
   // Bonus World 5 level — hardest unlimited level!
   {
