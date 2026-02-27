@@ -393,9 +393,7 @@ export const CandyMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 0;
-    const features = modeState?.features as
-      | { rain?: boolean; ice?: boolean }
-      | undefined;
+    const features = modeState?.features as { rain?: boolean; ice?: boolean } | undefined;
 
     // Accumulate tile/state changes so rain + ice can both fire in the same tick
     let updatedState: Record<string, unknown> | null = null;

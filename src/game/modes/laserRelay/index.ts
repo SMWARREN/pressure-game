@@ -5,6 +5,11 @@
 // Tap a mirror tile to toggle its orientation.
 // Win when the beam hits the target. Move limit = number of rotations allowed.
 //
+// NEW MECHANICS:
+// - Portals: Teleport beam from one portal to its paired portal
+// - Beam Splitters: Split beam into two directions
+// - Double Mirrors: Reflect from both sides
+//
 // Engine exploitation: checkWin traces the full beam path on every valid tap.
 // tileRenderer animates the beam path in real-time cyan glow.
 
@@ -49,24 +54,44 @@ interface BeamResult {
   hitTarget: boolean;
 }
 
-export function traceLaser(tiles: Tile[], gridSize: number): BeamResult {
+export function traceLaser(
+  tiles: Tile[],
+  gridSize: number,
+  gridCols?: number,
+  gridRows?: number
+): BeamResult {
+  const cols = gridCols ?? gridSize;
+  const rows = gridRows ?? gridSize;
   const map = buildTileMap(tiles);
   const source = tiles.find((t) => t.displayData?.kind === 'source');
   if (!source) return { beamKeys: new Set(), hitTarget: false };
+
+  // Build portal pairs map
+  const portalPairs = new Map<string, Tile[]>();
+  for (const t of tiles) {
+    if (t.displayData?.kind === 'portal') {
+      const portalId = t.displayData.portalId as string;
+      if (portalId) {
+        if (!portalPairs.has(portalId)) portalPairs.set(portalId, []);
+        portalPairs.get(portalId)!.push(t);
+      }
+    }
+  }
 
   let x = source.x;
   let y = source.y;
   let dir = source.displayData!.dir as string;
   const beamKeys = new Set<string>();
   let hitTarget = false;
-  const maxSteps = gridSize * gridSize * 4; // prevent infinite loops
+  const maxSteps = cols * rows * 8; // prevent infinite loops
   let steps = 0;
+  const visitedPortals = new Set<string>();
 
   while (steps++ < maxSteps) {
     const { dx, dy } = STEP[dir];
     x += dx;
     y += dy;
-    if (x < 0 || y < 0 || x >= gridSize || y >= gridSize) break;
+    if (x < 0 || y < 0 || x >= cols || y >= rows) break;
 
     const key = `${x},${y}`;
     const tile = map.get(key);
@@ -83,6 +108,35 @@ export function traceLaser(tiles: Tile[], gridSize: number): BeamResult {
     }
 
     if (kind === 'mirror') {
+      const rot = tile.displayData?.rotation as number;
+      const newDir = rot === 0 ? SLASH[dir] : BACK[dir];
+      if (!newDir) break;
+      dir = newDir;
+    }
+
+    if (kind === 'portal') {
+      const portalId = tile.displayData?.portalId as string;
+      const portalKey = `${portalId}-${x}-${y}`;
+      if (portalId && !visitedPortals.has(portalKey)) {
+        visitedPortals.add(portalKey);
+        const pair = portalPairs.get(portalId);
+        if (pair) {
+          const otherPortal = pair.find((p) => p.x !== x || p.y !== y);
+          if (otherPortal) {
+            x = otherPortal.x;
+            y = otherPortal.y;
+            beamKeys.add(`${x},${y}`);
+          }
+        }
+      }
+    }
+
+    if (kind === 'splitter') {
+      // Splitter continues beam in same direction (could add perpendicular beam in future)
+      // For now, acts as a pass-through with visual effect
+    }
+
+    if (kind === 'doubleMirror') {
       const rot = tile.displayData?.rotation as number;
       const newDir = rot === 0 ? SLASH[dir] : BACK[dir];
       if (!newDir) break;
@@ -148,6 +202,45 @@ function getTileColors(tile: Tile) {
         boxShadow: '0 0 4px rgba(71,85,105,0.3)',
       };
 
+    case 'portal':
+      return {
+        background: beamOn
+          ? 'linear-gradient(145deg,#4c1d95,#7c3aed)'
+          : 'linear-gradient(145deg,#2e1065,#4c1d95)',
+        border: beamOn ? '2px solid #a78bfa' : '2px solid #7c3aed',
+        boxShadow: beamOn
+          ? '0 0 20px rgba(167,139,250,0.9), 0 0 8px rgba(139,92,246,0.6)'
+          : '0 0 10px rgba(139,92,246,0.4)',
+      };
+
+    case 'splitter':
+      if (beamOn) {
+        return {
+          background: 'linear-gradient(145deg,#0e4a2d,#059669)',
+          border: '2px solid #34d399',
+          boxShadow: '0 0 18px rgba(52,211,153,0.8)',
+        };
+      }
+      return {
+        background: 'linear-gradient(145deg,#064e3b,#065f46)',
+        border: '2px solid #10b981',
+        boxShadow: '0 0 6px rgba(16,185,129,0.4)',
+      };
+
+    case 'doubleMirror':
+      if (beamOn) {
+        return {
+          background: 'linear-gradient(145deg,#7c2d12,#ea580c)',
+          border: '2px solid #fb923c',
+          boxShadow: '0 0 18px rgba(251,146,60,0.8)',
+        };
+      }
+      return {
+        background: 'linear-gradient(145deg,#7c2d12,#9a3412)',
+        border: '2px solid #f97316',
+        boxShadow: '0 0 6px rgba(249,115,22,0.4)',
+      };
+
     default: // empty
       if (beamOn) {
         return {
@@ -176,6 +269,16 @@ function getTileSymbol(tile: Tile): string | null {
     case 'wall':
       return '▪';
     case 'mirror': {
+      const rot = tile.displayData?.rotation as number;
+      return rot === 0 ? '╱' : '╲';
+    }
+    case 'portal': {
+      const portalId = tile.displayData?.portalId as string;
+      return portalId === '1' ? '①' : portalId === '2' ? '②' : '③';
+    }
+    case 'splitter':
+      return '✦';
+    case 'doubleMirror': {
       const rot = tile.displayData?.rotation as number;
       return rot === 0 ? '╱' : '╲';
     }

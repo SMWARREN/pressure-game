@@ -342,9 +342,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 4;
-    const features = modeState?.features as
-      | { rain?: boolean; thieves?: boolean }
-      | undefined;
+    const features = modeState?.features as { rain?: boolean; thieves?: boolean } | undefined;
 
     const storedState = (state.modeState as ShoppingModeState) || getInitialState();
 

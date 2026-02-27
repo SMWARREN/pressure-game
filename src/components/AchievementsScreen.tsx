@@ -406,44 +406,44 @@ export default function AchievementsScreen({ onBack }: { onBack: () => void }) {
             gap: 20,
           }}
         >
-          {(
-            ['progression', 'skill', 'dedication', 'special'] as AchievementCategory[]
-          ).map((category) => {
-            const categoryAchievements = byCategory[category];
-            if (categoryAchievements.length === 0) return null;
+          {(['progression', 'skill', 'dedication', 'special'] as AchievementCategory[]).map(
+            (category) => {
+              const categoryAchievements = byCategory[category];
+              if (categoryAchievements.length === 0) return null;
 
-            const categoryEarned = categoryAchievements.filter(
-              (a) => engine.getProgress(a.id)?.earned
-            ).length;
+              const categoryEarned = categoryAchievements.filter(
+                (a) => engine.getProgress(a.id)?.earned
+              ).length;
 
-            return (
-              <div key={category}>
-                <div
-                  style={{
-                    ...label,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}
-                >
-                  <span>{categoryIcons[category]}</span>
-                  <span>{categoryLabels[category]}</span>
-                  <span style={{ color: '#3a3a55' }}>
-                    ({categoryEarned}/{categoryAchievements.length})
-                  </span>
+              return (
+                <div key={category}>
+                  <div
+                    style={{
+                      ...label,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span>{categoryIcons[category]}</span>
+                    <span>{categoryLabels[category]}</span>
+                    <span style={{ color: '#3a3a55' }}>
+                      ({categoryEarned}/{categoryAchievements.length})
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {categoryAchievements.map((achievement) => (
+                      <AchievementCard
+                        key={achievement.id}
+                        achievement={achievement}
+                        progress={engine.getProgress(achievement.id)}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {categoryAchievements.map((achievement) => (
-                    <AchievementCard
-                      key={achievement.id}
-                      achievement={achievement}
-                      progress={engine.getProgress(achievement.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+              );
+            }
+          )}
         </div>
       </div>
     </div>

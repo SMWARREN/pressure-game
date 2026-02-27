@@ -141,7 +141,7 @@ export interface Level {
     bombs?: boolean;
     comboChain?: boolean;
     rain?: boolean;
-    ice?: boolean;     // candy: frozen tiles spawn periodically
+    ice?: boolean; // candy: frozen tiles spawn periodically
     thieves?: boolean; // shopping: thieves spawn periodically
   };
   /** Non-square grid support. gridCols = columns (x), gridRows = rows (y). Falls back to gridSize. */

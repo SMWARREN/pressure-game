@@ -385,23 +385,23 @@ class AchievementEngine {
    */
   getCurrentStreak(): number {
     const streakData = this.getStreakData();
-    
+
     // Check if streak is still valid (not broken)
     if (streakData.lastPlayDate) {
       const lastDate = new Date(streakData.lastPlayDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       lastDate.setHours(0, 0, 0, 0);
-      
+
       const diffTime = today.getTime() - lastDate.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
+
       // If more than 1 day has passed, streak is broken
       if (diffDays > 1) {
         return 0;
       }
     }
-    
+
     return streakData.currentStreak;
   }
 }

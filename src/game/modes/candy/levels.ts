@@ -93,7 +93,13 @@ interface CandyLevelConfig {
   seed: number;
   timeLimit?: number;
   isUnlimited?: boolean;
-  features?: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean; ice?: boolean };
+  features?: {
+    wildcards?: boolean;
+    bombs?: boolean;
+    comboChain?: boolean;
+    rain?: boolean;
+    ice?: boolean;
+  };
   gridCols?: number;
   gridRows?: number;
 }

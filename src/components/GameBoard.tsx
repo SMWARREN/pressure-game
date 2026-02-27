@@ -2246,14 +2246,16 @@ export default function GameBoard() {
               flexShrink: 0,
             }}
           >
-            {([
-              ['wildcards', '#fbbf24', '#2d280010', '#fbbf2440'],
-              ['bombs', '#ef4444', '#2d000010', '#ef444440'],
-              ['comboChain', '#f97316', '#2d100010', '#f9731640'],
-              ['rain', '#60a5fa', '#00102d10', '#60a5fa40'],
-              ['ice', '#93c5fd', '#0f1f3d10', '#93c5fd40'],
-              ['thieves', '#f87171', '#2d000010', '#f8717140'],
-            ] as [keyof typeof FEATURE_INFO, string, string, string][]).map(
+            {(
+              [
+                ['wildcards', '#fbbf24', '#2d280010', '#fbbf2440'],
+                ['bombs', '#ef4444', '#2d000010', '#ef444440'],
+                ['comboChain', '#f97316', '#2d100010', '#f9731640'],
+                ['rain', '#60a5fa', '#00102d10', '#60a5fa40'],
+                ['ice', '#93c5fd', '#0f1f3d10', '#93c5fd40'],
+                ['thieves', '#f87171', '#2d000010', '#f8717140'],
+              ] as [keyof typeof FEATURE_INFO, string, string, string][]
+            ).map(
               ([key, color, bg, border]) =>
                 currentLevel.features?.[key as keyof typeof currentLevel.features] && (
                   <button
@@ -2675,9 +2677,7 @@ export default function GameBoard() {
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ fontSize: 40, marginBottom: 8 }}>{showFeatureInfo.icon}</div>
-              <div
-                style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 10 }}
-              >
+              <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 10 }}>
                 {showFeatureInfo.name}
               </div>
               <div
