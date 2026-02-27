@@ -6,6 +6,8 @@ import WallOverlay from './WallOverlay';
 interface GameGridProps {
   tiles: Tile[];
   gridSize: number;
+  gridCols?: number;
+  gridRows?: number;
   gap: number;
   tileSize: number;
   wallOffset: number;
@@ -35,6 +37,8 @@ interface GameGridProps {
 function GameGridComponent({
   tiles,
   gridSize,
+  gridCols: gridColsProp,
+  gridRows: gridRowsProp,
   gap,
   tileSize,
   wallOffset,
@@ -50,6 +54,8 @@ function GameGridComponent({
   editorMode = false,
   compressionDirection = 'all',
 }: GameGridProps) {
+  const gridCols = gridColsProp ?? gridSize;
+  const gridRows = gridRowsProp ?? gridSize;
   // Create a Map for O(1) tile lookups instead of O(n) array.find()
   const tileMap = useMemo(() => {
     const map = new Map<string, Tile>();
@@ -70,11 +76,10 @@ function GameGridComponent({
       inDanger: boolean;
     }> = [];
 
-    for (let i = 0; i < gridSize * gridSize; i++) {
-      const x = i % gridSize;
-      const y = Math.floor(i / gridSize);
+    for (let y = 0; y < gridRows; y++) {
+      for (let x = 0; x < gridCols; x++) {
       const tile = tileMap.get(`${x},${y}`);
-      const dist = Math.min(x, y, gridSize - 1 - x, gridSize - 1 - y);
+      const dist = Math.min(x, y, gridCols - 1 - x, gridRows - 1 - y);
 
       // FIXED: Correct inDanger calculation
       // Tiles are in danger when compression is active AND they're within the wall offset zone
@@ -94,10 +99,11 @@ function GameGridComponent({
         dist,
         inDanger,
       });
+      }
     }
 
     return cells;
-  }, [gridSize, tileMap, compressionActive, wallOffset]);
+  }, [gridCols, gridRows, tileMap, compressionActive, wallOffset]);
 
   return (
     <>
@@ -105,8 +111,8 @@ function GameGridComponent({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-          gridTemplateRows: `repeat(${gridSize}, 1fr)`,
+          gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+          gridTemplateRows: `repeat(${gridRows}, 1fr)`,
           gap,
           width: '100%',
           height: '100%',

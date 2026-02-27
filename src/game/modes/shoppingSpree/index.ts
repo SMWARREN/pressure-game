@@ -26,6 +26,11 @@ import {
   applyFreshFlags,
   type SymbolUnlockState,
 } from '../symbolUnlockAddon';
+import { findGroupWithWildcards } from '../arcadeShared';
+import { WILDCARD_SYMBOL, isWildcard, makeWildcardTile, getWildcardColors } from '../wildcardAddon';
+import { BOMB_SYMBOL, isBomb, makeBombTile, applyBombExplosion, getBombColors } from '../bombAddon';
+import { updateCombo, resetCombo, comboNotification, type ComboState } from '../comboChainAddon';
+import { tickRain } from '../rainAddon';
 
 // ── Mode State for Flash Sales, Cart, Thief & Symbol Unlock ──────────────────
 
@@ -42,6 +47,10 @@ interface ShoppingModeState extends Record<string, unknown> {
   freshSymbols?: string[];
   newSymbolUnlocked?: string;
   freshClear?: string;
+  // Combo chain
+  combo?: ComboState;
+  // Rain
+  lastRainAt?: number;
 }
 
 function getInitialState(): ShoppingModeState {
@@ -123,14 +132,19 @@ function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
  * After clearing tiles, pack survivors to the bottom of each column
  * and fill the top with fresh random items.
  */
-function applyGravity(tiles: Tile[], gridSize: number): Tile[] {
+function applyGravity(
+  tiles: Tile[],
+  gridCols: number,
+  gridRows: number,
+  features?: { wildcards?: boolean; bombs?: boolean }
+): Tile[] {
   const survivors = tiles.filter((t) => t.canRotate);
   const activeSymbols = (survivors.find((t) => t.canRotate)?.displayData
     ?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
 
   const result: Tile[] = [];
 
-  for (let col = 0; col < gridSize; col++) {
+  for (let col = 0; col < gridCols; col++) {
     const colTiles = survivors.filter((t) => t.x === col).sort((a, b) => b.y - a.y);
 
     // Pack existing tiles to the bottom
@@ -138,34 +152,40 @@ function applyGravity(tiles: Tile[], gridSize: number): Tile[] {
       const d = colTiles[i].displayData ?? {};
       result.push({
         ...colTiles[i],
-        y: gridSize - 1 - i,
+        y: gridRows - 1 - i,
         justRotated: false,
         displayData: { ...d, isNew: false },
       });
     }
 
     // Fill remaining slots from the top with new random items
-    const fillCount = gridSize - colTiles.length;
+    const fillCount = gridRows - colTiles.length;
     for (let row = 0; row < fillCount; row++) {
-      // 💎 is rare (10% chance)
-      let symbol: string;
-      if (Math.random() < 0.1) {
-        symbol = '💎';
+      const roll = Math.random();
+      if (features?.bombs && roll < 0.03) {
+        result.push(makeBombTile(col, row, activeSymbols));
+      } else if (features?.wildcards && roll < 0.08) {
+        result.push(makeWildcardTile(col, row, activeSymbols));
       } else {
-        const commonSymbols = activeSymbols.filter((s) => s !== '💎');
-        symbol = commonSymbols[Math.floor(Math.random() * commonSymbols.length)];
+        let symbol: string;
+        if (Math.random() < 0.1) {
+          symbol = '💎';
+        } else {
+          const commonSymbols = activeSymbols.filter((s) => s !== '💎');
+          symbol = commonSymbols[Math.floor(Math.random() * commonSymbols.length)];
+        }
+        result.push({
+          id: `sn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
+          type: 'path' as const,
+          x: col,
+          y: row,
+          connections: [],
+          canRotate: true,
+          isGoalNode: false,
+          justRotated: true,
+          displayData: { symbol, activeSymbols: activeSymbols, isNew: true },
+        });
       }
-      result.push({
-        id: `sn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
-        type: 'path' as const,
-        x: col,
-        y: row,
-        connections: [],
-        canRotate: true,
-        isGoalNode: false,
-        justRotated: true,
-        displayData: { symbol, activeSymbols: activeSymbols, isNew: true },
-      });
     }
   }
 
@@ -257,6 +277,9 @@ export const ShoppingSpreeMode: GameModeConfig = {
     symbolSize: '1.5rem',
 
     getColors(tile, _ctx) {
+      if (isWildcard(tile)) return getWildcardColors(tile);
+      if (isBomb(tile)) return getBombColors(tile);
+
       // Thief tile — dark red ominous styling
       if (tile.displayData?.hasThief) {
         return {
@@ -303,6 +326,8 @@ export const ShoppingSpreeMode: GameModeConfig = {
     },
 
     getSymbol(tile) {
+      if (isWildcard(tile)) return WILDCARD_SYMBOL;
+      if (isBomb(tile)) return BOMB_SYMBOL;
       // Show thief emoji on thief tiles
       if (tile.displayData?.hasThief) return '🦹';
       if (!tile.canRotate) return null;
@@ -316,6 +341,22 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 4;
+    const features = modeState?.features as { rain?: boolean } | undefined;
+
+    // ── Rain — scramble 2-3 tiles every 10s on Black Friday levels ───────────
+    if (features?.rain) {
+      const activeSymbols =
+        (state.tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
+      const storedState = (state.modeState as ShoppingModeState) || getInitialState();
+      const lastRainAt = storedState.lastRainAt ?? 0;
+      const rainResult = tickRain(state.tiles, state.elapsedSeconds, lastRainAt, activeSymbols, state.currentLevel?.gridSize ?? 9);
+      if (rainResult) {
+        return {
+          tiles: rainResult.tiles,
+          modeState: { ...storedState, lastRainAt: rainResult.lastRainAt },
+        };
+      }
+    }
 
     // Only run thief spawning on Unlimited world levels (314, 315)
     // Level 313 is PEACEFUL - no thieves!
@@ -368,6 +409,9 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const state: ShoppingModeState = (modeState as ShoppingModeState) || getInitialState();
     const world = (modeState?.world as number) ?? 4;
     const minGroupSize = world <= 2 ? 3 : 4;
+    const features = modeState?.features as { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined;
+    const gcols = (modeState?.gridCols as number) ?? gridSize;
+    const grows = (modeState?.gridRows as number) ?? gridSize;
 
     // Check if this tile has a thief - can't tap!
     const tileKey = `${x},${y}`;
@@ -375,7 +419,9 @@ export const ShoppingSpreeMode: GameModeConfig = {
       return { tiles, valid: false, scoreDelta: 0, customState: state };
     }
 
-    const group = findGroup(x, y, tiles);
+    const group = features?.wildcards
+      ? findGroupWithWildcards(x, y, tiles)
+      : findGroup(x, y, tiles);
     if (group.length < 2) return null; // Need 2+ connected same-item tiles
 
     // ── Symbol unlock state ────────────────────────────────────────────────────
@@ -403,7 +449,19 @@ export const ShoppingSpreeMode: GameModeConfig = {
     if (group.length >= 7) comboMultiplier = 3;
     if (group.length >= 10) comboMultiplier = 4;
 
-    let scoreDelta = baseValue * group.length * comboMultiplier;
+    // ── Bomb explosion ─────────────────────────────────────────────────────────
+    const { extraClearedKeys, bonusScore } = features?.bombs
+      ? applyBombExplosion(group, tiles, gridSize)
+      : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
+
+    // ── Combo chain multiplier ─────────────────────────────────────────────────
+    const prevCombo: ComboState = features?.comboChain && state.combo
+      ? state.combo
+      : resetCombo();
+    const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
+    const comboChainMult = features?.comboChain ? newCombo.multiplier : 1;
+
+    let scoreDelta = Math.round(baseValue * group.length * comboMultiplier * comboChainMult) + bonusScore;
 
     // 🛒 SHOPPING CART BONUS - Every 10 items = bonus $50!
     const newCartItems = state.cartItems + group.length;
@@ -413,7 +471,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
       scoreDelta += cartBonus;
     }
 
-    const clearedKeys = new Set(group.map((t) => `${t.x},${t.y}`));
+    const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
     let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
 
     // 5+ combo → unlock the next bonus item!
@@ -440,7 +498,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
       (pos) => !scaredThiefKeys.has(pos)
     );
 
-    let next = applyGravity(remainingWithThiefClear, gridSize);
+    let next = applyGravity(remainingWithThiefClear, gcols, grows, features);
 
     // If refill produces a deadlock, reshuffle
     if (!hasValidMove(next)) {
@@ -470,6 +528,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
       freshSymbols: newUnlockState.freshSymbols,
       newSymbolUnlocked,
       freshClear: isFreshClear ? symbol : undefined,
+      combo: newCombo,
     };
 
     // Maybe trigger a new flash sale
@@ -532,6 +591,12 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const delta = (modeState?.scoreDelta as number) ?? 0;
     const timeBonus = (modeState?.timeBonus as number) ?? 0;
     const timeLeft = modeState?.timeLeft as number | undefined;
+
+    // Combo chain notification (Black Friday levels)
+    if (state.combo) {
+      const cn = comboNotification(state.combo);
+      if (cn) return cn;
+    }
 
     // New bonus item unlocked
     if (state.newSymbolUnlocked) {

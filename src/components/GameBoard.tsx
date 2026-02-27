@@ -21,6 +21,7 @@ import {
   setUnlimitedHighScore,
 } from '@/game/unlimited';
 import HowToPlayModal from './HowToPlayModal';
+import ArcadeHubScreen from './ArcadeHubScreen';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NOTIFICATION FLOAT ANIMATION
@@ -1619,6 +1620,7 @@ export default function GameBoard() {
     editor,
     setEditorTool,
     editorUpdateTile,
+    showArcadeHub,
   } = useGameStore(
     useShallow((s) => ({
       currentLevel: s.currentLevel,
@@ -1655,6 +1657,7 @@ export default function GameBoard() {
       setEditorSelectedTile: s.setEditorSelectedTile,
       editorUpdateTile: s.editorUpdateTile,
       editorRotateTile: s.editorRotateTile,
+      showArcadeHub: s.showArcadeHub,
     }))
   );
 
@@ -1926,6 +1929,7 @@ export default function GameBoard() {
 
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
+  if (showArcadeHub) return <ArcadeHubScreen />;
   if (status === 'menu' || !currentLevel) return <MenuScreen />;
 
   const gs = currentLevel.gridSize;
@@ -1953,14 +1957,24 @@ export default function GameBoard() {
   const showUndoBtn = mode.supportsUndo !== false;
   const showHintBtn = solution !== null; // null for non-pipe modes (candy, outbreak, etc.)
 
-  // Responsive board: header ~62px + stats ~52px + footer ~62px + gaps ~24px = ~200px
-  const reserved = 200;
-  const maxByWidth = Math.min(vw * 0.97, 460);
-  const maxByHeight = Math.max(vh - reserved, 160);
-  const boardPx = Math.min(maxByWidth, maxByHeight);
-  const gap = gs >= 9 ? 2 : gs > 5 ? 3 : 4;
-  const padding = gs >= 9 ? 4 : gs > 5 ? 8 : 10;
-  const tileSize = Math.floor((boardPx - padding * 2 - gap * (gs - 1)) / gs);
+  // Non-square grid support
+  const gridCols = currentLevel.gridCols ?? gs;
+  const gridRows = currentLevel.gridRows ?? gs;
+  const maxDim = Math.max(gridCols, gridRows);
+
+  // Responsive board: header ~62px + stats ~52px + plugin strip ~24px + footer ~62px + gaps ~24px = ~224px
+  const hasFeatures = !!(currentLevel.features && Object.values(currentLevel.features).some(Boolean));
+  const reserved = hasFeatures ? 224 : 200;
+  const maxAvailW = Math.min(vw * 0.97, 460);
+  const maxAvailH = Math.max(vh - reserved, 160);
+  const gap = maxDim >= 9 ? 2 : maxDim > 5 ? 3 : 4;
+  const padding = maxDim >= 9 ? 4 : maxDim > 5 ? 8 : 10;
+  const tileSizeByW = Math.floor((maxAvailW - padding * 2 - gap * (gridCols - 1)) / gridCols);
+  const tileSizeByH = Math.floor((maxAvailH - padding * 2 - gap * (gridRows - 1)) / gridRows);
+  const tileSize = Math.max(1, Math.min(tileSizeByW, tileSizeByH));
+  const boardWidth = tileSize * gridCols + padding * 2 + gap * (gridCols - 1);
+  const boardHeight = tileSize * gridRows + padding * 2 + gap * (gridRows - 1);
+
 
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
@@ -2089,6 +2103,33 @@ export default function GameBoard() {
           isEditor={editor.enabled}
         />
 
+        {/* ── PLUGIN INDICATOR — shows active features for this level ── */}
+        {hasFeatures && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 5,
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              padding: '2px 12px',
+              flexShrink: 0,
+            }}
+          >
+            {currentLevel.features?.wildcards && (
+              <span style={{ fontSize: 9, fontWeight: 800, color: '#fbbf24', background: '#2d280010', border: '1px solid #fbbf2440', borderRadius: 4, padding: '2px 6px' }}>⭐ Wildcards</span>
+            )}
+            {currentLevel.features?.bombs && (
+              <span style={{ fontSize: 9, fontWeight: 800, color: '#ef4444', background: '#2d000010', border: '1px solid #ef444440', borderRadius: 4, padding: '2px 6px' }}>💣 Bombs</span>
+            )}
+            {currentLevel.features?.comboChain && (
+              <span style={{ fontSize: 9, fontWeight: 800, color: '#f97316', background: '#2d100010', border: '1px solid #f9731640', borderRadius: 4, padding: '2px 6px' }}>🔥 Combo Chain</span>
+            )}
+            {currentLevel.features?.rain && (
+              <span style={{ fontSize: 9, fontWeight: 800, color: '#60a5fa', background: '#00102d10', border: '1px solid #60a5fa40', borderRadius: 4, padding: '2px 6px' }}>🌧️ Shuffle Rain</span>
+            )}
+          </div>
+        )}
+
         {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
         <div
           style={{
@@ -2106,8 +2147,8 @@ export default function GameBoard() {
             ref={boardRef}
             style={{
               position: 'relative',
-              width: boardPx,
-              height: boardPx,
+              width: boardWidth,
+              height: boardHeight,
               background: 'linear-gradient(145deg, #0a0a16, #07070e)',
               borderRadius: 18,
               padding,
@@ -2126,6 +2167,8 @@ export default function GameBoard() {
               tiles={tiles}
               compressionDirection={currentLevel?.compressionDirection ?? editor.compressionDirection ?? 'all'}
               gridSize={gs}
+              gridCols={gridCols}
+              gridRows={gridRows}
               gap={gap}
               tileSize={tileSize}
               wallOffset={wallOffset}

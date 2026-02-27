@@ -28,11 +28,12 @@ function seededRandom(seed: number) {
   };
 }
 
-function makeGrid(gridSize: number, symbols: readonly string[], seed: number): Tile[] {
+function makeGrid(gridCols: number, symbols: readonly string[], seed: number, gridRows?: number): Tile[] {
+  const rows = gridRows ?? gridCols;
   const rng = seededRandom(seed);
   const tiles: Tile[] = [];
-  for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < gridCols; x++) {
       // 💎 is rare (10% chance), other items are more common
       let symbol: string;
       if (rng() < 0.1) {
@@ -86,6 +87,13 @@ export const SHOPPING_WORLDS = [
     tagline: 'Combos add time — shop forever!',
     color: '#22c55e',
     icon: '♾️',
+  },
+  {
+    id: 5,
+    name: 'Black Friday',
+    tagline: 'Wildcards, bombs & combo deals!',
+    color: '#dc2626',
+    icon: '🔥',
   },
 ];
 
@@ -341,7 +349,69 @@ export const SHOPPING_LEVELS: Level[] = [
     compressionDelay: 999999,
     compressionEnabled: false,
     targetScore: 99999,
-    timeLimit: 10, // Reduced from 30 - extreme challenge!
+    timeLimit: 10,
     isUnlimited: true,
+  },
+
+  // ── World 5: Black Friday — wildcards, bombs, combo chains & rain ────────────
+  {
+    id: 320,
+    name: 'Doorbuster',
+    world: 5,
+    gridSize: 9,
+    gridCols: 7,
+    gridRows: 9,
+    tiles: makeGrid(7, SHOPPING_ITEMS, 320, 9),
+    goalNodes: [],
+    maxMoves: 30,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 7000,
+    features: { wildcards: true },
+  },
+  {
+    id: 321,
+    name: 'Flash Mob',
+    world: 5,
+    gridSize: 10,
+    gridCols: 8,
+    gridRows: 10,
+    tiles: makeGrid(8, SHOPPING_ITEMS, 321, 10),
+    goalNodes: [],
+    maxMoves: 28,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 13000,
+    features: { wildcards: true, bombs: true },
+  },
+  {
+    id: 322,
+    name: 'Stampede',
+    world: 5,
+    gridSize: 11,
+    gridCols: 9,
+    gridRows: 11,
+    tiles: makeGrid(9, SHOPPING_ITEMS, 322, 11),
+    goalNodes: [],
+    maxMoves: 26,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 22000,
+    features: { wildcards: true, bombs: true, comboChain: true },
+  },
+  {
+    id: 323,
+    name: 'Midnight Madness',
+    world: 5,
+    gridSize: 12,
+    gridCols: 10,
+    gridRows: 12,
+    tiles: makeGrid(10, SHOPPING_ITEMS, 323, 12),
+    goalNodes: [],
+    maxMoves: 24,
+    compressionDelay: 999999,
+    compressionEnabled: false,
+    targetScore: 35000,
+    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
   },
 ];

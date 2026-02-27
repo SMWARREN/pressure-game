@@ -22,6 +22,7 @@ import { MirrorForgeMode } from './mirrorForge/index';
 import { LaserRelayMode } from './laserRelay/index';
 import { VoltageMode } from './voltage/index';
 import { FuseMode } from './fuse/index';
+import { GemBlastMode } from './gemBlast/index';
 
 export const GAME_MODES: GameModeConfig[] = [
   ClassicMode,
@@ -37,6 +38,7 @@ export const GAME_MODES: GameModeConfig[] = [
   LaserRelayMode,
   VoltageMode,
   FuseMode,
+  GemBlastMode,
 ];
 
 // ── Mode Groups ───────────────────────────────────────────────────────────────
@@ -60,7 +62,7 @@ export const MODE_GROUPS: ModeGroup[] = [
   {
     label: 'Arcade',
     tagline: 'Match, clear, and score',
-    modeIds: ['candy', 'shoppingSpree'],
+    modeIds: ['candy', 'shoppingSpree', 'gemBlast'],
   },
   {
     label: 'Strategy',

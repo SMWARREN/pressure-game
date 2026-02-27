@@ -113,7 +113,12 @@ export type TutorialDemoType =
   | 'fuse-chain'
   | 'fuse-relay'
   | 'fuse-detonate'
-  | 'fuse-ready';
+  | 'fuse-ready'
+  // Gem Blast mode demos
+  | 'gemblast-tap'
+  | 'gemblast-cascade'
+  | 'gemblast-blast'
+  | 'gemblast-ready';
 
 export interface TutorialStep {
   icon: string;

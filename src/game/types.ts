@@ -135,6 +135,16 @@ export interface Level {
   timeLimit?: number;
   /** Unlimited/endless mode: beat your previous high score to win */
   isUnlimited?: boolean;
+  /** Opt-in feature flags for arcade modes (wildcard/bomb/comboChain/rain tiles) */
+  features?: {
+    wildcards?: boolean;
+    bombs?: boolean;
+    comboChain?: boolean;
+    rain?: boolean;
+  };
+  /** Non-square grid support. gridCols = columns (x), gridRows = rows (y). Falls back to gridSize. */
+  gridCols?: number;
+  gridRows?: number;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -178,6 +188,8 @@ export interface GameState {
   lossReason: string | null;
   /** Whether the game is currently paused */
   isPaused: boolean;
+  /** Whether the full-screen Arcade Hub picker is open */
+  showArcadeHub: boolean;
   /** Currently selected world in the menu — persisted so returning from a level goes back to the same world */
   selectedWorld: number;
   /** Last played level ID per mode — used to highlight the level in the menu */
@@ -236,6 +248,8 @@ export interface GameActions {
   toggleAnimations: () => void;
   pauseGame: () => void;
   resumeGame: () => void;
+  openArcadeHub: () => void;
+  closeArcadeHub: () => void;
   setSelectedWorld: (world: number) => void;
   toggleEditor: () => void;
   setEditorTool: (

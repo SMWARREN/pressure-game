@@ -411,6 +411,7 @@ export class PressureEngine implements IPressureEngine {
       modeState: {},
       _winCheckPending: false,
       isPaused: false,
+      showArcadeHub: false,
       lastPlayedLevelId: saved.lastPlayedLevelId,
       selectedWorld: 1,
       editor: {

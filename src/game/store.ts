@@ -35,7 +35,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     setGameMode: (modeId: string) => {
       const { seenTutorials } = get();
       const alreadySeen = seenTutorials.includes(modeId);
-      set({ currentModeId: modeId, status: alreadySeen ? 'menu' : 'tutorial', currentLevel: null });
+      set({ currentModeId: modeId, status: alreadySeen ? 'menu' : 'tutorial', currentLevel: null, showArcadeHub: false });
       engine.persist({ ...get(), currentModeId: modeId });
     },
 
@@ -117,6 +117,9 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         timeLeft,
         levelId: currentLevel?.id,
         world: currentLevel?.world,
+        features: currentLevel?.features,
+        gridCols: currentLevel?.gridCols ?? currentLevel?.gridSize,
+        gridRows: currentLevel?.gridRows ?? currentLevel?.gridSize,
       };
 
       const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeStateWithTime);
@@ -285,6 +288,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         set({ isPaused: false });
         engine.startTimer();
       }
+    },
+
+    openArcadeHub: () => {
+      set({ showArcadeHub: true });
+    },
+
+    closeArcadeHub: () => {
+      set({ showArcadeHub: false });
     },
 
     replayWalkthrough: () => {

@@ -24,6 +24,13 @@ export const CANDY_WORLDS = [
     color: '#22c55e',
     icon: '♾️',
   },
+  {
+    id: 6,
+    name: 'Tropical',
+    tagline: 'Wildcards, bombs & combo chaos!',
+    color: '#f59e0b',
+    icon: '🌴',
+  },
 ];
 
 // ── Seeded PRNG (mulberry32) ──────────────────────────────────────────────────
@@ -54,12 +61,13 @@ function makeTile(x: number, y: number, symbol: string, activeSymbols: string[])
   };
 }
 
-function generateGrid(gridSize: number, numSymbols: number, seed: number): Tile[] {
+function generateGrid(gridCols: number, numSymbols: number, seed: number, gridRows?: number): Tile[] {
+  const rows = gridRows ?? gridCols;
   const rng = seededRandom(seed);
   const activeSymbols = CANDY_SYMBOLS.slice(0, numSymbols);
   const tiles: Tile[] = [];
-  for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < gridCols; x++) {
       const symbol = activeSymbols[Math.floor(rng() * numSymbols)];
       tiles.push(makeTile(x, y, symbol, activeSymbols));
     }
@@ -78,8 +86,11 @@ interface CandyLevelConfig {
   targetScore: number;
   maxMoves: number;
   seed: number;
-  timeLimit?: number; // seconds — undefined = no time limit
-  isUnlimited?: boolean; // endless mode — beat your high score
+  timeLimit?: number;
+  isUnlimited?: boolean;
+  features?: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean };
+  gridCols?: number;
+  gridRows?: number;
 }
 
 const LEVEL_CONFIGS: CandyLevelConfig[] = [
@@ -295,6 +306,59 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     timeLimit: 12, // Reduced from 15 - now challenging!
     isUnlimited: true,
   },
+  // ── World 6: Tropical — wildcards, bombs, combo chains & rain chaos ─────────
+  {
+    id: 121,
+    name: 'Island Welcome',
+    world: 6,
+    gridSize: 8,
+    gridCols: 7,
+    gridRows: 9,
+    numSymbols: 5,
+    targetScore: 5500,
+    maxMoves: 30,
+    seed: 1210,
+    features: { wildcards: true },
+  },
+  {
+    id: 122,
+    name: 'Coconut Drop',
+    world: 6,
+    gridSize: 9,
+    gridCols: 8,
+    gridRows: 10,
+    numSymbols: 5,
+    targetScore: 10000,
+    maxMoves: 28,
+    seed: 1220,
+    features: { wildcards: true, bombs: true },
+  },
+  {
+    id: 123,
+    name: 'Storm Season',
+    world: 6,
+    gridSize: 10,
+    gridCols: 9,
+    gridRows: 11,
+    numSymbols: 5,
+    targetScore: 17000,
+    maxMoves: 26,
+    seed: 1230,
+    features: { wildcards: true, bombs: true, comboChain: true },
+  },
+  {
+    id: 124,
+    name: 'Tropical Chaos',
+    world: 6,
+    gridSize: 12,
+    gridCols: 10,
+    gridRows: 12,
+    numSymbols: 5,
+    targetScore: 28000,
+    maxMoves: 24,
+    seed: 1240,
+    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
+  },
   // Bonus World 5 level — hardest unlimited level!
   {
     id: 120,
@@ -315,7 +379,9 @@ export const CANDY_LEVELS: Level[] = LEVEL_CONFIGS.map((cfg) => ({
   name: cfg.name,
   world: cfg.world,
   gridSize: cfg.gridSize,
-  tiles: generateGrid(cfg.gridSize, cfg.numSymbols, cfg.seed),
+  gridCols: cfg.gridCols,
+  gridRows: cfg.gridRows,
+  tiles: generateGrid(cfg.gridCols ?? cfg.gridSize, cfg.numSymbols, cfg.seed, cfg.gridRows),
   goalNodes: [],
   maxMoves: cfg.maxMoves,
   compressionDelay: 999999,
@@ -323,4 +389,5 @@ export const CANDY_LEVELS: Level[] = LEVEL_CONFIGS.map((cfg) => ({
   targetScore: cfg.targetScore,
   timeLimit: cfg.timeLimit,
   isUnlimited: cfg.isUnlimited,
+  features: cfg.features,
 }));

@@ -21,6 +21,11 @@ import {
   applyFreshFlags,
   type SymbolUnlockState,
 } from '../symbolUnlockAddon';
+import { findGroupWithWildcards } from '../arcadeShared';
+import { WILDCARD_SYMBOL, isWildcard, makeWildcardTile, getWildcardColors } from '../wildcardAddon';
+import { BOMB_SYMBOL, isBomb, makeBombTile, applyBombExplosion, getBombColors } from '../bombAddon';
+import { updateCombo, resetCombo, comboNotification, type ComboState } from '../comboChainAddon';
+import { tickRain } from '../rainAddon';
 
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 
@@ -74,7 +79,12 @@ function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
  * and fill the top with fresh random candies using the level's active symbols.
  * Frozen tiles (canRotate:false, displayData.frozen:true) fall with gravity too.
  */
-function applyGravity(tiles: Tile[], gridSize: number): Tile[] {
+function applyGravity(
+  tiles: Tile[],
+  gridCols: number,
+  gridRows: number,
+  features?: { wildcards?: boolean; bombs?: boolean }
+): Tile[] {
   // Survivors = unfrozen candy tiles + frozen tiles (both fall with gravity)
   const survivors = tiles.filter((t) => t.canRotate || t.displayData?.frozen);
   const activeSymbols =
@@ -82,7 +92,7 @@ function applyGravity(tiles: Tile[], gridSize: number): Tile[] {
 
   const result: Tile[] = [];
 
-  for (let col = 0; col < gridSize; col++) {
+  for (let col = 0; col < gridCols; col++) {
     const colTiles = survivors.filter((t) => t.x === col).sort((a, b) => b.y - a.y); // highest y (bottom) first
 
     // Pack existing tiles to the bottom — clear isNew so survivors don't re-animate
@@ -90,27 +100,34 @@ function applyGravity(tiles: Tile[], gridSize: number): Tile[] {
       const d = colTiles[i].displayData ?? {};
       result.push({
         ...colTiles[i],
-        y: gridSize - 1 - i,
+        y: gridRows - 1 - i,
         justRotated: false,
         displayData: { ...d, isNew: false },
       });
     }
 
     // Fill remaining slots from the top with new random candies
-    const fillCount = gridSize - colTiles.length;
+    const fillCount = gridRows - colTiles.length;
     for (let row = 0; row < fillCount; row++) {
-      const symbol = activeSymbols[Math.floor(Math.random() * activeSymbols.length)];
-      result.push({
-        id: `cn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
-        type: 'path' as const,
-        x: col,
-        y: row,
-        connections: [],
-        canRotate: true,
-        isGoalNode: false,
-        justRotated: true, // pop-in scale animation
-        displayData: { symbol, activeSymbols, isNew: true },
-      });
+      const roll = Math.random();
+      if (features?.bombs && roll < 0.03) {
+        result.push(makeBombTile(col, row, activeSymbols));
+      } else if (features?.wildcards && roll < 0.08) {
+        result.push(makeWildcardTile(col, row, activeSymbols));
+      } else {
+        const symbol = activeSymbols[Math.floor(Math.random() * activeSymbols.length)];
+        result.push({
+          id: `cn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
+          type: 'path' as const,
+          x: col,
+          y: row,
+          connections: [],
+          canRotate: true,
+          isGoalNode: false,
+          justRotated: true,
+          displayData: { symbol, activeSymbols, isNew: true },
+        });
+      }
     }
   }
 
@@ -194,6 +211,9 @@ export const CandyMode: GameModeConfig = {
     symbolSize: '1.5rem',
 
     getColors(tile, _ctx) {
+      if (isWildcard(tile)) return getWildcardColors(tile);
+      if (isBomb(tile)) return getBombColors(tile);
+
       // Fresh (newly unlocked) tile — golden glow, worth 2×
       if (tile.displayData?.isFresh && tile.canRotate) {
         const sym = tile.displayData?.symbol as string;
@@ -247,6 +267,8 @@ export const CandyMode: GameModeConfig = {
 
     getSymbol(tile) {
       if (tile.displayData?.frozen) return '🧊';
+      if (isWildcard(tile)) return WILDCARD_SYMBOL;
+      if (isBomb(tile)) return BOMB_SYMBOL;
       if (!tile.canRotate) return null;
       return (tile.displayData?.symbol as string) ?? null;
     },
@@ -255,8 +277,13 @@ export const CandyMode: GameModeConfig = {
   onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
     const world = (modeState?.world as number) ?? 1;
     const minGroupSize = world <= 2 ? 3 : 4;
+    const features = modeState?.features as { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined;
+    const gcols = (modeState?.gridCols as number) ?? gridSize;
+    const grows = (modeState?.gridRows as number) ?? gridSize;
 
-    const group = findGroup(x, y, tiles);
+    const group = features?.wildcards
+      ? findGroupWithWildcards(x, y, tiles)
+      : findGroup(x, y, tiles);
     if (group.length < 2) return null; // Need 2+ connected same-color tiles
 
     // ── Symbol unlock state (persisted across taps in modeState) ──────────────
@@ -274,9 +301,22 @@ export const CandyMode: GameModeConfig = {
     const clearedSymbol = group[0].displayData?.symbol as string;
     const isFreshClear = unlockState.freshSymbols.includes(clearedSymbol);
     const scoreMultiplier = isFreshClear ? 2 : 1;
-    const scoreDelta = group.length * group.length * 5 * scoreMultiplier;
 
-    const clearedKeys = new Set(group.map((t) => `${t.x},${t.y}`));
+    // ── Bomb explosion — clears 3×3 around each bomb in the group ─────────────
+    const { extraClearedKeys, bonusScore } = features?.bombs
+      ? applyBombExplosion(group, tiles, gridSize)
+      : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
+
+    // ── Combo chain multiplier ─────────────────────────────────────────────────
+    const prevCombo: ComboState = features?.comboChain && modeState?.combo
+      ? (modeState.combo as ComboState)
+      : resetCombo();
+    const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
+    const comboMult = features?.comboChain ? newCombo.multiplier : 1;
+
+    const scoreDelta = Math.round(group.length * group.length * 5 * scoreMultiplier * comboMult) + bonusScore;
+
+    const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
     let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
 
     // ── 5+ combo → unlock the next unseen candy ───────────────────────────────
@@ -300,7 +340,7 @@ export const CandyMode: GameModeConfig = {
       minGroupSize
     );
 
-    let next = applyGravity(remainingWithUnfrozen, gridSize);
+    let next = applyGravity(remainingWithUnfrozen, gcols, grows, features);
 
     // If refill produces a deadlock, reshuffle so the player can always move
     if (!hasValidMove(next)) {
@@ -342,6 +382,7 @@ export const CandyMode: GameModeConfig = {
         freshSymbols: newUnlockState.freshSymbols,
         newSymbolUnlocked,
         freshClear: isFreshClear ? clearedSymbol : undefined,
+        combo: newCombo,
       },
     };
   },
@@ -350,7 +391,23 @@ export const CandyMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 0;
-    // Only run on timed levels
+    const features = modeState?.features as { rain?: boolean } | undefined;
+
+    // ── Rain — scramble 2-3 tiles every 10s on Tropical levels ───────────────
+    if (features?.rain) {
+      const activeSymbols =
+        (state.tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ?? CANDY_SYMBOLS;
+      const lastRainAt = (state.modeState?.lastRainAt as number) ?? 0;
+      const rainResult = tickRain(state.tiles, state.elapsedSeconds, lastRainAt, activeSymbols, state.currentLevel?.gridSize ?? 8);
+      if (rainResult) {
+        return {
+          tiles: rainResult.tiles,
+          modeState: { ...state.modeState, lastRainAt: rainResult.lastRainAt },
+        };
+      }
+    }
+
+    // Only run ice freezing on timed levels
     if (timeLeft === undefined) return null;
 
     // World 5 (Unlimited) levels: 114, 115 - progressive freezing difficulty!
@@ -423,6 +480,13 @@ export const CandyMode: GameModeConfig = {
   getNotification(_tiles, _moves, modeState) {
     const iceWarning = modeState?.iceWarning as string | undefined;
     if (iceWarning) return iceWarning;
+
+    // Combo chain notification (Tropical levels)
+    const combo = modeState?.combo as ComboState | undefined;
+    if (combo) {
+      const cn = comboNotification(combo);
+      if (cn) return cn;
+    }
 
     // New symbol just unlocked
     const newSymbol = modeState?.newSymbolUnlocked as string | undefined;

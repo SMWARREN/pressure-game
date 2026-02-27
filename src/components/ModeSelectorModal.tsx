@@ -228,12 +228,16 @@ function GroupHeader({
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
+const ARCADE_GROUP_LABEL = 'Arcade';
+const ARCADE_MODE_IDS = new Set(['candy', 'shoppingSpree', 'gemBlast']);
+
 export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModalProps) {
   const currentModeId = useGameStore((s) => s.currentModeId);
   const setGameMode = useGameStore((s) => s.setGameMode);
   const compressionOverride = useGameStore((s) => s.compressionOverride);
   const setCompressionOverride = useGameStore((s) => s.setCompressionOverride);
   const seenTutorials = useGameStore((s) => s.seenTutorials);
+  const openArcadeHub = useGameStore((s) => s.openArcadeHub);
 
   const activeMode = GAME_MODES.find((m) => m.id === currentModeId) ?? GAME_MODES[0];
 
@@ -358,6 +362,75 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
               .filter((m): m is GameModeConfig => m !== undefined);
 
             if (modesInGroup.length === 0) return null;
+
+            // Arcade group: single hub-entry card
+            if (group.label === ARCADE_GROUP_LABEL) {
+              const arcadeActive = ARCADE_MODE_IDS.has(currentModeId);
+              const hasNew = modesInGroup.some(
+                (m) => !seenTutorials.includes(m.id) && m.id !== currentModeId
+              );
+              return (
+                <div key={group.label}>
+                  <GroupHeader
+                    label={group.label}
+                    tagline={group.tagline}
+                    accentColor={groupAccent(group.modeIds)}
+                  />
+                  <button
+                    onClick={() => { openArcadeHub(); onClose(); }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '14px 16px',
+                      borderRadius: 14,
+                      border: `1.5px solid ${arcadeActive ? '#f472b630' : '#12122a'}`,
+                      background: arcadeActive ? '#f472b608' : '#07070e',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {hasNew && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: -6,
+                          right: 12,
+                          fontSize: 8,
+                          fontWeight: 900,
+                          letterSpacing: '0.1em',
+                          color: '#fff',
+                          background: '#6366f1',
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                        }}
+                      >
+                        NEW
+                      </div>
+                    )}
+                    <span style={{ fontSize: 26, flexShrink: 0 }}>🕹️</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 800,
+                          color: arcadeActive ? '#f472b6' : '#2a2a3e',
+                          marginBottom: 3,
+                        }}
+                      >
+                        Arcade Hub
+                      </div>
+                      <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>
+                        Candy · Shopping Spree · Gem Blast
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 16, color: '#2a2a3e' }}>›</span>
+                  </button>
+                </div>
+              );
+            }
 
             return (
               <div key={group.label}>
