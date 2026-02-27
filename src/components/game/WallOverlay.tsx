@@ -26,12 +26,48 @@ export default function WallOverlay({
   compressionDirection = 'all',
 }: WallOverlayProps) {
   if (!isPlaying || wallOffset <= 0 || compressionDirection === 'none') return null;
-  
+
   // Determine which walls to show based on direction
-  const showTop = ['all', 'top', 'top-bottom', 'top-left', 'top-right', 'top-left-right', 'left-top-bottom', 'right-top-bottom'].includes(compressionDirection);
-  const showBottom = ['all', 'bottom', 'top-bottom', 'bottom-left', 'bottom-right', 'bottom-left-right', 'left-top-bottom', 'right-top-bottom'].includes(compressionDirection);
-  const showLeft = ['all', 'left', 'left-right', 'top-left', 'bottom-left', 'top-left-right', 'bottom-left-right', 'left-top-bottom'].includes(compressionDirection);
-  const showRight = ['all', 'right', 'left-right', 'top-right', 'bottom-right', 'top-left-right', 'bottom-left-right', 'right-top-bottom'].includes(compressionDirection);
+  const showTop = [
+    'all',
+    'top',
+    'top-bottom',
+    'top-left',
+    'top-right',
+    'top-left-right',
+    'left-top-bottom',
+    'right-top-bottom',
+  ].includes(compressionDirection);
+  const showBottom = [
+    'all',
+    'bottom',
+    'top-bottom',
+    'bottom-left',
+    'bottom-right',
+    'bottom-left-right',
+    'left-top-bottom',
+    'right-top-bottom',
+  ].includes(compressionDirection);
+  const showLeft = [
+    'all',
+    'left',
+    'left-right',
+    'top-left',
+    'bottom-left',
+    'top-left-right',
+    'bottom-left-right',
+    'left-top-bottom',
+  ].includes(compressionDirection);
+  const showRight = [
+    'all',
+    'right',
+    'left-right',
+    'top-right',
+    'bottom-right',
+    'top-left-right',
+    'bottom-left-right',
+    'right-top-bottom',
+  ].includes(compressionDirection);
 
   const percentage = (wallOffset / gridSize) * 100;
   const transform = animationsEnabled && wallsJustAdvanced ? '2px' : '0';

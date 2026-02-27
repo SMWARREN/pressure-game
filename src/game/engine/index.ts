@@ -496,16 +496,16 @@ export class PressureEngine implements IPressureEngine {
    */
   private checkAchievementsOnWin(state: GameState, level: Level): void {
     const achievementEngine = getAchievementEngine();
-    
+
     // Calculate stats for achievements
     const levelsCompleted = state.completedLevels.length + 1; // +1 for current level
-    
+
     // Check if this was a speedrun (under 10 seconds)
     const speedruns = state.elapsedSeconds < 10 ? 1 : 0;
-    
+
     // Check if moves were under par (par is typically maxMoves or a fraction of it)
     const movesUnderPar = level.maxMoves && state.moves < level.maxMoves ? 1 : 0;
-    
+
     // Get current mode for mode-specific achievements
     const currentModeId = state.currentModeId;
 

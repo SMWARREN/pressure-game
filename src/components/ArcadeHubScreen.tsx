@@ -167,7 +167,13 @@ function SampleGrid({
 }) {
   ensureArcadeHubStyles();
   const tiles = makeSampleTiles(symbols);
-  const ctx = { isHint: false, inDanger: false, justRotated: false, compressionActive: false, tileSize };
+  const ctx = {
+    isHint: false,
+    inDanger: false,
+    justRotated: false,
+    compressionActive: false,
+    tileSize,
+  };
 
   return (
     <div
@@ -230,10 +236,14 @@ function InfoPanel({ info, accentColor }: { info: ModeInfo; accentColor: string 
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: 11, fontWeight: 900, color: accentColor, letterSpacing: '-0.01em' }}>
+        <div
+          style={{ fontSize: 11, fontWeight: 900, color: accentColor, letterSpacing: '-0.01em' }}
+        >
           {info.scoreFormula}
         </div>
-        <div style={{ fontSize: 8, color: '#4a4a6a', marginTop: 2, lineHeight: 1.3 }}>{info.scoreNote}</div>
+        <div style={{ fontSize: 8, color: '#4a4a6a', marginTop: 2, lineHeight: 1.3 }}>
+          {info.scoreNote}
+        </div>
       </div>
 
       {info.mechanics.map((m) => (
@@ -385,7 +395,10 @@ function ArcadeColumn({
 
       {showInfo && (
         <button
-          onClick={(e) => { e.stopPropagation(); onPlay(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlay();
+          }}
           style={{
             padding: '6px 14px',
             borderRadius: 16,

@@ -28,7 +28,12 @@ function seededRandom(seed: number) {
   };
 }
 
-function makeGrid(gridCols: number, symbols: readonly string[], seed: number, gridRows?: number): Tile[] {
+function makeGrid(
+  gridCols: number,
+  symbols: readonly string[],
+  seed: number,
+  gridRows?: number
+): Tile[] {
   const rows = gridRows ?? gridCols;
   const rng = seededRandom(seed);
   const tiles: Tile[] = [];

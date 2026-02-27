@@ -16,7 +16,7 @@ export function tickRain(
   }
 
   // Find all tiles that can be changed
-  const changeableTiles = tiles.filter(t => t.canRotate && t.displayData?.symbol);
+  const changeableTiles = tiles.filter((t) => t.canRotate && t.displayData?.symbol);
   if (changeableTiles.length === 0) {
     return null;
   }
@@ -27,11 +27,11 @@ export function tickRain(
   const toChange = shuffled.slice(0, Math.min(numToChange, shuffled.length));
 
   // Create new tiles with changed symbols
-  const newTiles = tiles.map(tile => {
-    const shouldChange = toChange.some(t => t.x === tile.x && t.y === tile.y);
+  const newTiles = tiles.map((tile) => {
+    const shouldChange = toChange.some((t) => t.x === tile.x && t.y === tile.y);
     if (shouldChange && tile.displayData?.symbol) {
       const currentSymbol = tile.displayData.symbol;
-      const otherSymbols = activeSymbols.filter(s => s !== currentSymbol);
+      const otherSymbols = activeSymbols.filter((s) => s !== currentSymbol);
       const newSymbol = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
       return {
         ...tile,

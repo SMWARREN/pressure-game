@@ -1963,7 +1963,9 @@ export default function GameBoard() {
   const maxDim = Math.max(gridCols, gridRows);
 
   // Responsive board: header ~62px + stats ~52px + plugin strip ~24px + footer ~62px + gaps ~24px = ~224px
-  const hasFeatures = !!(currentLevel.features && Object.values(currentLevel.features).some(Boolean));
+  const hasFeatures = !!(
+    currentLevel.features && Object.values(currentLevel.features).some(Boolean)
+  );
   const reserved = hasFeatures ? 224 : 200;
   const maxAvailW = Math.min(vw * 0.97, 460);
   const maxAvailH = Math.max(vh - reserved, 160);
@@ -1974,7 +1976,6 @@ export default function GameBoard() {
   const tileSize = Math.max(1, Math.min(tileSizeByW, tileSizeByH));
   const boardWidth = tileSize * gridCols + padding * 2 + gap * (gridCols - 1);
   const boardHeight = tileSize * gridRows + padding * 2 + gap * (gridRows - 1);
-
 
   const mins = Math.floor(elapsedSeconds / 60);
   const secs = elapsedSeconds % 60;
@@ -2116,16 +2117,64 @@ export default function GameBoard() {
             }}
           >
             {currentLevel.features?.wildcards && (
-              <span style={{ fontSize: 9, fontWeight: 800, color: '#fbbf24', background: '#2d280010', border: '1px solid #fbbf2440', borderRadius: 4, padding: '2px 6px' }}>⭐ Wildcards</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  color: '#fbbf24',
+                  background: '#2d280010',
+                  border: '1px solid #fbbf2440',
+                  borderRadius: 4,
+                  padding: '2px 6px',
+                }}
+              >
+                ⭐ Wildcards
+              </span>
             )}
             {currentLevel.features?.bombs && (
-              <span style={{ fontSize: 9, fontWeight: 800, color: '#ef4444', background: '#2d000010', border: '1px solid #ef444440', borderRadius: 4, padding: '2px 6px' }}>💣 Bombs</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  color: '#ef4444',
+                  background: '#2d000010',
+                  border: '1px solid #ef444440',
+                  borderRadius: 4,
+                  padding: '2px 6px',
+                }}
+              >
+                💣 Bombs
+              </span>
             )}
             {currentLevel.features?.comboChain && (
-              <span style={{ fontSize: 9, fontWeight: 800, color: '#f97316', background: '#2d100010', border: '1px solid #f9731640', borderRadius: 4, padding: '2px 6px' }}>🔥 Combo Chain</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  color: '#f97316',
+                  background: '#2d100010',
+                  border: '1px solid #f9731640',
+                  borderRadius: 4,
+                  padding: '2px 6px',
+                }}
+              >
+                🔥 Combo Chain
+              </span>
             )}
             {currentLevel.features?.rain && (
-              <span style={{ fontSize: 9, fontWeight: 800, color: '#60a5fa', background: '#00102d10', border: '1px solid #60a5fa40', borderRadius: 4, padding: '2px 6px' }}>🌧️ Shuffle Rain</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  color: '#60a5fa',
+                  background: '#00102d10',
+                  border: '1px solid #60a5fa40',
+                  borderRadius: 4,
+                  padding: '2px 6px',
+                }}
+              >
+                🌧️ Shuffle Rain
+              </span>
             )}
           </div>
         )}
@@ -2165,7 +2214,9 @@ export default function GameBoard() {
               slots, match-3, or any custom visual without touching this file. */}
             <GameGrid
               tiles={tiles}
-              compressionDirection={currentLevel?.compressionDirection ?? editor.compressionDirection ?? 'all'}
+              compressionDirection={
+                currentLevel?.compressionDirection ?? editor.compressionDirection ?? 'all'
+              }
               gridSize={gs}
               gridCols={gridCols}
               gridRows={gridRows}

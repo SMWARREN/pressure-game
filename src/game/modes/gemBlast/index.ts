@@ -9,7 +9,14 @@
 
 import type { GameModeConfig, TapResult, WinResult, LossResult, TileColors } from '../types';
 import type { Tile } from '../../types';
-import { GEM_LEVELS, GEM_WORLDS, GEM_SYMBOLS, BLAST_GEM, generateGrid, seededRandom } from './levels';
+import {
+  GEM_LEVELS,
+  GEM_WORLDS,
+  GEM_SYMBOLS,
+  BLAST_GEM,
+  generateGrid,
+  seededRandom,
+} from './levels';
 import { GEM_BLAST_TUTORIAL_STEPS } from './tutorial';
 import { renderGemBlastDemo } from './demo';
 import { GEM_BLAST_WALKTHROUGH } from './walkthrough';
@@ -18,20 +25,48 @@ import { findGroup, findAllGroups } from '../arcadeShared';
 // ── Gem color palette ─────────────────────────────────────────────────────────
 
 const GEM_COLORS: Record<string, TileColors> = {
-  '💎': { background: '#062d35', border: '2px solid #06b6d4', boxShadow: '0 0 10px rgba(6,182,212,0.6)' },
-  '💍': { background: '#2d2500', border: '2px solid #d4af37', boxShadow: '0 0 10px rgba(212,175,55,0.6)' },
-  '🔮': { background: '#1a0a2d', border: '2px solid #8b5cf6', boxShadow: '0 0 10px rgba(139,92,246,0.6)' },
-  '🟣': { background: '#1a082d', border: '2px solid #a855f7', boxShadow: '0 0 10px rgba(168,85,247,0.6)' },
-  '🔵': { background: '#062040', border: '2px solid #3b82f6', boxShadow: '0 0 10px rgba(59,130,246,0.6)' },
-  '💥': { background: '#2d1400', border: '2px solid #f97316', boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)' },
+  '💎': {
+    background: '#062d35',
+    border: '2px solid #06b6d4',
+    boxShadow: '0 0 10px rgba(6,182,212,0.6)',
+  },
+  '💍': {
+    background: '#2d2500',
+    border: '2px solid #d4af37',
+    boxShadow: '0 0 10px rgba(212,175,55,0.6)',
+  },
+  '🔮': {
+    background: '#1a0a2d',
+    border: '2px solid #8b5cf6',
+    boxShadow: '0 0 10px rgba(139,92,246,0.6)',
+  },
+  '🟣': {
+    background: '#1a082d',
+    border: '2px solid #a855f7',
+    boxShadow: '0 0 10px rgba(168,85,247,0.6)',
+  },
+  '🔵': {
+    background: '#062040',
+    border: '2px solid #3b82f6',
+    boxShadow: '0 0 10px rgba(59,130,246,0.6)',
+  },
+  '💥': {
+    background: '#2d1400',
+    border: '2px solid #f97316',
+    boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
+  },
 };
 
 // ── Gravity + refill ──────────────────────────────────────────────────────────
 
-function applyGravity(tiles: Tile[], gridCols: number, gridRows: number, blastChance = 0.03): Tile[] {
+function applyGravity(
+  tiles: Tile[],
+  gridCols: number,
+  gridRows: number,
+  blastChance = 0.03
+): Tile[] {
   const survivors = tiles.filter((t) => t.canRotate);
-  const activeSymbols =
-    (survivors[0]?.displayData?.activeSymbols as string[]) ?? GEM_SYMBOLS;
+  const activeSymbols = (survivors[0]?.displayData?.activeSymbols as string[]) ?? GEM_SYMBOLS;
 
   const result: Tile[] = [];
 
@@ -89,13 +124,13 @@ function reshuffle(tiles: Tile[]): Tile[] {
   const symbols = tiles
     .filter((t) => t.canRotate && t.displayData?.symbol)
     .map((t) => t.displayData!.symbol as string);
-  
+
   // Shuffle symbols
   for (let i = symbols.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
   }
-  
+
   let idx = 0;
   return tiles.map((t) => {
     if (!t.canRotate || !t.displayData?.symbol) return t;
@@ -147,7 +182,11 @@ export const GemBlastMode: GameModeConfig = {
         };
       }
 
-      const c = GEM_COLORS[sym] ?? { background: '#0a0a1e', border: '2px solid #6366f1', boxShadow: '0 0 10px rgba(99,102,241,0.5)' };
+      const c = GEM_COLORS[sym] ?? {
+        background: '#0a0a1e',
+        border: '2px solid #6366f1',
+        boxShadow: '0 0 10px rgba(99,102,241,0.5)',
+      };
 
       if (tile.displayData?.isNew) {
         return {

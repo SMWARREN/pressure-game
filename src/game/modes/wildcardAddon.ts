@@ -7,10 +7,7 @@ import type { TileColors } from './types';
 export const WILDCARD_SYMBOL = '⭐';
 
 export function isWildcard(tile: Tile): boolean {
-  return (
-    tile.displayData?.symbol === WILDCARD_SYMBOL ||
-    tile.displayData?.isWildcard === true
-  );
+  return tile.displayData?.symbol === WILDCARD_SYMBOL || tile.displayData?.isWildcard === true;
 }
 
 export function makeWildcardTile(x: number, y: number, activeSymbols: string[]): Tile {

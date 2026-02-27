@@ -117,7 +117,7 @@ export function AchievementToastContainer() {
     const checkRecent = () => {
       const recent = engine.getRecentlyEarned();
       if (recent.length > 0) {
-        setToasts(prev => [...prev, ...recent]);
+        setToasts((prev) => [...prev, ...recent]);
       }
     };
 
@@ -137,7 +137,7 @@ export function AchievementToastContainer() {
   }, []);
 
   const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(t => t !== id));
+    setToasts((prev) => prev.filter((t) => t !== id));
   };
 
   return (
@@ -153,10 +153,7 @@ export function AchievementToastContainer() {
             zIndex: 2000 + index,
           }}
         >
-          <AchievementToast
-            achievementId={id}
-            onClose={() => removeToast(id)}
-          />
+          <AchievementToast achievementId={id} onClose={() => removeToast(id)} />
         </div>
       ))}
     </>

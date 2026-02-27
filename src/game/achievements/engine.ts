@@ -19,7 +19,7 @@ class AchievementEngine {
     for (const achievement of DEFAULT_ACHIEVEMENTS) {
       this.achievements.set(achievement.id, achievement);
     }
-    
+
     // Load state from storage
     this.state = this.loadState();
   }
@@ -45,7 +45,7 @@ class AchievementEngine {
     } catch (e) {
       console.warn('Failed to load achievements:', e);
     }
-    
+
     return {
       progress: {},
       totalPoints: 0,
@@ -62,11 +62,14 @@ class AchievementEngine {
 
   private saveState(): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        progress: this.state.progress,
-        totalPoints: this.state.totalPoints,
-        stats: this.state.stats,
-      }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          progress: this.state.progress,
+          totalPoints: this.state.totalPoints,
+          stats: this.state.stats,
+        })
+      );
     } catch (e) {
       console.warn('Failed to save achievements:', e);
     }
@@ -111,9 +114,7 @@ class AchievementEngine {
    * Get all earned achievements
    */
   getEarnedAchievements(): Achievement[] {
-    return this.getAllAchievements().filter(a => 
-      this.state.progress[a.id]?.earned
-    );
+    return this.getAllAchievements().filter((a) => this.state.progress[a.id]?.earned);
   }
 
   /**
@@ -244,11 +245,11 @@ class AchievementEngine {
    */
   checkCustomAchievement(checkId: string, data: Record<string, unknown>): boolean {
     const achievement = Array.from(this.achievements.values()).find(
-      a => a.condition.type === 'custom' && a.condition.customCheck === checkId
+      (a) => a.condition.type === 'custom' && a.condition.customCheck === checkId
     );
-    
+
     if (!achievement) return false;
-    
+
     const existing = this.state.progress[achievement.id];
     if (existing?.earned) return false;
 

@@ -61,7 +61,12 @@ function makeTile(x: number, y: number, symbol: string, activeSymbols: string[])
   };
 }
 
-function generateGrid(gridCols: number, numSymbols: number, seed: number, gridRows?: number): Tile[] {
+function generateGrid(
+  gridCols: number,
+  numSymbols: number,
+  seed: number,
+  gridRows?: number
+): Tile[] {
   const rows = gridRows ?? gridCols;
   const rng = seededRandom(seed);
   const activeSymbols = CANDY_SYMBOLS.slice(0, numSymbols);

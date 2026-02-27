@@ -377,7 +377,10 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                     accentColor={groupAccent(group.modeIds)}
                   />
                   <button
-                    onClick={() => { openArcadeHub(); onClose(); }}
+                    onClick={() => {
+                      openArcadeHub();
+                      onClose();
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',

@@ -277,7 +277,9 @@ export const CandyMode: GameModeConfig = {
   onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
     const world = (modeState?.world as number) ?? 1;
     const minGroupSize = world <= 2 ? 3 : 4;
-    const features = modeState?.features as { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined;
+    const features = modeState?.features as
+      | { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean }
+      | undefined;
     const gcols = (modeState?.gridCols as number) ?? gridSize;
     const grows = (modeState?.gridRows as number) ?? gridSize;
 
@@ -308,13 +310,13 @@ export const CandyMode: GameModeConfig = {
       : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
 
     // ── Combo chain multiplier ─────────────────────────────────────────────────
-    const prevCombo: ComboState = features?.comboChain && modeState?.combo
-      ? (modeState.combo as ComboState)
-      : resetCombo();
+    const prevCombo: ComboState =
+      features?.comboChain && modeState?.combo ? (modeState.combo as ComboState) : resetCombo();
     const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
     const comboMult = features?.comboChain ? newCombo.multiplier : 1;
 
-    const scoreDelta = Math.round(group.length * group.length * 5 * scoreMultiplier * comboMult) + bonusScore;
+    const scoreDelta =
+      Math.round(group.length * group.length * 5 * scoreMultiplier * comboMult) + bonusScore;
 
     const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
     let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
@@ -396,9 +398,16 @@ export const CandyMode: GameModeConfig = {
     // ── Rain — scramble 2-3 tiles every 10s on Tropical levels ───────────────
     if (features?.rain) {
       const activeSymbols =
-        (state.tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ?? CANDY_SYMBOLS;
+        (state.tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ??
+        CANDY_SYMBOLS;
       const lastRainAt = (state.modeState?.lastRainAt as number) ?? 0;
-      const rainResult = tickRain(state.tiles, state.elapsedSeconds, lastRainAt, activeSymbols, state.currentLevel?.gridSize ?? 8);
+      const rainResult = tickRain(
+        state.tiles,
+        state.elapsedSeconds,
+        lastRainAt,
+        activeSymbols,
+        state.currentLevel?.gridSize ?? 8
+      );
       if (rainResult) {
         return {
           tiles: rainResult.tiles,

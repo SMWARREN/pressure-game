@@ -15,11 +15,11 @@ export function updateCombo(prev: ComboState, groupSize: number): ComboState {
   if (groupSize < 2) {
     return resetCombo();
   }
-  
+
   const newStreak = prev.streak + 1;
   // multiplier = min(1 + streak * 0.5, 3.0)
   const multiplier = Math.min(1 + newStreak * 0.5, 3.0);
-  
+
   return { streak: newStreak, multiplier };
 }
 

@@ -4,11 +4,11 @@
 
 export type AchievementRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
-export type AchievementCategory = 
-  | 'progression'  // Complete levels/worlds
-  | 'skill'        // Performance-based
-  | 'dedication'   // Time/play count
-  | 'special';     // Hidden/unique
+export type AchievementCategory =
+  | 'progression' // Complete levels/worlds
+  | 'skill' // Performance-based
+  | 'dedication' // Time/play count
+  | 'special'; // Hidden/unique
 
 export interface Achievement {
   id: string;
@@ -26,7 +26,15 @@ export interface Achievement {
 }
 
 export interface AchievementCondition {
-  type: 'levels_completed' | 'moves_under_par' | 'speedrun' | 'streak' | 'no_hints' | 'perfect_world' | 'survive_walls' | 'custom';
+  type:
+    | 'levels_completed'
+    | 'moves_under_par'
+    | 'speedrun'
+    | 'streak'
+    | 'no_hints'
+    | 'perfect_world'
+    | 'survive_walls'
+    | 'custom';
   /** Target value to reach */
   target?: number;
   /** Level ID to restrict to (optional) */
@@ -109,7 +117,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     points: 100,
     condition: { type: 'levels_completed', target: 100 },
   },
-  
+
   // ─── Skill ──────────────────────────────────────────────────────────────
   {
     id: 'speed_demon',
@@ -151,7 +159,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     points: 60,
     condition: { type: 'speedrun', target: 10 },
   },
-  
+
   // ─── Dedication ─────────────────────────────────────────────────────────
   {
     id: 'daily_streak_7',
@@ -173,7 +181,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     points: 100,
     condition: { type: 'streak', target: 30 },
   },
-  
+
   // ─── Special ────────────────────────────────────────────────────────────
   {
     id: 'survivor',

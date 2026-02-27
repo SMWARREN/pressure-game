@@ -10,12 +10,8 @@ import { isWildcard } from './wildcardAddon';
  * Find a connected group of tiles with the same symbol starting at (x, y).
  * Uses flood-fill algorithm. Minimum group size is 2.
  */
-export function findGroup(
-  x: number,
-  y: number,
-  tiles: Tile[]
-): Tile[] {
-  const tile = tiles.find(t => t.x === x && t.y === y);
+export function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
+  const tile = tiles.find((t) => t.x === x && t.y === y);
   if (!tile?.canRotate || !tile.displayData?.symbol) return [];
 
   const targetSymbol = tile.displayData.symbol;
@@ -26,7 +22,7 @@ export function findGroup(
     const key = `${tx},${ty}`;
     if (visited.has(key)) return;
 
-    const current = tiles.find(t => t.x === tx && t.y === ty);
+    const current = tiles.find((t) => t.x === tx && t.y === ty);
     if (!current?.canRotate) return;
     if (!current.displayData?.symbol) return;
     if (current.displayData.symbol !== targetSymbol) return;
@@ -49,12 +45,8 @@ export function findGroup(
  * Find a connected group with wildcard support.
  * Wildcards match any symbol.
  */
-export function findGroupWithWildcards(
-  x: number,
-  y: number,
-  tiles: Tile[]
-): Tile[] {
-  const tile = tiles.find(t => t.x === x && t.y === y);
+export function findGroupWithWildcards(x: number, y: number, tiles: Tile[]): Tile[] {
+  const tile = tiles.find((t) => t.x === x && t.y === y);
   if (!tile?.canRotate) return [];
 
   const visited = new Set<string>();
@@ -64,13 +56,14 @@ export function findGroupWithWildcards(
   let targetSymbol: string | null = null;
   if (isWildcard(tile)) {
     // Wildcard adopts the first non-wildcard neighbor's symbol
-    const neighbors = tiles.filter(t => 
-      t.canRotate && 
-      t.displayData?.symbol &&
-      !isWildcard(t) &&
-      Math.abs(t.x - x) <= 1 && 
-      Math.abs(t.y - y) <= 1 &&
-      !(t.x === x && t.y === y)
+    const neighbors = tiles.filter(
+      (t) =>
+        t.canRotate &&
+        t.displayData?.symbol &&
+        !isWildcard(t) &&
+        Math.abs(t.x - x) <= 1 &&
+        Math.abs(t.y - y) <= 1 &&
+        !(t.x === x && t.y === y)
     );
     if (neighbors.length > 0) {
       targetSymbol = neighbors[0].displayData!.symbol;
@@ -85,15 +78,13 @@ export function findGroupWithWildcards(
     const key = `${tx},${ty}`;
     if (visited.has(key)) return;
 
-    const current = tiles.find(t => t.x === tx && t.y === ty);
+    const current = tiles.find((t) => t.x === tx && t.y === ty);
     if (!current?.canRotate) return;
     if (!current.displayData?.symbol) return;
 
     // Check if this tile matches (either same symbol or wildcard)
-    const isMatch = 
-      current.displayData.symbol === targetSymbol || 
-      isWildcard(current);
-    
+    const isMatch = current.displayData.symbol === targetSymbol || isWildcard(current);
+
     if (!isMatch) return;
 
     visited.add(key);
@@ -147,19 +138,17 @@ export function applyGravity(
   features?: { wildcards?: boolean; bombs?: boolean }
 ): Tile[] {
   const newTiles: Tile[] = [];
-  
+
   // Process each column
   for (let col = 0; col < gridSize; col++) {
-    const columnTiles = tiles
-      .filter(t => t.x === col)
-      .sort((a, b) => b.y - a.y); // Sort bottom to top
+    const columnTiles = tiles.filter((t) => t.x === col).sort((a, b) => b.y - a.y); // Sort bottom to top
 
     // Keep non-empty tiles
     const filledPositions: { y: number; tile: Tile }[] = [];
     let emptyCount = 0;
 
     for (let row = gridSize - 1; row >= 0; row--) {
-      const existingTile = columnTiles.find(t => t.y === row);
+      const existingTile = columnTiles.find((t) => t.y === row);
       if (existingTile) {
         filledPositions.push({ y: row, tile: existingTile });
       } else {
@@ -176,7 +165,7 @@ export function applyGravity(
     for (let i = 0; i < emptyCount; i++) {
       const y = emptyCount - 1 - i;
       const symbol = activeSymbols[Math.floor(Math.random() * activeSymbols.length)];
-      
+
       // Check for wildcard spawn (5% chance)
       let newTile: Tile = {
         id: `new-${col}-${y}-${Math.random().toString(36).slice(2, 7)}`,
@@ -197,7 +186,7 @@ export function applyGravity(
           displayData: { symbol: '⭐', activeSymbols, isNew: true, isWildcard: true },
         };
       }
-      
+
       // Bomb spawn (3% chance)
       if (features?.bombs && Math.random() < 0.03) {
         newTile = {

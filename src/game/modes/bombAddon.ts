@@ -7,10 +7,7 @@ import type { TileColors } from './types';
 export const BOMB_SYMBOL = '💣';
 
 export function isBomb(tile: Tile): boolean {
-  return (
-    tile.displayData?.symbol === BOMB_SYMBOL ||
-    tile.displayData?.isBomb === true
-  );
+  return tile.displayData?.symbol === BOMB_SYMBOL || tile.displayData?.isBomb === true;
 }
 
 export function makeBombTile(x: number, y: number, activeSymbols: string[]): Tile {
@@ -39,9 +36,14 @@ export function applyBombExplosion(
 
   const extraClearedKeys = new Set<string>();
   const directions = [
-    [-1, -1], [-1, 0], [-1, 1],
-    [0, -1], [0, 1],
-    [1, -1], [1, 0], [1, 1],
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1],
   ];
 
   for (const bomb of bombsInGroup) {

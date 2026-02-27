@@ -81,9 +81,7 @@ export default function InstallPrompt() {
     >
       <span style={{ fontSize: 24 }}>📱</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>
-          Install PRESSURE
-        </div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>Install PRESSURE</div>
         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)' }}>
           Play offline, faster load times
         </div>

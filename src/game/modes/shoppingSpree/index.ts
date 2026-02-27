@@ -345,11 +345,17 @@ export const ShoppingSpreeMode: GameModeConfig = {
 
     // ── Rain — scramble 2-3 tiles every 10s on Black Friday levels ───────────
     if (features?.rain) {
-      const activeSymbols =
-        (state.tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
+      const activeSymbols = (state.tiles.find((t) => t.canRotate)?.displayData
+        ?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
       const storedState = (state.modeState as ShoppingModeState) || getInitialState();
       const lastRainAt = storedState.lastRainAt ?? 0;
-      const rainResult = tickRain(state.tiles, state.elapsedSeconds, lastRainAt, activeSymbols, state.currentLevel?.gridSize ?? 9);
+      const rainResult = tickRain(
+        state.tiles,
+        state.elapsedSeconds,
+        lastRainAt,
+        activeSymbols,
+        state.currentLevel?.gridSize ?? 9
+      );
       if (rainResult) {
         return {
           tiles: rainResult.tiles,
@@ -409,7 +415,9 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const state: ShoppingModeState = (modeState as ShoppingModeState) || getInitialState();
     const world = (modeState?.world as number) ?? 4;
     const minGroupSize = world <= 2 ? 3 : 4;
-    const features = modeState?.features as { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined;
+    const features = modeState?.features as
+      | { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean }
+      | undefined;
     const gcols = (modeState?.gridCols as number) ?? gridSize;
     const grows = (modeState?.gridRows as number) ?? gridSize;
 
@@ -455,13 +463,12 @@ export const ShoppingSpreeMode: GameModeConfig = {
       : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
 
     // ── Combo chain multiplier ─────────────────────────────────────────────────
-    const prevCombo: ComboState = features?.comboChain && state.combo
-      ? state.combo
-      : resetCombo();
+    const prevCombo: ComboState = features?.comboChain && state.combo ? state.combo : resetCombo();
     const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
     const comboChainMult = features?.comboChain ? newCombo.multiplier : 1;
 
-    let scoreDelta = Math.round(baseValue * group.length * comboMultiplier * comboChainMult) + bonusScore;
+    let scoreDelta =
+      Math.round(baseValue * group.length * comboMultiplier * comboChainMult) + bonusScore;
 
     // 🛒 SHOPPING CART BONUS - Every 10 items = bonus $50!
     const newCartItems = state.cartItems + group.length;

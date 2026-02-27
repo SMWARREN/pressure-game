@@ -35,7 +35,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     setGameMode: (modeId: string) => {
       const { seenTutorials } = get();
       const alreadySeen = seenTutorials.includes(modeId);
-      set({ currentModeId: modeId, status: alreadySeen ? 'menu' : 'tutorial', currentLevel: null, showArcadeHub: false });
+      set({
+        currentModeId: modeId,
+        status: alreadySeen ? 'menu' : 'tutorial',
+        currentLevel: null,
+        showArcadeHub: false,
+      });
       engine.persist({ ...get(), currentModeId: modeId });
     },
 

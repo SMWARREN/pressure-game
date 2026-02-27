@@ -78,27 +78,27 @@ function GameGridComponent({
 
     for (let y = 0; y < gridRows; y++) {
       for (let x = 0; x < gridCols; x++) {
-      const tile = tileMap.get(`${x},${y}`);
-      const dist = Math.min(x, y, gridCols - 1 - x, gridRows - 1 - y);
+        const tile = tileMap.get(`${x},${y}`);
+        const dist = Math.min(x, y, gridCols - 1 - x, gridRows - 1 - y);
 
-      // FIXED: Correct inDanger calculation
-      // Tiles are in danger when compression is active AND they're within the wall offset zone
-      // AND they're not already a wall or crushed
-      const inDanger =
-        compressionActive &&
-        dist <= wallOffset &&
-        !!tile &&
-        tile.type !== 'wall' &&
-        tile.type !== 'crushed';
+        // FIXED: Correct inDanger calculation
+        // Tiles are in danger when compression is active AND they're within the wall offset zone
+        // AND they're not already a wall or crushed
+        const inDanger =
+          compressionActive &&
+          dist <= wallOffset &&
+          !!tile &&
+          tile.type !== 'wall' &&
+          tile.type !== 'crushed';
 
-      cells.push({
-        key: `${x}-${y}`,
-        x,
-        y,
-        tile,
-        dist,
-        inDanger,
-      });
+        cells.push({
+          key: `${x}-${y}`,
+          x,
+          y,
+          tile,
+          dist,
+          inDanger,
+        });
       }
     }
 
