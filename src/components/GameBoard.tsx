@@ -1059,6 +1059,7 @@ function MenuScreen() {
     bestMoves,
     loadLevel,
     currentModeId,
+    setGameMode,
     animationsEnabled,
     toggleAnimations,
     replayTutorial,
@@ -1073,6 +1074,7 @@ function MenuScreen() {
       bestMoves: s.bestMoves,
       loadLevel: s.loadLevel,
       currentModeId: s.currentModeId,
+      setGameMode: s.setGameMode,
       animationsEnabled: s.animationsEnabled,
       toggleAnimations: s.toggleAnimations,
       replayTutorial: s.replayTutorial,
@@ -1235,6 +1237,61 @@ function MenuScreen() {
         </div>
       </header>
 
+      {/* ── PRESSURE SERIES MODE SWITCHER ──────────────────────── */}
+      {/* Shows only when the active mode is in the Pressure Series group */}
+      {(['classic', 'blitz', 'zen'] as const).includes(currentModeId as 'classic' | 'blitz' | 'zen') && (
+        <div
+          style={{
+            display: 'flex',
+            width: '100%',
+            maxWidth: 420,
+            flexShrink: 0,
+            background: 'rgba(6,6,15,0.9)',
+            borderBottom: '1px solid #0a0a1f',
+            zIndex: 2,
+            position: 'relative',
+            gap: 6,
+            padding: '8px 12px',
+          }}
+        >
+          {(
+            [
+              { id: 'classic', label: 'Pressure', icon: '⚡', color: '#a78bfa' },
+              { id: 'blitz',   label: 'Blitz',    icon: '🔥', color: '#f97316' },
+              { id: 'zen',     label: 'Zen',       icon: '🧘', color: '#34d399' },
+            ] as const
+          ).map(({ id, label, icon, color }) => {
+            const active = currentModeId === id;
+            return (
+              <button
+                key={id}
+                onClick={() => { if (!active) setGameMode(id); }}
+                style={{
+                  flex: 1,
+                  padding: '8px 4px',
+                  borderRadius: 10,
+                  border: `1.5px solid ${active ? color + '55' : '#12122a'}`,
+                  background: active ? `${color}18` : 'transparent',
+                  color: active ? color : '#2e2e48',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  cursor: active ? 'default' : 'pointer',
+                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
+                }}
+              >
+                <span>{icon}</span>
+                <span>{label.toUpperCase()}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* ── NAV TABS ───────────────────────────────────────────── */}
       <div
         style={{
@@ -1334,7 +1391,7 @@ function MenuScreen() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: `repeat(${activeMode.worlds.length}, 1fr)`,
+                  gridTemplateColumns: 'repeat(4, 1fr)',
                   gap: 8,
                 }}
               >

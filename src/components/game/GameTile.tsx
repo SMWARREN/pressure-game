@@ -229,9 +229,9 @@ function GameTileComponent({
       };
     if (type === 'crushed')
       return {
-        background: 'linear-gradient(145deg, #1a0000 0%, #0d0000 100%)',
-        border: '1px solid #2a0505',
-        boxShadow: 'inset 0 0 12px rgba(239,68,68,0.15)',
+        background: 'linear-gradient(145deg, #450a0a 0%, #2d0606 100%)',
+        border: '2px solid #ef4444',
+        boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.2)',
       };
     if (type === 'node')
       return {
@@ -563,9 +563,10 @@ function GameTileComponent({
         <div
           style={{
             fontSize: tileSize > 40 ? 14 : 10,
-            color: 'rgba(239,68,68,0.4)',
+            color: '#ef4444',
             fontWeight: 900,
             zIndex: 1,
+            textShadow: '0 0 6px rgba(239,68,68,0.8)',
           }}
         >
           ✕

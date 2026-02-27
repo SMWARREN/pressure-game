@@ -3,27 +3,20 @@
 
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { rotateTileTap, checkConnected } from '../utils';
-import { CLASSIC_LEVELS } from '../classic/levels';
-import { ZEN_LEVELS_SET_2, STREAM_EDITED_LEVEL, RIPPLE_EDITED_LEVEL } from './levels';
+import { PRESSURE_LEVELS } from '../shared/levels';
 import { ZEN_TUTORIAL_STEPS } from './tutorial';
 import { renderZenDemo } from './demo';
 import { ZEN_WALKTHROUGH } from './walkthrough';
 
-// Combine classic levels with Zen-specific levels (including custom levels)
-const ALL_ZEN_LEVELS = [
-  ...CLASSIC_LEVELS,
-  ...ZEN_LEVELS_SET_2,
-  STREAM_EDITED_LEVEL,
-  RIPPLE_EDITED_LEVEL,
-];
-
 export const ZEN_WORLDS = [
-  { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
-  { id: 2, name: 'Squeeze', tagline: 'Find your flow', color: '#34d399', icon: '◆' },
-  { id: 3, name: 'Crush', tagline: 'Pure challenge', color: '#6ee7b7', icon: '⬟' },
-  { id: 4, name: 'Flow', tagline: 'Medium puzzles', color: '#10b981', icon: '◇' },
-  { id: 5, name: 'Peace', tagline: 'Larger grids', color: '#059669', icon: '⬡' },
-  { id: 6, name: 'Nirvana', tagline: 'Ultimate challenges', color: '#047857', icon: '✧' },
+  { id: 1, name: 'Breathe',   tagline: 'Learn the basics',        color: '#22c55e', icon: '◈' },
+  { id: 2, name: 'Flow',      tagline: 'Find your rhythm',        color: '#34d399', icon: '◆' },
+  { id: 3, name: 'Calm',      tagline: 'Pure puzzle',             color: '#6ee7b7', icon: '⬟' },
+  { id: 4, name: 'Drift',     tagline: 'Larger grids, no rush',   color: '#10b981', icon: '◇' },
+  { id: 5, name: 'Current',   tagline: 'Winding corridors',       color: '#059669', icon: '⬡' },
+  { id: 6, name: 'Deep',      tagline: 'Complex networks',        color: '#047857', icon: '✧' },
+  { id: 7, name: 'Peace',     tagline: 'Wide open puzzles',       color: '#065f46', icon: '⬢' },
+  { id: 8, name: 'Nirvana',   tagline: 'The full canvas',         color: '#064e3b', icon: '✦' },
 ];
 
 export const ZenMode: GameModeConfig = {
@@ -37,7 +30,7 @@ export const ZenMode: GameModeConfig = {
   useMoveLimit: false,
   tutorialSteps: ZEN_TUTORIAL_STEPS,
   renderDemo: renderZenDemo,
-  getLevels: () => ALL_ZEN_LEVELS,
+  getLevels: () => PRESSURE_LEVELS,
   worlds: ZEN_WORLDS,
   supportsWorkshop: true,
 

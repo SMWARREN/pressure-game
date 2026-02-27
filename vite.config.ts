@@ -7,62 +7,15 @@ export default defineConfig({
   base: './',
   plugins: [
     react(),
+    // PWA DISABLED: re-enable once caching issues are resolved
+    // VitePWA({ ... })
     VitePWA({
+      selfDestroying: true, // kills any existing SW on load
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo.svg', 'robots.txt'],
-      manifest: {
-        name: 'PRESSURE - Pipe Puzzle',
-        short_name: 'PRESSURE',
-        description: 'A challenging pipe puzzle game with wall compression mechanics',
-        theme_color: '#6366f1',
-        background_color: '#06060f',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: 'logo.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable',
-          },
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
-        categories: ['games', 'puzzle'],
-        screenshots: [],
-      },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-        ],
+        globPatterns: [], // cache nothing
       },
-      devOptions: {
-        enabled: true,
-      },
+      devOptions: { enabled: false },
     }),
   ],
   resolve: {

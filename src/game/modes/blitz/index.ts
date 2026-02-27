@@ -3,16 +3,21 @@
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { rotateTileTap, checkConnected } from '../utils';
-import { CLASSIC_LEVELS } from '../classic/levels';
+import { PRESSURE_LEVELS } from '../shared/levels';
 import { Tile } from '../../types';
 import { BLITZ_TUTORIAL_STEPS } from './tutorial';
 import { renderBlitzDemo } from './demo';
 import { BLITZ_WALKTHROUGH } from './walkthrough';
 
 export const BLITZ_WORLDS = [
-  { id: 1, name: 'Breathe', tagline: 'Warm up', color: '#fb923c', icon: '◈' },
-  { id: 2, name: 'Squeeze', tagline: 'Walls never stop', color: '#f97316', icon: '◆' },
-  { id: 3, name: 'Crush', tagline: 'No mercy', color: '#ef4444', icon: '⬟' },
+  { id: 1, name: 'Ignite',     tagline: 'Warm up',                   color: '#fb923c', icon: '◈' },
+  { id: 2, name: 'Surge',      tagline: 'Walls never stop',          color: '#f97316', icon: '◆' },
+  { id: 3, name: 'Overload',   tagline: 'No mercy',                  color: '#ef4444', icon: '⬟' },
+  { id: 4, name: 'Vector',     tagline: 'Pick your angle',           color: '#dc2626', icon: '▲' },
+  { id: 5, name: 'Lateral',    tagline: 'Sideways burn',             color: '#b91c1c', icon: '◀' },
+  { id: 6, name: 'Vise',       tagline: 'Closing from both ends',    color: '#991b1b', icon: '⬛' },
+  { id: 7, name: 'Channel',    tagline: 'Side by side annihilation', color: '#7f1d1d', icon: '▬' },
+  { id: 8, name: 'Zero Hour',  tagline: 'The full grid unleashed',   color: '#450a0a', icon: '✦' },
 ];
 
 export const BlitzMode: GameModeConfig = {
@@ -26,7 +31,7 @@ export const BlitzMode: GameModeConfig = {
   useMoveLimit: false,
   tutorialSteps: BLITZ_TUTORIAL_STEPS,
   renderDemo: renderBlitzDemo,
-  getLevels: () => CLASSIC_LEVELS,
+  getLevels: () => PRESSURE_LEVELS,
   worlds: BLITZ_WORLDS,
   supportsWorkshop: true,
 

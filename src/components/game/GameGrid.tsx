@@ -79,14 +79,32 @@ function GameGridComponent({
     for (let y = 0; y < gridRows; y++) {
       for (let x = 0; x < gridCols; x++) {
         const tile = tileMap.get(`${x},${y}`);
-        const dist = Math.min(x, y, gridCols - 1 - x, gridRows - 1 - y);
 
-        // FIXED: Correct inDanger calculation
-        // Tiles are in danger when compression is active AND they're within the wall offset zone
-        // AND they're not already a wall or crushed
+        // Danger check respects compression direction — only flag tiles on the compressing side(s)
+        const distTop    = y;
+        const distBottom = gridRows - 1 - y;
+        const distLeft   = x;
+        const distRight  = gridCols - 1 - x;
+        const dist = Math.min(distTop, distBottom, distLeft, distRight);
+
+        let dirDist: number;
+        switch (compressionDirection) {
+          case 'top':         dirDist = distTop; break;
+          case 'bottom':      dirDist = distBottom; break;
+          case 'left':        dirDist = distLeft; break;
+          case 'right':       dirDist = distRight; break;
+          case 'top-bottom':  dirDist = Math.min(distTop, distBottom); break;
+          case 'left-right':  dirDist = Math.min(distLeft, distRight); break;
+          case 'top-left':    dirDist = Math.min(distTop, distLeft); break;
+          case 'top-right':   dirDist = Math.min(distTop, distRight); break;
+          case 'bottom-left': dirDist = Math.min(distBottom, distLeft); break;
+          case 'bottom-right':dirDist = Math.min(distBottom, distRight); break;
+          default:            dirDist = dist; break; // 'all' or unset
+        }
+
         const inDanger =
           compressionActive &&
-          dist <= wallOffset &&
+          dirDist <= wallOffset &&
           !!tile &&
           tile.type !== 'wall' &&
           tile.type !== 'crushed';
@@ -153,7 +171,8 @@ function GameGridComponent({
       {/* Animated Walls Overlay - The "Pressure Effect" */}
       <WallOverlay
         wallOffset={wallOffset}
-        gridSize={gridSize}
+        gridCols={gridCols}
+        gridRows={gridRows}
         wallsJustAdvanced={wallsJustAdvanced}
         isPlaying={status === 'playing'}
         animationsEnabled={animationsEnabled}

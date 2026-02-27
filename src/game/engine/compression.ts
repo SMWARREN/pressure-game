@@ -6,24 +6,24 @@ import type { WallAdvanceResult, EngineContext } from './types';
 import { getModeById } from '../modes';
 
 /**
- * Check if a position should be crushed based on compression direction
+ * Check if a position should be crushed based on compression direction.
+ * Uses separate col/row dimensions to support non-square grids correctly.
  */
 function shouldCrushAtPosition(
   x: number,
   y: number,
-  gridSize: number,
+  gridCols: number,
+  gridRows: number,
   wallOffset: number,
   direction: CompressionDirection
 ): boolean {
   if (direction === 'none') return false;
 
-  const maxIdx = gridSize - 1;
-
-  // Calculate distance from each edge
+  // Calculate distance from each edge using correct axis dimensions
   const distFromTop = y;
-  const distFromBottom = maxIdx - y;
+  const distFromBottom = (gridRows - 1) - y;
   const distFromLeft = x;
-  const distFromRight = maxIdx - x;
+  const distFromRight = (gridCols - 1) - x;
 
   // Check if within crush zone based on direction
   switch (direction) {
@@ -100,8 +100,10 @@ export class CompressionSystem {
    * Advance walls by one step, crushing tiles that are now inside the wall boundary.
    */
   advance(tiles: Tile[], wallOffset: number, level: Level, ctx: EngineContext): WallAdvanceResult {
-    const gridSize = level.gridSize;
-    const maxOffset = Math.floor(gridSize / 2);
+    const gridCols = level.gridCols ?? level.gridSize;
+    const gridRows = level.gridRows ?? level.gridSize;
+    // maxOffset is the smaller of the two half-dimensions so walls don't overshoot
+    const maxOffset = Math.floor(Math.min(gridCols, gridRows) / 2);
     const newOffset = wallOffset + 1;
     const direction: CompressionDirection = level.compressionDirection ?? 'all';
 
@@ -112,8 +114,8 @@ export class CompressionSystem {
 
     // Crush tiles that are now inside the wall boundary based on compression direction
     const newTiles = tiles.map((tile) => {
-      // Use direction-aware crush check
-      const shouldCrush = shouldCrushAtPosition(tile.x, tile.y, gridSize, newOffset, direction);
+      // Use direction-aware crush check with correct per-axis dimensions
+      const shouldCrush = shouldCrushAtPosition(tile.x, tile.y, gridCols, gridRows, newOffset, direction);
 
       if (shouldCrush && tile.type !== 'wall' && tile.type !== 'crushed') {
         return { ...tile, type: 'crushed' as const, justCrushed: true };
@@ -165,32 +167,31 @@ export class CompressionSystem {
   /**
    * Get the maximum wall offset for a given grid size
    */
-  getMaxOffset(gridSize: number): number {
-    return Math.floor(gridSize / 2);
+  getMaxOffset(gridCols: number, gridRows: number): number {
+    return Math.floor(Math.min(gridCols, gridRows) / 2);
   }
 
   /**
-   * Check if a position is inside the wall boundary
+   * Check if a position is inside the wall boundary (all-sides default).
+   * For directional compression, use shouldCrushAtPosition directly.
    */
-  isInsideWall(x: number, y: number, gridSize: number, wallOffset: number): boolean {
-    const dist = Math.min(x, y, gridSize - 1 - x, gridSize - 1 - y);
+  isInsideWall(x: number, y: number, gridCols: number, gridRows: number, wallOffset: number): boolean {
+    const dist = Math.min(x, y, gridCols - 1 - x, gridRows - 1 - y);
     return dist < wallOffset;
   }
 
   /**
-   * Get all positions that would be crushed at a given wall offset
+   * Get all positions that would be crushed at a given wall offset (all-sides).
    */
-  getCrushedPositions(gridSize: number, wallOffset: number): Position[] {
+  getCrushedPositions(gridCols: number, gridRows: number, wallOffset: number): Position[] {
     const positions: Position[] = [];
-
-    for (let x = 0; x < gridSize; x++) {
-      for (let y = 0; y < gridSize; y++) {
-        if (this.isInsideWall(x, y, gridSize, wallOffset)) {
+    for (let x = 0; x < gridCols; x++) {
+      for (let y = 0; y < gridRows; y++) {
+        if (this.isInsideWall(x, y, gridCols, gridRows, wallOffset)) {
           positions.push({ x, y });
         }
       }
     }
-
     return positions;
   }
 }

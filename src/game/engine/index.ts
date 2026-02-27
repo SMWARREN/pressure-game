@@ -180,6 +180,7 @@ export class PressureEngine implements IPressureEngine {
         targetScore: currentLevel.targetScore,
         levelId: currentLevel.id,
         world: currentLevel.world,
+        features: currentLevel.features,
         timeLeft: currentLevel.timeLimit
           ? Math.max(0, currentLevel.timeLimit - newElapsedSeconds)
           : undefined,
@@ -310,7 +311,8 @@ export class PressureEngine implements IPressureEngine {
         wallsJustAdvanced: true,
         lossReason: result.lossReason,
       });
-    } else {
+    } else if (result.newOffset > wallOffset) {
+      // Walls actually advanced — animate and play sound
       this.playSound('crush');
       this.setState({
         tiles: result.tiles,
@@ -328,6 +330,7 @@ export class PressureEngine implements IPressureEngine {
         }
       }, 600);
     }
+    // else: max offset already reached — walls didn't move, do nothing
 
     return result;
   }

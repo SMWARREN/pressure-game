@@ -10,7 +10,8 @@ import { CompressionDirection } from '@/game/types';
 
 interface WallOverlayProps {
   wallOffset: number;
-  gridSize: number;
+  gridCols: number;
+  gridRows: number;
   wallsJustAdvanced: boolean;
   isPlaying: boolean;
   animationsEnabled?: boolean;
@@ -19,7 +20,8 @@ interface WallOverlayProps {
 
 export default function WallOverlay({
   wallOffset,
-  gridSize,
+  gridCols,
+  gridRows,
   wallsJustAdvanced,
   isPlaying,
   animationsEnabled = true,
@@ -69,7 +71,9 @@ export default function WallOverlay({
     'right-top-bottom',
   ].includes(compressionDirection);
 
-  const percentage = (wallOffset / gridSize) * 100;
+  // Use the correct axis for each overlay direction
+  const colPct = (wallOffset / gridCols) * 100;
+  const rowPct = (wallOffset / gridRows) * 100;
   const transform = animationsEnabled && wallsJustAdvanced ? '2px' : '0';
   const transition = animationsEnabled ? 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none';
   const boxShadow =
@@ -93,7 +97,7 @@ export default function WallOverlay({
             top: 0,
             left: 0,
             right: 0,
-            height: `${percentage}%`,
+            height: `${rowPct}%`,
             background: 'linear-gradient(180deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
             borderBottom: '2px solid rgba(239,68,68,0.3)',
             transform: wallsJustAdvanced ? `translateY(${transform})` : 'translateY(0)',
@@ -111,7 +115,7 @@ export default function WallOverlay({
             bottom: 0,
             left: 0,
             right: 0,
-            height: `${percentage}%`,
+            height: `${rowPct}%`,
             background: 'linear-gradient(0deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
             borderTop: '2px solid rgba(239,68,68,0.3)',
             transform: wallsJustAdvanced ? `translateY(-${transform})` : 'translateY(0)',
@@ -129,7 +133,7 @@ export default function WallOverlay({
             left: 0,
             top: 0,
             bottom: 0,
-            width: `${percentage}%`,
+            width: `${colPct}%`,
             background: 'linear-gradient(90deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
             borderRight: '2px solid rgba(239,68,68,0.3)',
             transform: wallsJustAdvanced ? `translateX(${transform})` : 'translateX(0)',
@@ -147,7 +151,7 @@ export default function WallOverlay({
             right: 0,
             top: 0,
             bottom: 0,
-            width: `${percentage}%`,
+            width: `${colPct}%`,
             background: 'linear-gradient(270deg, rgba(239,68,68,0.15) 0%, transparent 100%)',
             borderLeft: '2px solid rgba(239,68,68,0.3)',
             transform: wallsJustAdvanced ? `translateX(-${transform})` : 'translateX(0)',
