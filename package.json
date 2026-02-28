@@ -10,6 +10,9 @@
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "test:game": "npx tsx src/cli/game-tester.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:pressure": "playwright test tests/e2e/pressure-basic.spec.ts",
     "solve": "npx tsx src/cli/level-solver.ts",
     "enhance": "npx tsx src/cli/level-enhancer.ts",
     "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
@@ -22,6 +25,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/node": "^25.3.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",

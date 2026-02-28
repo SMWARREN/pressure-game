@@ -466,6 +466,7 @@ function GameTileComponent({
   // ── Default pipe renderer ─────────────────────────────────────────────────
   return (
     <div
+      data-testid={`tile-${x}-${y}`}
       onClick={handleClick}
       style={{
         borderRadius: r,

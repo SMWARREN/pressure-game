@@ -149,6 +149,7 @@ function GameGridComponent({
     <>
       {/* Tile grid */}
       <div
+        data-testid="game-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${gridCols}, 1fr)`,

@@ -1,10 +1,12 @@
 // PRESSURE HUB SCREEN
-// Mode selector for Classic | Blitz | Zen with gameboard demo
+// Mode selector for Classic | Blitz | Zen with live game preview
 
+import { useEffect } from 'react';
 import { useGameStore } from '../game/store';
 import { ensureHubStyles } from './hubs/HubStyles';
 import { PressureModeInfo } from './hubs/HubTypes';
-import { PressureGridHero } from './pressure/PressureGridHero';
+import { PressureGamePreview } from './pressure/PressureGamePreview';
+import { getModeById } from '../game/modes';
 
 const CLASSIC_INFO: PressureModeInfo = {
   description: 'The original pipe puzzle — connect all nodes before time runs out!',
@@ -81,6 +83,19 @@ export default function PressureHubScreen() {
   ensureHubStyles();
   const setGameMode = useGameStore((s) => s.setGameMode);
   const closePressureHub = useGameStore((s) => s.closePressureHub);
+  const featuredLevel = useGameStore((s) => s.featuredLevel);
+  const setFeaturedLevel = useGameStore((s) => s.setFeaturedLevel);
+
+  // Load a featured level on mount
+  useEffect(() => {
+    const mode = getModeById('classic');
+    if (!mode) return;
+
+    const levels = mode.getLevels?.();
+    if (levels && levels.length > 20) {
+      setFeaturedLevel(levels[20]); // Level 21 - harder level with bigger grid
+    }
+  }, [setFeaturedLevel]);
 
   function selectMode(id: string) {
     setGameMode(id);
@@ -99,8 +114,6 @@ export default function PressureHubScreen() {
         overflow: 'hidden',
       }}
     >
-      {/* ── Grid Hero ── */}
-      <PressureGridHero />
       {/* ── Header ── */}
       <div
         style={{
@@ -152,6 +165,28 @@ export default function PressureHubScreen() {
         </div>
 
         <div style={{ width: 36, flexShrink: 0 }} />
+      </div>
+
+      {/* ── Divider ── */}
+      <div style={{ height: 1, background: '#12122a', flexShrink: 0 }} />
+
+      {/* ── Game Preview (Featured Level) ── */}
+      <div
+        style={{
+          padding: '12px 16px',
+          background: 'rgba(10,10,20,0.5)',
+          border: '1px solid #12122a',
+          borderRadius: 12,
+          margin: '12px',
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'auto',
+          minHeight: 200,
+        }}
+      >
+        <PressureGamePreview level={featuredLevel} modeId="classic" />
       </div>
 
       {/* ── Divider ── */}

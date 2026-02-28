@@ -74,6 +74,7 @@ function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) 
 
   return (
     <div
+      data-testid="move-counter"
       style={{
         display: 'flex',
         flexDirection: 'column',

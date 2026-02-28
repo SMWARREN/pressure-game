@@ -52,3 +52,5 @@ server.log
 dist
 dist/
 /.scannerwork
+test-results
+playwright-report
