@@ -110,11 +110,11 @@ function evaluateExpression(expression: string): number {
   const tokens = expression.match(/\d+|[+\-*/]/g);
   if (!tokens || tokens.length === 0) return 0;
 
-  let result = parseInt(tokens[0], 10);
+  let result = Number.parseInt(tokens[0], 10);
 
   for (let i = 1; i < tokens.length; i += 2) {
     const operator = tokens[i];
-    const operand = parseInt(tokens[i + 1], 10);
+    const operand = Number.parseInt(tokens[i + 1], 10);
 
     switch (operator) {
       case '+':

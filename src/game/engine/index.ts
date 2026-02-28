@@ -165,9 +165,10 @@ export class PressureEngine implements IPressureEngine {
       currentModeId,
       compressionOverride,
       elapsedSeconds,
+      isPaused,
     } = state;
 
-    if (status !== 'playing' || !currentLevel) return null;
+    if (status !== 'playing' || !currentLevel || isPaused) return null;
 
     const newElapsedSeconds = elapsedSeconds + 1;
     let stateChanges: Partial<GameState> = { elapsedSeconds: newElapsedSeconds };
@@ -421,6 +422,7 @@ export class PressureEngine implements IPressureEngine {
       _winCheckPending: false,
       isPaused: false,
       showArcadeHub: false,
+      showPressureHub: false,
       lastPlayedLevelId: saved.lastPlayedLevelId,
       selectedWorld: 1,
       editor: {
@@ -433,6 +435,7 @@ export class PressureEngine implements IPressureEngine {
         compressionDirection: 'all',
         savedState: null,
       },
+      featuredLevel: null,
     };
   }
 

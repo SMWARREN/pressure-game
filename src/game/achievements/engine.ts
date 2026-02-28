@@ -10,9 +10,9 @@ const STREAK_KEY = 'pressure_daily_streak_v1';
 type AchievementSubscriber = () => void;
 
 class AchievementEngine {
-  private achievements: Map<string, Achievement> = new Map();
+  private readonly achievements: Map<string, Achievement> = new Map();
   private state: AchievementState;
-  private subscribers: Set<AchievementSubscriber> = new Set();
+  private readonly subscribers: Set<AchievementSubscriber> = new Set();
   private recentlyEarnedQueue: string[] = [];
 
   constructor() {

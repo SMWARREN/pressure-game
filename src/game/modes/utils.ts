@@ -30,8 +30,8 @@ export function rotateConnections(conns: Direction[], times: number): Direction[
 // ═══════════════════════════════════════════════════════════════════════════
 
 class UnionFind {
-  private parent: Map<string, string> = new Map();
-  private rank: Map<string, number> = new Map();
+  private readonly parent: Map<string, string> = new Map();
+  private readonly rank: Map<string, number> = new Map();
 
   makeSet(key: string): void {
     if (!this.parent.has(key)) {

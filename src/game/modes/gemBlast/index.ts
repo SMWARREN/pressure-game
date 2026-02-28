@@ -254,7 +254,7 @@ export const GemBlastMode: GameModeConfig = {
     remaining = applyGravity(remaining, gcols, grows, blastChance);
 
     // Step 3: Initial score — n²×3, linear bonus for blast-cleared tiles
-    let cascadeMult = 1.0;
+    let cascadeMult = 1;
     let totalScore = group.length * group.length * 3;
     if (extraClearedKeys.size > 0) {
       totalScore += extraClearedKeys.size * 5;
@@ -262,7 +262,7 @@ export const GemBlastMode: GameModeConfig = {
 
     // Step 4: Cascade loop — exponential multiplier: 2× → 4× → 7× → 12×
     // Each cascade level dramatically increases score to reward chain reactions
-    const CASCADE_MULTS = [1.0, 2.0, 4.0, 7.0, 12.0];
+    const CASCADE_MULTS = [1, 2, 4, 7, 12];
     let cascadeLevel = 1;
     while (true) {
       const newGroups = findAllGroups(remaining, 2);

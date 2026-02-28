@@ -5,13 +5,13 @@ import { useState, useEffect } from 'react';
 import { getModeById } from '@/game/modes';
 
 interface UnlimitedRulesDialogProps {
-  levelName: string;
-  previousScore: number | null;
-  onStart: () => void;
-  onBack: () => void;
-  modeId?: string;
-  onWatchBest?: () => void;
-  features?: Record<string, boolean>;
+  readonly levelName: string;
+  readonly previousScore: number | null;
+  readonly onStart: () => void;
+  readonly onBack: () => void;
+  readonly modeId?: string;
+  readonly onWatchBest?: () => void;
+  readonly features?: Record<string, boolean>;
 }
 
 export default function UnlimitedRulesDialog({

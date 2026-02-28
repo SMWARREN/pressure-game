@@ -40,6 +40,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         status: alreadySeen ? 'menu' : 'tutorial',
         currentLevel: null,
         showArcadeHub: false,
+        showPressureHub: false,
       });
       engine.persist({ ...get(), currentModeId: modeId });
     },
@@ -182,10 +183,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       get().checkWin();
 
-      // Check for move-limit loss
+      // Check for move-limit loss (only if not already winning)
       const afterWin = get();
       if (
         afterWin.status === 'playing' &&
+        !afterWin.showingWin &&
+        !afterWin._winCheckPending &&
         mode.checkLoss &&
         afterWin.currentLevel &&
         mode.useMoveLimit !== false &&
@@ -303,6 +306,18 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       set({ showArcadeHub: false });
     },
 
+    openPressureHub: () => {
+      set({ showPressureHub: true });
+    },
+
+    closePressureHub: () => {
+      set({ showPressureHub: false });
+    },
+
+    setFeaturedLevel: (level: Level | null) => {
+      set({ featuredLevel: level });
+    },
+
     replayWalkthrough: () => {
       const { currentModeId } = get();
       const mode = getModeById(currentModeId);
@@ -350,12 +365,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         const next = !s.editor.enabled;
 
         if (next) {
-          // Entering editor mode - save current state
+          // Entering editor mode - save current state and pause
+          const wasPlaying = s.status === 'playing';
           engine.stopTimer();
           const savedState = {
             tiles: s.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
             goalNodes: s.currentLevel ? [...s.currentLevel.goalNodes] : [],
             gridSize: s.currentLevel?.gridSize ?? 5,
+            wasPlaying, // Track if game was actively playing
           };
           return {
             editor: {
@@ -371,6 +388,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
           };
         } else {
           // Exiting editor mode - restore saved state if available
+          const wasPlaying = s.editor.savedState?.wasPlaying ?? false;
+
           if (s.editor.savedState) {
             const { tiles, goalNodes, gridSize } = s.editor.savedState;
             const restoredLevel = s.currentLevel
@@ -380,6 +399,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
                   goalNodes,
                 }
               : null;
+
+            // Restart timer if game was playing before editor
+            if (wasPlaying && s.status === 'playing') {
+              engine.startTimer();
+            }
+
             return {
               tiles: tiles.map((t) => ({ ...t, connections: [...t.connections] })),
               currentLevel: restoredLevel,
@@ -395,6 +420,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
               isPaused: false,
             };
           }
+
+          // Restart timer if game was playing before editor
+          if (wasPlaying && s.status === 'playing') {
+            engine.startTimer();
+          }
+
           return {
             editor: {
               ...s.editor,
@@ -518,7 +549,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       // Rotate mode - rotate the tile
       if (editor.tool === 'rotate') {
-        if (existing && existing.canRotate) {
+        if (existing?.canRotate) {
           const dirOrder: Direction[] = ['up', 'right', 'down', 'left'];
           const newConnections = existing.connections.map((conn) => {
             const i = dirOrder.indexOf(conn);

@@ -150,7 +150,7 @@ function markChain(tiles: Tile[], chain: GravityModeState['chain']): Tile[] {
       ...t,
       displayData: {
         ...d,
-        inChain: !!info,
+        inChain: Boolean(info),
         chainIndex: info?.index ?? -1,
         chainSum: info?.sum ?? 0,
       },
@@ -247,10 +247,6 @@ export const GravityDropMode: GameModeConfig = {
       if (d.special === 'lock') return '🔒';
 
       if (d.inChain && d.chainSum > 0) {
-        // Show the running sum in the chain tail
-        const isLast =
-          d.chainIndex >= 0 && d.chainIndex === ((tile.displayData?.chainIndex as number) ?? -1);
-        void isLast;
         return `${NUM_SYMBOLS[d.value - 1] ?? d.value}`;
       }
 

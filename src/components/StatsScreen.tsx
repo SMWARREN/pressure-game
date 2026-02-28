@@ -51,8 +51,8 @@ export default function StatsScreen({
   onBack,
   onReplay,
 }: {
-  onBack: () => void;
-  onReplay?: (event: GameEndEvent) => void;
+  readonly onBack: () => void;
+  readonly onReplay?: (event: GameEndEvent) => void;
 }) {
   const stats = useMemo(() => {
     const all = statsEngine.getBackend().getAll();

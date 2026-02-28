@@ -25,11 +25,11 @@ function OutbreakTile({
   groupSize,
   small = false,
 }: {
-  colorIndex: number;
-  owned?: boolean;
-  frontier?: boolean;
-  groupSize?: number;
-  small?: boolean;
+  readonly colorIndex: number;
+  readonly owned?: boolean;
+  readonly frontier?: boolean;
+  readonly groupSize?: number;
+  readonly small?: boolean;
 }) {
   const lit = OUTBREAK_COLORS[colorIndex] ?? '#888';
   const size = small ? 34 : 42;

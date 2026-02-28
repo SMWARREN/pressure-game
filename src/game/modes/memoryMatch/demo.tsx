@@ -12,10 +12,10 @@ function MemTile({
   flipped = false,
   faceDown = false,
 }: {
-  face: string;
-  matched?: boolean;
-  flipped?: boolean;
-  faceDown?: boolean;
+  readonly face: string;
+  readonly matched?: boolean;
+  readonly flipped?: boolean;
+  readonly faceDown?: boolean;
 }) {
   let bg = 'linear-gradient(145deg, #0f0e1a, #080812)';
   let border = `1px solid ${ACCENT}22`;
@@ -56,7 +56,7 @@ function MemTile({
   );
 }
 
-function Row({ children }: { children: React.ReactNode }) {
+function Row({ children }: { readonly children: React.ReactNode }) {
   return <div style={{ display: 'flex', gap: 6 }}>{children}</div>;
 }
 

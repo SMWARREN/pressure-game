@@ -222,8 +222,8 @@ function withBeamApplied(
   for (const key of beamKeys) {
     if (!tileMap.has(key)) {
       const [xStr, yStr] = key.split(',');
-      const x = parseInt(xStr, 10);
-      const y = parseInt(yStr, 10);
+      const x = Number.parseInt(xStr, 10);
+      const y = Number.parseInt(yStr, 10);
       // Create a placeholder tile for empty cells in the beam path
       result.push({
         id: `beam-${x}-${y}`,

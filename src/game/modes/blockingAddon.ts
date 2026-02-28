@@ -14,7 +14,7 @@ import { Tile } from '../types';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface SpawnConfig {
-  /** Probability (0–1) that spawning succeeds this tick. Use 1.0 to always spawn. */
+  /** Probability (0–1) that spawning succeeds this tick. Use 1 to always spawn. */
   spawnChance: number;
   /** Max number of new blockers to place in this tick. */
   maxCount: number;
@@ -25,7 +25,7 @@ export interface SpawnConfig {
 /**
  * Try to place blocking tiles on the board this tick.
  *
- * - Runs the random `spawnChance` gate first (pass 1.0 to always spawn).
+ * - Runs the random `spawnChance` gate first (pass 1 to always spawn).
  * - Picks up to `config.maxCount` interactive tiles that aren't already blocked.
  * - Marks them `canRotate: false` with `displayData[blockFlag]: true`.
  *

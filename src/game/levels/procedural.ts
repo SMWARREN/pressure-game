@@ -17,7 +17,10 @@ import { Level, Tile, Direction, CompressionDirection, Position } from '../types
 const DIRS: Direction[] = ['up', 'right', 'down', 'left'];
 const OPP: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' };
 const DXDY: Record<Direction, [number, number]> = {
-  up: [0, -1], right: [1, 0], down: [0, 1], left: [-1, 0],
+  up: [0, -1],
+  right: [1, 0],
+  down: [0, 1],
+  left: [-1, 0],
 };
 
 function rotateDir(d: Direction, times: number): Direction {
@@ -56,7 +59,8 @@ function isConnected(tiles: Tile[], goals: Position[]): boolean {
     if (!tile) continue;
     for (const d of tile.connections) {
       const [dx, dy] = DXDY[d];
-      const nx = curr.x + dx, ny = curr.y + dy;
+      const nx = curr.x + dx,
+        ny = curr.y + dy;
       const key = `${nx},${ny}`;
       if (visited.has(key)) continue;
       const neighbor = map.get(key);
@@ -90,10 +94,10 @@ export interface ProceduralOptions {
 }
 
 const DIFF_PARAMS = {
-  easy:   { compressionDelay: 12000, movePadding: 4, wallsMin: 0, wallsMax: 1 },
-  medium: { compressionDelay: 8000,  movePadding: 3, wallsMin: 1, wallsMax: 2 },
-  hard:   { compressionDelay: 5000,  movePadding: 2, wallsMin: 2, wallsMax: 3 },
-  expert: { compressionDelay: 3500,  movePadding: 1, wallsMin: 2, wallsMax: 4 },
+  easy: { compressionDelay: 12000, movePadding: 4, wallsMin: 0, wallsMax: 1 },
+  medium: { compressionDelay: 8000, movePadding: 3, wallsMin: 1, wallsMax: 2 },
+  hard: { compressionDelay: 5000, movePadding: 2, wallsMin: 2, wallsMax: 3 },
+  expert: { compressionDelay: 3500, movePadding: 1, wallsMin: 2, wallsMax: 4 },
 };
 
 // Compression direction → goal node placement zone [minFrac, maxFrac] for x and y.
@@ -101,33 +105,33 @@ const DIFF_PARAMS = {
 // e.g. 'top' walls come from y=0, so goals live in the top portion (small y).
 type DirConfig = { dir: CompressionDirection; zoneX: [number, number]; zoneY: [number, number] };
 const DIR_CONFIGS: DirConfig[] = [
-  { dir: 'top',          zoneX: [0.15, 0.85], zoneY: [0.15, 0.5]  }, // near top wall
-  { dir: 'bottom',       zoneX: [0.15, 0.85], zoneY: [0.5,  0.85] }, // near bottom wall
-  { dir: 'left',         zoneX: [0.15, 0.5],  zoneY: [0.15, 0.85] }, // near left wall
-  { dir: 'right',        zoneX: [0.5,  0.85], zoneY: [0.15, 0.85] }, // near right wall
-  { dir: 'top-bottom',   zoneX: [0.15, 0.85], zoneY: [0.2,  0.8]  }, // spread vertically
-  { dir: 'left-right',   zoneX: [0.2,  0.8],  zoneY: [0.15, 0.85] }, // spread horizontally
-  { dir: 'top-left',     zoneX: [0.15, 0.5],  zoneY: [0.15, 0.5]  }, // near top-left
-  { dir: 'top-right',    zoneX: [0.5,  0.85], zoneY: [0.15, 0.5]  }, // near top-right
-  { dir: 'bottom-left',  zoneX: [0.15, 0.5],  zoneY: [0.5,  0.85] }, // near bottom-left
-  { dir: 'bottom-right', zoneX: [0.5,  0.85], zoneY: [0.5,  0.85] }, // near bottom-right
-  { dir: 'all',          zoneX: [0.25, 0.75], zoneY: [0.25, 0.75] }, // center (all sides)
+  { dir: 'top', zoneX: [0.15, 0.85], zoneY: [0.15, 0.5] }, // near top wall
+  { dir: 'bottom', zoneX: [0.15, 0.85], zoneY: [0.5, 0.85] }, // near bottom wall
+  { dir: 'left', zoneX: [0.15, 0.5], zoneY: [0.15, 0.85] }, // near left wall
+  { dir: 'right', zoneX: [0.5, 0.85], zoneY: [0.15, 0.85] }, // near right wall
+  { dir: 'top-bottom', zoneX: [0.15, 0.85], zoneY: [0.2, 0.8] }, // spread vertically
+  { dir: 'left-right', zoneX: [0.2, 0.8], zoneY: [0.15, 0.85] }, // spread horizontally
+  { dir: 'top-left', zoneX: [0.15, 0.5], zoneY: [0.15, 0.5] }, // near top-left
+  { dir: 'top-right', zoneX: [0.5, 0.85], zoneY: [0.15, 0.5] }, // near top-right
+  { dir: 'bottom-left', zoneX: [0.15, 0.5], zoneY: [0.5, 0.85] }, // near bottom-left
+  { dir: 'bottom-right', zoneX: [0.5, 0.85], zoneY: [0.5, 0.85] }, // near bottom-right
+  { dir: 'all', zoneX: [0.25, 0.75], zoneY: [0.25, 0.75] }, // center (all sides)
 ];
 
 // ─── Pipe shape catalogue ─────────────────────────────────────────────────
 // Indexed by connection count so we pick the smallest matching shape.
 const PIPE_SHAPES: Direction[][] = [
-  ['up', 'down'],                      // straight v
-  ['left', 'right'],                   // straight h
-  ['up', 'right'],                     // L corner
+  ['up', 'down'], // straight v
+  ['left', 'right'], // straight h
+  ['up', 'right'], // L corner
   ['right', 'down'],
   ['down', 'left'],
   ['left', 'up'],
-  ['up', 'right', 'down'],             // T shapes
+  ['up', 'right', 'down'], // T shapes
   ['right', 'down', 'left'],
   ['down', 'left', 'up'],
   ['left', 'up', 'right'],
-  ['up', 'down', 'left', 'right'],     // cross
+  ['up', 'down', 'left', 'right'], // cross
 ];
 
 // Find the base shape + rotation offset that satisfies `needed` directions.
@@ -164,7 +168,8 @@ function windingPath(
 
     for (const d of shuffle(DIRS as Direction[])) {
       const [dx, dy] = DXDY[d];
-      const nx = curr.x + dx, ny = curr.y + dy;
+      const nx = curr.x + dx,
+        ny = curr.y + dy;
       const key = `${nx},${ny}`;
 
       if (nx < 1 || nx >= cols - 1 || ny < 1 || ny >= rows - 1) continue;
@@ -176,7 +181,11 @@ function windingPath(
         let adj = 0;
         for (const d2 of DIRS) {
           const [dx2, dy2] = DXDY[d2];
-          if (visited.has(`${nx + dx2},${ny + dy2}`) && `${nx + dx2},${ny + dy2}` !== `${curr.x},${curr.y}`) adj++;
+          if (
+            visited.has(`${nx + dx2},${ny + dy2}`) &&
+            `${nx + dx2},${ny + dy2}` !== `${curr.x},${curr.y}`
+          )
+            adj++;
         }
         if (adj > 1) continue;
       }
@@ -208,7 +217,8 @@ function deadEndBranch(
     let moved = false;
     for (const d of shuffle(DIRS as Direction[])) {
       const [dx, dy] = DXDY[d];
-      const nx = curr.x + dx, ny = curr.y + dy;
+      const nx = curr.x + dx,
+        ny = curr.y + dy;
       const key = `${nx},${ny}`;
       if (nx < 1 || nx >= cols - 1 || ny < 1 || ny >= rows - 1) continue;
       if (blocked.has(key) || visited.has(key)) continue;
@@ -235,12 +245,7 @@ function addConn(map: ConnMap, x: number, y: number, d: Direction) {
 // ─── Room-style interior wall cluster ────────────────────────────────────
 // Places a small L-shape or line of walls that forms a "room wall" rather
 // than a single isolated block. This creates corridors and enclosed spaces.
-function placeRoomWalls(
-  cols: number,
-  rows: number,
-  occupied: Set<string>,
-  count: number
-): Tile[] {
+function placeRoomWalls(cols: number, rows: number, occupied: Set<string>, count: number): Tile[] {
   const added: Tile[] = [];
   const attempts = count * 12;
 
@@ -253,25 +258,38 @@ function placeRoomWalls(
     const shape = rng(0, 3);
     const candidates: Position[] = [{ x, y }];
 
-    if (shape === 0) {                   // horizontal pair
+    if (shape === 0) {
+      // horizontal pair
       candidates.push({ x: x + 1, y });
-    } else if (shape === 1) {            // vertical pair
+    } else if (shape === 1) {
+      // vertical pair
       candidates.push({ x, y: y + 1 });
-    } else if (shape === 2) {            // horizontal triple
+    } else if (shape === 2) {
+      // horizontal triple
       candidates.push({ x: x + 1, y }, { x: x + 2, y });
-    } else {                            // L-shape
+    } else {
+      // L-shape
       candidates.push({ x: x + 1, y }, { x: x + 1, y: y + 1 });
     }
 
     // Only place if ALL cells in cluster are free and inside grid
     const allFree = candidates.every(
-      (p) => p.x >= 1 && p.x < cols - 1 && p.y >= 1 && p.y < rows - 1 && !occupied.has(`${p.x},${p.y}`)
+      (p) =>
+        p.x >= 1 && p.x < cols - 1 && p.y >= 1 && p.y < rows - 1 && !occupied.has(`${p.x},${p.y}`)
     );
     if (!allFree) continue;
 
     for (const p of candidates) {
       occupied.add(`${p.x},${p.y}`);
-      added.push({ id: `iwall-${p.x}-${p.y}`, type: 'wall', x: p.x, y: p.y, connections: [], isGoalNode: false, canRotate: false });
+      added.push({
+        id: `iwall-${p.x}-${p.y}`,
+        type: 'wall',
+        x: p.x,
+        y: p.y,
+        connections: [],
+        isGoalNode: false,
+        canRotate: false,
+      });
     }
   }
 
@@ -302,8 +320,8 @@ function buildTilesFromSolution(
     const [px, py] = key.split(',').map(Number);
 
     const needed: Direction[] = [];
-    for (const d of (mainConnMap.get(key) ?? new Set())) needed.push(d);
-    for (const d of (branchConnMap.get(key) ?? new Set())) {
+    for (const d of mainConnMap.get(key) ?? new Set()) needed.push(d);
+    for (const d of branchConnMap.get(key) ?? new Set()) {
       if (!needed.includes(d)) needed.push(d);
     }
 
@@ -315,7 +333,15 @@ function buildTilesFromSolution(
 
     if (isLocked) {
       // Locked tile: placed in solved orientation, cannot rotate — free hint for player
-      tiles.push({ id: `path-${px}-${py}`, type: 'path', x: px, y: py, connections: solvedConns, isGoalNode: false, canRotate: false });
+      tiles.push({
+        id: `path-${px}-${py}`,
+        type: 'path',
+        x: px,
+        y: py,
+        connections: solvedConns,
+        isGoalNode: false,
+        canRotate: false,
+      });
       return;
     }
 
@@ -328,7 +354,15 @@ function buildTilesFromSolution(
       solution.push({ x: px, y: py, rotations: unscramble });
     }
 
-    tiles.push({ id: `path-${px}-${py}`, type: 'path', x: px, y: py, connections: scrambledConns, isGoalNode: false, canRotate: true });
+    tiles.push({
+      id: `path-${px}-${py}`,
+      type: 'path',
+      x: px,
+      y: py,
+      connections: scrambledConns,
+      isGoalNode: false,
+      canRotate: true,
+    });
   });
 
   return { tiles, solution };
@@ -340,7 +374,8 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
   const params = DIFF_PARAMS[difficulty];
 
   const dirConfig = opts.compressionDirection
-    ? (DIR_CONFIGS.find((d) => d.dir === opts.compressionDirection) ?? DIR_CONFIGS[DIR_CONFIGS.length - 1])
+    ? (DIR_CONFIGS.find((d) => d.dir === opts.compressionDirection) ??
+      DIR_CONFIGS[DIR_CONFIGS.length - 1])
     : DIR_CONFIGS[rng(0, DIR_CONFIGS.length - 1)];
 
   const interiorWallCount = opts.interiorWalls ?? rng(params.wallsMin, params.wallsMax);
@@ -352,19 +387,36 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
     const borderSet = new Set<string>();
     for (let x = 0; x < gridCols; x++) {
       for (const y of [0, gridRows - 1]) {
-        wallTiles.push({ id: `wall-${x}-${y}`, type: 'wall', x, y, connections: [], isGoalNode: false, canRotate: false });
+        wallTiles.push({
+          id: `wall-${x}-${y}`,
+          type: 'wall',
+          x,
+          y,
+          connections: [],
+          isGoalNode: false,
+          canRotate: false,
+        });
         borderSet.add(`${x},${y}`);
       }
     }
     for (let y = 1; y < gridRows - 1; y++) {
       for (const x of [0, gridCols - 1]) {
-        wallTiles.push({ id: `wall-${x}-${y}`, type: 'wall', x, y, connections: [], isGoalNode: false, canRotate: false });
+        wallTiles.push({
+          id: `wall-${x}-${y}`,
+          type: 'wall',
+          x,
+          y,
+          connections: [],
+          isGoalNode: false,
+          canRotate: false,
+        });
         borderSet.add(`${x},${y}`);
       }
     }
 
     // ── 2. Node placement in safe zone ──────────────────────────────────
-    const zx = dirConfig.zoneX, zy = dirConfig.zoneY;
+    const zx = dirConfig.zoneX,
+      zy = dirConfig.zoneY;
     const nodeMinX = Math.max(1, Math.round(zx[0] * (gridCols - 2)));
     const nodeMaxX = Math.min(gridCols - 2, Math.round(zx[1] * (gridCols - 2)));
     const nodeMinY = Math.max(1, Math.round(zy[0] * (gridRows - 2)));
@@ -372,8 +424,7 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
 
     const candidates: Position[] = [];
     for (let y = nodeMinY; y <= nodeMaxY; y++)
-      for (let x = nodeMinX; x <= nodeMaxX; x++)
-        candidates.push({ x, y });
+      for (let x = nodeMinX; x <= nodeMaxX; x++) candidates.push({ x, y });
 
     const minDist = Math.max(3, Math.floor(Math.min(gridCols, gridRows) / 3));
     const goalPositions: Position[] = [];
@@ -400,11 +451,16 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
       for (const k of mainConnMap.keys()) pathBlocked.delete(k);
 
       const path = windingPath(from, to, gridCols, gridRows, pathBlocked, gridCols * gridRows);
-      if (!path || path.length < 2) { pathFailed = true; break; }
+      if (!path || path.length < 2) {
+        pathFailed = true;
+        break;
+      }
 
       for (let j = 0; j < path.length - 1; j++) {
-        const a = path[j], b = path[j + 1];
-        const dx = b.x - a.x, dy = b.y - a.y;
+        const a = path[j],
+          b = path[j + 1];
+        const dx = b.x - a.x,
+          dy = b.y - a.y;
         const dAB: Direction = dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up';
         const dBA: Direction = OPP[dAB];
         addConn(mainConnMap, a.x, a.y, dAB);
@@ -431,21 +487,31 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
     for (const key of pathCells) {
       if (branchesAdded >= branchCount) break;
       const [bx, by] = key.split(',').map(Number);
-      const branch = deadEndBranch({ x: bx, y: by }, gridCols, gridRows, new Set(occupied), rng(2, 3));
+      const branch = deadEndBranch(
+        { x: bx, y: by },
+        gridCols,
+        gridRows,
+        new Set(occupied),
+        rng(2, 3)
+      );
       if (branch.length === 0) continue;
 
       // Connect branch root to its first cell
       const root = { x: bx, y: by };
       const first = branch[0];
-      const dx = first.x - root.x, dy = first.y - root.y;
+      const dx = first.x - root.x,
+        dy = first.y - root.y;
       const dOut: Direction = dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up';
       addConn(branchConnMap, root.x, root.y, dOut);
       addConn(branchConnMap, first.x, first.y, OPP[dOut]);
 
       for (let j = 0; j < branch.length - 1; j++) {
-        const a = branch[j], b = branch[j + 1];
-        const dxb = b.x - a.x, dyb = b.y - a.y;
-        const dAB: Direction = dxb === 1 ? 'right' : dxb === -1 ? 'left' : dyb === 1 ? 'down' : 'up';
+        const a = branch[j],
+          b = branch[j + 1];
+        const dxb = b.x - a.x,
+          dyb = b.y - a.y;
+        const dAB: Direction =
+          dxb === 1 ? 'right' : dxb === -1 ? 'left' : dyb === 1 ? 'down' : 'up';
         addConn(branchConnMap, a.x, a.y, dAB);
         addConn(branchConnMap, b.x, b.y, OPP[dAB]);
         occupied.add(`${b.x},${b.y}`);
@@ -466,7 +532,12 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
     }));
 
     // ── 7. Build scrambled path tiles with embedded solution ──────────────
-    const { tiles: pathTiles, solution } = buildTilesFromSolution(mainConnMap, branchConnMap, goalSet, opts.lockedFraction ?? 0);
+    const { tiles: pathTiles, solution } = buildTilesFromSolution(
+      mainConnMap,
+      branchConnMap,
+      goalSet,
+      opts.lockedFraction ?? 0
+    );
 
     const allTiles = [...wallTiles, ...nodeTiles, ...pathTiles];
 
@@ -505,12 +576,23 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
 
 // ─── Name generator ────────────────────────────────────────────────────────
 const ADJECTIVES: Record<string, string[]> = {
-  easy:   ['Open', 'Gentle', 'Flowing', 'Clear', 'Smooth', 'Soft', 'Wide', 'Loose'],
+  easy: ['Open', 'Gentle', 'Flowing', 'Clear', 'Smooth', 'Soft', 'Wide', 'Loose'],
   medium: ['Twisted', 'Coiled', 'Bent', 'Winding', 'Fractured', 'Tangled', 'Warped'],
-  hard:   ['Brutal', 'Dense', 'Locked', 'Crushing', 'Vicious', 'Tight', 'Savage'],
+  hard: ['Brutal', 'Dense', 'Locked', 'Crushing', 'Vicious', 'Tight', 'Savage'],
   expert: ['Merciless', 'Extreme', 'Critical', 'Lethal', 'Infernal', 'Absolute'],
 };
-const NOUNS = ['Circuit', 'Conduit', 'Nexus', 'Corridor', 'Channel', 'Lattice', 'Mesh', 'Duct', 'Passage', 'Vein'];
+const NOUNS = [
+  'Circuit',
+  'Conduit',
+  'Nexus',
+  'Corridor',
+  'Channel',
+  'Lattice',
+  'Mesh',
+  'Duct',
+  'Passage',
+  'Vein',
+];
 
 function generateName(difficulty: string): string {
   const adjs = ADJECTIVES[difficulty] ?? ADJECTIVES.medium;

@@ -7,8 +7,14 @@
 // Modes are organized into display groups for the mode-selector menu.
 // Each group has a label and an ordered list of mode IDs.
 // Modes not listed in any group fall into an implicit "Other" bucket.
+//
+// ENABLING/DISABLING MODES
+// ─────────────────────────
+// Edit src/config/features.ts to control which modes appear.
+// The ENABLED_MODE_IDS array determines what's available.
 
 import { GameModeConfig } from './types';
+import { ENABLED_MODE_IDS } from '@/config/features';
 import { ClassicMode } from './classic/index';
 import { ZenMode } from './zen/index';
 import { BlitzMode } from './blitz/index';
@@ -24,7 +30,8 @@ import { VoltageMode } from './voltage/index';
 import { FuseMode } from './fuse/index';
 import { GemBlastMode } from './gemBlast/index';
 
-export const GAME_MODES: GameModeConfig[] = [
+// All available modes (used for getModeById fallback)
+const ALL_MODES: GameModeConfig[] = [
   ClassicMode,
   ZenMode,
   BlitzMode,
@@ -40,6 +47,11 @@ export const GAME_MODES: GameModeConfig[] = [
   FuseMode,
   GemBlastMode,
 ];
+
+// Filtered modes based on config — this is what the UI uses
+export const GAME_MODES: GameModeConfig[] = ALL_MODES.filter((mode) =>
+  ENABLED_MODE_IDS.includes(mode.id)
+);
 
 // ── Mode Groups ───────────────────────────────────────────────────────────────
 // Controls how modes are sectioned in the mode-selector modal.
@@ -89,7 +101,11 @@ export const MODE_GROUPS: ModeGroup[] = [
 export const DEFAULT_MODE_ID = 'classic';
 
 export function getModeById(id: string): GameModeConfig {
-  return GAME_MODES.find((m) => m.id === id) ?? ClassicMode;
+  // First try to find in enabled modes
+  const enabled = GAME_MODES.find((m) => m.id === id);
+  if (enabled) return enabled;
+  // Fallback to all modes (for disabled modes that might still be referenced)
+  return ALL_MODES.find((m) => m.id === id) ?? ClassicMode;
 }
 
 export {

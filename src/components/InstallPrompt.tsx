@@ -17,7 +17,7 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (globalThis.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
     }
@@ -34,12 +34,12 @@ export default function InstallPrompt() {
       setDeferredPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    globalThis.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    globalThis.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      globalThis.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      globalThis.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 

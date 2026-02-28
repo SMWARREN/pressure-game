@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react';
 import { getAchievementEngine } from '@/game/achievements/engine';
 
 interface AchievementToastProps {
-  achievementId: string;
-  onClose: () => void;
+  readonly achievementId: string;
+  readonly onClose: () => void;
 }
 
 function AchievementToast({ achievementId, onClose }: AchievementToastProps) {

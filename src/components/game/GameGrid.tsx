@@ -81,25 +81,47 @@ function GameGridComponent({
         const tile = tileMap.get(`${x},${y}`);
 
         // Danger check respects compression direction — only flag tiles on the compressing side(s)
-        const distTop    = y;
+        const distTop = y;
         const distBottom = gridRows - 1 - y;
-        const distLeft   = x;
-        const distRight  = gridCols - 1 - x;
+        const distLeft = x;
+        const distRight = gridCols - 1 - x;
         const dist = Math.min(distTop, distBottom, distLeft, distRight);
 
         let dirDist: number;
         switch (compressionDirection) {
-          case 'top':         dirDist = distTop; break;
-          case 'bottom':      dirDist = distBottom; break;
-          case 'left':        dirDist = distLeft; break;
-          case 'right':       dirDist = distRight; break;
-          case 'top-bottom':  dirDist = Math.min(distTop, distBottom); break;
-          case 'left-right':  dirDist = Math.min(distLeft, distRight); break;
-          case 'top-left':    dirDist = Math.min(distTop, distLeft); break;
-          case 'top-right':   dirDist = Math.min(distTop, distRight); break;
-          case 'bottom-left': dirDist = Math.min(distBottom, distLeft); break;
-          case 'bottom-right':dirDist = Math.min(distBottom, distRight); break;
-          default:            dirDist = dist; break; // 'all' or unset
+          case 'top':
+            dirDist = distTop;
+            break;
+          case 'bottom':
+            dirDist = distBottom;
+            break;
+          case 'left':
+            dirDist = distLeft;
+            break;
+          case 'right':
+            dirDist = distRight;
+            break;
+          case 'top-bottom':
+            dirDist = Math.min(distTop, distBottom);
+            break;
+          case 'left-right':
+            dirDist = Math.min(distLeft, distRight);
+            break;
+          case 'top-left':
+            dirDist = Math.min(distTop, distLeft);
+            break;
+          case 'top-right':
+            dirDist = Math.min(distTop, distRight);
+            break;
+          case 'bottom-left':
+            dirDist = Math.min(distBottom, distLeft);
+            break;
+          case 'bottom-right':
+            dirDist = Math.min(distBottom, distRight);
+            break;
+          default:
+            dirDist = dist;
+            break; // 'all' or unset
         }
 
         const inDanger =
@@ -140,7 +162,7 @@ function GameGridComponent({
           const isHint =
             (hintPos?.x === x && hintPos?.y === y) || (hintTiles?.has(`${x},${y}`) ?? false);
 
-          const isRejected = !!(rejectedPos && rejectedPos.x === x && rejectedPos.y === y);
+          const isRejected = Boolean(rejectedPos && rejectedPos.x === x && rejectedPos.y === y);
 
           return (
             <GameTile

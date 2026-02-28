@@ -321,19 +321,19 @@ function TimeleftDisplay({ timeLeft, timeLimit }: { timeLeft: number; timeLimit?
 }
 
 interface GameStatsProps {
-  moves: number;
-  maxMoves: number;
-  compressionPercent: number;
-  compressionActive: boolean;
-  countdownSeconds: number;
-  currentModeId: string;
-  score?: number;
-  targetScore?: number;
-  timeLeft?: number;
-  timeLimit?: number;
-  statsDisplayOverride?: StatComponentConfig[];
-  isPaused?: boolean;
-  isEditor?: boolean;
+  readonly moves: number;
+  readonly maxMoves: number;
+  readonly compressionPercent: number;
+  readonly compressionActive: boolean;
+  readonly countdownSeconds: number;
+  readonly currentModeId: string;
+  readonly score?: number;
+  readonly targetScore?: number;
+  readonly timeLeft?: number;
+  readonly timeLimit?: number;
+  readonly statsDisplayOverride?: StatComponentConfig[];
+  readonly isPaused?: boolean;
+  readonly isEditor?: boolean;
 }
 
 /**

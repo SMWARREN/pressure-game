@@ -87,7 +87,7 @@ const FALLBACK_STEPS: TutorialStep[] = [
 ═══════════════════════════════════════════════════════════════════════════ */
 
 interface HowToPlayModalProps {
-  onClose: () => void;
+  readonly onClose: () => void;
 }
 
 export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {

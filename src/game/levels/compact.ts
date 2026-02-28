@@ -58,18 +58,18 @@ export interface CompactLevel {
 
 // ─── Connection code → Direction[] ─────────────────────────────────────────
 const CODE_TO_DIRS: Record<string, Direction[]> = {
-  ud:  ['up', 'down'],
-  lr:  ['left', 'right'],
-  ur:  ['up', 'right'],
-  rd:  ['right', 'down'],
-  dl:  ['down', 'left'],
-  lu:  ['left', 'up'],
+  ud: ['up', 'down'],
+  lr: ['left', 'right'],
+  ur: ['up', 'right'],
+  rd: ['right', 'down'],
+  dl: ['down', 'left'],
+  lu: ['left', 'up'],
   urd: ['up', 'right', 'down'],
   rdu: ['right', 'down', 'up'],
   dlu: ['down', 'left', 'up'],
   lur: ['left', 'up', 'right'],
   rdl: ['right', 'down', 'left'],
-  x:   ['up', 'down', 'left', 'right'],
+  x: ['up', 'down', 'left', 'right'],
 };
 
 function parseDirs(code: string): Direction[] {
@@ -80,9 +80,9 @@ function parseDirs(code: string): Direction[] {
 
 // ─── Direction[] → code (for dehydration) ──────────────────────────────────
 function dirsToCode(dirs: Direction[]): string {
-  const sorted = [...dirs].sort().join('');
+  const sorted = [...dirs].sort((a, b) => a.localeCompare(b)).join('');
   for (const [code, d] of Object.entries(CODE_TO_DIRS)) {
-    if ([...d].sort().join('') === sorted) return code;
+    if ([...d].sort((a, b) => a.localeCompare(b)).join('') === sorted) return code;
   }
   return dirs.join('');
 }

@@ -1,17 +1,7 @@
 // PRESSURE - Fuse Mode Tutorial Demos
 
 import { TutorialDemoType } from '../types';
-
-const tileBase: React.CSSProperties = {
-  width: 52,
-  height: 52,
-  borderRadius: 10,
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-};
+import { tileBase } from '../shared/demoUtils';
 
 export function renderFuseDemo(type: TutorialDemoType, modeColor: string): React.ReactNode | null {
   if (type === 'fuse-plant') {

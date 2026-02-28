@@ -5,9 +5,9 @@
 import type { Level, Tile, Position, Direction } from '../game/types';
 import { createCompressionSystem } from '../game/engine/compression';
 import { generateLevel } from '../game/levels';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // ESM-compatible __dirname
 const __filename = fileURLToPath(import.meta.url);

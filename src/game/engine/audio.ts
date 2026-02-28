@@ -16,10 +16,10 @@ export class AudioSystem {
    * Get or create the AudioContext lazily
    */
   private getAudioContext(): AudioContext | null {
-    if (typeof window === 'undefined') return null;
+    if (typeof globalThis === 'undefined') return null;
     try {
       if (!this.audioCtx || this.audioCtx.state === 'closed') {
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        this.audioCtx = new (globalThis.AudioContext || (globalThis as any).webkitAudioContext)();
       }
       return this.audioCtx;
     } catch {

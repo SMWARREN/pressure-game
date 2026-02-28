@@ -8,227 +8,20 @@
 import { useGameStore } from '../game/store';
 import { GAME_MODES, MODE_GROUPS } from '../game/modes';
 import type { GameModeConfig } from '../game/types';
+import { Toggle } from './modals/Toggle';
+import { ModeCard } from './modals/ModeCard';
+import { GroupHeader } from './modals/GroupHeader';
 
 interface ModeSelectorModalProps {
-  visible: boolean;
-  onClose: () => void;
-}
-
-function Badge({ label, color }: { label: string; color: string }) {
-  return (
-    <span
-      style={{
-        fontSize: 9,
-        fontWeight: 800,
-        letterSpacing: '0.05em',
-        color,
-        border: `1px solid ${color}40`,
-        borderRadius: 4,
-        padding: '2px 5px',
-        background: `${color}10`,
-      }}
-    >
-      {label}
-    </span>
-  );
-}
-
-function Toggle({
-  value,
-  onChange,
-  color,
-}: {
-  value: boolean;
-  onChange: (v: boolean) => void;
-  color: string;
-}) {
-  return (
-    <button
-      onClick={() => onChange(!value)}
-      aria-checked={value}
-      role="switch"
-      style={{
-        width: 40,
-        height: 22,
-        borderRadius: 11,
-        border: 'none',
-        background: value ? color : '#1a1a2e',
-        cursor: 'pointer',
-        position: 'relative',
-        transition: 'background 0.2s',
-        boxShadow: value ? `0 0 8px ${color}60` : 'none',
-        minHeight: 'unset',
-        minWidth: 'unset',
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          top: 3,
-          left: value ? 21 : 3,
-          width: 16,
-          height: 16,
-          borderRadius: '50%',
-          background: 'white',
-          transition: 'left 0.2s',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-        }}
-      />
-    </button>
-  );
-}
-
-// ── Single mode card ──────────────────────────────────────────────────────────
-
-function ModeCard({
-  mode,
-  active,
-  isNew,
-  onSelect,
-}: {
-  mode: GameModeConfig;
-  active: boolean;
-  isNew: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      onClick={onSelect}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '14px 16px',
-        borderRadius: 14,
-        border: `1.5px solid ${active ? mode.color + '70' : '#12122a'}`,
-        background: active ? `${mode.color}14` : '#07070e',
-        cursor: 'pointer',
-        textAlign: 'left',
-        transition: 'all 0.2s',
-        width: '100%',
-        position: 'relative',
-        boxShadow: active ? `0 0 20px ${mode.color}12` : 'none',
-      }}
-    >
-      {/* "NEW" badge for unseen modes */}
-      {isNew && (
-        <div
-          style={{
-            position: 'absolute',
-            top: -6,
-            right: 12,
-            fontSize: 8,
-            fontWeight: 900,
-            letterSpacing: '0.1em',
-            color: '#fff',
-            background: '#6366f1',
-            padding: '2px 6px',
-            borderRadius: 4,
-          }}
-        >
-          NEW
-        </div>
-      )}
-
-      <span
-        style={{
-          fontSize: 26,
-          filter: active ? `drop-shadow(0 0 10px ${mode.color}90)` : 'grayscale(0.6) opacity(0.5)',
-          transition: 'filter 0.2s',
-          flexShrink: 0,
-        }}
-      >
-        {mode.icon}
-      </span>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 14,
-            fontWeight: 800,
-            color: active ? mode.color : '#2a2a3e',
-            transition: 'color 0.2s',
-            marginBottom: 3,
-          }}
-        >
-          {mode.name}
-        </div>
-        <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>{mode.description}</div>
-      </div>
-
-      {/* Feature badges */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 3,
-          alignItems: 'flex-end',
-          flexShrink: 0,
-        }}
-      >
-        {mode.supportsUndo === false && <Badge label="No Undo" color="#ef4444" />}
-        {mode.wallCompression === 'never' && <Badge label="No Walls" color="#34d399" />}
-        {mode.wallCompression === 'always' && <Badge label="Walls On" color="#f97316" />}
-        {mode.useMoveLimit === false && <Badge label="Unlimited" color="#60a5fa" />}
-        {active && <Badge label="Active" color={mode.color} />}
-      </div>
-    </button>
-  );
-}
-
-// ── Group section header ──────────────────────────────────────────────────────
-
-function GroupHeader({
-  label,
-  tagline,
-  accentColor,
-}: {
-  label: string;
-  tagline?: string;
-  accentColor: string;
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 8,
-        marginTop: 4,
-      }}
-    >
-      {/* Accent bar */}
-      <div
-        style={{
-          width: 3,
-          height: 28,
-          borderRadius: 2,
-          background: accentColor,
-          flexShrink: 0,
-          boxShadow: `0 0 6px ${accentColor}80`,
-        }}
-      />
-      <div>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 900,
-            letterSpacing: '0.08em',
-            color: accentColor,
-            textTransform: 'uppercase',
-          }}
-        >
-          {label}
-        </div>
-        {tagline && <div style={{ fontSize: 10, color: '#2a2a40', marginTop: 1 }}>{tagline}</div>}
-      </div>
-    </div>
-  );
+  readonly visible: boolean;
+  readonly onClose: () => void;
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
+const PRESSURE_GROUP_LABEL = 'Pressure Series';
 const ARCADE_GROUP_LABEL = 'Arcade';
+const PRESSURE_MODE_IDS = new Set(['classic', 'blitz', 'zen']);
 const ARCADE_MODE_IDS = new Set(['candy', 'shoppingSpree', 'gemBlast']);
 
 export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModalProps) {
@@ -238,6 +31,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
   const setCompressionOverride = useGameStore((s) => s.setCompressionOverride);
   const seenTutorials = useGameStore((s) => s.seenTutorials);
   const openArcadeHub = useGameStore((s) => s.openArcadeHub);
+  const openPressureHub = useGameStore((s) => s.openPressureHub);
 
   const activeMode = GAME_MODES.find((m) => m.id === currentModeId) ?? GAME_MODES[0];
 
@@ -362,6 +156,78 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
               .filter((m): m is GameModeConfig => m !== undefined);
 
             if (modesInGroup.length === 0) return null;
+
+            // Pressure Series group: single hub-entry card
+            if (group.label === PRESSURE_GROUP_LABEL) {
+              const pressureActive = PRESSURE_MODE_IDS.has(currentModeId);
+              const hasNew = modesInGroup.some(
+                (m) => !seenTutorials.includes(m.id) && m.id !== currentModeId
+              );
+              return (
+                <div key={group.label}>
+                  <GroupHeader
+                    label={group.label}
+                    tagline={group.tagline}
+                    accentColor={groupAccent(group.modeIds)}
+                  />
+                  <button
+                    onClick={() => {
+                      openPressureHub();
+                      onClose();
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '14px 16px',
+                      borderRadius: 14,
+                      border: `1.5px solid ${pressureActive ? '#a78bfa30' : '#12122a'}`,
+                      background: pressureActive ? '#a78bfa08' : '#07070e',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {hasNew && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: -6,
+                          right: 12,
+                          fontSize: 8,
+                          fontWeight: 900,
+                          letterSpacing: '0.1em',
+                          color: '#fff',
+                          background: '#6366f1',
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                        }}
+                      >
+                        NEW
+                      </div>
+                    )}
+                    <span style={{ fontSize: 26, flexShrink: 0 }}>⚡</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 800,
+                          color: pressureActive ? '#a78bfa' : '#2a2a3e',
+                          marginBottom: 3,
+                        }}
+                      >
+                        Pressure Hub
+                      </div>
+                      <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>
+                        Classic · Blitz · Zen
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 16, color: '#2a2a3e' }}>›</span>
+                  </button>
+                </div>
+              );
+            }
 
             // Arcade group: single hub-entry card
             if (group.label === ARCADE_GROUP_LABEL) {

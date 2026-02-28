@@ -125,7 +125,7 @@ export default function ModeSelector() {
   );
 }
 
-function Badge({ label, color }: { label: string; color: string }) {
+function Badge({ label, color }: { readonly label: string; readonly color: string }) {
   return (
     <span
       style={{
@@ -149,9 +149,9 @@ function Toggle({
   onChange,
   color,
 }: {
-  value: boolean;
-  onChange: (v: boolean) => void;
-  color: string;
+  readonly value: boolean;
+  readonly onChange: (v: boolean) => void;
+  readonly color: string;
 }) {
   return (
     <button

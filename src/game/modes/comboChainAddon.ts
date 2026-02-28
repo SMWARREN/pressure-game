@@ -17,8 +17,8 @@ export function updateCombo(prev: ComboState, groupSize: number): ComboState {
   }
 
   const newStreak = prev.streak + 1;
-  // multiplier = min(1 + streak * 0.5, 3.0)
-  const multiplier = Math.min(1 + newStreak * 0.5, 3.0);
+  // multiplier = min(1 + streak * 0.5, 3)
+  const multiplier = Math.min(1 + newStreak * 0.5, 3);
 
   return { streak: newStreak, multiplier };
 }

@@ -46,8 +46,10 @@ const categoryLabels: Record<AchievementCategory, string> = {
 /* ── achievement card component ───────────────────────────────────────────── */
 
 interface AchievementCardProps {
-  achievement: Achievement;
-  progress: { current: number; target: number; earned: boolean; earnedAt?: number } | undefined;
+  readonly achievement: Achievement;
+  readonly progress:
+    | { current: number; target: number; earned: boolean; earnedAt?: number }
+    | undefined;
 }
 
 function AchievementCard({ achievement, progress }: AchievementCardProps) {

@@ -95,7 +95,7 @@ function DemoVisual({
    TUTORIAL SCREEN
 ═══════════════════════════════════════════════════════════════════════════ */
 
-export default function TutorialScreen({ onComplete }: { onComplete: () => void }) {
+export default function TutorialScreen({ onComplete }: { readonly onComplete: () => void }) {
   const currentModeId = useGameStore((s) => s.currentModeId);
   const mode = getModeById(currentModeId);
   const steps: TutorialStep[] = mode.tutorialSteps ?? FALLBACK_STEPS;

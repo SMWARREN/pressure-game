@@ -18,8 +18,8 @@ function buildSharedLevels(): Level[] {
     // ── World 4 extra: hand-crafted showcase levels ───────────────────────
     // These were zen-only before; now shared. compressionDelay is irrelevant
     // for Zen (wallCompression:'never'), and gives Classic/Blitz real pressure.
-    { ...STREAM_EDITED_LEVEL,  compressionDelay: 6000, world: 4 },
-    { ...RIPPLE_EDITED_LEVEL,  compressionDelay: 6000, world: 4 },
+    { ...STREAM_EDITED_LEVEL, compressionDelay: 6000, world: 4 },
+    { ...RIPPLE_EDITED_LEVEL, compressionDelay: 6000, world: 4 },
   ];
 
   // ── World 4: Sideswipe — 6×8, left pressure, intro to directional ────

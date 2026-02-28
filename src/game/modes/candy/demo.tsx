@@ -1,6 +1,7 @@
 // PRESSURE - Candy Mode Tutorial Demos
 
 import { TutorialDemoType } from '../types';
+import { ArcadeTile } from '../shared/arcadeTile';
 
 const CANDY_COLORS: Record<string, string> = {
   '🍎': '#ef4444',
@@ -9,40 +10,6 @@ const CANDY_COLORS: Record<string, string> = {
   '🫐': '#6366f1',
   '🍓': '#ec4899',
 };
-
-function CandyTile({
-  sym,
-  highlight = false,
-  small = false,
-}: {
-  sym: string;
-  highlight?: boolean;
-  small?: boolean;
-}) {
-  const col = CANDY_COLORS[sym] ?? '#6366f1';
-  const size = small ? 34 : 42;
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 7,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: small ? '1rem' : '1.2rem',
-        background: highlight
-          ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)`
-          : 'rgba(10,10,20,0.6)',
-        border: `2px solid ${highlight ? col : col + '30'}`,
-        boxShadow: highlight ? `0 0 12px ${col}70` : 'none',
-        opacity: highlight ? 1 : 0.35,
-      }}
-    >
-      {sym}
-    </div>
-  );
-}
 
 export function renderCandyDemo(
   type: TutorialDemoType,
@@ -60,7 +27,7 @@ export function renderCandyDemo(
         {grid.map((row, r) => (
           <div key={r} style={{ display: 'flex', gap: 3 }}>
             {row.map((sym, c) => (
-              <CandyTile key={c} sym={sym} highlight={inGroup(r, c)} />
+              <ArcadeTile colors={CANDY_COLORS} key={c} sym={sym} highlight={inGroup(r, c)} />
             ))}
           </div>
         ))}
@@ -84,8 +51,8 @@ export function renderCandyDemo(
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
           <div style={{ display: 'flex', gap: 3 }}>
-            <CandyTile sym="🍎" highlight />
-            <CandyTile sym="🍎" highlight />
+            <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight />
+            <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight />
           </div>
           <div style={{ fontSize: 11, color: '#ef4444', fontWeight: 800 }}>20 pts</div>
           <div style={{ fontSize: 9, color: '#3a3a55' }}>2 tiles</div>
@@ -94,13 +61,13 @@ export function renderCandyDemo(
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ display: 'flex', gap: 3 }}>
-              <CandyTile sym="🍎" highlight />
-              <CandyTile sym="🍎" highlight />
-              <CandyTile sym="🍎" highlight />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight />
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
-              <CandyTile sym="🍎" highlight />
-              <CandyTile sym="🍎" highlight />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight />
             </div>
           </div>
           <div style={{ fontSize: 11, color: '#ef4444', fontWeight: 800 }}>125 pts</div>
@@ -116,16 +83,16 @@ export function renderCandyDemo(
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ display: 'flex', gap: 3 }}>
-              <CandyTile sym="🍊" highlight small />
-              <CandyTile sym="🍋" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍊" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍋" highlight small />
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
-              <CandyTile sym="🍎" highlight={false} small />
-              <CandyTile sym="🍎" highlight={false} small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight={false} small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍎" highlight={false} small />
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
-              <CandyTile sym="🫐" highlight small />
-              <CandyTile sym="🍓" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🫐" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍓" highlight small />
             </div>
           </div>
           <div style={{ fontSize: 9, color: '#3a3a55' }}>BEFORE</div>
@@ -154,12 +121,12 @@ export function renderCandyDemo(
               />
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
-              <CandyTile sym="🍊" highlight small />
-              <CandyTile sym="🍋" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍊" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍋" highlight small />
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
-              <CandyTile sym="🫐" highlight small />
-              <CandyTile sym="🍓" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🫐" highlight small />
+              <ArcadeTile colors={CANDY_COLORS} sym="🍓" highlight small />
             </div>
           </div>
           <div style={{ fontSize: 9, color: '#a5b4fc' }}>NEW TILES</div>
@@ -202,7 +169,7 @@ export function renderCandyDemo(
                     🧊
                   </div>
                 ) : (
-                  <CandyTile key={c} sym={sym} highlight={inGroup(r, c)} />
+                  <ArcadeTile colors={CANDY_COLORS} key={c} sym={sym} highlight={inGroup(r, c)} />
                 )
               )}
             </div>
@@ -225,12 +192,12 @@ export function renderCandyDemo(
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{ display: 'flex', gap: 3 }}>
               {['🍎', '🍎', '🍎'].map((sym, i) => (
-                <CandyTile key={i} sym={sym} highlight />
+                <ArcadeTile colors={CANDY_COLORS} key={i} sym={sym} highlight />
               ))}
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
               {['🍎', '🍎'].map((sym, i) => (
-                <CandyTile key={i} sym={sym} highlight />
+                <ArcadeTile colors={CANDY_COLORS} key={i} sym={sym} highlight />
               ))}
             </div>
             <div style={{ fontSize: 9, color: '#ef4444' }}>5+ COMBO</div>

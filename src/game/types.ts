@@ -192,12 +192,16 @@ export interface GameState {
   isPaused: boolean;
   /** Whether the full-screen Arcade Hub picker is open */
   showArcadeHub: boolean;
+  /** Whether the full-screen Pressure Hub picker is open */
+  showPressureHub: boolean;
   /** Currently selected world in the menu — persisted so returning from a level goes back to the same world */
   selectedWorld: number;
   /** Last played level ID per mode — used to highlight the level in the menu */
   lastPlayedLevelId: Record<string, number>;
   /** Editor state object */
   editor: EditorState;
+  /** Featured level from Pressure Hub */
+  featuredLevel: Level | null;
 }
 
 /** Editor state */
@@ -221,6 +225,7 @@ export interface EditorState {
     tiles: Tile[];
     goalNodes: Position[];
     gridSize: number;
+    wasPlaying?: boolean;
   } | null;
 }
 
@@ -252,6 +257,8 @@ export interface GameActions {
   resumeGame: () => void;
   openArcadeHub: () => void;
   closeArcadeHub: () => void;
+  openPressureHub: () => void;
+  closePressureHub: () => void;
   setSelectedWorld: (world: number) => void;
   toggleEditor: () => void;
   setEditorTool: (
@@ -264,6 +271,7 @@ export interface GameActions {
   editorToggleGoalNode: (x: number, y: number) => void;
   exportLevel: () => string;
   editorResizeGrid: (delta: number) => void;
+  setFeaturedLevel: (level: Level | null) => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

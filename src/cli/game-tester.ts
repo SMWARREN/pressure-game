@@ -3,8 +3,8 @@
 // Run with: npm run test:game [options] [level.json]
 
 import type { Level, Tile, Position, Direction, GameState } from '../game/types';
-import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { createCompressionSystem } from '../game/engine/compression';
 
 // ANSI color codes for terminal output

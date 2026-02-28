@@ -45,13 +45,13 @@ export interface WalkthroughConfig {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 interface WalkthroughOverlayProps {
-  steps: WalkthroughStep[];
-  currentStepIndex: number;
-  onAdvance: () => void;
-  onSkip: () => void;
-  targetTile?: { x: number; y: number };
-  boardRef: React.RefObject<HTMLDivElement | null>;
-  gridSize: number;
+  readonly steps: WalkthroughStep[];
+  readonly currentStepIndex: number;
+  readonly onAdvance: () => void;
+  readonly onSkip: () => void;
+  readonly targetTile?: { x: number; y: number };
+  readonly boardRef: React.RefObject<HTMLDivElement | null>;
+  readonly gridSize: number;
 }
 
 export function WalkthroughOverlay({
@@ -133,19 +133,19 @@ export function WalkthroughOverlay({
       }
     } else {
       // Position at center of screen for steps without targetTile (intro steps)
-      x = window.innerWidth / 2;
-      y = window.innerHeight / 2;
+      x = globalThis.innerWidth / 2;
+      y = globalThis.innerHeight / 2;
     }
 
     // Clamp to screen bounds with padding
     const padding = 20;
     x = Math.max(
       tooltipWidth / 2 + padding,
-      Math.min(window.innerWidth - tooltipWidth / 2 - padding, x)
+      Math.min(globalThis.innerWidth - tooltipWidth / 2 - padding, x)
     );
     y = Math.max(
       tooltipHeight / 2 + padding,
-      Math.min(window.innerHeight - tooltipHeight / 2 - padding, y)
+      Math.min(globalThis.innerHeight - tooltipHeight / 2 - padding, y)
     );
 
     setTooltipPos({ x, y });

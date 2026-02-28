@@ -1,10 +1,10 @@
 // LASER RELAY - Level Generator CLI
-// Generates diverse, fun laser relay levels with multiple required moves
+// Generates diverse laser relay levels with multiple required moves
 // Run with: npx tsx src/cli/laser-level-generator.ts
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,9 +36,15 @@ interface Level {
   goalNodes: { x: number; y: number }[];
   maxMoves: number;
   compressionDelay: number;
-  compressionEnabled: boolean;
+  compressionEnabled?: boolean;
+  compressionDirection?: string;
   gridCols?: number;
   gridRows?: number;
+}
+
+interface Compression {
+  delay: number;
+  direction: string;
 }
 
 // ── Mirror Reflection Tables ──────────────────────────────────────────────────
@@ -95,11 +101,9 @@ function traceBeam(
 
     const key = `${x},${y}`;
     const tile = map.get(key);
-
     if (!tile) continue;
 
     const kind = tile.displayData?.kind as string;
-
     if (kind === 'wall' || kind === 'source') break;
 
     beam.add(key);
@@ -143,7 +147,8 @@ function buildLevel(
   maxMoves: number,
   tiles: Tile[],
   gridCols: number,
-  gridRows: number
+  gridRows: number,
+  compression?: Compression
 ): Level {
   return {
     id,
@@ -153,8 +158,9 @@ function buildLevel(
     tiles,
     goalNodes: [],
     maxMoves,
-    compressionDelay: 999999,
-    compressionEnabled: false,
+    compressionDelay: compression?.delay ?? 999999,
+    compressionEnabled: compression !== undefined ? true : undefined,
+    compressionDirection: compression?.direction,
     gridCols,
     gridRows,
   };
@@ -181,7 +187,7 @@ function createTile(
   };
 }
 
-// ── Level Verification with brute force ───────────────────────────────────────
+// ── Level Verification ────────────────────────────────────────────────────────
 function verifyLevel(level: Level): {
   valid: boolean;
   error: string;
@@ -199,7 +205,6 @@ function verifyLevel(level: Level): {
   if (initialResult.hitsTarget)
     return { valid: false, error: 'Already solved', mirrorCount, minMoves: 0 };
 
-  // Brute force: try all 2^mirrorCount combinations
   const totalCombos = Math.pow(2, mirrorCount);
   let minMoves = Infinity;
   let bestSolution: number[] | undefined;
@@ -217,12 +222,10 @@ function verifyLevel(level: Level): {
     });
 
     if (traceBeam(solvedTiles, level.gridSize, level.gridCols, level.gridRows).hitsTarget) {
-      // Count how many mirrors need to be flipped from initial state
       const moves = mirrors.filter((m, i) => {
         const initialRot = m.displayData?.rotation ?? 0;
         return initialRot !== solution[i];
       }).length;
-
       if (moves < minMoves) {
         minMoves = moves;
         bestSolution = solution;
@@ -230,18 +233,95 @@ function verifyLevel(level: Level): {
     }
   }
 
-  if (bestSolution) {
+  if (bestSolution)
     return { valid: true, error: '', mirrorCount, minMoves, solution: bestSolution };
-  }
-
   return { valid: false, error: 'No valid solution found', mirrorCount, minMoves: 0 };
+}
+
+// ── Beam Path Traversal (includes empty cells) ───────────────────────────────
+/**
+ * Returns ALL cells the beam traverses, including empty space between tiles.
+ * Needed for decoy placement — traceBeam skips empty cells, which would let
+ * addDecoys accidentally block the beam path with a decoy mirror.
+ */
+function getFullBeamPath(tiles: Tile[], cols: number, rows: number): Set<string> {
+  const map = new Map<string, Tile>();
+  for (const t of tiles) map.set(`${t.x},${t.y}`, t);
+  const source = tiles.find((t) => t.displayData?.kind === 'source');
+  if (!source) return new Set();
+
+  let x = source.x,
+    y = source.y;
+  let dir = source.displayData!.dir;
+  const path = new Set<string>();
+  let steps = 0;
+
+  while (steps++ < cols * rows * 4) {
+    const { dx, dy } = STEP[dir];
+    x += dx;
+    y += dy;
+    if (x < 0 || y < 0 || x >= cols || y >= rows) break;
+    path.add(`${x},${y}`); // track BEFORE tile check — includes empty cells
+    const tile = map.get(`${x},${y}`);
+    if (!tile) continue;
+    const kind = tile.displayData?.kind;
+    if (kind === 'wall' || kind === 'source') break;
+    if (kind === 'target') break;
+    if (kind === 'mirror') {
+      const rot = tile.displayData?.rotation ?? 0;
+      const nd = rot === 0 ? SLASH[dir] : BACK[dir];
+      if (!nd) break;
+      dir = nd;
+    }
+  }
+  return path;
+}
+
+// ── Decoy Placement ───────────────────────────────────────────────────────────
+/**
+ * Place extra non-solution mirrors in empty grid areas.
+ * Uses the full beam traversal path (including empty cells) to avoid blocking it.
+ */
+function addDecoys(
+  tiles: Tile[],
+  used: Set<string>,
+  solvedBeam: Set<string>,
+  id: number,
+  count: number,
+  cols: number,
+  rows: number
+): void {
+  // Candidate spots spread across the grid, avoiding edges
+  const candidates: [number, number][] = [
+    [cols - 3, rows - 3],
+    [Math.round(cols * 0.65), Math.round(rows * 0.35)],
+    [Math.round(cols * 0.75), Math.round(rows * 0.65)],
+    [Math.round(cols * 0.45), rows - 4],
+    [cols - 4, Math.round(rows * 0.5)],
+    [Math.round(cols * 0.55), 2],
+    [Math.round(cols * 0.4), Math.round(rows * 0.4)],
+    [cols - 5, rows - 5],
+  ];
+
+  let placed = 0;
+  for (const [px, py] of candidates) {
+    if (placed >= count) break;
+    const cx = Math.max(1, Math.min(cols - 2, px));
+    const cy = Math.max(1, Math.min(rows - 2, py));
+    if (!used.has(`${cx},${cy}`) && !solvedBeam.has(`${cx},${cy}`)) {
+      // Deterministic rotation that looks plausible but isn't the solution
+      const rot = (cx + cy * 3) % 2;
+      tiles.push(createTile(`lr${id}-dec${placed}`, cx, cy, 'mirror', 'right', rot));
+      used.add(`${cx},${cy}`);
+      placed++;
+    }
+  }
 }
 
 // ── Level Pattern Generators ──────────────────────────────────────────────────
 
 /**
- * Simple L-shape: source -> mirror -> target
- * Can require 1 move if mirror starts wrong
+ * Simple L-shape: source → 1 mirror → target. Always 1 required move.
  */
 function generateSimpleL(
   id: number,
@@ -249,163 +329,168 @@ function generateSimpleL(
   world: number,
   cols: number,
   rows: number,
-  maxMoves: number,
-  requireMoves: number = 1
+  maxMoves: number
 ): Level {
   const tiles: Tile[] = [];
   const sourceY = Math.floor(rows / 2);
   tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
   const mirrorX = Math.floor(cols * 0.6);
-  const targetY = sourceY - 2;
-
-  // If requireMoves is 1, start with wrong rotation
-  // / (rotation 0) reflects right->up
-  // \ (rotation 1) reflects right->down
-  const initialRot = requireMoves >= 1 ? 1 : 0;
-  tiles.push(createTile(`lr${id}-m0`, mirrorX, sourceY, 'mirror', 'right', initialRot));
-  tiles.push(createTile(`lr${id}-tgt`, mirrorX, targetY, 'target'));
-
+  tiles.push(createTile(`lr${id}-m0`, mirrorX, sourceY, 'mirror', 'right', 1)); // BACK=wrong
+  tiles.push(createTile(`lr${id}-tgt`, mirrorX, sourceY - 2, 'target'));
   return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
 }
 
 /**
- * Double mirror: two mirrors in sequence
- * Path: right -> up -> right to target
+ * Ascending Serpentine: source at bottom-left, beam staircase goes UP-RIGHT.
+ *
+ * Correct rotation = SLASH(0) for all mirrors (right→up, up→right).
+ * Wrong rotation = BACK(1) sends beam into a blocking wall.
+ * - Even mirrors: BACK sends right→down → wall below blocks it.
+ * - Odd mirrors: BACK sends up→left → wall to left blocks it.
+ *
+ * Independent x/y spacing fills the grid well for all grid sizes.
+ * requireMoves mirrors start wrong; rest start correct.
+ * Decoys (optional): extra non-path mirrors placed in empty areas.
  */
-function generateDoubleMirror(
+function generateSerpentine(
   id: number,
   name: string,
   world: number,
   cols: number,
   rows: number,
   maxMoves: number,
-  requireMoves: number = 2
+  mirrorCount: number = 4,
+  requireMoves: number = 4,
+  decoys: number = 0,
+  compression?: Compression
 ): Level {
   const tiles: Tile[] = [];
-  const sourceY = Math.floor(rows / 2);
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
+  const used = new Set<string>();
+  const place = (tile: Tile) => {
+    const k = `${tile.x},${tile.y}`;
+    if (!used.has(k)) {
+      used.add(k);
+      tiles.push(tile);
+    }
+  };
 
-  const m1x = 2;
-  // First mirror: right->up (solution: / = rotation 0)
-  // Start wrong if required
-  const m1rot = requireMoves >= 1 ? 1 : 0;
-  tiles.push(createTile(`lr${id}-m0`, m1x, sourceY, 'mirror', 'right', m1rot));
+  place(createTile(`lr${id}-src`, 0, rows - 2, 'source', 'right'));
 
-  const m2y = 2;
-  // Second mirror: up->right (solution: \ = rotation 1)
-  // Start wrong if required
-  const m2rot = requireMoves >= 2 ? 0 : 1;
-  tiles.push(createTile(`lr${id}-m1`, m1x, m2y, 'mirror', 'up', m2rot));
+  // Independent spacing fills grid in both dimensions
+  const oddCount = Math.floor(mirrorCount / 2);
+  const evenCount = Math.ceil(mirrorCount / 2);
+  const xs = oddCount > 0 ? Math.max(2, Math.floor((cols - 3) / oddCount)) : 2;
+  const ys = evenCount > 0 ? Math.max(2, Math.floor((rows - 3) / evenCount)) : 2;
 
-  tiles.push(createTile(`lr${id}-tgt`, m1x + 2, m2y, 'target'));
+  let x = 2,
+    y = rows - 2;
 
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Triple mirror staircase
- * Path: right -> up -> right -> up -> target
- */
-function generateTripleStair(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 3
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = rows - 2;
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Mirror 1 at (2, sourceY): right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, 2, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
-
-  // Mirror 2 at (2, sourceY-2): up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, 2, sourceY - 2, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  // Mirror 3 at (4, sourceY-2): right->up (solution: / = 0)
-  tiles.push(
-    createTile(`lr${id}-m2`, 4, sourceY - 2, 'mirror', 'right', requireMoves >= 3 ? 1 : 0)
-  );
-
-  tiles.push(createTile(`lr${id}-tgt`, 4, sourceY - 4, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * U-turn pattern
- */
-function generateUTurn(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 3
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = rows - 2;
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(
-    createTile(`lr${id}-m0`, cols - 3, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0)
-  );
-
-  // Mirror 2: up->left (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, cols - 3, 2, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  // Mirror 3: left->down (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m2`, 2, 2, 'mirror', 'left', requireMoves >= 3 ? 1 : 0));
-
-  tiles.push(createTile(`lr${id}-tgt`, 2, 4, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * With walls obstacle
- */
-function generateWithWalls(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 3
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = Math.floor(rows / 2);
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Wall in the middle with gap at top
-  const wallX = Math.floor(cols / 2);
-  for (let wy = 2; wy < rows; wy++) {
-    tiles.push(createTile(`lr${id}-w${wy}`, wallX, wy, 'wall'));
+  for (let i = 0; i < mirrorCount; i++) {
+    const rot = i < requireMoves ? 1 : 0; // BACK(1)=wrong, SLASH(0)=correct
+    if (i % 2 === 0) {
+      // Even: beam right → SLASH:right→up (correct), BACK:right→down (wrong→wall below)
+      place(createTile(`lr${id}-m${i}`, x, y, 'mirror', 'right', rot));
+      if (y + 1 < rows) place(createTile(`lr${id}-wb${i}`, x, y + 1, 'wall'));
+      y -= ys;
+    } else {
+      // Odd: beam up → SLASH:up→right (correct), BACK:up→left (wrong→wall left)
+      place(createTile(`lr${id}-m${i}`, x, y, 'mirror', 'up', rot));
+      if (x - 1 >= 0) place(createTile(`lr${id}-wb${i}`, x - 1, y, 'wall'));
+      x += xs;
+    }
   }
 
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, 2, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
+  place(createTile(`lr${id}-tgt`, x, y, 'target'));
 
-  // Mirror 2: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, 2, 1, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
+  if (decoys > 0) {
+    // Compute full beam traversal (including empty cells) to avoid blocking path
+    const solvedTiles = tiles.map((t) =>
+      t.displayData?.kind === 'mirror'
+        ? { ...t, displayData: { ...t.displayData, rotation: 0 } }
+        : t
+    );
+    const beamPath = getFullBeamPath(solvedTiles, cols, rows);
+    addDecoys(tiles, used, beamPath, id, decoys, cols, rows);
+  }
 
-  // Mirror 3: right->down (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m2`, wallX + 2, 1, 'mirror', 'right', requireMoves >= 3 ? 0 : 1));
-
-  tiles.push(createTile(`lr${id}-tgt`, wallX + 2, 3, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
+  return buildLevel(id, name, world, maxMoves, tiles, cols, rows, compression);
 }
 
 /**
- * Portal pattern
+ * Descending Serpentine: source at top-left, beam staircase goes DOWN-RIGHT.
+ * Visually opposite of the ascending pattern.
+ *
+ * Correct rotation = BACK(1) for all mirrors (right→down, down→right).
+ * Wrong rotation = SLASH(0) sends beam into a blocking wall.
+ * - Even mirrors: SLASH sends right→up → wall above blocks it.
+ * - Odd mirrors: SLASH sends down→left → wall to left blocks it.
+ */
+function generateSerpentineDown(
+  id: number,
+  name: string,
+  world: number,
+  cols: number,
+  rows: number,
+  maxMoves: number,
+  mirrorCount: number = 4,
+  requireMoves: number = 4,
+  decoys: number = 0,
+  compression?: Compression
+): Level {
+  const tiles: Tile[] = [];
+  const used = new Set<string>();
+  const place = (tile: Tile) => {
+    const k = `${tile.x},${tile.y}`;
+    if (!used.has(k)) {
+      used.add(k);
+      tiles.push(tile);
+    }
+  };
+
+  place(createTile(`lr${id}-src`, 0, 1, 'source', 'right'));
+
+  const oddCount = Math.floor(mirrorCount / 2);
+  const evenCount = Math.ceil(mirrorCount / 2);
+  const xs = oddCount > 0 ? Math.max(2, Math.floor((cols - 3) / oddCount)) : 2;
+  const ys = evenCount > 0 ? Math.max(2, Math.floor((rows - 3) / evenCount)) : 2;
+
+  let x = 2,
+    y = 1;
+
+  for (let i = 0; i < mirrorCount; i++) {
+    const rot = i < requireMoves ? 0 : 1; // SLASH(0)=wrong, BACK(1)=correct
+    if (i % 2 === 0) {
+      // Even: beam right → BACK:right→down (correct), SLASH:right→up (wrong→wall above)
+      place(createTile(`lr${id}-m${i}`, x, y, 'mirror', 'right', rot));
+      if (y - 1 >= 0) place(createTile(`lr${id}-wb${i}`, x, y - 1, 'wall'));
+      y += ys;
+    } else {
+      // Odd: beam down → BACK:down→right (correct), SLASH:down→left (wrong→wall left)
+      place(createTile(`lr${id}-m${i}`, x, y, 'mirror', 'down', rot));
+      if (x - 1 >= 0) place(createTile(`lr${id}-wb${i}`, x - 1, y, 'wall'));
+      x += xs;
+    }
+  }
+
+  place(createTile(`lr${id}-tgt`, x, y, 'target'));
+
+  if (decoys > 0) {
+    // Compute full beam traversal (including empty cells) to avoid blocking path
+    const solvedTiles = tiles.map((t) =>
+      t.displayData?.kind === 'mirror'
+        ? { ...t, displayData: { ...t.displayData, rotation: 1 } }
+        : t
+    );
+    const beamPath = getFullBeamPath(solvedTiles, cols, rows);
+    addDecoys(tiles, used, beamPath, id, decoys, cols, rows);
+  }
+
+  return buildLevel(id, name, world, maxMoves, tiles, cols, rows, compression);
+}
+
+/**
+ * Portal: source → M0(right→up) → portal teleport → M1(up→right) → target
+ * Blocking walls guarantee exactly 2 required flips.
  */
 function generatePortal(
   id: number,
@@ -420,388 +505,19 @@ function generatePortal(
   const sourceY = Math.floor(rows / 2);
   tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
 
-  // Mirror 1: right->up (solution: / = 0)
+  // M0: correct=SLASH(0) right→up, wrong=BACK(1) right→down, wall below
   tiles.push(createTile(`lr${id}-m0`, 2, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
+  if (sourceY + 1 < rows) tiles.push(createTile(`lr${id}-wb0`, 2, sourceY + 1, 'wall'));
 
-  // Portal entrance
+  // Portal pair: beam goes up into portal, exits at far right side
+  const exitX = cols - 3;
   tiles.push(createTile(`lr${id}-p1a`, 2, 2, 'portal', 'up', 0, 'A'));
+  tiles.push(createTile(`lr${id}-p1b`, exitX, 2, 'portal', 'up', 0, 'A'));
 
-  // Portal exit
-  tiles.push(createTile(`lr${id}-p1b`, cols - 3, 2, 'portal', 'up', 0, 'A'));
+  // M1: correct=SLASH(0) up→right, wrong=BACK(1) up→left, wall to left
+  tiles.push(createTile(`lr${id}-m1`, exitX, 1, 'mirror', 'up', requireMoves >= 2 ? 1 : 0));
+  if (exitX - 1 >= 0) tiles.push(createTile(`lr${id}-wb1`, exitX - 1, 1, 'wall'));
 
-  // Mirror 2: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, cols - 3, 1, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  tiles.push(createTile(`lr${id}-tgt`, cols - 1, 1, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Long shot with single mirror
- */
-function generateLongShot(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 1
-): Level {
-  const tiles: Tile[] = [];
-  tiles.push(createTile(`lr${id}-src`, 0, rows - 1, 'source', 'right'));
-
-  // Single mirror at far right: right->up (solution: / = 0)
-  tiles.push(
-    createTile(`lr${id}-m0`, cols - 2, rows - 1, 'mirror', 'right', requireMoves >= 1 ? 1 : 0)
-  );
-
-  tiles.push(createTile(`lr${id}-tgt`, cols - 2, 1, 'target'));
-
-  // Decorative walls
-  for (let i = 3; i < cols - 4; i += 3) {
-    tiles.push(createTile(`lr${id}-w${i}`, i, rows - 2, 'wall'));
-  }
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Cross pattern
- */
-function generateCross(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 1
-): Level {
-  const tiles: Tile[] = [];
-  const cx = Math.floor(cols / 2);
-  const cy = Math.floor(rows / 2);
-
-  tiles.push(createTile(`lr${id}-src`, 0, cy, 'source', 'right'));
-
-  // Mirror at center: right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, cx, cy, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
-
-  tiles.push(createTile(`lr${id}-tgt`, cx, 1, 'target'));
-
-  // Walls around
-  tiles.push(createTile(`lr${id}-w0`, cx - 1, cy - 1, 'wall'));
-  tiles.push(createTile(`lr${id}-w1`, cx + 1, cy - 1, 'wall'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Zigzag pattern with 4 mirrors
- */
-function generateZigzag(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 4
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = rows - 2;
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, 2, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
-
-  // Mirror 2: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, 2, sourceY - 2, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  // Mirror 3: right->up (solution: / = 0)
-  tiles.push(
-    createTile(`lr${id}-m2`, 4, sourceY - 2, 'mirror', 'right', requireMoves >= 3 ? 1 : 0)
-  );
-
-  // Mirror 4: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m3`, 4, sourceY - 4, 'mirror', 'up', requireMoves >= 4 ? 0 : 1));
-
-  tiles.push(createTile(`lr${id}-tgt`, 6, sourceY - 4, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Spiral pattern
- */
-function generateSpiral(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 4
-): Level {
-  const tiles: Tile[] = [];
-  tiles.push(createTile(`lr${id}-src`, 0, 0, 'source', 'right'));
-
-  // Mirror 1: right->down (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m0`, cols - 2, 0, 'mirror', 'right', requireMoves >= 1 ? 0 : 1));
-
-  // Mirror 2: down->left (solution: / = 0)
-  tiles.push(
-    createTile(`lr${id}-m1`, cols - 2, rows - 2, 'mirror', 'down', requireMoves >= 2 ? 1 : 0)
-  );
-
-  // Mirror 3: left->up (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m2`, 1, rows - 2, 'mirror', 'left', requireMoves >= 3 ? 0 : 1));
-
-  // Mirror 4: up->right (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m3`, 1, 2, 'mirror', 'up', requireMoves >= 4 ? 1 : 0));
-
-  tiles.push(createTile(`lr${id}-tgt`, 3, 2, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Double back pattern
- */
-function generateDoubleBack(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 3
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = Math.floor(rows / 2);
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(
-    createTile(
-      `lr${id}-m0`,
-      Math.floor(cols / 2),
-      sourceY,
-      'mirror',
-      'right',
-      requireMoves >= 1 ? 1 : 0
-    )
-  );
-
-  // Mirror 2: up->left (solution: \ = 1)
-  tiles.push(
-    createTile(`lr${id}-m1`, Math.floor(cols / 2), 2, 'mirror', 'up', requireMoves >= 2 ? 0 : 1)
-  );
-
-  // Mirror 3: left->down (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m2`, 2, 2, 'mirror', 'left', requireMoves >= 3 ? 1 : 0));
-
-  tiles.push(createTile(`lr${id}-tgt`, 2, sourceY - 1, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Complex multi-path with decoy mirrors
- */
-function generateDecoyPath(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 3
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = Math.floor(rows / 2);
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Decoy mirror (not in solution path)
-  tiles.push(createTile(`lr${id}-d0`, 1, sourceY - 1, 'mirror', 'right', 0));
-
-  // Real path mirrors
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, 3, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
-
-  // Mirror 2: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, 3, 2, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  // Mirror 3: right->down (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m2`, 6, 2, 'mirror', 'right', requireMoves >= 3 ? 0 : 1));
-
-  tiles.push(createTile(`lr${id}-tgt`, 6, 4, 'target'));
-
-  // More decoys
-  tiles.push(createTile(`lr${id}-d1`, 5, 3, 'mirror', 'right', 1));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Diamond pattern - beam goes around in a diamond shape
- */
-function generateDiamond(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 4
-): Level {
-  const tiles: Tile[] = [];
-  const cx = Math.floor(cols / 2);
-  const cy = Math.floor(rows / 2);
-
-  tiles.push(createTile(`lr${id}-src`, 0, cy, 'source', 'right'));
-
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, cx - 2, cy, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
-
-  // Mirror 2: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, cx - 2, cy - 2, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  // Mirror 3: right->down (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m2`, cx, cy - 2, 'mirror', 'right', requireMoves >= 3 ? 0 : 1));
-
-  // Mirror 4: down->right (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m3`, cx, cy, 'mirror', 'down', requireMoves >= 4 ? 1 : 0));
-
-  tiles.push(createTile(`lr${id}-tgt`, cx + 2, cy, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Split path with walls - must navigate around obstacles
- */
-function generateMazePath(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 4
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = Math.floor(rows / 2);
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Create wall obstacles - leave gaps for beam path
-  const wallX1 = Math.floor(cols / 3);
-  const wallX2 = Math.floor((2 * cols) / 3);
-
-  // First wall with gap at row 1 (top)
-  for (let y = 2; y < rows; y++) {
-    tiles.push(createTile(`lr${id}-w1-${y}`, wallX1, y, 'wall'));
-  }
-
-  // Second wall with gap at bottom (rows-3 area)
-  for (let y = 0; y < rows - 3; y++) {
-    tiles.push(createTile(`lr${id}-w2-${y}`, wallX2, y, 'wall'));
-  }
-
-  // Path: source -> m0 (right->up) -> m1 (up->right) -> through gap in wall1
-  //       -> m2 (right->down) -> through gap in wall2 -> m3 (down->right) -> target
-
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, 2, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
-
-  // Mirror 2: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, 2, 1, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  // Mirror 3: right->down (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m2`, wallX1 + 2, 1, 'mirror', 'right', requireMoves >= 3 ? 0 : 1));
-
-  // Mirror 4: down->right (solution: / = 0)
-  tiles.push(
-    createTile(`lr${id}-m3`, wallX1 + 2, rows - 3, 'mirror', 'down', requireMoves >= 4 ? 1 : 0)
-  );
-
-  // Target to the right of wall2 gap
-  tiles.push(createTile(`lr${id}-tgt`, wallX2 + 2, rows - 3, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Extended zigzag with 5+ mirrors
- */
-function generateExtendedZigzag(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  mirrorCount: number = 5,
-  requireMoves: number = 5
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = rows - 2;
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  let x = 2;
-  let y = sourceY;
-
-  for (let i = 0; i < mirrorCount; i++) {
-    const isEven = i % 2 === 0;
-    // Even mirrors: right->up or up->right (solution: / = 0 for right->up, \ = 1 for up->right)
-    // Odd mirrors: up->right or right->up (solution: \ = 1 for up->right, / = 0 for right->up)
-
-    if (isEven) {
-      // right->up requires / (rotation 0)
-      tiles.push(createTile(`lr${id}-m${i}`, x, y, 'mirror', 'right', requireMoves > i ? 1 : 0));
-      y -= 2;
-    } else {
-      // up->right requires \ (rotation 1)
-      tiles.push(createTile(`lr${id}-m${i}`, x, y, 'mirror', 'up', requireMoves > i ? 0 : 1));
-      x += 2;
-    }
-  }
-
-  // Target at the end
-  tiles.push(createTile(`lr${id}-tgt`, x, y, 'target'));
-
-  return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
-}
-
-/**
- * Double portal challenge - simpler version that works
- */
-function generateDoublePortal(
-  id: number,
-  name: string,
-  world: number,
-  cols: number,
-  rows: number,
-  maxMoves: number,
-  requireMoves: number = 3
-): Level {
-  const tiles: Tile[] = [];
-  const sourceY = Math.floor(rows / 2);
-  tiles.push(createTile(`lr${id}-src`, 0, sourceY, 'source', 'right'));
-
-  // Mirror 1: right->up (solution: / = 0)
-  tiles.push(createTile(`lr${id}-m0`, 2, sourceY, 'mirror', 'right', requireMoves >= 1 ? 1 : 0));
-
-  // First portal pair - beam goes up into portal A
-  tiles.push(createTile(`lr${id}-p1a`, 2, 2, 'portal', 'up', 0, 'A'));
-  // Portal A exits at right side
-  tiles.push(createTile(`lr${id}-p1b`, cols - 3, 2, 'portal', 'up', 0, 'A'));
-
-  // Mirror 2: up->right (solution: \ = 1)
-  tiles.push(createTile(`lr${id}-m1`, cols - 3, 1, 'mirror', 'up', requireMoves >= 2 ? 0 : 1));
-
-  // Target to the right
   tiles.push(createTile(`lr${id}-tgt`, cols - 1, 1, 'target'));
 
   return buildLevel(id, name, world, maxMoves, tiles, cols, rows);
@@ -815,30 +531,19 @@ interface LevelDef {
   world: number;
   cols: number;
   rows: number;
-  pattern:
-    | 'L'
-    | 'D'
-    | 'T'
-    | 'U'
-    | 'W'
-    | 'P'
-    | 'Lg'
-    | 'C'
-    | 'Z'
-    | 'Sp'
-    | 'DB'
-    | 'Dc'
-    | 'Dm'
-    | 'Mp'
-    | 'EZ'
-    | 'DP';
+  /** Sn=ascending staircase, Sd=descending staircase, P=portal */
+  pattern: 'L' | 'Sn' | 'Sd' | 'P';
   maxMoves: number;
   requireMoves?: number;
   mirrorCount?: number;
+  /** Extra non-path mirrors scattered around the grid */
+  decoys?: number;
+  /** Add wall compression with this delay and direction */
+  compression?: { delay: number; direction: string };
 }
 
 const LEVEL_DEFS: LevelDef[] = [
-  // World 1: PRISM - Introductory levels (1-2 mirrors, 1-2 required moves)
+  // ── World 1: PRISM — Learn the basics (1-3 mirrors, simple patterns) ────────
   {
     id: 801,
     name: 'First Steps',
@@ -855,111 +560,120 @@ const LEVEL_DEFS: LevelDef[] = [
     world: 1,
     cols: 6,
     rows: 5,
-    pattern: 'L',
-    maxMoves: 3,
-    requireMoves: 1,
+    pattern: 'Sn',
+    maxMoves: 4,
+    requireMoves: 2,
+    mirrorCount: 2,
   },
   {
     id: 803,
-    name: 'Simple Path',
+    name: 'Step Up',
     world: 1,
-    cols: 6,
+    cols: 7,
     rows: 6,
-    pattern: 'D',
-    maxMoves: 4,
+    pattern: 'Sn',
+    maxMoves: 5,
     requireMoves: 2,
+    mirrorCount: 2,
   },
   {
     id: 804,
-    name: 'Up & Over',
+    name: 'Triple Bounce',
     world: 1,
     cols: 7,
-    rows: 6,
-    pattern: 'T',
-    maxMoves: 5,
-    requireMoves: 2,
+    rows: 7,
+    pattern: 'Sn',
+    maxMoves: 6,
+    requireMoves: 3,
+    mirrorCount: 3,
   },
   {
     id: 805,
-    name: 'The Bend',
+    name: 'The Climb',
     world: 1,
-    cols: 7,
+    cols: 8,
     rows: 7,
-    pattern: 'D',
-    maxMoves: 4,
-    requireMoves: 2,
+    pattern: 'Sn',
+    maxMoves: 6,
+    requireMoves: 3,
+    mirrorCount: 3,
   },
   {
     id: 806,
-    name: 'Short Cut',
+    name: 'Short Circuit',
     world: 1,
-    cols: 8,
-    rows: 6,
-    pattern: 'C',
-    maxMoves: 3,
-    requireMoves: 1,
+    cols: 9,
+    rows: 8,
+    pattern: 'Sd',
+    maxMoves: 7,
+    requireMoves: 3,
+    mirrorCount: 3,
   },
 
-  // World 2: REFRACT - Getting trickier (2-3 mirrors, 2-3 required moves)
+  // ── World 2: REFRACT — Mix of ascending + descending + portal ──────────────
   {
     id: 807,
-    name: 'Zigzag',
+    name: 'Four Mirrors',
     world: 2,
     cols: 8,
     rows: 7,
-    pattern: 'Z',
+    pattern: 'Sn',
     maxMoves: 6,
     requireMoves: 3,
+    mirrorCount: 4,
   },
   {
     id: 808,
-    name: 'Diagonal Run',
+    name: 'Portal Leap',
     world: 2,
     cols: 9,
     rows: 7,
-    pattern: 'D',
+    pattern: 'P',
     maxMoves: 5,
     requireMoves: 2,
   },
   {
     id: 809,
-    name: 'Wall Bounce',
+    name: 'Cascade',
     world: 2,
     cols: 9,
     rows: 8,
-    pattern: 'W',
-    maxMoves: 6,
-    requireMoves: 3,
+    pattern: 'Sd',
+    maxMoves: 7,
+    requireMoves: 4,
+    mirrorCount: 4,
   },
   {
     id: 810,
-    name: 'The Hook',
+    name: 'Long Stair',
     world: 2,
     cols: 10,
     rows: 8,
-    pattern: 'U',
-    maxMoves: 5,
-    requireMoves: 2,
+    pattern: 'Sn',
+    maxMoves: 7,
+    requireMoves: 3,
+    mirrorCount: 4,
   },
   {
     id: 811,
-    name: 'Cross Fire',
+    name: 'Downfall',
     world: 2,
     cols: 10,
-    rows: 8,
-    pattern: 'Dc',
-    maxMoves: 5,
-    requireMoves: 2,
+    rows: 9,
+    pattern: 'Sd',
+    maxMoves: 8,
+    requireMoves: 4,
+    mirrorCount: 4,
   },
   {
     id: 812,
-    name: 'Long Shot',
+    name: 'Warp Gate',
     world: 2,
     cols: 11,
-    rows: 7,
-    pattern: 'Lg',
-    maxMoves: 3,
-    requireMoves: 1,
+    rows: 8,
+    pattern: 'P',
+    maxMoves: 5,
+    requireMoves: 2,
   },
   {
     id: 813,
@@ -967,175 +681,192 @@ const LEVEL_DEFS: LevelDef[] = [
     world: 2,
     cols: 11,
     rows: 9,
-    pattern: 'T',
-    maxMoves: 6,
-    requireMoves: 3,
+    pattern: 'Sn',
+    maxMoves: 8,
+    requireMoves: 4,
+    mirrorCount: 4,
   },
 
-  // World 3: GAUNTLET - Challenging (3-4 mirrors, 3-4 required moves)
+  // ── World 3: GAUNTLET — 5 mirrors, decoys introduced ───────────────────────
   {
     id: 814,
-    name: 'Spiral In',
+    name: 'Decoy Field',
     world: 3,
     cols: 10,
     rows: 10,
-    pattern: 'Sp',
-    maxMoves: 6,
-    requireMoves: 3,
+    pattern: 'Sn',
+    maxMoves: 8,
+    requireMoves: 4,
+    mirrorCount: 5,
+    decoys: 2,
   },
   {
     id: 815,
-    name: 'Double Back',
+    name: 'Waterfall',
     world: 3,
     cols: 11,
-    rows: 9,
-    pattern: 'DB',
-    maxMoves: 6,
-    requireMoves: 3,
+    rows: 10,
+    pattern: 'Sd',
+    maxMoves: 8,
+    requireMoves: 5,
+    mirrorCount: 5,
   },
   {
     id: 816,
-    name: 'Maze Runner',
-    world: 3,
-    cols: 12,
-    rows: 10,
-    pattern: 'Mp',
-    maxMoves: 7,
-    requireMoves: 4,
-  },
-  {
-    id: 817,
-    name: 'The Gauntlet',
-    world: 3,
-    cols: 12,
-    rows: 11,
-    pattern: 'Z',
-    maxMoves: 8,
-    requireMoves: 4,
-  },
-  {
-    id: 818,
-    name: 'Deep Dive',
-    world: 3,
-    cols: 13,
-    rows: 10,
-    pattern: 'D',
-    maxMoves: 6,
-    requireMoves: 3,
-  },
-  {
-    id: 819,
-    name: 'Complex Turn',
-    world: 3,
-    cols: 13,
-    rows: 11,
-    pattern: 'U',
-    maxMoves: 6,
-    requireMoves: 3,
-  },
-  {
-    id: 820,
-    name: 'The Web',
-    world: 3,
-    cols: 14,
-    rows: 12,
-    pattern: 'Sp',
-    maxMoves: 8,
-    requireMoves: 4,
-  },
-
-  // World 4: NEXUS - Portal challenges (2-3 required moves with portals)
-  {
-    id: 821,
     name: 'Portal Jump',
-    world: 4,
-    cols: 10,
-    rows: 8,
+    world: 3,
+    cols: 12,
+    rows: 10,
     pattern: 'P',
-    maxMoves: 5,
+    maxMoves: 6,
     requireMoves: 2,
   },
   {
-    id: 822,
-    name: 'Warp Zone',
+    id: 817,
+    name: 'Rising Path',
+    world: 3,
+    cols: 12,
+    rows: 11,
+    pattern: 'Sn',
+    maxMoves: 9,
+    requireMoves: 5,
+    mirrorCount: 5,
+  },
+  {
+    id: 818,
+    name: 'Downward Spiral',
+    world: 3,
+    cols: 13,
+    rows: 11,
+    pattern: 'Sd',
+    maxMoves: 9,
+    requireMoves: 4,
+    mirrorCount: 5,
+  },
+  {
+    id: 819,
+    name: 'Minefield',
+    world: 3,
+    cols: 13,
+    rows: 12,
+    pattern: 'Sn',
+    maxMoves: 9,
+    requireMoves: 5,
+    mirrorCount: 5,
+    decoys: 2,
+  },
+  {
+    id: 820,
+    name: 'Tower Climb',
+    world: 3,
+    cols: 14,
+    rows: 12,
+    pattern: 'Sn',
+    maxMoves: 10,
+    requireMoves: 5,
+    mirrorCount: 5,
+  },
+
+  // ── World 4: NEXUS — 6 mirrors, more portals and complex paths ─────────────
+  {
+    id: 821,
+    name: 'Deep Stair',
     world: 4,
-    cols: 11,
-    rows: 9,
+    cols: 12,
+    rows: 11,
+    pattern: 'Sn',
+    maxMoves: 9,
+    requireMoves: 5,
+    mirrorCount: 6,
+  },
+  {
+    id: 822,
+    name: 'Nexus Gate',
+    world: 4,
+    cols: 12,
+    rows: 10,
     pattern: 'P',
-    maxMoves: 5,
+    maxMoves: 6,
     requireMoves: 2,
   },
   {
     id: 823,
-    name: 'Teleport Maze',
+    name: 'Cataract',
     world: 4,
-    cols: 12,
-    rows: 10,
-    pattern: 'P',
-    maxMoves: 6,
-    requireMoves: 3,
+    cols: 13,
+    rows: 11,
+    pattern: 'Sd',
+    maxMoves: 10,
+    requireMoves: 5,
+    mirrorCount: 6,
   },
   {
     id: 824,
-    name: 'Portal Master',
+    name: 'Trap Maze',
     world: 4,
     cols: 13,
-    rows: 10,
-    pattern: 'DP',
-    maxMoves: 7,
-    requireMoves: 3,
+    rows: 12,
+    pattern: 'Sn',
+    maxMoves: 10,
+    requireMoves: 6,
+    mirrorCount: 6,
+    decoys: 2,
   },
   {
     id: 825,
-    name: 'Dimension Shift',
-    world: 4,
-    cols: 14,
-    rows: 11,
-    pattern: 'DP',
-    maxMoves: 7,
-    requireMoves: 3,
-  },
-  {
-    id: 826,
-    name: 'Quantum Leap',
+    name: 'Iron Climb',
     world: 4,
     cols: 14,
     rows: 12,
-    pattern: 'DP',
-    maxMoves: 8,
-    requireMoves: 4,
+    pattern: 'Sn',
+    maxMoves: 10,
+    requireMoves: 6,
+    mirrorCount: 6,
+  },
+  {
+    id: 826,
+    name: 'Gravity Drop',
+    world: 4,
+    cols: 14,
+    rows: 13,
+    pattern: 'Sd',
+    maxMoves: 11,
+    requireMoves: 5,
+    mirrorCount: 6,
   },
   {
     id: 827,
     name: 'Nexus Core',
     world: 4,
     cols: 15,
-    rows: 12,
-    pattern: 'DP',
+    rows: 13,
+    pattern: 'P',
     maxMoves: 8,
-    requireMoves: 4,
+    requireMoves: 3,
   },
 
-  // World 5: APEX - Master challenges (4-5 mirrors, 4-5 required moves)
+  // ── World 5: APEX — 7 mirrors, maximum challenge ───────────────────────────
   {
     id: 828,
-    name: 'Grand Spiral',
+    name: 'Grand Climb',
     world: 5,
     cols: 14,
     rows: 14,
-    pattern: 'Sp',
-    maxMoves: 8,
-    requireMoves: 4,
+    pattern: 'Sn',
+    maxMoves: 11,
+    requireMoves: 6,
+    mirrorCount: 7,
   },
   {
     id: 829,
-    name: 'Fortress',
+    name: 'Grand Cascade',
     world: 5,
     cols: 15,
-    rows: 13,
-    pattern: 'Mp',
-    maxMoves: 10,
+    rows: 14,
+    pattern: 'Sd',
+    maxMoves: 11,
     requireMoves: 5,
+    mirrorCount: 7,
   },
   {
     id: 830,
@@ -1143,50 +874,56 @@ const LEVEL_DEFS: LevelDef[] = [
     world: 5,
     cols: 16,
     rows: 14,
-    pattern: 'EZ',
-    maxMoves: 10,
-    requireMoves: 5,
-    mirrorCount: 5,
+    pattern: 'Sn',
+    maxMoves: 12,
+    requireMoves: 6,
+    mirrorCount: 7,
   },
   {
     id: 831,
-    name: 'Ultimate Path',
+    name: 'Apex Gauntlet',
     world: 5,
     cols: 16,
     rows: 15,
-    pattern: 'Dm',
-    maxMoves: 10,
-    requireMoves: 5,
+    pattern: 'Sn',
+    maxMoves: 12,
+    requireMoves: 7,
+    mirrorCount: 7,
+    decoys: 2,
   },
   {
     id: 832,
-    name: "Master's Web",
-    world: 5,
-    cols: 17,
-    rows: 14,
-    pattern: 'Sp',
-    maxMoves: 10,
-    requireMoves: 5,
-  },
-  {
-    id: 833,
-    name: 'Lightning',
+    name: 'Terminal Descent',
     world: 5,
     cols: 17,
     rows: 15,
-    pattern: 'Lg',
-    maxMoves: 4,
-    requireMoves: 2,
+    pattern: 'Sd',
+    maxMoves: 13,
+    requireMoves: 6,
+    mirrorCount: 7,
+  },
+  {
+    id: 833,
+    name: 'Chromatic Storm',
+    world: 5,
+    cols: 17,
+    rows: 15,
+    pattern: 'Sn',
+    maxMoves: 13,
+    requireMoves: 7,
+    mirrorCount: 7,
   },
   {
     id: 834,
-    name: 'The Labyrinth',
+    name: 'Final Trap',
     world: 5,
     cols: 18,
     rows: 16,
-    pattern: 'Mp',
-    maxMoves: 12,
-    requireMoves: 6,
+    pattern: 'Sd',
+    maxMoves: 14,
+    requireMoves: 7,
+    mirrorCount: 7,
+    decoys: 3,
   },
   {
     id: 835,
@@ -1194,10 +931,10 @@ const LEVEL_DEFS: LevelDef[] = [
     world: 5,
     cols: 20,
     rows: 16,
-    pattern: 'EZ',
-    maxMoves: 12,
-    requireMoves: 6,
-    mirrorCount: 6,
+    pattern: 'Sn',
+    maxMoves: 15,
+    requireMoves: 7,
+    mirrorCount: 7,
   },
 ];
 
@@ -1221,9 +958,8 @@ function printBoard(level: Level, mirrorRotations?: number[]): void {
     tiles = tiles.map((t) => {
       if (t.displayData?.kind === 'mirror') {
         const idx = mirrors.indexOf(t);
-        if (idx >= 0 && idx < mirrorRotations.length) {
+        if (idx >= 0 && idx < mirrorRotations.length)
           return { ...t, displayData: { ...t.displayData, rotation: mirrorRotations[idx] } };
-        }
       }
       return t;
     });
@@ -1237,19 +973,16 @@ function printBoard(level: Level, mirrorRotations?: number[]): void {
   const rows = level.gridRows || level.gridSize;
 
   console.log(`  ┌${'──'.repeat(cols)}┐`);
-
   for (let y = 0; y < rows; y++) {
     let row = '  │';
     for (let x = 0; x < cols; x++) {
       const tile = tileMap.get(`${x},${y}`);
       const isBeam = beam.has(`${x},${y}`);
-
       if (!tile) {
         row += isBeam ? `${colors.yellow}██${colors.reset}` : '  ';
       } else {
         const kind = tile.displayData?.kind;
         const rot = tile.displayData?.rotation;
-
         let char = '  ';
         if (kind === 'source') {
           const dir = tile.displayData?.dir;
@@ -1265,8 +998,7 @@ function printBoard(level: Level, mirrorRotations?: number[]): void {
             ? `${colors.yellow}${m}${m}${colors.reset}`
             : `${colors.magenta}${m}${m}${colors.reset}`;
         } else if (kind === 'portal') {
-          const pid = tile.displayData?.portalId;
-          char = `${colors.blue}[${pid}]${colors.reset}`;
+          char = `${colors.blue}[${tile.displayData?.portalId}]${colors.reset}`;
         } else {
           char = isBeam ? `${colors.yellow}~~${colors.reset}` : '  ';
         }
@@ -1276,7 +1008,6 @@ function printBoard(level: Level, mirrorRotations?: number[]): void {
     row += '│';
     console.log(row);
   }
-
   console.log(`  └${'──'.repeat(cols)}┘`);
   console.log(
     `  Beam ${hitsTarget ? `${colors.green}HITS${colors.reset}` : `${colors.red}MISSES${colors.reset}`}`
@@ -1287,7 +1018,7 @@ async function main() {
   console.log(
     `${colors.bold}${colors.magenta}═══════════════════════════════════════${colors.reset}`
   );
-  console.log(`${colors.bold}${colors.magenta}  LASER RELAY LEVEL GENERATOR v4${colors.reset}`);
+  console.log(`${colors.bold}${colors.magenta}  LASER RELAY LEVEL GENERATOR v6${colors.reset}`);
   console.log(
     `${colors.bold}${colors.magenta}═══════════════════════════════════════${colors.reset}\n`
   );
@@ -1296,183 +1027,52 @@ async function main() {
   const invalidLevels: { id: number; name: string; error: string }[] = [];
 
   for (const def of LEVEL_DEFS) {
+    const requireMoves = def.requireMoves ?? 1;
+    const mc = def.mirrorCount ?? 4;
+    const dc = def.decoys ?? 0;
+    const comp = def.compression as Compression | undefined;
+
     console.log(`${colors.bold}Level ${def.id} "${def.name}"${colors.reset}`);
     console.log(
-      `  Pattern: ${def.pattern}, Size: ${def.cols}x${def.rows}, Required Moves: ${def.requireMoves}`
+      `  Pattern: ${def.pattern}, Size: ${def.cols}x${def.rows}, Req: ${requireMoves}${comp ? `, Compression: ${comp.direction} (${comp.delay}s)` : ''}`
     );
 
     let level: Level | null = null;
-    const requireMoves = def.requireMoves ?? 1;
 
     switch (def.pattern) {
       case 'L':
-        level = generateSimpleL(
+        level = generateSimpleL(def.id, def.name, def.world, def.cols, def.rows, def.maxMoves);
+        break;
+      case 'Sn':
+        level = generateSerpentine(
           def.id,
           def.name,
           def.world,
           def.cols,
           def.rows,
           def.maxMoves,
-          requireMoves
+          mc,
+          requireMoves,
+          dc,
+          comp
         );
         break;
-      case 'D':
-        level = generateDoubleMirror(
+      case 'Sd':
+        level = generateSerpentineDown(
           def.id,
           def.name,
           def.world,
           def.cols,
           def.rows,
           def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'T':
-        level = generateTripleStair(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'U':
-        level = generateUTurn(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'W':
-        level = generateWithWalls(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
+          mc,
+          requireMoves,
+          dc,
+          comp
         );
         break;
       case 'P':
         level = generatePortal(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'Lg':
-        level = generateLongShot(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'C':
-        level = generateCross(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'Z':
-        level = generateZigzag(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'Sp':
-        level = generateSpiral(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'DB':
-        level = generateDoubleBack(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'Dc':
-        level = generateDecoyPath(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'Dm':
-        level = generateDiamond(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'Mp':
-        level = generateMazePath(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          requireMoves
-        );
-        break;
-      case 'EZ':
-        level = generateExtendedZigzag(
-          def.id,
-          def.name,
-          def.world,
-          def.cols,
-          def.rows,
-          def.maxMoves,
-          def.mirrorCount ?? 5,
-          requireMoves
-        );
-        break;
-      case 'DP':
-        level = generateDoublePortal(
           def.id,
           def.name,
           def.world,
@@ -1492,26 +1092,28 @@ async function main() {
 
     const verification = verifyLevel(level);
     console.log(
-      `  Mirrors: ${verification.mirrorCount}, Min Moves to Solve: ${verification.minMoves}`
+      `  Mirrors: ${verification.mirrorCount} (${dc > 0 ? `${dc} decoys` : 'no decoys'}), Min Moves: ${verification.minMoves}`
     );
 
     if (verification.valid) {
       if (verification.minMoves < requireMoves) {
         console.log(
-          `  ${colors.yellow}⚠ WARNING: Level only requires ${verification.minMoves} moves (expected ${requireMoves})${colors.reset}`
+          `  ${colors.yellow}⚠ WARNING: only ${verification.minMoves} moves needed (expected ${requireMoves})${colors.reset}`
+        );
+      } else {
+        console.log(
+          `  ${colors.green}✓ Exactly ${verification.minMoves} moves required${colors.reset}`
         );
       }
-      console.log(`  ${colors.green}✓ VALID${colors.reset}`);
       validLevels.push(level);
 
-      console.log(`\n  ${colors.bold}Initial State:${colors.reset}`);
+      console.log(`\n  ${colors.bold}Initial:${colors.reset}`);
       printBoard(level);
-      console.log(`\n  ${colors.bold}Solved State:${colors.reset}`);
+      console.log(`\n  ${colors.bold}Solved:${colors.reset}`);
       printBoard(level, verification.solution);
     } else {
       console.log(`  ${colors.red}✗ INVALID: ${verification.error}${colors.reset}`);
       invalidLevels.push({ id: def.id, name: def.name, error: verification.error });
-      console.log(`\n  ${colors.bold}Board:${colors.reset}`);
       printBoard(level);
     }
     console.log('');
@@ -1520,19 +1122,16 @@ async function main() {
   console.log(`\n${colors.bold}═══════════════════════════════════════${colors.reset}`);
   console.log(`${colors.bold}SUMMARY${colors.reset}`);
   console.log(`${colors.bold}═══════════════════════════════════════${colors.reset}\n`);
-  console.log(`Valid levels: ${colors.green}${validLevels.length}${colors.reset}`);
-  console.log(`Invalid levels: ${colors.red}${invalidLevels.length}${colors.reset}`);
+  console.log(
+    `Valid: ${colors.green}${validLevels.length}${colors.reset}  Invalid: ${colors.red}${invalidLevels.length}${colors.reset}`
+  );
 
   if (invalidLevels.length > 0) {
-    console.log(`\n${colors.red}Invalid levels:${colors.reset}`);
-    for (const { id, name, error } of invalidLevels) {
-      console.log(`  ${id} "${name}": ${error}`);
-    }
+    for (const { id, name, error } of invalidLevels)
+      console.log(`  ${colors.red}${id} "${name}": ${error}${colors.reset}`);
   }
 
   if (validLevels.length > 0) {
-    console.log(`\n${colors.green}Generated ${validLevels.length} valid levels!${colors.reset}`);
-
     const levelsPath = path.join(__dirname, '../game/modes/laserRelay/levels.ts');
     const fileContent = `// LASER RELAY LEVELS - Auto-generated by laser-level-generator.ts
 // Run: npx tsx src/cli/laser-level-generator.ts
@@ -1544,11 +1143,11 @@ ${validLevels.map((level) => `  ${JSON.stringify(level)}`).join(',\n')}
 ];
 
 export const LASER_WORLDS = [
-  { id: 1, name: 'PRISM', tagline: 'Introductory levels', color: '#06b6d4', icon: '🔷' },
-  { id: 2, name: 'REFRACT', tagline: 'Getting trickier', color: '#8b5cf6', icon: '💎' },
+  { id: 1, name: 'PRISM',    tagline: 'Introductory levels', color: '#06b6d4', icon: '🔷' },
+  { id: 2, name: 'REFRACT',  tagline: 'Getting trickier',   color: '#8b5cf6', icon: '💎' },
   { id: 3, name: 'GAUNTLET', tagline: 'Challenging puzzles', color: '#f59e0b', icon: '⚡' },
-  { id: 4, name: 'NEXUS', tagline: 'Portal challenges', color: '#ec4899', icon: '🌀' },
-  { id: 5, name: 'APEX', tagline: 'Master challenges', color: '#ef4444', icon: '🏆' },
+  { id: 4, name: 'NEXUS',    tagline: 'Portal challenges',   color: '#ec4899', icon: '🌀' },
+  { id: 5, name: 'APEX',     tagline: 'Master challenges',   color: '#ef4444', icon: '🏆' },
 ];
 
 export const LASER_LEVEL_MAP = new Map<number, Level>(LASER_LEVELS.map(level => [level.id, level]));
@@ -1561,7 +1160,6 @@ export function getTotalLevelCount(): number {
   return LASER_LEVELS.length;
 }
 `;
-
     fs.writeFileSync(levelsPath, fileContent);
     console.log(
       `\n${colors.green}✓ Written ${validLevels.length} levels to ${levelsPath}${colors.reset}`

@@ -5,9 +5,9 @@
 
 import type { Level, Tile, Position, Direction } from '../game/types';
 import { getSolution, verifyLevel, generateLevel } from '../game/levels';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // ESM-compatible __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -68,7 +68,7 @@ function createGridFingerprint(level: Level): string {
   const gridSize = level.gridSize;
   const goalPositions = [...level.goalNodes]
     .map((g) => `${g.x},${g.y}`)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .join('|');
 
   // Create a map of tile positions to their types
@@ -206,7 +206,7 @@ function expandGrid(level: Level, additionalSize: number = 2): Level {
   const newWalls: Tile[] = [];
   for (let i = 0; i < newSize; i++) {
     // Top and bottom walls
-    if (!newTiles.find((t) => t.x === i && t.y === 0)) {
+    if (!newTiles.some((t) => t.x === i && t.y === 0)) {
       newWalls.push({
         id: `wall-${i}-0`,
         type: 'wall',
@@ -217,7 +217,7 @@ function expandGrid(level: Level, additionalSize: number = 2): Level {
         canRotate: false,
       });
     }
-    if (!newTiles.find((t) => t.x === i && t.y === newSize - 1)) {
+    if (!newTiles.some((t) => t.x === i && t.y === newSize - 1)) {
       newWalls.push({
         id: `wall-${i}-${newSize - 1}`,
         type: 'wall',
@@ -230,7 +230,7 @@ function expandGrid(level: Level, additionalSize: number = 2): Level {
     }
     // Left and right walls (only interior rows)
     if (i > 0 && i < newSize - 1) {
-      if (!newTiles.find((t) => t.x === 0 && t.y === i)) {
+      if (!newTiles.some((t) => t.x === 0 && t.y === i)) {
         newWalls.push({
           id: `wall-0-${i}`,
           type: 'wall',
@@ -241,7 +241,7 @@ function expandGrid(level: Level, additionalSize: number = 2): Level {
           canRotate: false,
         });
       }
-      if (!newTiles.find((t) => t.x === newSize - 1 && t.y === i)) {
+      if (!newTiles.some((t) => t.x === newSize - 1 && t.y === i)) {
         newWalls.push({
           id: `wall-${newSize - 1}-${i}`,
           type: 'wall',
@@ -674,13 +674,13 @@ async function main() {
   // Parse numeric arguments
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--decoys' && args[i + 1]) {
-      options.decoyCount = parseInt(args[i + 1], 10) || 2;
+      options.decoyCount = Number.parseInt(args[i + 1], 10) || 2;
     }
     if (args[i] === '--expand' && args[i + 1]) {
-      options.expandSize = parseInt(args[i + 1], 10) || 2;
+      options.expandSize = Number.parseInt(args[i + 1], 10) || 2;
     }
     if (args[i] === '--pressure' && args[i + 1]) {
-      options.pressureDelay = parseInt(args[i + 1], 10) || 5000;
+      options.pressureDelay = Number.parseInt(args[i + 1], 10) || 5000;
     }
     if (args[i] === '--split' && args[i + 1] && !args[i + 1].startsWith('--')) {
       options.outputDir = args[i + 1];

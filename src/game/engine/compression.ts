@@ -21,9 +21,9 @@ function shouldCrushAtPosition(
 
   // Calculate distance from each edge using correct axis dimensions
   const distFromTop = y;
-  const distFromBottom = (gridRows - 1) - y;
+  const distFromBottom = gridRows - 1 - y;
   const distFromLeft = x;
-  const distFromRight = (gridCols - 1) - x;
+  const distFromRight = gridCols - 1 - x;
 
   // Check if within crush zone based on direction
   switch (direction) {
@@ -115,7 +115,14 @@ export class CompressionSystem {
     // Crush tiles that are now inside the wall boundary based on compression direction
     const newTiles = tiles.map((tile) => {
       // Use direction-aware crush check with correct per-axis dimensions
-      const shouldCrush = shouldCrushAtPosition(tile.x, tile.y, gridCols, gridRows, newOffset, direction);
+      const shouldCrush = shouldCrushAtPosition(
+        tile.x,
+        tile.y,
+        gridCols,
+        gridRows,
+        newOffset,
+        direction
+      );
 
       if (shouldCrush && tile.type !== 'wall' && tile.type !== 'crushed') {
         return { ...tile, type: 'crushed' as const, justCrushed: true };
@@ -175,7 +182,13 @@ export class CompressionSystem {
    * Check if a position is inside the wall boundary (all-sides default).
    * For directional compression, use shouldCrushAtPosition directly.
    */
-  isInsideWall(x: number, y: number, gridCols: number, gridRows: number, wallOffset: number): boolean {
+  isInsideWall(
+    x: number,
+    y: number,
+    gridCols: number,
+    gridRows: number,
+    wallOffset: number
+  ): boolean {
     const dist = Math.min(x, y, gridCols - 1 - x, gridRows - 1 - y);
     return dist < wallOffset;
   }

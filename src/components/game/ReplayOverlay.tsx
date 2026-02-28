@@ -40,17 +40,17 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   const [step, setStep] = useState(0); // index into engine.snapshots
   const [playing, setPlaying] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(0); // 0=800ms, 1=400ms, 2=200ms
-  const [vw, setVw] = useState(window.innerWidth);
+  const [vw, setVw] = useState(globalThis.innerWidth);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Keep board size in sync with window resizes / orientation changes
   useEffect(() => {
-    const update = () => setVw(window.innerWidth);
-    window.addEventListener('resize', update);
-    window.addEventListener('orientationchange', update);
+    const update = () => setVw(globalThis.innerWidth);
+    globalThis.addEventListener('resize', update);
+    globalThis.addEventListener('orientationchange', update);
     return () => {
-      window.removeEventListener('resize', update);
-      window.removeEventListener('orientationchange', update);
+      globalThis.removeEventListener('resize', update);
+      globalThis.removeEventListener('orientationchange', update);
     };
   }, []);
 

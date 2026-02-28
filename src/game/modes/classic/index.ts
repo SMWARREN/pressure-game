@@ -11,14 +11,20 @@ import { renderClassicDemo } from './demo';
 import { CLASSIC_WALKTHROUGH } from './walkthrough';
 
 export const CLASSIC_WORLDS = [
-  { id: 1, name: 'Breathe',     tagline: 'Learn the basics',           color: '#22c55e', icon: '◈' },
-  { id: 2, name: 'Squeeze',     tagline: 'Feel the walls',             color: '#f59e0b', icon: '◆' },
-  { id: 3, name: 'Crush',       tagline: 'Survive or die',             color: '#ef4444', icon: '⬟' },
-  { id: 4, name: 'Directional', tagline: 'Walls pick a side',          color: '#f97316', icon: '▲' },
-  { id: 5, name: 'Lateral',     tagline: 'Horizontal pressure',        color: '#dc2626', icon: '◀' },
-  { id: 6, name: 'Squeeze',     tagline: 'Top and bottom close in',    color: '#b91c1c', icon: '⬛' },
-  { id: 7, name: 'Corridor',    tagline: 'Left and right close in',    color: '#991b1b', icon: '▬' },
-  { id: 8, name: 'Singularity', tagline: 'The largest grid. No mercy', color: '#7f1d1d', icon: '✦' },
+  { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
+  { id: 2, name: 'Squeeze', tagline: 'Feel the walls', color: '#f59e0b', icon: '◆' },
+  { id: 3, name: 'Crush', tagline: 'Survive or die', color: '#ef4444', icon: '⬟' },
+  { id: 4, name: 'Directional', tagline: 'Walls pick a side', color: '#f97316', icon: '▲' },
+  { id: 5, name: 'Lateral', tagline: 'Horizontal pressure', color: '#dc2626', icon: '◀' },
+  { id: 6, name: 'Squeeze', tagline: 'Top and bottom close in', color: '#b91c1c', icon: '⬛' },
+  { id: 7, name: 'Corridor', tagline: 'Left and right close in', color: '#991b1b', icon: '▬' },
+  {
+    id: 8,
+    name: 'Singularity',
+    tagline: 'The largest grid. No mercy',
+    color: '#7f1d1d',
+    icon: '✦',
+  },
 ];
 
 export const ClassicMode: GameModeConfig = {

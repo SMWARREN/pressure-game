@@ -1,6 +1,7 @@
 // PRESSURE - Shopping Spree Mode Tutorial Demos
 
 import { TutorialDemoType } from '../types';
+import { ArcadeTile } from '../shared/arcadeTile';
 
 const SHOPPING_COLORS: Record<string, string> = {
   '👗': '#ec4899',
@@ -9,46 +10,6 @@ const SHOPPING_COLORS: Record<string, string> = {
   '💄': '#db2777',
   '💎': '#06b6d4',
 };
-
-function ShoppingTile({
-  sym,
-  highlight = false,
-  small = false,
-  flashSale = false,
-}: {
-  sym: string;
-  highlight?: boolean;
-  small?: boolean;
-  flashSale?: boolean;
-}) {
-  const col = SHOPPING_COLORS[sym] ?? '#ec4899';
-  const size = small ? 34 : 42;
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 7,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: small ? '1rem' : '1.2rem',
-        background: highlight
-          ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)`
-          : 'rgba(10,10,20,0.6)',
-        border: flashSale ? '2px solid #fbbf24' : highlight ? `2px solid ${col}` : `${col}30`,
-        boxShadow: flashSale
-          ? '0 0 18px rgba(251,191,36,0.8)'
-          : highlight
-            ? `0 0 12px ${col}70`
-            : 'none',
-        opacity: highlight ? 1 : 0.35,
-      }}
-    >
-      {sym}
-    </div>
-  );
-}
 
 export function renderShoppingSpreeDemo(
   type: TutorialDemoType,
@@ -66,7 +27,7 @@ export function renderShoppingSpreeDemo(
         {grid.map((row, r) => (
           <div key={r} style={{ display: 'flex', gap: 3 }}>
             {row.map((sym, c) => (
-              <ShoppingTile key={c} sym={sym} highlight={inGroup(r, c)} />
+              <ArcadeTile colors={SHOPPING_COLORS} key={c} sym={sym} highlight={inGroup(r, c)} />
             ))}
           </div>
         ))}
@@ -90,23 +51,23 @@ export function renderShoppingSpreeDemo(
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
         <div style={{ display: 'flex', gap: 6 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <ShoppingTile sym="💄" highlight small />
+            <ArcadeTile colors={SHOPPING_COLORS} sym="💄" highlight small />
             <div style={{ fontSize: 9, color: '#db2777' }}>$10</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <ShoppingTile sym="👗" highlight small />
+            <ArcadeTile colors={SHOPPING_COLORS} sym="👗" highlight small />
             <div style={{ fontSize: 9, color: '#ec4899' }}>$15</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <ShoppingTile sym="👠" highlight small />
+            <ArcadeTile colors={SHOPPING_COLORS} sym="👠" highlight small />
             <div style={{ fontSize: 9, color: '#ef4444' }}>$20</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <ShoppingTile sym="👜" highlight small />
+            <ArcadeTile colors={SHOPPING_COLORS} sym="👜" highlight small />
             <div style={{ fontSize: 9, color: '#d97706' }}>$25</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <ShoppingTile sym="💎" highlight small />
+            <ArcadeTile colors={SHOPPING_COLORS} sym="💎" highlight small />
             <div style={{ fontSize: 9, color: '#06b6d4' }}>$50</div>
           </div>
         </div>
@@ -121,9 +82,9 @@ export function renderShoppingSpreeDemo(
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
         <div style={{ display: 'flex', gap: 3 }}>
-          <ShoppingTile sym="👗" highlight small />
-          <ShoppingTile sym="👗" highlight flashSale small />
-          <ShoppingTile sym="👠" small />
+          <ArcadeTile colors={SHOPPING_COLORS} sym="👗" highlight small />
+          <ArcadeTile colors={SHOPPING_COLORS} sym="👗" highlight flashSale small />
+          <ArcadeTile colors={SHOPPING_COLORS} sym="👠" small />
         </div>
         <div style={{ fontSize: 10, color: '#fbbf24', letterSpacing: '0.1em', fontWeight: 700 }}>
           ⚡ FLASH SALE: 3× VALUE!
@@ -184,7 +145,12 @@ export function renderShoppingSpreeDemo(
                     🦹
                   </div>
                 ) : (
-                  <ShoppingTile key={c} sym={sym} highlight={inGroup(r, c)} />
+                  <ArcadeTile
+                    colors={SHOPPING_COLORS}
+                    key={c}
+                    sym={sym}
+                    highlight={inGroup(r, c)}
+                  />
                 )
               )}
             </div>
@@ -211,12 +177,12 @@ export function renderShoppingSpreeDemo(
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{ display: 'flex', gap: 3 }}>
               {['👗', '👗', '👗'].map((sym, i) => (
-                <ShoppingTile key={i} sym={sym} highlight small />
+                <ArcadeTile colors={SHOPPING_COLORS} key={i} sym={sym} highlight small />
               ))}
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
               {['👗', '👗'].map((sym, i) => (
-                <ShoppingTile key={i} sym={sym} highlight small />
+                <ArcadeTile colors={SHOPPING_COLORS} key={i} sym={sym} highlight small />
               ))}
             </div>
             <div style={{ fontSize: 9, color: '#ec4899' }}>5+ COMBO</div>

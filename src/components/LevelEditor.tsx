@@ -275,7 +275,7 @@ ${tilesStr}
 
   // Calculate board size based on grid size
   const boardPx = useMemo(() => {
-    const baseSize = Math.min(400, window.innerWidth - 340);
+    const baseSize = Math.min(400, globalThis.innerWidth - 340);
     return Math.max(200, baseSize);
   }, [gridSize]);
 
@@ -325,7 +325,7 @@ ${tilesStr}
               min={4}
               max={12}
               value={gridSize}
-              onChange={(e) => handleGridSizeChange(parseInt(e.target.value) || 5)}
+              onChange={(e) => handleGridSizeChange(Number.parseInt(e.target.value) || 5)}
               className="w-full bg-gray-700 rounded p-2"
             />
           </div>
@@ -475,7 +475,7 @@ ${tilesStr}
               type="number"
               min={1}
               value={worldId}
-              onChange={(e) => setWorldId(parseInt(e.target.value) || 1)}
+              onChange={(e) => setWorldId(Number.parseInt(e.target.value) || 1)}
               className="w-full bg-gray-700 rounded p-2"
             />
           </div>
@@ -486,7 +486,7 @@ ${tilesStr}
               type="number"
               min={1}
               value={maxMoves}
-              onChange={(e) => setMaxMoves(parseInt(e.target.value) || 10)}
+              onChange={(e) => setMaxMoves(Number.parseInt(e.target.value) || 10)}
               className="w-full bg-gray-700 rounded p-2"
             />
           </div>
@@ -496,7 +496,7 @@ ${tilesStr}
             <input
               type="number"
               value={compressionDelay}
-              onChange={(e) => setCompressionDelay(parseInt(e.target.value) || 5000)}
+              onChange={(e) => setCompressionDelay(Number.parseInt(e.target.value) || 5000)}
               className="w-full bg-gray-700 rounded p-2"
             />
           </div>

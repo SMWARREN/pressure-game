@@ -1,0 +1,183 @@
+================================================================================
+PRESSURE GAME - DUPLICATE CODE ANALYSIS SUMMARY
+================================================================================
+
+Date: February 28, 2026
+Scope: Complete codebase scan (161 files, ~49,000 LOC)
+Duplication Detected: ~20% (per SonarQube)
+
+================================================================================
+TOP FINDINGS
+================================================================================
+
+DUPLICATE #1: Pipe & Dot Rendering Functions
+  - Severity: HIGH
+  - Affected Files: 3 (classic, zen, blitz demo.tsx)
+  - Code Lines: ~180 LOC
+  - Recommendation: Extract to shared demoUtils.tsx
+  - Impact: -2-3 KB bundle size, high maintainability gain
+
+DUPLICATE #2: Tile Component Pattern
+  - Severity: HIGH
+  - Affected Files: 4 (candy, shoppingSpree, gemBlast, gravityDrop demo.tsx)
+  - Code Lines: ~200 LOC
+  - Recommendation: Create generic PaletteTile component
+  - Impact: -1.5-2 KB bundle size, code reuse
+
+DUPLICATE #3: Row Helper Component
+  - Severity: LOW
+  - Affected Files: 3 (mirrorForge, memoryMatch, gravityDrop demo.tsx)
+  - Code Lines: ~45 LOC
+  - Recommendation: Extract to shared demoUtils.tsx
+  - Impact: -0.2 KB bundle size
+
+DUPLICATE #4: TileBase Style Constant
+  - Severity: LOW-MEDIUM
+  - Affected Files: 6 (classic, zen, blitz, voltage, fuse, laserRelay demo.tsx)
+  - Code Lines: ~60 LOC
+  - Recommendation: Extract to shared demoStyles.ts
+  - Impact: -0.3 KB bundle size
+
+DUPLICATE #5: Mode Configuration Boilerplate
+  - Severity: LOW
+  - Affected Files: 14 (all mode index.ts)
+  - Assessment: STANDARD PATTERN - NOT A PROBLEM
+  - Recommendation: Keep as-is (good separation of concerns)
+
+================================================================================
+AGGREGATE METRICS
+================================================================================
+
+Total Duplicate LOC to Refactor: ~517 lines
+Total Files Affected: ~12-15 files
+Estimated Bundle Savings: 4-5.5 KB (2-3% reduction)
+Duplication Reduction: 20% → 16-17%
+
+Files to CREATE:
+  ✓ src/game/modes/shared/demoUtils.tsx
+  ✓ src/game/modes/shared/demoStyles.ts
+  ✓ src/game/modes/shared/PaletteTile.tsx
+
+Files to MODIFY:
+  ✓ src/game/modes/classic/demo.tsx
+  ✓ src/game/modes/zen/demo.tsx
+  ✓ src/game/modes/blitz/demo.tsx
+  ✓ src/game/modes/voltage/demo.tsx
+  ✓ src/game/modes/fuse/demo.tsx
+  ✓ src/game/modes/laserRelay/demo.tsx
+  ✓ src/game/modes/candy/demo.tsx
+  ✓ src/game/modes/shoppingSpree/demo.tsx
+  ✓ src/game/modes/gemBlast/demo.tsx
+  ✓ src/game/modes/gravityDrop/demo.tsx
+  ✓ src/game/modes/mirrorForge/demo.tsx
+  ✓ src/game/modes/memoryMatch/demo.tsx
+
+================================================================================
+CURRENT BUILD STATUS
+================================================================================
+
+✓ Build: PASSING (180 modules, ~949ms)
+✓ Lint: PASSING (0 errors)
+✓ TypeScript: PASSING (0 errors)
+
+All refactoring changes are internal and non-breaking.
+
+================================================================================
+REFACTORING PHASES
+================================================================================
+
+Phase 1: Extract Pipe/Dot Utilities
+  - Create demoUtils.tsx with pipe(), dot(), rotateDot
+  - Update 3 files (classic, zen, blitz)
+  - Expected: -180 LOC
+
+Phase 2: Extract Style Constants
+  - Create demoStyles.ts with DEMO_TILE_BASE, DEMO_TILE_SIZES
+  - Update 6 files (classic, zen, blitz, voltage, fuse, laserRelay)
+  - Expected: -60 LOC
+
+Phase 3: Create Generic PaletteTile
+  - Create PaletteTile.tsx
+  - Update 4 arcade mode demos (candy, shoppingSpree, gemBlast, gravityDrop)
+  - Expected: -150 LOC
+
+Phase 4: Extract Row Helper
+  - Add Row to demoUtils.tsx
+  - Update 3 files (mirrorForge, memoryMatch, gravityDrop)
+  - Expected: -45 LOC
+
+Total Expected: -435 LOC reduction, -4-5.5 KB bundle savings
+
+================================================================================
+RISK ASSESSMENT
+================================================================================
+
+Risk Level: LOW-MEDIUM
+  - All changes are internal refactoring (no public API changes)
+  - Pipe/Dot extraction: LOW RISK (identical code)
+  - Row helper extraction: LOW RISK (simple component)
+  - Generic PaletteTile: MEDIUM RISK (requires demo testing)
+
+Testing Required:
+  ✓ npm run build (after each phase)
+  ✓ npm run lint (after each phase)
+  ✓ Visual regression (demo screenshots comparison)
+
+Rollback: Simple (changes are file removals/additions only)
+
+================================================================================
+DUPLICATE CODE SECTIONS
+================================================================================
+
+1. Pipe Rendering Function (appears 3× in classic, zen, blitz demo.tsx)
+   Location: Lines 16-60
+   Status: Ready to extract
+
+2. Dot Renderer (appears 3× same files)
+   Location: Lines 62-76
+   Status: Ready to extract
+
+3. Rotate Dot Component (appears 3× same files)
+   Location: Lines 78-91
+   Status: Ready to extract
+
+4. TileBase Style Constant (appears 6× across demo files)
+   Location: Lines 5-14
+   Status: Ready to extract
+
+5. Tile Component Pattern (appears 4× in arcade demo files)
+   Structure: CandyTile, ShoppingTile, GemTile, GravTile
+   Status: Ready to consolidate into generic PaletteTile
+
+6. Row Helper (appears 3× in mirrorForge, memoryMatch, gravityDrop)
+   Structure: Simple flex layout wrapper
+   Status: Ready to extract
+
+================================================================================
+FILES FOR DETAILED ANALYSIS
+================================================================================
+
+Full duplicate analysis report saved to:
+→ DUPLICATE_CODE_ANALYSIS.md (detailed 300+ line report)
+
+Key sections:
+  - Duplicate #1-9 with code examples
+  - File-by-file impact assessment
+  - Before/after refactoring code samples
+  - Implementation timeline and risk analysis
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Review DUPLICATE_CODE_ANALYSIS.md for detailed findings
+2. Execute Phase 1 refactoring (pipe/dot extraction)
+3. Verify build passes: npm run build
+4. Verify lint passes: npm run lint
+5. Continue with Phases 2-4
+6. Monitor bundle size reduction in dist/assets
+
+Expected Timeline: 2-3 hours for complete refactoring
+Expected Benefit: 4-5.5 KB bundle reduction + improved maintainability
+
+================================================================================

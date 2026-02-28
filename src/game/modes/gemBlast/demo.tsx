@@ -44,9 +44,9 @@ function GemTile({
   size = 32,
   highlight = false,
 }: {
-  symbol: string;
-  size?: number;
-  highlight?: boolean;
+  readonly symbol: string;
+  readonly size?: number;
+  readonly highlight?: boolean;
 }) {
   const colors = GEM_COLORS[symbol] ?? {
     background: '#0a0a1e',
@@ -78,7 +78,7 @@ function GemTile({
 
 // ── Empty slot component ──────────────────────────────────────────────────────
 
-function EmptySlot({ size = 32 }: { size?: number }) {
+function EmptySlot({ size = 32 }: { readonly size?: number }) {
   return (
     <div
       style={{

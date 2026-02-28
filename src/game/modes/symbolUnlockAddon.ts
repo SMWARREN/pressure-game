@@ -96,7 +96,7 @@ export function applyFreshFlags(tiles: Tile[], freshSymbols: string[]): Tile[] {
     if (!t.canRotate) return t;
     const sym = t.displayData?.symbol as string;
     const shouldBeFresh = freshSet.has(sym);
-    const isFresh = !!(t.displayData as Record<string, unknown>)?.isFresh;
+    const isFresh = Boolean((t.displayData as Record<string, unknown>)?.isFresh);
     if (shouldBeFresh === isFresh) return t;
     return { ...t, displayData: { ...t.displayData, isFresh: shouldBeFresh } };
   });

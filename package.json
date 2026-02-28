@@ -11,7 +11,10 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "test:game": "npx tsx src/cli/game-tester.ts",
     "solve": "npx tsx src/cli/level-solver.ts",
-    "enhance": "npx tsx src/cli/level-enhancer.ts"
+    "enhance": "npx tsx src/cli/level-enhancer.ts",
+    "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
+    "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
+    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_fa46148223081b99a9ae05b09fa86b25d0fddf7d"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -25,6 +28,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9",
     "prettier": "^3.8.1",
+    "sonarqube-scanner": "^4.3.4",
     "typescript": "^5",
     "vite": "5.4.11",
     "vite-plugin-pwa": "^1.2.0"

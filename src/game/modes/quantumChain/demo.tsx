@@ -9,11 +9,11 @@ function QuantumTile({
   fulfilled = false,
   small = false,
 }: {
-  type: 'number' | 'operator' | 'target' | 'flux';
-  value?: number;
-  symbol?: string;
-  fulfilled?: boolean;
-  small?: boolean;
+  readonly type: 'number' | 'operator' | 'target' | 'flux';
+  readonly value?: number;
+  readonly symbol?: string;
+  readonly fulfilled?: boolean;
+  readonly small?: boolean;
 }) {
   const size = small ? 34 : 42;
   const fontSize = small ? '0.9rem' : '1.1rem';

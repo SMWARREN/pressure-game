@@ -13,12 +13,12 @@ function MirTile({
   active = false,
   small = false,
 }: {
-  type?: 'normal' | 'mirror-highlight' | 'goal';
-  rotated?: boolean;
-  isGoal?: boolean;
-  isCenter?: boolean;
-  active?: boolean;
-  small?: boolean;
+  readonly type?: 'normal' | 'mirror-highlight' | 'goal';
+  readonly rotated?: boolean;
+  readonly isGoal?: boolean;
+  readonly isCenter?: boolean;
+  readonly active?: boolean;
+  readonly small?: boolean;
 }) {
   const size = small ? 34 : 42;
 
@@ -63,7 +63,7 @@ function MirTile({
   );
 }
 
-function Row({ children, gap = 4 }: { children: unknown; gap?: number }) {
+function Row({ children, gap = 4 }: { readonly children: unknown; readonly gap?: number }) {
   return <div style={{ display: 'flex', gap }}>{children as any}</div>;
 }
 

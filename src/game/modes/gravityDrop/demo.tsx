@@ -22,12 +22,12 @@ function GravTile({
   empty = false,
   small = false,
 }: {
-  value?: number;
-  inChain?: boolean;
-  chainSum?: number;
-  special?: 'none' | 'bomb' | 'star' | 'lock';
-  empty?: boolean;
-  small?: boolean;
+  readonly value?: number;
+  readonly inChain?: boolean;
+  readonly chainSum?: number;
+  readonly special?: 'none' | 'bomb' | 'star' | 'lock';
+  readonly empty?: boolean;
+  readonly small?: boolean;
 }) {
   const size = small ? 36 : 44;
   const fontSize = small ? '1rem' : '1.2rem';
@@ -94,7 +94,7 @@ function GravTile({
   );
 }
 
-function Row({ children }: { children: unknown }) {
+function Row({ children }: { readonly children: unknown }) {
   return <div style={{ display: 'flex', gap: 5 }}>{children as any}</div>;
 }
 

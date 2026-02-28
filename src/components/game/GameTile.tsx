@@ -140,27 +140,27 @@ function ensureCandyStyles() {
 }
 
 export interface GameTileProps {
-  id?: string;
-  x?: number;
-  y?: number;
-  type: string;
-  connections: Direction[];
-  canRotate: boolean;
-  isGoalNode: boolean;
-  isDecoy?: boolean;
-  isHint: boolean;
-  inDanger: boolean;
-  justRotated?: boolean;
-  onClick: () => void;
-  tileSize: number;
-  animationsEnabled?: boolean;
+  readonly id?: string;
+  readonly x?: number;
+  readonly y?: number;
+  readonly type: string;
+  readonly connections: Direction[];
+  readonly canRotate: boolean;
+  readonly isGoalNode: boolean;
+  readonly isDecoy?: boolean;
+  readonly isHint: boolean;
+  readonly inDanger: boolean;
+  readonly justRotated?: boolean;
+  readonly onClick: () => void;
+  readonly tileSize: number;
+  readonly animationsEnabled?: boolean;
   /** Optional mode-specific renderer — enables slots, candy crush, match-3, etc. */
-  tileRenderer?: TileRenderer;
-  displayData?: Record<string, unknown>;
+  readonly tileRenderer?: TileRenderer;
+  readonly displayData?: Record<string, unknown>;
   /** Tap was rejected (isolated tile) — show a brief red flash */
-  isRejected?: boolean;
+  readonly isRejected?: boolean;
   /** Editor mode - allows clicking on any cell including empty ones */
-  editorMode?: boolean;
+  readonly editorMode?: boolean;
 }
 
 /**
@@ -337,7 +337,7 @@ function GameTileComponent({
     const ctx = {
       isHint,
       inDanger,
-      justRotated: !!justRotated,
+      justRotated: Boolean(justRotated),
       compressionActive: false,
       tileSize,
     };
@@ -364,12 +364,12 @@ function GameTileComponent({
     const appliedBg = rejectedStyle ?? customColors ?? bgStyle;
 
     // isNew: tile just dropped in — play slide animation + glow border transition
-    const isNewTile = !!displayData?.isNew;
+    const isNewTile = Boolean(displayData?.isNew);
 
     // ── Outbreak-specific state flags ────────────────────────────────────────
     const isOutbreak = tileRenderer.type === 'outbreak';
-    const obOwned = isOutbreak && !!displayData?.owned;
-    const obFrontier = isOutbreak && !obOwned && !!displayData?.isFrontier;
+    const obOwned = isOutbreak && Boolean(displayData?.owned);
+    const obFrontier = isOutbreak && !obOwned && Boolean(displayData?.isFrontier);
     const obInterior = isOutbreak && !obOwned && !obFrontier;
 
     // CSS custom properties for the zombiePulse animation (set per-tile color)
