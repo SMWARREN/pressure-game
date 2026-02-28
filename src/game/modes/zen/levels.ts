@@ -72,11 +72,11 @@ function createZenLevels(): Level[] {
   return levels;
 }
 
-// Custom "Ripple (edited)" level - 10x10 grid with 7 goal nodes
+// NEXUS PRIME - 10x10 grid with 5 goal nodes
 // Scrambled: 5 tiles need rotation to solve
 export const RIPPLE_EDITED_LEVEL: Level = {
   id: 201,
-  name: 'Ripple (edited)',
+  name: 'Nexus Prime',
   world: 4,
   gridSize: 10,
   maxMoves: 5,
@@ -176,7 +176,7 @@ export const RIPPLE_EDITED_LEVEL: Level = {
       type: 'path',
       x: 3,
       y: 1,
-      connections: ['down', 'left'],
+      connections: ['up', 'right'],  // SCRAMBLED: was ['down', 'left']
       isGoalNode: false,
       canRotate: true,
     },
@@ -194,7 +194,7 @@ export const RIPPLE_EDITED_LEVEL: Level = {
       type: 'path',
       x: 4,
       y: 3,
-      connections: ['left', 'right'],
+      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -303,7 +303,7 @@ export const RIPPLE_EDITED_LEVEL: Level = {
       type: 'path',
       x: 5,
       y: 5,
-      connections: ['left', 'right'],
+      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -518,11 +518,11 @@ export const RIPPLE_EDITED_LEVEL: Level = {
   ],
 };
 
-// Custom "Stream (edited)" level - 10x10 grid with multiple goal nodes
+// VORTEX - 10x10 grid with 5 goal nodes
 // Scrambled: 7 tiles need rotation to solve
 export const STREAM_EDITED_LEVEL: Level = {
   id: 200,
-  name: 'Stream (edited)',
+  name: 'Vortex',
   world: 4,
   gridSize: 10,
   maxMoves: 7,
@@ -635,7 +635,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 2,
       y: 1,
-      connections: ['up', 'down', 'left'],
+      connections: ['down', 'right'],  // SCRAMBLED: was ['up', 'down', 'left']
       isGoalNode: false,
       canRotate: true,
     },
@@ -644,7 +644,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 3,
       y: 1,
-      connections: ['left', 'right'],
+      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -662,7 +662,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 7,
       y: 1,
-      connections: ['left', 'right'],
+      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -916,7 +916,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 5,
       y: 5,
-      connections: ['up', 'right'],
+      connections: ['down', 'left'],  // SCRAMBLED: was ['up', 'right']
       isGoalNode: false,
       canRotate: true,
     },
