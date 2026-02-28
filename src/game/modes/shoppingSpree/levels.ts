@@ -287,7 +287,13 @@ export const SHOPPING_LEVELS: Level[] = [
     targetScore: 99999,
     timeLimit: 22, // Reduced from 30
     isUnlimited: true,
-    features: { wildcards: true, bombs: true },
+    features: {
+      wildcards: true,
+      bombs: true,
+      thieves: true,
+      blockerIntensity: 1,
+      minGroupForTime: 3,
+    },
   },
   {
     id: 315,
@@ -302,7 +308,14 @@ export const SHOPPING_LEVELS: Level[] = [
     targetScore: 99999,
     timeLimit: 15, // Reduced from 20 - now challenging!
     isUnlimited: true,
-    features: { wildcards: true, bombs: true, comboChain: true },
+    features: {
+      wildcards: true,
+      bombs: true,
+      comboChain: true,
+      thieves: true,
+      blockerIntensity: 2,
+      minGroupForTime: 4,
+    },
   },
 
   // ── Bonus levels — one per world ──────────────────────────────────────────
@@ -359,7 +372,15 @@ export const SHOPPING_LEVELS: Level[] = [
     targetScore: 99999,
     timeLimit: 10,
     isUnlimited: true,
-    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
+    features: {
+      wildcards: true,
+      bombs: true,
+      comboChain: true,
+      rain: true,
+      thieves: true,
+      blockerIntensity: 2,
+      minGroupForTime: 4,
+    },
   },
 
   // ── World 5: Black Friday — wildcards, bombs, combo chains & rain ────────────

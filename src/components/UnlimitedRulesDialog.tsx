@@ -11,7 +11,16 @@ interface UnlimitedRulesDialogProps {
   readonly onBack: () => void;
   readonly modeId?: string;
   readonly onWatchBest?: () => void;
-  readonly features?: Record<string, boolean>;
+  readonly features?: {
+    wildcards?: boolean;
+    bombs?: boolean;
+    comboChain?: boolean;
+    rain?: boolean;
+    ice?: boolean;
+    thieves?: boolean;
+    blockerIntensity?: 0 | 1 | 2;
+    minGroupForTime?: number;
+  };
 }
 
 export default function UnlimitedRulesDialog({

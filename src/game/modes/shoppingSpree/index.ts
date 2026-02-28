@@ -19,6 +19,7 @@ import { SHOPPING_SPREE_TUTORIAL_STEPS } from './tutorial';
 import { renderShoppingSpreeDemo } from './demo';
 import { SHOPPING_SPREE_WALKTHROUGH } from './walkthrough';
 import { spawnBlockers, unblockNearGroup } from '../blockingAddon';
+import { getBlockerCount, getMinGroupForTime } from '../unlimitedBlockerAddon';
 import {
   tryUnlockSymbol,
   expandActiveSymbols,
@@ -340,9 +341,10 @@ export const ShoppingSpreeMode: GameModeConfig = {
 
   onTick(state, modeState) {
     const timeLeft = modeState?.timeLeft as number | undefined;
-    const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 4;
-    const features = modeState?.features as { rain?: boolean; thieves?: boolean } | undefined;
+    const features = modeState?.features as
+      | { rain?: boolean; thieves?: boolean; blockerIntensity?: 0 | 1 | 2 }
+      | undefined;
 
     const storedState = (state.modeState as ShoppingModeState) || getInitialState();
 
@@ -393,25 +395,23 @@ export const ShoppingSpreeMode: GameModeConfig = {
 
     if (updatedState !== null) return { tiles: updatedTiles, modeState: updatedState };
 
-    // Only run time-based thief spawning on Unlimited world levels (314, 315)
-    // Level 313 is PEACEFUL - no thieves!
-    const isUnlimitedWithThieves = levelId !== undefined && levelId >= 314 && levelId <= 315;
-    if (!isUnlimitedWithThieves || timeLeft === undefined) return null;
+    // Only run time-based thief spawning on Unlimited world with config-driven thieves
+    if (!features?.thieves || timeLeft === undefined) return null;
 
-    // Progressive thief difficulty per level:
-    // Level 314 (medium): thieves in last 25s, up to 2 thieves
-    // Level 315 (hardest): thieves throughout, up to 3 thieves
+    // Use config-driven approach: blockerIntensity determines spawn behavior
+    const count = getBlockerCount(features, timeLeft);
+    if (count === 0) return null;
+
+    // Determine spawn chance based on intensity
     let spawnChance = 0;
-    let maxCount = 1;
-
-    if (levelId === 314) {
-      maxCount = timeLeft < 15 ? 2 : 1;
+    const intensity = features.blockerIntensity ?? 0;
+    if (intensity === 1) {
+      // Moderate: thieves in last 20s
       if (timeLeft < 10) spawnChance = 0.4;
       else if (timeLeft < 20) spawnChance = 0.25;
       else if (timeLeft < 25) spawnChance = 0.15;
-    } else {
-      // Hardest (315) - thieves throughout, up to 3
-      maxCount = timeLeft < 10 ? 3 : timeLeft < 20 ? 2 : 1;
+    } else if (intensity === 2) {
+      // Aggressive: thieves throughout
       if (timeLeft < 10) spawnChance = 0.55;
       else if (timeLeft < 20) spawnChance = 0.4;
       else if (timeLeft < 30) spawnChance = 0.25;
@@ -423,7 +423,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const existingThieves = new Set(storedState.thiefPositions || []);
     const result = spawnBlockers(updatedTiles, 'hasThief', existingThieves, {
       spawnChance,
-      maxCount,
+      maxCount: count,
     });
     if (!result) return null;
 
@@ -571,16 +571,10 @@ export const ShoppingSpreeMode: GameModeConfig = {
     }
 
     // Time bonus for Unlimited world (world 4) — bigger groups = more time!
-    // Progressive difficulty: Level 1 = 2+, Level 2 = 3+, Level 3 = 4+ for time bonus
     const timeLeft = modeState?.timeLeft as number | undefined;
-    const levelId = modeState?.levelId as number | undefined;
     let timeBonus = 0;
     if (timeLeft !== undefined) {
-      // Determine minimum group size for time bonus based on level
-      // Level 313 (easiest): 2+, Level 314 (medium): 3+, Level 315 (hardest): 4+
-      let minGroupForTime = 4;
-      if (levelId === 313) minGroupForTime = 2;
-      else if (levelId === 314) minGroupForTime = 3;
+      const minGroupForTime = getMinGroupForTime(features);
 
       if (group.length >= minGroupForTime) {
         if (group.length >= 10) timeBonus = 8;

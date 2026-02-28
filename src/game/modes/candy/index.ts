@@ -14,6 +14,7 @@ import { CANDY_TUTORIAL_STEPS } from './tutorial';
 import { renderCandyDemo } from './demo';
 import { CANDY_WALKTHROUGH } from './walkthrough';
 import { spawnBlockers, unblockNearGroup } from '../blockingAddon';
+import { getBlockerCount, getMinGroupForTime } from '../unlimitedBlockerAddon';
 import {
   tryUnlockSymbol,
   expandActiveSymbols,
@@ -355,12 +356,9 @@ export const CandyMode: GameModeConfig = {
 
     // ── Time bonus for Unlimited world (world 5) ──────────────────────────────
     const timeLeft = modeState?.timeLeft as number | undefined;
-    const levelId = modeState?.levelId as number | undefined;
     let timeBonus = 0;
     if (timeLeft !== undefined) {
-      let minGroupForTime = 4;
-      if (levelId === 113) minGroupForTime = 2;
-      else if (levelId === 114) minGroupForTime = 3;
+      const minGroupForTime = getMinGroupForTime(features);
 
       if (group.length >= minGroupForTime) {
         if (group.length >= 7) timeBonus = 5;
@@ -391,9 +389,10 @@ export const CandyMode: GameModeConfig = {
 
   onTick(state, modeState) {
     const timeLeft = modeState?.timeLeft as number | undefined;
-    const levelId = modeState?.levelId as number | undefined;
     const world = (modeState?.world as number) ?? 0;
-    const features = modeState?.features as { rain?: boolean; ice?: boolean } | undefined;
+    const features = modeState?.features as
+      | { rain?: boolean; ice?: boolean; blockerIntensity?: 0 | 1 | 2 }
+      | undefined;
 
     // Accumulate tile/state changes so rain + ice can both fire in the same tick
     let updatedState: Record<string, unknown> | null = null;
@@ -449,27 +448,32 @@ export const CandyMode: GameModeConfig = {
     // Only run time-based ice freezing on timed levels (World 4 + Unlimited W5)
     if (timeLeft === undefined) return null;
 
-    // World 5 (Unlimited) levels: 114, 115 - progressive freezing difficulty!
-    // Level 113 is PEACEFUL - no ice cubes!
-    const isUnlimitedWithIce = levelId !== undefined && levelId >= 114 && levelId <= 115;
-
-    let freezeCount = 0;
-    if (isUnlimitedWithIce) {
-      if (levelId === 113) {
-        freezeCount = timeLeft < 5 ? 1 : timeLeft < 10 ? 1 : 0;
-      } else if (levelId === 114) {
-        freezeCount = timeLeft < 5 ? 2 : timeLeft < 10 ? 2 : timeLeft < 15 ? 1 : 0;
-      } else {
-        // Level 115 - most aggressive
-        freezeCount = timeLeft < 5 ? 3 : timeLeft < 10 ? 2 : timeLeft < 20 ? 1 : 0;
-      }
-    } else {
-      // World 4 (Frozen): original behavior
-      freezeCount = timeLeft <= 8 ? 2 : timeLeft <= 15 ? 1 : 0;
-    }
-
+    // Use config-driven approach: blockerIntensity determines spawn behavior
+    const freezeCount = getBlockerCount(features, timeLeft);
     if (freezeCount === 0) return null;
 
+    // World 4 (Frozen): original behavior — spawn every tick with chance
+    if (!features?.ice) {
+      // World 4 (non-unlimited): use time-based spawning
+      const existingFrozen = new Set(
+        state.tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`)
+      );
+      const result = spawnBlockers(state.tiles, 'frozen', existingFrozen, {
+        spawnChance: 1,
+        maxCount: timeLeft <= 8 ? 2 : timeLeft <= 15 ? 1 : 0,
+      });
+      if (!result) return null;
+      const minGroupSize = world <= 2 ? 3 : 4;
+      return {
+        tiles: result.tiles,
+        modeState: {
+          ...state.modeState,
+          iceWarning: `🧊 Ice! Match ${minGroupSize}+ to unfreeze!`,
+        },
+      };
+    }
+
+    // Unlimited with ice (config-driven)
     const existingFrozen = new Set(
       state.tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`)
     );

@@ -99,6 +99,8 @@ interface CandyLevelConfig {
     comboChain?: boolean;
     rain?: boolean;
     ice?: boolean;
+    blockerIntensity?: 0 | 1 | 2;
+    minGroupForTime?: number;
   };
   gridCols?: number;
   gridRows?: number;
@@ -305,7 +307,7 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 8888,
     timeLimit: 18, // Reduced from 20
     isUnlimited: true,
-    features: { wildcards: true, bombs: true },
+    features: { wildcards: true, bombs: true, ice: true, blockerIntensity: 1, minGroupForTime: 3 },
   },
   {
     id: 115,
@@ -318,7 +320,14 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 9999,
     timeLimit: 12, // Reduced from 15 - now challenging!
     isUnlimited: true,
-    features: { wildcards: true, bombs: true, comboChain: true },
+    features: {
+      wildcards: true,
+      bombs: true,
+      comboChain: true,
+      ice: true,
+      blockerIntensity: 2,
+      minGroupForTime: 4,
+    },
   },
   // ── World 6: Tropical — wildcards, bombs, combo chains & rain chaos ─────────
   {
@@ -385,7 +394,15 @@ const LEVEL_CONFIGS: CandyLevelConfig[] = [
     seed: 6543,
     timeLimit: 8, // Reduced from 12 - extreme challenge!
     isUnlimited: true,
-    features: { wildcards: true, bombs: true, comboChain: true, rain: true },
+    features: {
+      wildcards: true,
+      bombs: true,
+      comboChain: true,
+      rain: true,
+      ice: true,
+      blockerIntensity: 2,
+      minGroupForTime: 4,
+    },
   },
 ];
 

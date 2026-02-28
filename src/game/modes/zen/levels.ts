@@ -176,7 +176,7 @@ export const RIPPLE_EDITED_LEVEL: Level = {
       type: 'path',
       x: 3,
       y: 1,
-      connections: ['up', 'right'],  // SCRAMBLED: was ['down', 'left']
+      connections: ['up', 'right'], // SCRAMBLED: was ['down', 'left']
       isGoalNode: false,
       canRotate: true,
     },
@@ -194,7 +194,7 @@ export const RIPPLE_EDITED_LEVEL: Level = {
       type: 'path',
       x: 4,
       y: 3,
-      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
+      connections: ['up', 'down'], // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -303,7 +303,7 @@ export const RIPPLE_EDITED_LEVEL: Level = {
       type: 'path',
       x: 5,
       y: 5,
-      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
+      connections: ['up', 'down'], // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -635,7 +635,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 2,
       y: 1,
-      connections: ['down', 'right'],  // SCRAMBLED: was ['up', 'down', 'left']
+      connections: ['down', 'right'], // SCRAMBLED: was ['up', 'down', 'left']
       isGoalNode: false,
       canRotate: true,
     },
@@ -644,7 +644,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 3,
       y: 1,
-      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
+      connections: ['up', 'down'], // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -662,7 +662,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 7,
       y: 1,
-      connections: ['up', 'down'],  // SCRAMBLED: was ['left', 'right']
+      connections: ['up', 'down'], // SCRAMBLED: was ['left', 'right']
       isGoalNode: false,
       canRotate: true,
     },
@@ -916,7 +916,7 @@ export const STREAM_EDITED_LEVEL: Level = {
       type: 'path',
       x: 5,
       y: 5,
-      connections: ['down', 'left'],  // SCRAMBLED: was ['up', 'right']
+      connections: ['down', 'left'], // SCRAMBLED: was ['up', 'right']
       isGoalNode: false,
       canRotate: true,
     },

@@ -143,6 +143,8 @@ export interface Level {
     rain?: boolean;
     ice?: boolean; // candy: frozen tiles spawn periodically
     thieves?: boolean; // shopping: thieves spawn periodically
+    blockerIntensity?: 0 | 1 | 2; // 0=peaceful/none, 1=moderate, 2=aggressive
+    minGroupForTime?: number; // min group size to earn time bonus (2|3|4)
   };
   /** Non-square grid support. gridCols = columns (x), gridRows = rows (y). Falls back to gridSize. */
   gridCols?: number;
