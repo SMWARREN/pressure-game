@@ -275,41 +275,51 @@ function createNodeTiles(goalPositions: Position[]): Tile[] {
 }
 
 // Helper: Route paths between goal nodes using Manhattan distance
-function createRoutePaths(goalPositions: Position[], pathDirs: Map<string, Direction[]>): void {
-  const addPath = (x: number, y: number, dirs: Direction[]) => {
-    const key = `${x},${y}`;
-    const existing = pathDirs.get(key) ?? [];
-    const merged = [...new Set([...existing, ...dirs])];
-    pathDirs.set(key, merged);
-  };
+// ── Route path helpers ────────────────────────────────────────────────────────
 
+function addPathToMap(pathDirs: Map<string, Direction[]>, x: number, y: number, dirs: Direction[]): void {
+  const key = `${x},${y}`;
+  const existing = pathDirs.get(key) ?? [];
+  const merged = [...new Set([...existing, ...dirs])];
+  pathDirs.set(key, merged);
+}
+
+function routeHorizontal(pathDirs: Map<string, Direction[]>, from: Position, to: Position, cy: number): number {
+  let cx = from.x;
+  while (cx !== to.x) {
+    const dx = to.x > cx ? 1 : -1;
+    const dir: Direction = dx > 0 ? 'right' : 'left';
+    addPathToMap(pathDirs, cx, cy, [dir]);
+    cx += dx;
+    const opp: Direction = dx > 0 ? 'left' : 'right';
+    addPathToMap(pathDirs, cx, cy, [opp]);
+  }
+  return cx;
+}
+
+function routeVertical(pathDirs: Map<string, Direction[]>, cx: number, from: Position, to: Position): void {
+  let cy = from.y;
+  while (cy !== to.y) {
+    const dy = to.y > cy ? 1 : -1;
+    const dir: Direction = dy > 0 ? 'down' : 'up';
+    addPathToMap(pathDirs, cx, cy, [dir]);
+    cy += dy;
+    const opp: Direction = dy > 0 ? 'up' : 'down';
+    addPathToMap(pathDirs, cx, cy, [opp]);
+  }
+}
+
+function createRoutePaths(goalPositions: Position[], pathDirs: Map<string, Direction[]>): void {
   // Create paths between all goal nodes in sequence
   for (let i = 0; i < goalPositions.length - 1; i++) {
     const from = goalPositions[i];
     const to = goalPositions[i + 1];
 
-    let cx = from.x,
-      cy = from.y;
-
     // Move horizontally first
-    while (cx !== to.x) {
-      const dx = to.x > cx ? 1 : -1;
-      const dir: Direction = dx > 0 ? 'right' : 'left';
-      addPath(cx, cy, [dir]);
-      cx += dx;
-      const opp: Direction = dx > 0 ? 'left' : 'right';
-      addPath(cx, cy, [opp]);
-    }
+    const cx = routeHorizontal(pathDirs, from, to, from.y);
 
     // Then move vertically
-    while (cy !== to.y) {
-      const dy = to.y > cy ? 1 : -1;
-      const dir: Direction = dy > 0 ? 'down' : 'up';
-      addPath(cx, cy, [dir]);
-      cy += dy;
-      const opp: Direction = dy > 0 ? 'up' : 'down';
-      addPath(cx, cy, [opp]);
-    }
+    routeVertical(pathDirs, cx, from, to);
   }
 }
 
