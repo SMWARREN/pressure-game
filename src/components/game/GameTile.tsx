@@ -15,6 +15,7 @@ import {
   getDecoyBorderColor,
   getDecoyBoxShadow,
   getNodeBorderColor,
+  getPipeSegmentStyle,
 } from './GameTileUtils';
 
 /**
@@ -25,71 +26,26 @@ function Pipes({
   color,
   glow,
 }: {
-  connections: Direction[];
-  color: string;
-  glow: string;
+  readonly connections: Direction[];
+  readonly color: string;
+  readonly glow: string;
 }) {
+  const directions: ('up' | 'down' | 'left' | 'right')[] = ['up', 'down', 'left', 'right'];
+
   return (
     <>
-      {connections.includes('up') && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 5,
-            height: '53%',
-            background: color,
-            borderRadius: '3px 3px 0 0',
-            boxShadow: `0 0 6px ${glow}`,
-          }}
-        />
-      )}
-      {connections.includes('down') && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 5,
-            height: '53%',
-            background: color,
-            borderRadius: '0 0 3px 3px',
-            boxShadow: `0 0 6px ${glow}`,
-          }}
-        />
-      )}
-      {connections.includes('left') && (
-        <div
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            height: 5,
-            width: '53%',
-            background: color,
-            borderRadius: '3px 0 0 3px',
-            boxShadow: `0 0 6px ${glow}`,
-          }}
-        />
-      )}
-      {connections.includes('right') && (
-        <div
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            height: 5,
-            width: '53%',
-            background: color,
-            borderRadius: '0 3px 3px 0',
-            boxShadow: `0 0 6px ${glow}`,
-          }}
-        />
+      {directions.map(
+        (dir) =>
+          connections.includes(dir) && (
+            <div
+              key={`pipe-${dir}`}
+              style={{
+                ...getPipeSegmentStyle(dir),
+                background: color,
+                boxShadow: `0 0 6px ${glow}`,
+              }}
+            />
+          )
       )}
       <div
         style={{
