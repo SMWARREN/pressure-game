@@ -180,9 +180,9 @@ export function renderFuseDemo(type: TutorialDemoType, modeColor: string): React
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
         <div style={{ fontSize: 48, filter: `drop-shadow(0 0 20px ${modeColor}99)` }}>💣</div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {['#facc15', '#ef4444', '#60a5fa', '#fb923c'].map((c, i) => (
+          {['#facc15', '#ef4444', '#60a5fa', '#fb923c'].map((c) => (
             <div
-              key={i}
+              key={c}
               style={{
                 width: 10,
                 height: 10,

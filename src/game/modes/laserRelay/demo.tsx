@@ -160,9 +160,9 @@ export function renderLaserDemo(type: TutorialDemoType, modeColor: string): Reac
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
         <div style={{ fontSize: 48, filter: `drop-shadow(0 0 20px ${modeColor}99)` }}>🔦</div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {['#22c55e', '#38bdf8', '#ef4444', '#fbbf24'].map((c, i) => (
+          {['#22c55e', '#38bdf8', '#ef4444', '#fbbf24'].map((c) => (
             <div
-              key={i}
+              key={c}
               style={{
                 width: 10,
                 height: 10,

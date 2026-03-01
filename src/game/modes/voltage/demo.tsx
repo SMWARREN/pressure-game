@@ -49,7 +49,7 @@ export function renderVoltageDemo(
   if (type === 'voltage-charge') {
     return (
       <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
-        {['▁', '▂', '▃', '▄', '▅', '▆', '▇'].map((bar, i) => {
+        {['▁', '▂', '▃', '▄', '▅', '▆', '▇'].map((bar) => {
           const colors = [
             '#14532d',
             '#166534',
@@ -59,18 +59,19 @@ export function renderVoltageDemo(
             '#ef4444',
             '#ff0000',
           ];
+          const idx = ['▁', '▂', '▃', '▄', '▅', '▆', '▇'].indexOf(bar);
           return (
             <div
-              key={i}
+              key={bar}
               style={{
                 ...tileBase,
                 width: 36,
-                background: `linear-gradient(145deg, ${colors[i]}20, ${colors[i]}40)`,
-                border: `1px solid ${colors[i]}`,
-                boxShadow: `0 0 8px ${colors[i]}60`,
+                background: `linear-gradient(145deg, ${colors[idx]}20, ${colors[idx]}40)`,
+                border: `1px solid ${colors[idx]}`,
+                boxShadow: `0 0 8px ${colors[idx]}60`,
               }}
             >
-              <span style={{ fontSize: 18, color: colors[i] }}>{bar}</span>
+              <span style={{ fontSize: 18, color: colors[idx] }}>{bar}</span>
             </div>
           );
         })}

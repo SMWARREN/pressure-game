@@ -268,13 +268,13 @@ export default function StatsScreen({
                 <div>
                   <div style={{ ...label, marginBottom: 10 }}>RECENT GAMES</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {stats.recent.map((e, i) => {
+                    {stats.recent.map((e) => {
                       const mode = GAME_MODES.find((m) => m.id === e.modeId);
                       const won = e.outcome === 'won';
                       const hasReplay = onReplay && e.moveLog && e.moveLog.length > 0;
                       return (
                         <div
-                          key={i}
+                          key={`${e.modeId}-${e.timestamp}`}
                           style={{
                             display: 'flex',
                             alignItems: 'center',

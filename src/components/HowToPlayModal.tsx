@@ -200,7 +200,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
           >
             {steps.map((_, i) => (
               <button
-                key={i}
+                key={`step-${i}`}
                 onClick={() => setStep(i)}
                 style={{
                   border: 'none',
