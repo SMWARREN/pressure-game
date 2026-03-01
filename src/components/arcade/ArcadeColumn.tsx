@@ -46,6 +46,7 @@ export function ArcadeColumn({
   return (
     <div
       role="button"
+      aria-pressed="false"
       tabIndex={0}
       style={{
         flex: 1,

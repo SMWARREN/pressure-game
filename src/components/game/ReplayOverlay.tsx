@@ -44,6 +44,24 @@ function computeReplayMetadata(event: GameEndEvent, engine: ReplayEngine, vw: nu
   return { mode, gridSize, gap, tileSize, totalMoves, boardW, won };
 }
 
+// ── Auto-play hook ─────────────────────────────────────────────────────────
+function useAutoPlay(playing: boolean, speedIdx: number, onStepForward: () => void) {
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (!playing) return;
+    intervalRef.current = setInterval(() => {
+      onStepForward();
+    }, REPLAY_SPEEDS[speedIdx]);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [playing, speedIdx, onStepForward]);
+
+  return intervalRef;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -56,7 +74,6 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   const [playing, setPlaying] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(0); // 0=800ms, 1=400ms, 2=200ms
   const [vw, setVw] = useState(globalThis.innerWidth);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Keep board size in sync with window resizes / orientation changes
   useEffect(() => {
@@ -76,23 +93,18 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
     vw
   );
 
-  // Auto-play effect
-  useEffect(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (!playing) return;
-    intervalRef.current = setInterval(() => {
-      setStep((s) => {
-        if (s >= engine.snapshots.length - 1) {
-          setPlaying(false);
-          return s;
-        }
-        return s + 1;
-      });
-    }, REPLAY_SPEEDS[speedIdx]);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [playing, speedIdx]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto-play hook
+  const handleStepForward = () => {
+    setStep((s) => {
+      if (s >= engine.snapshots.length - 1) {
+        setPlaying(false);
+        return s;
+      }
+      return s + 1;
+    });
+  };
+
+  useAutoPlay(playing, speedIdx, handleStepForward);
 
   const goTo = (s: number) => {
     setStep(Math.max(0, Math.min(s, engine.snapshots.length - 1)));

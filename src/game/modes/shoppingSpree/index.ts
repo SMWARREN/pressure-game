@@ -626,6 +626,118 @@ const BONUS_ITEM_VALUES: Record<string, number> = {
 
 // ── Mode config ───────────────────────────────────────────────────────────────
 
+// ── Helper functions for onTileTap (reduce complexity) ──────────────────────
+
+function processShoppingTap(
+  x: number,
+  y: number,
+  tiles: Tile[],
+  gridSize: number,
+  state: ShoppingModeState,
+  _world: number, // not used but available for context
+  features: any,
+  gcols: number,
+  grows: number,
+  unlockState: SymbolUnlockState,
+  minGroupSize: number,
+  timeLeft: number | undefined
+): TapResult | null {
+  // Validate tap and find group
+  const tileKey = `${x},${y}`;
+  if (state.thiefPositions?.includes(tileKey)) {
+    return { tiles, valid: false, scoreDelta: 0, customState: state };
+  }
+
+  const group = features?.wildcards
+    ? findGroupWithWildcards(x, y, tiles)
+    : findGroup(x, y, tiles);
+  if (group.length < 2) return null;
+
+  // Calculate scores
+  const symbol = group[0].displayData?.symbol as string;
+  const isFreshClear = unlockState.freshSymbols.includes(symbol);
+  const baseValue = calculateBaseValue(
+    symbol,
+    state.flashSaleItem,
+    state.flashSaleTapsLeft,
+    isFreshClear
+  );
+  const comboMultiplier = getComboMultiplier(group.length);
+  const { extraClearedKeys, bonusScore } = features?.bombs
+    ? applyBombExplosion(group, tiles, gridSize)
+    : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
+
+  const prevCombo = features?.comboChain && state.combo ? state.combo : resetCombo();
+  const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
+  const comboChainMult = features?.comboChain ? newCombo.multiplier : 1;
+
+  const newCartItems = state.cartItems + group.length;
+  const cartBonus = calculateCartBonus(state.cartItems, newCartItems);
+  const scoreDelta = calculateScoreDelta(
+    baseValue,
+    group.length,
+    comboMultiplier,
+    comboChainMult,
+    bonusScore,
+    cartBonus
+  );
+
+  // Process clearing
+  const {
+    tiles: nextTiles,
+    unlockState: newUnlockState,
+    newSymbolUnlocked,
+  } = processTileClearing(group, tiles, extraClearedKeys, features, gcols, grows, unlockState);
+
+  // Handle thief
+  const { tiles: remainingWithThiefClear, unblocked: scaredThiefKeys } = unblockNearGroup(
+    group,
+    nextTiles,
+    'hasThief',
+    minGroupSize
+  );
+  const thiefScared = isNotEmpty(scaredThiefKeys);
+  const newThiefPositions = (state.thiefPositions || []).filter(
+    (pos) => !scaredThiefKeys.has(pos)
+  );
+
+  // Update flash sale
+  const newFlashSaleTapsLeft = state.flashSaleTapsLeft > 0 ? state.flashSaleTapsLeft - 1 : 0;
+  const newFlashSaleItem = newFlashSaleTapsLeft <= 0 ? null : state.flashSaleItem;
+
+  // Build state
+  let newState = buildNewModeState({
+    state,
+    groupSize: group.length,
+    scoreDelta,
+    newCartItems,
+    cartBonus,
+    newFlashSaleTapsLeft,
+    flashSaleItem: newFlashSaleItem,
+    newThiefPositions,
+    thiefScared,
+    newUnlockState,
+    newSymbolUnlocked,
+    symbol,
+    isFreshClear,
+    newCombo,
+  });
+
+  if (!newState.flashSaleItem) {
+    newState = maybeTriggerFlashSale(newState);
+  }
+
+  const timeBonus = calculateTimeBonus(group.length, timeLeft, features);
+
+  return {
+    tiles: remainingWithThiefClear,
+    valid: true,
+    scoreDelta,
+    customState: newState,
+    timeBonus,
+  };
+}
+
 export const ShoppingSpreeMode: GameModeConfig = {
   id: 'shoppingSpree',
   name: 'Shopping Spree',
@@ -741,119 +853,29 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const state: ShoppingModeState = (modeState as ShoppingModeState) || getInitialState();
     const world = (modeState?.world as number) ?? 4;
     const minGroupSize = world <= 2 ? 3 : 4;
-    const features = modeState?.features as
-      | { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean }
-      | undefined;
+    const features = modeState?.features as any;
     const gcols = (modeState?.gridCols as number) ?? gridSize;
     const grows = (modeState?.gridRows as number) ?? gridSize;
 
-    // Check if this tile has a thief - can't tap!
-    const tileKey = `${x},${y}`;
-    if (state.thiefPositions?.includes(tileKey)) {
-      return { tiles, valid: false, scoreDelta: 0, customState: state };
-    }
-
-    const group = features?.wildcards
-      ? findGroupWithWildcards(x, y, tiles)
-      : findGroup(x, y, tiles);
-    if (group.length < 2) return null;
-
-    // Setup symbol unlock state
     const unlockState: SymbolUnlockState =
       state.lockedSymbols != null
         ? { lockedSymbols: state.lockedSymbols, freshSymbols: state.freshSymbols ?? [] }
         : { lockedSymbols: [...SHOPPING_BONUS_ITEMS], freshSymbols: [] };
 
-    // Get item and calculate scores
-    const symbol = group[0].displayData?.symbol as string;
-    const isFreshClear = unlockState.freshSymbols.includes(symbol);
-    const baseValue = calculateBaseValue(
-      symbol,
-      state.flashSaleItem,
-      state.flashSaleTapsLeft,
-      isFreshClear
-    );
-    const comboMultiplier = getComboMultiplier(group.length);
-
-    // Apply bomb explosion if enabled
-    const { extraClearedKeys, bonusScore } = features?.bombs
-      ? applyBombExplosion(group, tiles, gridSize)
-      : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
-
-    // Setup combo chain
-    const prevCombo: ComboState = features?.comboChain && state.combo ? state.combo : resetCombo();
-    const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
-    const comboChainMult = features?.comboChain ? newCombo.multiplier : 1;
-
-    // Calculate bonuses
-    const newCartItems = state.cartItems + group.length;
-    const cartBonus = calculateCartBonus(state.cartItems, newCartItems);
-    const scoreDelta = calculateScoreDelta(
-      baseValue,
-      group.length,
-      comboMultiplier,
-      comboChainMult,
-      bonusScore,
-      cartBonus
-    );
-
-    // Process tile clearing and gravity
-    const {
-      tiles: nextTiles,
-      unlockState: newUnlockState,
-      newSymbolUnlocked,
-    } = processTileClearing(group, tiles, extraClearedKeys, features, gcols, grows, unlockState);
-
-    // Handle thief scaring
-    const { tiles: remainingWithThiefClear, unblocked: scaredThiefKeys } = unblockNearGroup(
-      group,
-      nextTiles,
-      'hasThief',
-      minGroupSize
-    );
-    const thiefScared = isNotEmpty(scaredThiefKeys);
-    const newThiefPositions = (state.thiefPositions || []).filter(
-      (pos) => !scaredThiefKeys.has(pos)
-    );
-
-    // Update flash sale state
-    const newFlashSaleTapsLeft = state.flashSaleTapsLeft > 0 ? state.flashSaleTapsLeft - 1 : 0;
-    const newFlashSaleItem = newFlashSaleTapsLeft <= 0 ? null : state.flashSaleItem;
-
-    // Build new mode state
-    let newState = buildNewModeState({
+    return processShoppingTap(
+      x,
+      y,
+      tiles,
+      gridSize,
       state,
-      groupSize: group.length,
-      scoreDelta,
-      newCartItems,
-      cartBonus,
-      newFlashSaleTapsLeft,
-      flashSaleItem: newFlashSaleItem,
-      newThiefPositions,
-      thiefScared,
-      newUnlockState,
-      newSymbolUnlocked,
-      symbol,
-      isFreshClear,
-      newCombo,
-    });
-
-    // Maybe trigger a new flash sale
-    if (!newState.flashSaleItem) {
-      newState = maybeTriggerFlashSale(newState);
-    }
-
-    // Calculate time bonus
-    const timeLeft = modeState?.timeLeft as number | undefined;
-    const timeBonus = calculateTimeBonus(group.length, timeLeft, features);
-
-    return {
-      tiles: remainingWithThiefClear,
-      valid: true,
-      scoreDelta,
-      customState: newState,
-      timeBonus,
-    };
+      world,
+      features,
+      gcols,
+      grows,
+      unlockState,
+      minGroupSize,
+      modeState?.timeLeft as number | undefined
+    );
   },
 
   checkWin(_tiles, _goalNodes, moves, maxMoves, modeState): WinResult {
