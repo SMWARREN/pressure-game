@@ -55,7 +55,7 @@ export function hasAdjacentMatch(tiles: Tile[]): boolean {
   const map = buildTileMap(tiles);
   for (const t of tiles) {
     if (!t.canRotate) continue;
-    const sym = t.displayData?.symbol as string;
+    const sym = t.displayData?.symbol;
     for (const [dx, dy] of [
       [0, 1],
       [1, 0],

@@ -89,8 +89,8 @@ function processBlastGemClear(
       if (!bg.canRotate || bg.displayData?.symbol === BLAST_GEM) return false;
       return blastGems.some((b) => Math.abs(b.x - bg.x) + Math.abs(b.y - bg.y) <= 4);
     })
-    .map((t) => t.displayData?.symbol as string)
-    .filter(Boolean);
+    .map((t) => t.displayData?.symbol)
+    .filter(Boolean) as string[];
 
   if (isEmpty(nearbySymbols)) return extraClearedKeys;
 

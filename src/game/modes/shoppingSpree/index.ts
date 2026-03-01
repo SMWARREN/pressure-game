@@ -125,7 +125,7 @@ function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
   const start = map.get(`${x},${y}`);
   if (!start?.canRotate) return [];
 
-  const targetSym = start.displayData?.symbol as string;
+  const targetSym = start.displayData?.symbol;
   const visited = new Set<string>();
   const stack: Tile[] = [start];
   const group: Tile[] = [];
