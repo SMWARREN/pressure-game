@@ -32,6 +32,13 @@ export function ArcadeColumn({
   onPlay,
   hasDividerRight,
 }: ArcadeColumnProps) {
+  // Extract conditional info button styles (S3358: reduce nested ternaries)
+  const infoBtnStyles = showInfo
+    ? { border: `1.5px solid ${def.accentColor}80`, background: `${def.accentColor}20`, color: def.accentColor }
+    : { border: '1.5px solid #1e1e35', background: '#0d0d1e', color: '#3a3a55' };
+  const infoBtnIcon = showInfo ? '✕' : 'ℹ';
+  const infoBtnLabel = showInfo ? 'Close info' : 'Show info';
+
   return (
     <div
       style={{
@@ -65,7 +72,7 @@ export function ArcadeColumn({
       {/* ℹ button */}
       <button
         onClick={onToggleInfo}
-        aria-label={showInfo ? 'Close info' : 'Show info'}
+        aria-label={infoBtnLabel}
         style={{
           position: 'absolute',
           top: 8,
@@ -73,9 +80,7 @@ export function ArcadeColumn({
           width: 22,
           height: 22,
           borderRadius: '50%',
-          border: `1.5px solid ${showInfo ? def.accentColor + '80' : '#1e1e35'}`,
-          background: showInfo ? `${def.accentColor}20` : '#0d0d1e',
-          color: showInfo ? def.accentColor : '#3a3a55',
+          ...infoBtnStyles,
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -88,7 +93,7 @@ export function ArcadeColumn({
           zIndex: 2,
         }}
       >
-        {showInfo ? '✕' : 'ℹ'}
+        {infoBtnIcon}
       </button>
 
       {/* Content */}
