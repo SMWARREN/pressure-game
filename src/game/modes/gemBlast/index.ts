@@ -169,6 +169,21 @@ function reshuffle(tiles: Tile[]): Tile[] {
   });
 }
 
+// ── Time bonus calculation for timed levels ───────────────────────────────────
+
+/**
+ * Calculate time bonus based on cascade level and group size.
+ * Timed levels (Worlds 3+) award more time for bigger chains.
+ */
+function calculateGemTimeBonus(cascadeLevel: number, groupSize: number): number {
+  if (cascadeLevel >= 5) return 12;
+  if (cascadeLevel >= 4) return 8;
+  if (cascadeLevel >= 3) return 5;
+  if (groupSize >= 7) return 4;
+  if (groupSize >= 4) return 2;
+  return 1;
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 
 export const GemBlastMode: GameModeConfig = {
@@ -295,15 +310,9 @@ export const GemBlastMode: GameModeConfig = {
 
     // Time bonus for timed levels (World 3, 4, 5) — bigger cascades = more time
     const timeLeft = modeState?.timeLeft as number | undefined;
-    let timeBonus = 0;
-    if (timeLeft !== undefined && group.length >= 3) {
-      if (cascadeLevel >= 5) timeBonus = 12;
-      else if (cascadeLevel >= 4) timeBonus = 8;
-      else if (cascadeLevel >= 3) timeBonus = 5;
-      else if (group.length >= 7) timeBonus = 4;
-      else if (group.length >= 4) timeBonus = 2;
-      else timeBonus = 1;
-    }
+    const timeBonus = timeLeft !== undefined && group.length >= 3
+      ? calculateGemTimeBonus(cascadeLevel, group.length)
+      : 0;
 
     return {
       tiles: remaining,
