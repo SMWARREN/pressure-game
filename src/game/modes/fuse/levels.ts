@@ -55,7 +55,6 @@ function buildFuseLevel(
           break;
         case 'E':
           kind = 'detonator';
-          canRotate = true;
           break;
         case 'R':
           kind = 'relay';
@@ -63,8 +62,8 @@ function buildFuseLevel(
           isGoalNode = true;
           break;
         default:
-          kind = 'regular';
-          canRotate = true;
+          // kind = 'regular' (already default)
+          // canRotate = true (already default)
       }
 
       if (isGoalNode) goalNodes.push({ x, y });

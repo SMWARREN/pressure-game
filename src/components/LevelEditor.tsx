@@ -357,23 +357,28 @@ ${tilesStr}
             <div>
               <label className="block text-sm mb-1">Connections</label>
               <div className="grid grid-cols-4 gap-1">
-                {CONNECTION_PRESETS.map((preset) => (
-                  <button
-                    key={preset.name}
-                    onClick={() => updateSelectedTile({ connections: preset.connections })}
-                    className={`
-                      p-2 rounded text-lg font-mono
-                      ${
-                        JSON.stringify([...selectedTile.connections].sort()) ===
-                        JSON.stringify([...preset.connections].sort())
-                          ? 'bg-green-600'
-                          : 'bg-gray-700'
-                      }
-                    `}
-                  >
-                    {preset.name}
-                  </button>
-                ))}
+                {CONNECTION_PRESETS.map((preset) => {
+                  const selectedConns = [...selectedTile.connections];
+                  selectedConns.sort();
+                  const presetConns = [...preset.connections];
+                  presetConns.sort();
+                  return (
+                    <button
+                      key={preset.name}
+                      onClick={() => updateSelectedTile({ connections: preset.connections })}
+                      className={`
+                        p-2 rounded text-lg font-mono
+                        ${
+                          JSON.stringify(selectedConns) === JSON.stringify(presetConns)
+                            ? 'bg-green-600'
+                            : 'bg-gray-700'
+                        }
+                      `}
+                    >
+                      {preset.name}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

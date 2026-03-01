@@ -292,6 +292,23 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       );
     },
 
+    clearJustRotated: () => {
+      set((s) => ({
+        tiles: s.tiles.map((t) => (t.justRotated ? { ...t, justRotated: false } : t)),
+      }));
+    },
+
+    clearNewTileGlow: () => {
+      set((s) => {
+        if (!s.tiles.some((t) => t.displayData?.isNew)) return {};
+        return {
+          tiles: s.tiles.map((t) =>
+            t.displayData?.isNew ? { ...t, displayData: { ...t.displayData, isNew: false } } : t
+          ),
+        };
+      });
+    },
+
     tapTile: (x: number, y: number) => {
       const state = get();
       const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState, elapsedSeconds } = state;
@@ -334,21 +351,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       // Clear justRotated flag after animation
       getEngine().setTimeout(() => {
-        set((s) => ({
-          tiles: s.tiles.map((t) => (t.justRotated ? { ...t, justRotated: false } : t)),
-        }));
+        get().clearJustRotated();
       }, UNDO_DELAY_MS);
 
       // Clear "new tile" glow after it has had time to show
       getEngine().setTimeout(() => {
-        set((s) => {
-          if (!s.tiles.some((t) => t.displayData?.isNew)) return {};
-          return {
-            tiles: s.tiles.map((t) =>
-              t.displayData?.isNew ? { ...t, displayData: { ...t.displayData, isNew: false } } : t
-            ),
-          };
-        });
+        get().clearNewTileGlow();
       }, HISTORY_TRIM_DELAY_MS);
 
       get().checkWin();

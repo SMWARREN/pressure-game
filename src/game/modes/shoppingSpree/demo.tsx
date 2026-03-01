@@ -25,11 +25,11 @@ export function renderShoppingSpreeDemo(
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {grid.map((row, r) => (
-          <div key={`row-${r}`} style={{ display: 'flex', gap: 3 }}>
+          <div key={`row-${r}-${row.join('')}`} style={{ display: 'flex', gap: 3 }}>
             {row.map((sym, c) => (
               <ArcadeTile
                 colors={SHOPPING_COLORS}
-                key={`cell-${r}-${c}`}
+                key={`cell-${sym}-${r}-${c}`}
                 sym={sym}
                 highlight={inGroup(r, c)}
               />
@@ -129,11 +129,11 @@ export function renderShoppingSpreeDemo(
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {grid.map((row, r) => (
-            <div key={`row-${r}`} style={{ display: 'flex', gap: 3 }}>
+            <div key={`row-${r}-${row.join('')}`} style={{ display: 'flex', gap: 3 }}>
               {row.map((sym, c) =>
                 isThief(r, c) ? (
                   <div
-                    key={`thief-${r}-${c}`}
+                    key={`thief-${sym}-${r}-${c}`}
                     style={{
                       width: 42,
                       height: 42,
@@ -152,7 +152,7 @@ export function renderShoppingSpreeDemo(
                 ) : (
                   <ArcadeTile
                     colors={SHOPPING_COLORS}
-                    key={`cell-${r}-${c}`}
+                    key={`cell-${sym}-${r}-${c}`}
                     sym={sym}
                     highlight={inGroup(r, c)}
                   />
@@ -182,14 +182,14 @@ export function renderShoppingSpreeDemo(
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{ display: 'flex', gap: 3 }}>
               {['👗', '👗', '👗'].map((sym, i) => (
-                <ArcadeTile colors={SHOPPING_COLORS} key={`dress-${i}`} sym={sym} highlight small />
+                <ArcadeTile colors={SHOPPING_COLORS} key={`dress-${sym}-${i}`} sym={sym} highlight small />
               ))}
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
               {['👗', '👗'].map((sym, i) => (
                 <ArcadeTile
                   colors={SHOPPING_COLORS}
-                  key={`dress2-${i}`}
+                  key={`dress2-${sym}-${i}`}
                   sym={sym}
                   highlight
                   small

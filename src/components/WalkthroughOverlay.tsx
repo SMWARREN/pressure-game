@@ -268,9 +268,9 @@ export function WalkthroughOverlay({
             marginBottom: 12,
           }}
         >
-          {steps.map((_, i) => (
+          {steps.map((s, i) => (
             <div
-              key={`step-${i}`}
+              key={s.title}
               style={{
                 width: i === currentStepIndex ? 20 : 6,
                 height: 6,

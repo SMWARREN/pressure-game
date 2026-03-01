@@ -199,9 +199,9 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
               padding: '4px 0',
             }}
           >
-            {steps.map((_, i) => (
+            {steps.map((s, i) => (
               <button
-                key={`step-${i}`}
+                key={s.title}
                 onClick={() => setStep(i)}
                 style={{
                   border: 'none',

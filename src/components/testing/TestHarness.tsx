@@ -23,6 +23,36 @@ interface TestHarnessProps {
 function TestHarnessContent() {
   const initializedRef = useRef(false);
 
+  const initializeGameState = (levelId: number, modeId: string) => {
+    const { setGameMode, loadLevel, completeTutorial } = useGameStore.getState();
+    completeTutorial();
+    setGameMode(modeId);
+    loadLevel(findLevel(levelId, modeId));
+  };
+
+  const findLevel = (levelId: number, modeId: string) => {
+    const mode = getModeById(modeId);
+    if (!mode) {
+      console.warn(`[TestHarness] Mode '${modeId}' not found`);
+      throw new Error(`Mode ${modeId} not found`);
+    }
+    const level = mode.getLevels().find((l) => l.id === levelId);
+    if (!level) {
+      console.warn(`[TestHarness] Level ${levelId} not found in mode '${modeId}'`);
+      throw new Error(`Level ${levelId} not found`);
+    }
+    return level;
+  };
+
+  const startGameWithDelay = (levelId: number, modeId: string) => {
+    setTimeout(() => {
+      initializeGameState(levelId, modeId);
+      setTimeout(() => {
+        useGameStore.getState().startGame();
+      }, 100);
+    }, 100);
+  };
+
   useEffect(() => {
     // Only run initialization once
     if (initializedRef.current) return;
@@ -37,37 +67,10 @@ function TestHarnessContent() {
       return;
     }
 
-    // Get the mode
-    const mode = getModeById(modeId);
-    if (!mode) {
-      console.warn(`[TestHarness] Mode '${modeId}' not found`);
-      return;
-    }
-
-    // Find the level
-    const levels = mode.getLevels();
-    const level = levels.find((l) => l.id === levelId);
-    if (!level) {
-      console.warn(`[TestHarness] Level ${levelId} not found in mode '${modeId}'`);
-      return;
-    }
-
     // Engine is created at module load, but needs React context to work
     // So wait a tick for GameEngineProvider to initialize it
     setTimeout(() => {
-      const { setGameMode, loadLevel, startGame, completeTutorial } = useGameStore.getState();
-
-      // Sequence: complete tutorial → set mode → load level → start game
-      completeTutorial();
-      setGameMode(modeId);
-
-      setTimeout(() => {
-        loadLevel(level);
-
-        setTimeout(() => {
-          startGame();
-        }, 100);
-      }, 100);
+      startGameWithDelay(levelId, modeId);
     }, 0);
   }, []);
 

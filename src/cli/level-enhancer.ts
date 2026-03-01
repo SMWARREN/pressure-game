@@ -66,10 +66,9 @@ interface EnhancedLevel {
  */
 function createGridFingerprint(level: Level): string {
   const gridSize = level.gridSize;
-  const goalPositions = [...level.goalNodes]
-    .map((g) => `${g.x},${g.y}`)
-    .sort((a, b) => a.localeCompare(b))
-    .join('|');
+  const goalPositionsArray = level.goalNodes.map((g) => `${g.x},${g.y}`);
+  goalPositionsArray.sort((a, b) => a.localeCompare(b));
+  const goalPositions = goalPositionsArray.join('|');
 
   // Create a map of tile positions to their types
   const tileMap = new Map<string, { type: string; canRotate: boolean }>();
@@ -94,7 +93,8 @@ function createGridFingerprint(level: Level): string {
     }
   }
 
-  return `${gridSize}x${gridSize}:g[${goalPositions}]:t[${tiles.sort().join(';')}]`;
+  tiles.sort();
+  return `${gridSize}x${gridSize}:g[${goalPositions}]:t[${tiles.join(';')}]`;
 }
 
 // Detailed fingerprint function removed - was unused
@@ -153,7 +153,8 @@ function addDecoys(level: Level, count: number = 2): Level {
   }
 
   // Shuffle and pick random cells
-  const shuffled = emptyCells.sort(() => Math.random() - 0.5);
+  emptyCells.sort(() => Math.random() - 0.5);
+  const shuffled = emptyCells;
   const connectionSets: Direction[][] = [
     ['up', 'down'],
     ['left', 'right'],

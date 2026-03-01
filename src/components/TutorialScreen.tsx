@@ -153,9 +153,9 @@ export default function TutorialScreen({ onComplete }: { readonly onComplete: ()
           padding: '8px 0',
         }}
       >
-        {steps.map((_, i) => (
+        {steps.map((s, i) => (
           <button
-            key={`step-${i}`}
+            key={s.title}
             onClick={() => setStep(i)}
             style={{
               border: 'none',

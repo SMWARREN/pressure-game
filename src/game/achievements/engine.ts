@@ -362,10 +362,8 @@ class AchievementEngine {
       if (diffDays === 1) {
         // Consecutive day - increment streak
         newStreak = streakData.currentStreak + 1;
-      } else if (diffDays > 1) {
-        // Streak broken - start over
-        newStreak = 1;
       }
+      // else if (diffDays > 1): Streak broken - start over (already = 1)
       // diffDays === 0 means same day (shouldn't happen due to check above)
     }
 

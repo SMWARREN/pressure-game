@@ -244,6 +244,8 @@ export interface GameActions {
   isTapValid: (status: GameStatus, showingWin: boolean) => boolean;
   hasMovesRemaining: (mode: GameModeConfig, currentLevel: Level | null, moves: number) => boolean;
   shouldCheckMoveLimitLoss: (afterWin: GameState, mode: GameModeConfig) => boolean;
+  clearJustRotated: () => void;
+  clearNewTileGlow: () => void;
   tapTile: (x: number, y: number) => void;
   checkWin: () => boolean;
   undoMove: () => void;

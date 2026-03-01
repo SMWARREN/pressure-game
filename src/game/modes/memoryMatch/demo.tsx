@@ -10,13 +10,14 @@ function MemTile({
   face,
   matched = false,
   flipped = false,
-  faceDown = false,
+  faceDown: _faceDown = false,
 }: {
   readonly face: string;
   readonly matched?: boolean;
   readonly flipped?: boolean;
   readonly faceDown?: boolean;
 }) {
+  // faceDown prop kept for API stability; symbol defaults to '❓' when not matched/flipped
   let bg = 'linear-gradient(145deg, #0f0e1a, #080812)';
   let border = `1px solid ${ACCENT}22`;
   let shadow: string | undefined;
@@ -32,8 +33,6 @@ function MemTile({
     border = `2px solid ${FLIP_COLOR}`;
     shadow = `0 0 14px ${FLIP_COLOR}77`;
     symbol = face;
-  } else if (faceDown) {
-    symbol = '❓';
   }
 
   return (

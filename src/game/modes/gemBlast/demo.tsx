@@ -115,7 +115,7 @@ export function renderGemBlastDemo(
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(3, ${tileSize}px)`, gap }}>
           {grid.flat().map((sym, i) => (
             <GemTile
-              key={`gem-${i}`}
+              key={`gem-${sym}-${i}`}
               symbol={sym}
               size={tileSize}
               highlight={highlights.includes(`${i % 3},${Math.floor(i / 3)}`)}
