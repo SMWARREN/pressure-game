@@ -414,6 +414,9 @@ export const StateEditor: React.FC = () => {
   // Hint tiles for selection
   const hintTiles = selectedTile ? new Set([`${selectedTile.x},${selectedTile.y}`]) : undefined;
 
+  // Helper: Determine current tab content rendering (reduces main function complexity)
+  const isTabSelected = (tab: typeof activeTab) => activeTab === tab;
+
   // Extract complex condition checks into named booleans
   const hasModeState = modeState && Object.keys(modeState).length !== 0;
   const hasDebugHistory = debugHistory.length > 0;
@@ -701,11 +704,8 @@ export const StateEditor: React.FC = () => {
           padding: 16,
         }}
       >
-        {/* Render appropriate tab content using single switch instead of 6 conditionals */}
-        {(() => {
-          switch (activeTab) {
-            case 'tiles':
-              return (
+        {/* Render appropriate tab content */}
+        {isTabSelected('tiles') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Mini Grid */}
             <div
@@ -928,9 +928,9 @@ export const StateEditor: React.FC = () => {
               </div>
             </div>
           </div>
-              );
-            case 'game':
-              return (
+        )}
+
+        {isTabSelected('game') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Status */}
             <div
@@ -1311,9 +1311,9 @@ export const StateEditor: React.FC = () => {
               </button>
             </div>
           </div>
-              );
-            case 'mode':
-              return (
+        )}
+
+        {isTabSelected('mode') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Mode Info */}
             <div
@@ -1409,9 +1409,9 @@ export const StateEditor: React.FC = () => {
               </div>
             </div>
           </div>
-              );
-            case 'debug':
-              return (
+        )}
+
+        {isTabSelected('debug') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Debug Controls */}
             <div
@@ -1758,9 +1758,9 @@ export const StateEditor: React.FC = () => {
               </div>
             )}
           </div>
-              );
-            case 'windows':
-              return (
+        )}
+
+        {isTabSelected('windows') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Current State Windows */}
             <div
@@ -2108,9 +2108,10 @@ export const StateEditor: React.FC = () => {
               </div>
             </div>
           </div>
-              );
-            case 'presets':
-              return (
+        )}
+
+        {/* PRESETS TAB */}
+        {isTabSelected('presets') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Save Preset */}
             <div
@@ -2306,11 +2307,7 @@ export const StateEditor: React.FC = () => {
               )}
             </div>
           </div>
-              );
-            default:
-              return null;
-          }
-        })()}
+        )}
       </div>
     </div>
   );
