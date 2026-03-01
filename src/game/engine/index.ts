@@ -153,6 +153,78 @@ export class PressureEngine implements IPressureEngine {
   /**
    * Handle timer tick - returns state updates
    */
+  // ── Tick helpers ─────────────────────────────────────────────────────────
+  private handleModeTick(
+    mode: ReturnType<typeof getModeById>,
+    state: GameState,
+    currentLevel: Level,
+    newElapsedSeconds: number,
+    stateChanges: Partial<GameState>
+  ): void {
+    if (!mode.onTick) return;
+    const modeState = {
+      score: state.score,
+      targetScore: currentLevel.targetScore,
+      levelId: currentLevel.id,
+      world: currentLevel.world,
+      features: currentLevel.features,
+      timeLeft: currentLevel.timeLimit
+        ? Math.max(0, currentLevel.timeLimit - newElapsedSeconds)
+        : undefined,
+    };
+    const modeChanges = mode.onTick(state, modeState);
+    if (modeChanges) {
+      Object.assign(stateChanges, modeChanges);
+    }
+  }
+
+  private checkTimeLimit(
+    currentLevel: Level,
+    newElapsedSeconds: number,
+    state: GameState,
+    stateChanges: Partial<GameState>
+  ): Partial<GameState> | null {
+    if (!currentLevel.timeLimit || newElapsedSeconds < currentLevel.timeLimit) {
+      return null;
+    }
+    const currentScore = state.score;
+    const targetScore = currentLevel.targetScore ?? Infinity;
+    return currentScore < targetScore
+      ? { ...stateChanges, status: 'lost', lossReason: "Time's up!" }
+      : null;
+  }
+
+  private handleCompression(
+    currentLevel: Level,
+    currentModeId: string,
+    compressionOverride: boolean | null,
+    timeUntilCompression: number,
+    stateChanges: Partial<GameState>
+  ): Partial<GameState> | null {
+    const compressionEnabled = this.compression.resolveEnabled(
+      currentLevel,
+      currentModeId,
+      compressionOverride
+    );
+
+    if (!compressionEnabled) {
+      return stateChanges;
+    }
+
+    let newTimeUntilCompression = timeUntilCompression - 1000;
+    if (newTimeUntilCompression <= 0) {
+      newTimeUntilCompression = currentLevel.compressionDelay;
+      if (this.setState) {
+        this.setState({ ...stateChanges, timeUntilCompression: newTimeUntilCompression });
+      }
+      this.advanceWalls();
+      return null;
+    }
+
+    stateChanges.timeUntilCompression = newTimeUntilCompression;
+    return stateChanges;
+  }
+
   onTick(): Partial<GameState> | null {
     if (!this.getState || !this.setState) return null;
 
@@ -173,60 +245,23 @@ export class PressureEngine implements IPressureEngine {
     const newElapsedSeconds = elapsedSeconds + 1;
     let stateChanges: Partial<GameState> = { elapsedSeconds: newElapsedSeconds };
 
-    // Call mode's per-tick hook
     const mode = getModeById(currentModeId);
-    if (mode.onTick) {
-      const modeState = {
-        score: state.score,
-        targetScore: currentLevel.targetScore,
-        levelId: currentLevel.id,
-        world: currentLevel.world,
-        features: currentLevel.features,
-        timeLeft: currentLevel.timeLimit
-          ? Math.max(0, currentLevel.timeLimit - newElapsedSeconds)
-          : undefined,
-      };
-      const modeChanges = mode.onTick(state, modeState);
-      if (modeChanges) {
-        Object.assign(stateChanges, modeChanges);
-      }
-    }
+    this.handleModeTick(mode, state, currentLevel, newElapsedSeconds, stateChanges);
 
-    // Time-based loss
-    if (currentLevel.timeLimit && newElapsedSeconds >= currentLevel.timeLimit) {
-      const currentScore = state.score;
-      const targetScore = currentLevel.targetScore ?? Infinity;
-      if (currentScore < targetScore) {
-        return { ...stateChanges, status: 'lost', lossReason: "Time's up!" };
-      }
-    }
+    const timeLimitResult = this.checkTimeLimit(currentLevel, newElapsedSeconds, state, stateChanges);
+    if (timeLimitResult) return timeLimitResult;
 
-    // Handle compression
     if (!compressionActive) {
       return stateChanges;
     }
 
-    const compressionEnabled = this.compression.resolveEnabled(
+    return this.handleCompression(
       currentLevel,
       currentModeId,
-      compressionOverride
+      compressionOverride,
+      timeUntilCompression,
+      stateChanges
     );
-
-    if (!compressionEnabled) {
-      return stateChanges;
-    }
-
-    let newTimeUntilCompression = timeUntilCompression - 1000;
-    if (newTimeUntilCompression <= 0) {
-      newTimeUntilCompression = currentLevel.compressionDelay;
-      // Trigger wall advancement via callback
-      this.setState({ ...stateChanges, timeUntilCompression: newTimeUntilCompression });
-      this.advanceWalls();
-      return null; // advanceWalls handles state update
-    }
-
-    stateChanges.timeUntilCompression = newTimeUntilCompression;
-    return stateChanges;
   }
 
   // ─── Audio ─────────────────────────────────────────────────────────────────
