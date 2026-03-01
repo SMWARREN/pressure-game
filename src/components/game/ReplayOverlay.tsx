@@ -8,6 +8,7 @@ import { getModeById } from '@/game/modes';
 import type { ReplayEngine, ReplaySnapshot } from '@/game/stats/replay';
 import type { GameEndEvent } from '@/game/stats/types';
 import { getGapValue } from './GameTileUtils';
+import { getStatusColor } from '@/utils/statusColors';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PROPS
@@ -172,15 +173,15 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
             gap: 6,
             padding: '5px 10px',
             borderRadius: 8,
-            border: `1px solid ${won ? '#22c55e40' : '#ef444440'}`,
-            background: won ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+            border: `1px solid ${getStatusColor(won ? 'won' : 'lost', 'border')}`,
+            background: getStatusColor(won ? 'won' : 'lost', 'bg'),
             flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: 12, color: won ? '#22c55e' : '#ef4444' }}>
+          <span style={{ fontSize: 12, color: getStatusColor(won ? 'won' : 'lost', 'text') }}>
             {won ? '✦' : '✕'}
           </span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: won ? '#22c55e' : '#ef4444' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: getStatusColor(won ? 'won' : 'lost', 'text') }}>
             {won ? 'WON' : 'LOST'}
           </span>
         </div>

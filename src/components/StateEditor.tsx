@@ -8,6 +8,7 @@ import { useGameStore } from '../game/store';
 import { Tile, Direction, Level, CompressionDirection, GameStatus } from '../game/types';
 import { getModeById, GAME_MODES } from '../game/modes';
 import GameGrid from './game/GameGrid';
+import { getStatusColor } from '../utils/statusColors';
 import {
   getGapValue,
   getPaddingValue,
@@ -1854,7 +1855,7 @@ export const StateEditor: React.FC = () => {
                     style={{
                       padding: '6px 10px',
                       borderRadius: 6,
-                      background: status === 'playing' ? '#10b981' : '#1e1e3a',
+                      background: status === 'playing' ? getStatusColor('playing', 'text') : '#1e1e3a',
                       color: status === 'playing' ? '#fff' : '#888',
                       border: 'none',
                       cursor: 'pointer',
@@ -1872,7 +1873,7 @@ export const StateEditor: React.FC = () => {
                     style={{
                       padding: '6px 10px',
                       borderRadius: 6,
-                      background: status === 'won' ? '#22c55e' : '#1e1e3a',
+                      background: status === 'won' ? getStatusColor('won', 'text') : '#1e1e3a',
                       color: status === 'won' ? '#fff' : '#888',
                       border: 'none',
                       cursor: 'pointer',
@@ -1890,7 +1891,7 @@ export const StateEditor: React.FC = () => {
                     style={{
                       padding: '6px 10px',
                       borderRadius: 6,
-                      background: status === 'lost' ? '#ef4444' : '#1e1e3a',
+                      background: status === 'lost' ? getStatusColor('lost', 'text') : '#1e1e3a',
                       color: status === 'lost' ? '#fff' : '#888',
                       border: 'none',
                       cursor: 'pointer',

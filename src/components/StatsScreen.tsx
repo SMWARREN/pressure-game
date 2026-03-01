@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { useStats } from '@/game/contexts';
 import type { GameEndEvent } from '@/game/stats/types';
 import { GAME_MODES } from '@/game/modes';
+import { getStatusColor } from '@/utils/statusColors';
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
@@ -282,14 +283,14 @@ export default function StatsScreen({
                             padding: '10px 14px',
                             background: '#07070e',
                             borderRadius: 10,
-                            border: `1px solid ${won ? '#22c55e20' : '#ef444420'}`,
+                            border: `1px solid ${getStatusColor(won ? 'won' : 'lost', 'bg')}`,
                           }}
                         >
                           <div
                             style={{
                               fontSize: 12,
                               fontWeight: 900,
-                              color: won ? '#22c55e' : '#ef4444',
+                              color: getStatusColor(won ? 'won' : 'lost', 'text'),
                               width: 14,
                               flexShrink: 0,
                             }}
