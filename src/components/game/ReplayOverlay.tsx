@@ -116,9 +116,124 @@ function getCtrlButtonStyles() {
   };
 }
 
+// ── Playback Controls Component ────────────────────────────────────────────
+interface PlaybackControlsProps {
+  atStart: boolean;
+  atEnd: boolean;
+  playing: boolean;
+  step: number;
+  totalMoves: number;
+  speedIdx: number;
+  onGoToStart: () => void;
+  onStepBack: () => void;
+  onPlayPause: () => void;
+  onStepForward: () => void;
+  onGoToEnd: () => void;
+  onSpeedChange: () => void;
+}
+
+function PlaybackControls({
+  atStart,
+  atEnd,
+  playing,
+  speedIdx,
+  onGoToStart,
+  onStepBack,
+  onPlayPause,
+  onStepForward,
+  onGoToEnd,
+  onSpeedChange,
+}: PlaybackControlsProps) {
+  const { ctrlBtn, ctrlBtnDisabled } = getCtrlButtonStyles();
+
+  return (
+    <div
+      style={{
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        padding: 'clamp(12px, 2vh, 16px) 16px max(16px, env(safe-area-inset-bottom))',
+      }}
+    >
+      <button
+        onClick={onGoToStart}
+        disabled={atStart}
+        style={atStart ? ctrlBtnDisabled : ctrlBtn}
+        title="Skip to start"
+      >
+        ⏮
+      </button>
+
+      <button
+        onClick={onStepBack}
+        disabled={atStart}
+        style={atStart ? ctrlBtnDisabled : ctrlBtn}
+        title="Previous move"
+      >
+        ⏪
+      </button>
+
+      <button
+        onClick={onPlayPause}
+        style={{
+          ...ctrlBtn,
+          width: 54,
+          height: 54,
+          borderRadius: 14,
+          fontSize: 22,
+          background: playing
+            ? 'rgba(165,180,252,0.12)'
+            : 'linear-gradient(135deg, #6366f1, #4f46e5)',
+          border: playing ? '1px solid #6366f160' : 'none',
+          color: '#fff',
+          boxShadow: playing ? 'none' : '0 4px 16px rgba(99,102,241,0.35)',
+        }}
+        title={playing ? 'Pause' : 'Play'}
+      >
+        {playing ? '⏸' : '▶'}
+      </button>
+
+      <button
+        onClick={onStepForward}
+        disabled={atEnd}
+        style={atEnd ? ctrlBtnDisabled : ctrlBtn}
+        title="Next move"
+      >
+        ⏩
+      </button>
+
+      <button
+        onClick={onGoToEnd}
+        disabled={atEnd}
+        style={atEnd ? ctrlBtnDisabled : ctrlBtn}
+        title="Skip to end"
+      >
+        ⏭
+      </button>
+
+      <button
+        onClick={onSpeedChange}
+        style={{
+          ...ctrlBtn,
+          width: 46,
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: '0.04em',
+          color: '#fbbf24',
+          border: '1px solid #fbbf2440',
+        }}
+        title="Playback speed"
+      >
+        {REPLAY_SPEED_LABELS[speedIdx]}
+      </button>
+    </div>
+  );
+}
+
 export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayProps) {
   const { step, setStep, playing, setPlaying, speedIdx, setSpeedIdx, vw, goTo } = useReplayState(engine);
-  const { ctrlBtn, ctrlBtnDisabled } = getCtrlButtonStyles();
 
   const snapshot: ReplaySnapshot = engine.snapshots[step];
   const { mode, gridSize, gap, tileSize, totalMoves, boardW, won } = computeReplayMetadata(
@@ -343,102 +458,27 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
         </div>
       </div>
 
-      {/* ── PLAYBACK CONTROLS ──────────────────────────────────────────── */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 10,
-          padding: 'clamp(12px, 2vh, 16px) 16px max(16px, env(safe-area-inset-bottom))',
+      <PlaybackControls
+        atStart={atStart}
+        atEnd={atEnd}
+        playing={playing}
+        step={step}
+        totalMoves={totalMoves}
+        speedIdx={speedIdx}
+        onGoToStart={() => goTo(0)}
+        onStepBack={() => goTo(step - 1)}
+        onPlayPause={() => {
+          if (atEnd) {
+            setStep(0);
+            setPlaying(true);
+          } else {
+            setPlaying((p) => !p);
+          }
         }}
-      >
-        {/* Skip to start */}
-        <button
-          onClick={() => goTo(0)}
-          disabled={atStart}
-          style={atStart ? ctrlBtnDisabled : ctrlBtn}
-          title="Skip to start"
-        >
-          ⏮
-        </button>
-
-        {/* Step back */}
-        <button
-          onClick={() => goTo(step - 1)}
-          disabled={atStart}
-          style={atStart ? ctrlBtnDisabled : ctrlBtn}
-          title="Previous move"
-        >
-          ⏪
-        </button>
-
-        {/* Play / Pause */}
-        <button
-          onClick={() => {
-            if (atEnd) {
-              setStep(0);
-              setPlaying(true);
-            } else {
-              setPlaying((p) => !p);
-            }
-          }}
-          style={{
-            ...ctrlBtn,
-            width: 54,
-            height: 54,
-            borderRadius: 14,
-            fontSize: 22,
-            background: playing
-              ? 'rgba(165,180,252,0.12)'
-              : 'linear-gradient(135deg, #6366f1, #4f46e5)',
-            border: playing ? '1px solid #6366f160' : 'none',
-            color: '#fff',
-            boxShadow: playing ? 'none' : '0 4px 16px rgba(99,102,241,0.35)',
-          }}
-          title={playing ? 'Pause' : 'Play'}
-        >
-          {playing ? '⏸' : '▶'}
-        </button>
-
-        {/* Step forward */}
-        <button
-          onClick={() => goTo(step + 1)}
-          disabled={atEnd}
-          style={atEnd ? ctrlBtnDisabled : ctrlBtn}
-          title="Next move"
-        >
-          ⏩
-        </button>
-
-        {/* Skip to end */}
-        <button
-          onClick={() => goTo(engine.snapshots.length - 1)}
-          disabled={atEnd}
-          style={atEnd ? ctrlBtnDisabled : ctrlBtn}
-          title="Skip to end"
-        >
-          ⏭
-        </button>
-
-        {/* Speed toggle */}
-        <button
-          onClick={() => setSpeedIdx((i) => (i + 1) % REPLAY_SPEEDS.length)}
-          style={{
-            ...ctrlBtn,
-            width: 46,
-            fontSize: 12,
-            fontWeight: 800,
-            letterSpacing: '0.04em',
-            color: '#fbbf24',
-            border: '1px solid #fbbf2440',
-          }}
-          title="Playback speed"
-        >
-          {REPLAY_SPEED_LABELS[speedIdx]}
-        </button>
-      </div>
+        onStepForward={() => goTo(step + 1)}
+        onGoToEnd={() => goTo(engine.snapshots.length - 1)}
+        onSpeedChange={() => setSpeedIdx((i) => (i + 1) % REPLAY_SPEEDS.length)}
+      />
     </div>
   );
 }
