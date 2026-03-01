@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import { useGameStore, _setEngineInstance } from '@/game/store';
 import { createPressureEngine, type PressureEngine } from '@/game/engine/index';
 import { getModeById } from '@/game/modes';
@@ -55,8 +55,10 @@ export function EngineProvider({ children }: EngineProviderProps) {
     return null;
   }
 
+  const value = useMemo(() => ({ engine: engineRef.current! }), []);
+
   return (
-    <EngineContext.Provider value={{ engine: engineRef.current }}>
+    <EngineContext.Provider value={value}>
       {children}
     </EngineContext.Provider>
   );

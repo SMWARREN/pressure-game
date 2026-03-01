@@ -64,9 +64,9 @@ function DemoVisual({
   modeId,
   modeColor,
 }: {
-  type: TutorialDemoType;
-  modeId: string;
-  modeColor: string;
+  readonly type: TutorialDemoType;
+  readonly modeId: string;
+  readonly modeColor: string;
 }) {
   const mode = getModeById(modeId);
 

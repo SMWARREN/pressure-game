@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import { StatsEngine } from '@/game/stats/engine';
 import { LocalStorageStatsBackend } from '@/game/stats/backends/localStorage';
 import type { StatsBackend } from '@/game/stats/types';
@@ -43,8 +43,10 @@ export function StatsProvider({
     return null;
   }
 
+  const value = useMemo(() => ({ engine: engineRef.current! }), []);
+
   return (
-    <StatsContext.Provider value={{ engine: engineRef.current }}>{children}</StatsContext.Provider>
+    <StatsContext.Provider value={value}>{children}</StatsContext.Provider>
   );
 }
 
