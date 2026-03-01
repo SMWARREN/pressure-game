@@ -174,6 +174,63 @@ function buildPortalPairs(tiles: Tile[]): Map<string, Tile[]> {
   return portalPairs;
 }
 
+// Helper to update laser state based on beam step result
+function updateLaserState(
+  result: ReturnType<typeof processBeamStep>,
+  beamKeys: Set<string>,
+  state: { x: number; y: number; dir: string; hitTarget: boolean }
+): void {
+  if (result.newDir) {
+    state.dir = result.newDir;
+  }
+  if (result.newX !== undefined && result.newY !== undefined) {
+    state.x = result.newX;
+    state.y = result.newY;
+  }
+  if (result.addBeamKey) {
+    beamKeys.add(result.addBeamKey);
+  }
+  if (result.hitTarget) {
+    state.hitTarget = true;
+  }
+}
+
+// Helper to trace laser beam through tiles
+function traceBeamPath(
+  cols: number,
+  rows: number,
+  map: Map<string, Tile>,
+  x: number,
+  y: number,
+  dir: string,
+  portalPairs: Map<string, Tile[]>,
+  beamKeys: Set<string>
+): { hitTarget: boolean; finalDir: string } {
+  let hitTarget = false;
+  const maxSteps = cols * rows * 8;
+  let steps = 0;
+  const visitedPortals = new Set<string>();
+  const state = { x, y, dir, hitTarget };
+
+  while (steps++ < maxSteps) {
+    const { dx, dy } = STEP[state.dir];
+    state.x += dx;
+    state.y += dy;
+    if (state.x < 0 || state.y < 0 || state.x >= cols || state.y >= rows) break;
+
+    const key = `${state.x},${state.y}`;
+    beamKeys.add(key);
+
+    const tile = map.get(key);
+    const result = processBeamStep(state.x, state.y, state.dir, tile, portalPairs, visitedPortals);
+    updateLaserState(result, beamKeys, state);
+
+    if (result.shouldBreak) break;
+  }
+
+  return { hitTarget: state.hitTarget, finalDir: state.dir };
+}
+
 export function traceLaser(
   tiles: Tile[],
   gridSize: number,
@@ -187,45 +244,18 @@ export function traceLaser(
   if (!source) return { beamKeys: new Set(), hitTarget: false };
 
   const portalPairs = buildPortalPairs(tiles);
-
-  let x = source.x;
-  let y = source.y;
-  let dir = source.displayData!.dir as string;
   const beamKeys = new Set<string>();
-  let hitTarget = false;
-  const maxSteps = cols * rows * 8; // prevent infinite loops
-  let steps = 0;
-  const visitedPortals = new Set<string>();
 
-  while (steps++ < maxSteps) {
-    const { dx, dy } = STEP[dir];
-    x += dx;
-    y += dy;
-    if (x < 0 || y < 0 || x >= cols || y >= rows) break;
-
-    const key = `${x},${y}`;
-    beamKeys.add(key);
-
-    const tile = map.get(key);
-    const result = processBeamStep(x, y, dir, tile, portalPairs, visitedPortals);
-
-    if (result.newDir) {
-      dir = result.newDir;
-    }
-    if (result.newX !== undefined && result.newY !== undefined) {
-      x = result.newX;
-      y = result.newY;
-    }
-    if (result.addBeamKey) {
-      beamKeys.add(result.addBeamKey);
-    }
-    if (result.hitTarget) {
-      hitTarget = true;
-    }
-    if (result.shouldBreak) {
-      break;
-    }
-  }
+  const { hitTarget } = traceBeamPath(
+    cols,
+    rows,
+    map,
+    source.x,
+    source.y,
+    source.displayData!.dir as string,
+    portalPairs,
+    beamKeys
+  );
 
   return { beamKeys, hitTarget };
 }
