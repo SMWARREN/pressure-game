@@ -9,6 +9,7 @@
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
+import { getMinGroupSizeForWorld } from '../utils';
 import { CANDY_LEVELS, CANDY_WORLDS, CANDY_SYMBOLS } from './levels';
 import { CANDY_TUTORIAL_STEPS } from './tutorial';
 import { renderCandyDemo } from './demo';
@@ -111,10 +112,6 @@ function reshuffle(tiles: Tile[]): Tile[] {
 
 function getExistingFrozenPositions(tiles: Tile[]): Set<string> {
   return new Set(tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`));
-}
-
-function getMinGroupSizeForWorld(world: number): number {
-  return world <= 2 ? 3 : 4;
 }
 
 function getFrozenTileMaxCount(timeLeft: number): number {

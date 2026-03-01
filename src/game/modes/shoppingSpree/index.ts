@@ -14,6 +14,7 @@
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
+import { getMinGroupSizeForWorld } from '../utils';
 import { SHOPPING_LEVELS, SHOPPING_WORLDS, SHOPPING_ITEMS, ITEM_VALUES } from './levels';
 import { SHOPPING_SPREE_TUTORIAL_STEPS } from './tutorial';
 import { renderShoppingSpreeDemo } from './demo';
@@ -104,9 +105,6 @@ function getThiefSpawnChance(intensity: number, timeLeft: number): number {
   return 0;
 }
 
-function getMinGroupSizeForWorld(world: number): number {
-  return world <= 2 ? 3 : 4;
-}
 
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 

@@ -7,6 +7,14 @@ const DIRS: Direction[] = ['up', 'right', 'down', 'left'];
 const OPP: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
 /**
+ * Get minimum group size required for arcade modes (candy, shopping, etc.)
+ * based on world difficulty. Worlds 1-2 require 3+ tiles, worlds 3+ require 4+.
+ */
+export function getMinGroupSizeForWorld(world: number): number {
+  return world <= 2 ? 3 : 4;
+}
+
+/**
  * Convert delta x,y to a Direction without nested ternaries.
  * Replaces patterns like: dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up'
  */
