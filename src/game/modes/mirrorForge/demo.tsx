@@ -13,7 +13,6 @@ function MirTile({
   active = false,
   small = false,
 }: {
-  readonly type?: 'normal' | 'mirror-highlight' | 'goal';
   readonly rotated?: boolean;
   readonly isGoal?: boolean;
   readonly isCenter?: boolean;

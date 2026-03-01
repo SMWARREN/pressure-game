@@ -5,7 +5,6 @@ export interface GameFooterProps {
   readonly showUndoBtn: boolean;
   readonly showHintBtn: boolean;
   readonly timeStr: string;
-  readonly timeStr2?: string;
   readonly showHint: boolean;
   readonly isComputingSolution: boolean;
   readonly isPaused: boolean;

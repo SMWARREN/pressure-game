@@ -150,7 +150,7 @@ export interface TileRenderer {
    * Unique identifier so GameTile knows which rendering branch to use.
    * 'pipe' is the default. Add 'slots' | 'candy' | 'match3' etc. as you create modes.
    */
-  readonly type: 'pipe' | 'slots' | 'candy' | string;
+  readonly type: string;
 
   /**
    * Return the background/border/shadow for a tile given its state.

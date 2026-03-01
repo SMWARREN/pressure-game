@@ -10,7 +10,6 @@ import { getSolution } from '@/game/levels';
 
 interface PressureGamePreviewProps {
   readonly level: Level | null;
-  readonly modeId: string;
 }
 
 // Inject rotation animation CSS

@@ -186,7 +186,7 @@ export default function PressureHubScreen() {
           minHeight: 200,
         }}
       >
-        <PressureGamePreview level={featuredLevel} modeId="classic" />
+        <PressureGamePreview level={featuredLevel} />
       </div>
 
       {/* ── Divider ── */}
