@@ -564,9 +564,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
         if (group.length >= 10) timeBonus = 8;
         else if (group.length >= 7) timeBonus = 5;
         else if (group.length >= 5) timeBonus = 3;
-        else if (group.length >= 4) timeBonus = 2;
-        else if (group.length >= 3) timeBonus = 2;
-        else if (group.length >= 2) timeBonus = 1;
+        else timeBonus = 2; // groups of 3, 4 both get 2
       }
     }
 
@@ -651,8 +649,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
     if (delta >= 300) return `+$${delta} 💎 JACKPOT!`;
     if (delta >= 150) return `+$${delta} 🔥 SUPER DEAL!`;
     if (delta >= 75) return `+$${delta} ✨ GREAT BUY!`;
-    if (delta >= 50) return `+$${delta} 💰 NICE!`;
-    return null;
+    return delta >= 50 ? `+$${delta} 💰 NICE!` : null;
   },
 
   statsLabels: { moves: 'TAPS' },

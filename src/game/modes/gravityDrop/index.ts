@@ -425,8 +425,7 @@ export const GravityDropMode: GameModeConfig = {
     if (delta >= 1000) return `🌊 MASSIVE CHAIN! +${delta}`;
     if (delta >= 500) return `💥 EPIC! +${delta}`;
     if (delta >= 200) return `🔥 GREAT CHAIN! +${delta}`;
-    if (delta >= 100) return `⚡ Nice! +${delta}`;
-    return null;
+    return delta >= 100 ? `⚡ Nice! +${delta}` : null;
   },
 
   tutorialSteps: GRAVITY_TUTORIAL_STEPS,

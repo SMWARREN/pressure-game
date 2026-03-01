@@ -306,8 +306,7 @@ export const MemoryMatchMode: GameModeConfig = {
     if (multiplier >= 5) return `${comboEmoji} 5× COMBO! +${delta} pts`;
     if (multiplier >= 4) return `${comboEmoji} 4× Combo! +${delta} pts`;
     if (multiplier >= 3) return `${comboEmoji} 3× Combo! +${delta} pts`;
-    if (multiplier >= 2) return `${comboEmoji} 2× Streak! +${delta} pts`;
-    return `🧠 Match! +${delta} pts`;
+    return multiplier >= 2 ? `${comboEmoji} 2× Streak! +${delta} pts` : `🧠 Match! +${delta} pts`;
   },
 
   // ── Tutorial ─────────────────────────────────────────────────────────────

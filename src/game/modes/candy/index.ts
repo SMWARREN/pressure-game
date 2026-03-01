@@ -325,9 +325,7 @@ export const CandyMode: GameModeConfig = {
         if (group.length >= 7) timeBonus = 5;
         else if (group.length >= 6) timeBonus = 4;
         else if (group.length >= 5) timeBonus = 3;
-        else if (group.length >= 4) timeBonus = 2;
-        else if (group.length >= 3) timeBonus = 2;
-        else if (group.length >= 2) timeBonus = 1;
+        else timeBonus = 2; // groups of 3, 4 both get 2
       }
     }
 
@@ -486,8 +484,7 @@ export const CandyMode: GameModeConfig = {
     // Non-timed mode notifications
     if (n >= 9) return `+${delta} 💥 MEGA COMBO!`;
     if (n >= 6) return `+${delta} 🔥 GREAT!`;
-    if (n >= 4) return `+${delta} ✨ NICE!`;
-    return null; // plain "+N" shown by GameBoard for small groups
+    return n >= 4 ? `+${delta} ✨ NICE!` : null;
   },
 
   statsLabels: { moves: 'TAPS' },

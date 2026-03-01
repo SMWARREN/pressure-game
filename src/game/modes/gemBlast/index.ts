@@ -339,8 +339,7 @@ export const GemBlastMode: GameModeConfig = {
 
     const n = Math.round(Math.sqrt(delta / 3));
     if (n >= 8) return `+${delta} 🔥 MEGA CHAIN!`;
-    if (n >= 5) return `+${delta} GREAT!`;
-    return null;
+    return n >= 5 ? `+${delta} GREAT!` : null;
   },
 
   statsLabels: { moves: 'TAPS' },

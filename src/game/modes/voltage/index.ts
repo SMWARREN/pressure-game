@@ -194,8 +194,7 @@ export const VoltageMode: GameModeConfig = {
     const last = modeState?.lastDischarge as number | undefined;
     if (!last) return null;
     if (last >= 200) return `⚡ ${last} pts — MASSIVE DISCHARGE!`;
-    if (last >= 100) return `⚡ ${last} pts — nice timing!`;
-    return null;
+    return last >= 100 ? `⚡ ${last} pts — nice timing!` : null;
   },
 
   statsLabels: { moves: 'DISCHARGES' },
