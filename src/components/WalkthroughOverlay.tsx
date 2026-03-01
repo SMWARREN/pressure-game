@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../game/store';
+import { getGapValue, getPaddingValue, getStepBackground } from './game/GameTileUtils';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    WALKTHROUGH STEP TYPE
@@ -81,10 +82,10 @@ export function WalkthroughOverlay({
     const boardRect = board.getBoundingClientRect();
 
     // Gap is applied between cells via CSS grid-gap
-    const gap = gridSize >= 9 ? 2 : gridSize > 5 ? 3 : 4;
+    const gap = getGapValue(gridSize);
 
     // Calculate actual tile size (same formula as GameBoard)
-    const padding = gridSize >= 9 ? 4 : gridSize > 5 ? 8 : 10;
+    const padding = getPaddingValue(gridSize);
     const tileSize = Math.floor((boardRect.width - padding * 2 - gap * (gridSize - 1)) / gridSize);
 
     // Position: padding offset + (tile index * (tileSize + gap))
@@ -274,8 +275,7 @@ export function WalkthroughOverlay({
                 width: i === currentStepIndex ? 20 : 6,
                 height: 6,
                 borderRadius: 3,
-                background:
-                  i === currentStepIndex ? '#fbbf24' : i < currentStepIndex ? '#3a3a55' : '#1a1a2e',
+                background: getStepBackground(i, currentStepIndex, '#fbbf24'),
                 transition: 'all 0.3s',
               }}
             />

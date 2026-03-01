@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useGameStore } from '../game/store';
 import { getModeById } from '../game/modes';
 import { TutorialStep, TutorialDemoType } from '../game/types';
+import { getStepBackground } from './game/GameTileUtils';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FALLBACK STEPS (used if a mode doesn't define tutorialSteps)
@@ -172,7 +173,7 @@ export default function TutorialScreen({ onComplete }: { readonly onComplete: ()
                 width: i === step ? 24 : 8,
                 height: 8,
                 borderRadius: 4,
-                background: i === step ? accentColor : i < step ? '#3a3a55' : '#1a1a2e',
+                background: getStepBackground(i, step, accentColor),
                 transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
               }}
             />

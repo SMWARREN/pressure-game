@@ -8,6 +8,7 @@ import { useGameStore } from '../game/store';
 import { Tile, Direction, Level, CompressionDirection, GameStatus } from '../game/types';
 import { getModeById, GAME_MODES } from '../game/modes';
 import GameGrid from './game/GameGrid';
+import { getGapValue, getPaddingValue } from './game/GameTileUtils';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -435,8 +436,8 @@ export const StateEditor: React.FC = () => {
 
   // Match GameBoard's responsive sizing
   const boardPx = Math.min(250, globalThis.innerWidth - 400);
-  const gap = maxDim >= 9 ? 2 : maxDim > 5 ? 3 : 4;
-  const padding = maxDim >= 9 ? 4 : maxDim > 5 ? 8 : 10;
+  const gap = getGapValue(maxDim);
+  const padding = getPaddingValue(maxDim);
   const tileSizeByW = Math.floor((boardPx - padding * 2 - gap * (gridCols - 1)) / gridCols);
   const tileSizeByH = Math.floor((boardPx - padding * 2 - gap * (gridRows - 1)) / gridRows);
   const tileSize = Math.max(1, Math.min(tileSizeByW, tileSizeByH));

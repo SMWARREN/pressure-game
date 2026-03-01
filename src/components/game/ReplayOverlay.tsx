@@ -7,6 +7,7 @@ import GameGrid from '@/components/game/GameGrid';
 import { getModeById } from '@/game/modes';
 import type { ReplayEngine, ReplaySnapshot } from '@/game/stats/replay';
 import type { GameEndEvent } from '@/game/stats/types';
+import { getGapValue } from './GameTileUtils';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PROPS
@@ -57,7 +58,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   const snapshot: ReplaySnapshot = engine.snapshots[step];
   const gridSize = engine.level.gridSize;
   const mode = getModeById(event.modeId);
-  const gap = gridSize >= 9 ? 2 : gridSize > 5 ? 3 : 4;
+  const gap = getGapValue(gridSize);
   const tileSize = Math.floor((Math.min(vw * 0.9, 380) - gap * (gridSize - 1) - 16) / gridSize);
   const totalMoves = engine.totalMoves;
   const boardW = tileSize * gridSize + gap * (gridSize - 1);

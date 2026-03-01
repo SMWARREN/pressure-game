@@ -1,4 +1,21 @@
 import { useState, useRef, useEffect, memo } from 'react';
+import {
+  getConnColor,
+  getConnGlow,
+  getSymbolSize,
+  getTileTransform,
+  getTileTransition,
+  getOutbreakAnimation,
+  getIconAnimation,
+  getTileAnimation,
+  getTileTransitionStyle,
+  getCursorStyle,
+  getIndicatorColor,
+  getIndicatorGlow,
+  getDecoyBorderColor,
+  getDecoyBoxShadow,
+  getNodeBorderColor,
+} from './GameTileUtils';
 
 /**
  * Pipes - Renders the connection lines on each tile
@@ -238,7 +255,7 @@ function GameTileComponent({
         background: inDanger
           ? 'linear-gradient(145deg, #3d0808 0%, #2d0606 100%)'
           : 'linear-gradient(145deg, #14532d 0%, #0f3d21 100%)',
-        border: `2px solid ${inDanger ? '#ef4444' : isHint ? '#86efac' : '#22c55e'}`,
+        border: `2px solid ${getNodeBorderColor(isHint, inDanger, false)}`,
         boxShadow: inDanger
           ? '0 0 20px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
           : '0 0 14px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
@@ -281,54 +298,11 @@ function GameTileComponent({
     return { background: 'rgba(10,10,20,0.3)' };
   })();
 
-  const connColor =
-    type === 'node'
-      ? inDanger
-        ? 'rgba(252,165,165,0.9)'
-        : 'rgba(134,239,172,0.95)'
-      : isDecoy
-        ? isHint
-          ? 'rgba(147,197,253,0.95)'
-          : inDanger
-            ? 'rgba(252,165,165,0.9)'
-            : 'rgba(147,197,253,0.85)'
-        : canRotate
-          ? isHint
-            ? 'rgba(253,230,138,0.95)'
-            : inDanger
-              ? 'rgba(252,165,165,0.9)'
-              : 'rgba(252,211,77,0.92)'
-          : 'rgba(147,197,253,0.85)';
+  const connColor = getConnColor({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
+  const connGlow = getConnGlow({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
 
-  const connGlow =
-    type === 'node'
-      ? inDanger
-        ? 'rgba(239,68,68,0.6)'
-        : 'rgba(34,197,94,0.5)'
-      : isDecoy
-        ? isHint
-          ? 'rgba(96,165,250,0.7)'
-          : inDanger
-            ? 'rgba(239,68,68,0.5)'
-            : 'rgba(59,130,246,0.4)'
-        : canRotate
-          ? isHint
-            ? 'rgba(253,230,138,0.7)'
-            : 'rgba(245,158,11,0.5)'
-          : 'rgba(59,130,246,0.4)';
-
-  const tileTransform = animationsEnabled
-    ? pressed
-      ? 'scale(0.84)'
-      : justRotated
-        ? 'scale(1.08)'
-        : 'scale(1)'
-    : 'scale(1)';
-  const tileTransition = animationsEnabled
-    ? pressed
-      ? 'transform 0.08s ease'
-      : 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)'
-    : 'none';
+  const tileTransform = getTileTransform(animationsEnabled, pressed, justRotated);
+  const tileTransition = getTileTransition(animationsEnabled, pressed);
 
   // ── Custom mode renderer (slots, candy crush, match-3, outbreak, etc.) ────
   if (tileRenderer && tileRenderer.type !== 'pipe') {
@@ -380,31 +354,13 @@ function GameTileComponent({
       : zpShadowLo;
 
     // Pick the right animation for each outbreak state
-    const outbreakAnimation = (() => {
-      if (!isOutbreak || !animationsEnabled) return undefined;
-      if (isNewTile) return 'zombieAbsorb 0.5s cubic-bezier(0.34,1.56,0.64,1)';
-      if (obFrontier) return 'zombiePulse 2s ease-in-out infinite';
-      if (obInterior) return undefined; // static — just show the zombie icon
-      return undefined;
-    })();
+    const outbreakAnimation = getOutbreakAnimation(isOutbreak, animationsEnabled, isNewTile, obFrontier);
 
     // Icon animation: newly absorbed tiles get a spin-in for the owned icon
-    const iconAnimation =
-      isOutbreak && animationsEnabled && isNewTile && obOwned
-        ? 'zombieIconDrop 0.45s cubic-bezier(0.34,1.56,0.64,1)'
-        : undefined;
+    const iconAnimation = getIconAnimation(isOutbreak, animationsEnabled, isNewTile, obOwned);
 
     // Symbol font size: scale down on small tiles (10×10 grid)
-    const symSize = (() => {
-      if (!isOutbreak) return tileRenderer.symbolSize ?? '1.2rem';
-      if (obOwned) return tileSize <= 36 ? '0.6rem' : tileSize <= 48 ? '0.72rem' : '0.9rem';
-      if (obFrontier) {
-        // Number label — bold, slightly larger
-        return tileSize <= 36 ? '0.65rem' : tileSize <= 48 ? '0.78rem' : '0.95rem';
-      }
-      // Interior zombie icon
-      return tileSize <= 36 ? '0.62rem' : tileSize <= 48 ? '0.75rem' : '0.9rem';
-    })();
+    const symSize = getSymbolSize(isOutbreak, tileSize, obOwned, obFrontier);
 
     return (
       <div
@@ -417,14 +373,8 @@ function GameTileComponent({
           justifyContent: 'center',
           cursor: canRotate ? 'pointer' : 'default',
           transform: isNewTile && isOutbreak ? undefined : tileTransform,
-          transition: isNewTile
-            ? 'border-color 0.6s ease, box-shadow 0.6s ease'
-            : `${tileTransition}, border-color 0.4s ease, box-shadow 0.4s ease`,
-          animation: isOutbreak
-            ? outbreakAnimation
-            : isNewTile && animationsEnabled
-              ? 'candyDrop 0.42s cubic-bezier(0.34,1.56,0.64,1)'
-              : undefined,
+          transition: getTileTransitionStyle(isNewTile, tileTransition),
+          animation: getTileAnimation(isOutbreak, animationsEnabled, isNewTile, outbreakAnimation),
           fontSize: symSize,
           fontWeight: isOutbreak && obFrontier ? 700 : undefined,
           // CSS vars for zombiePulse keyframe
@@ -474,7 +424,7 @@ function GameTileComponent({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        cursor: editorMode ? 'pointer' : canRotate ? 'pointer' : 'default',
+        cursor: getCursorStyle(editorMode ?? false, canRotate),
         transform: tileTransform,
         transition: tileTransition,
         ...bgStyle,
@@ -532,8 +482,8 @@ function GameTileComponent({
                   width: 4,
                   height: 4,
                   borderRadius: '50%',
-                  background: isHint ? '#fde68a' : inDanger ? '#fca5a5' : '#fcd34d',
-                  boxShadow: `0 0 4px ${isHint ? 'rgba(253,230,138,0.8)' : 'rgba(252,211,77,0.6)'}`,
+                  background: getIndicatorColor(isHint, inDanger),
+                  boxShadow: `0 0 4px ${getIndicatorGlow(isHint)}`,
                 }}
               />
             )}
@@ -549,8 +499,8 @@ function GameTileComponent({
                   width: '70%',
                   height: '70%',
                   borderRadius: '50%',
-                  border: `2px solid ${isHint ? 'rgba(253,230,138,0.6)' : inDanger ? 'rgba(252,165,165,0.5)' : 'rgba(252,211,77,0.4)'}`,
-                  boxShadow: `0 0 6px ${isHint ? 'rgba(253,230,138,0.3)' : inDanger ? 'rgba(239,68,68,0.3)' : 'rgba(252,211,77,0.2)'}`,
+                  border: `2px solid ${getDecoyBorderColor(isHint, inDanger)}`,
+                  boxShadow: getDecoyBoxShadow(isHint, inDanger),
                   pointerEvents: 'none',
                 }}
               />

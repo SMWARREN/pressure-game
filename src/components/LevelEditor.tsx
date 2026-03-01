@@ -7,6 +7,7 @@ import { Level, Tile, Position, Direction, TileType } from '../game/types';
 import { verifyLevel } from '../game/levels';
 import { GAME_MODES } from '../game/modes';
 import GameGrid from './game/GameGrid';
+import { getGapValue, getPaddingValue } from './game/GameTileUtils';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -279,8 +280,8 @@ ${tilesStr}
     return Math.max(200, baseSize);
   }, [gridSize]);
 
-  const gap = gridSize >= 9 ? 2 : gridSize > 5 ? 3 : 4;
-  const padding = gridSize >= 9 ? 4 : gridSize > 5 ? 8 : 10;
+  const gap = getGapValue(gridSize);
+  const padding = getPaddingValue(gridSize);
   const tileSize = Math.floor((boardPx - padding * 2 - gap * (gridSize - 1)) / gridSize);
 
   // Get hint tiles for highlighting selected tile
