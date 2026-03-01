@@ -4,6 +4,7 @@
  */
 
 import type { Tile } from '../../types';
+import { isNotEmpty } from '@/utils/conditionalStyles';
 import { isWildcard } from '../wildcardAddon';
 
 /**
@@ -65,7 +66,7 @@ function findGroupWithWildcards(x: number, y: number, tiles: Tile[]): Tile[] {
         Math.abs(t.y - y) <= 1 &&
         !(t.x === x && t.y === y)
     );
-    if (neighbors.length > 0) {
+    if (isNotEmpty(neighbors)) {
       targetSymbol = (neighbors[0].displayData?.symbol as string) || null;
     }
   } else {

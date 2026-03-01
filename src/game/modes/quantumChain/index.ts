@@ -24,6 +24,7 @@ import type {
   TargetTileData,
   QuantumFluxEffect,
 } from '@/game/types';
+import { isEmpty, isNotEmpty } from '@/utils/conditionalStyles';
 import { QUANTUM_CHAIN_LEVELS } from './levels';
 import { QUANTUM_CHAIN_TUTORIAL_STEPS } from './tutorial';
 import { renderQuantumChainDemo } from './demo';
@@ -149,7 +150,7 @@ function getValidNextTiles(
   tiles: Tile[]
 ): Tile[] {
   // No chain started - all number tiles are valid
-  if (activeChain.length === 0) {
+  if (isEmpty(activeChain)) {
     return tiles.filter((t) => t.type === 'number');
   }
 
@@ -308,7 +309,7 @@ export const QuantumChainMode: GameModeConfig = {
     }
 
     // First tile must be a number
-    if (activeChain.length === 0) {
+    if (isEmpty(activeChain)) {
       if (tappedTile.type !== 'number') return null;
 
       const value = applyQuantumFlux(tappedTile, tiles);
@@ -438,7 +439,7 @@ export const QuantumChainMode: GameModeConfig = {
   ): WinResult {
     const targetTiles = tiles.filter((t) => t.type === 'target');
 
-    if (targetTiles.length === 0) {
+    if (isEmpty(targetTiles)) {
       return { won: false };
     }
 
@@ -488,7 +489,7 @@ export const QuantumChainMode: GameModeConfig = {
     const state: QuantumChainModeState = (modeState as QuantumChainModeState) || getInitialState();
 
     // Show chain progress
-    if (state.activeChain.length > 0) {
+    if (isNotEmpty(state.activeChain)) {
       const chainLength = state.activeChain.length;
       if (chainLength >= 5) {
         return `🔥 Chain x${chainLength}!`;

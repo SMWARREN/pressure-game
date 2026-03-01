@@ -2,7 +2,7 @@
 // Shared functions for arcade modes (Candy, Shopping Spree, Gem Blast)
 
 import type { Tile } from '../types';
-import { pickRandom } from '@/utils/conditionalStyles';
+import { pickRandom, isNotEmpty } from '@/utils/conditionalStyles';
 import { isWildcard } from './wildcardAddon';
 
 // ── Grid Mapping ─────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ export function findGroupWithWildcards(x: number, y: number, tiles: Tile[]): Til
         Math.abs(t.y - y) <= 1 &&
         !(t.x === x && t.y === y)
     );
-    if (neighbors.length > 0) {
+    if (isNotEmpty(neighbors)) {
       targetSymbol = (neighbors[0].displayData?.symbol as string) || null;
     }
   } else {

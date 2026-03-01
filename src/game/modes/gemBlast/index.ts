@@ -9,7 +9,7 @@
 
 import type { GameModeConfig, TapResult, WinResult, LossResult, TileColors } from '../types';
 import type { Tile } from '../../types';
-import { pickRandom } from '@/utils/conditionalStyles';
+import { pickRandom, isEmpty, isNotEmpty } from '@/utils/conditionalStyles';
 import { GEM_LEVELS, GEM_WORLDS, GEM_SYMBOLS, BLAST_GEM, generateGrid } from './levels';
 import { GEM_BLAST_TUTORIAL_STEPS } from './tutorial';
 import { renderGemBlastDemo } from './demo';
@@ -225,7 +225,7 @@ export const GemBlastMode: GameModeConfig = {
         })
         .map((t) => t.displayData?.symbol as string)
         .filter(Boolean);
-      if (nearbySymbols.length > 0) {
+      if (isNotEmpty(nearbySymbols)) {
         const targetSym = pickRandom(nearbySymbols);
         // Clear all tiles of that color within radius 3 of any blast gem
         for (const t of tiles) {
@@ -247,7 +247,7 @@ export const GemBlastMode: GameModeConfig = {
     // Step 3: Initial score — n²×3, linear bonus for blast-cleared tiles
     let cascadeMult = 1;
     let totalScore = group.length * group.length * 3;
-    if (extraClearedKeys.size > 0) {
+    if (isNotEmpty(extraClearedKeys)) {
       totalScore += extraClearedKeys.size * 5;
     }
 
@@ -257,7 +257,7 @@ export const GemBlastMode: GameModeConfig = {
     let cascadeLevel = 1;
     while (true) {
       const newGroups = findAllGroups(remaining, 2);
-      if (newGroups.length === 0) break;
+      if (isEmpty(newGroups)) break;
 
       cascadeLevel = Math.min(cascadeLevel + 1, CASCADE_MULTS.length);
       cascadeMult = CASCADE_MULTS[cascadeLevel - 1];

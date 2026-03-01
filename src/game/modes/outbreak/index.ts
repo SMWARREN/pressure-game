@@ -12,7 +12,7 @@
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
-import { clamp } from '@/utils/conditionalStyles';
+import { clamp, isEmpty } from '@/utils/conditionalStyles';
 import { buildTileMap } from '../arcadeShared';
 import {
   OUTBREAK_LEVELS,
@@ -186,7 +186,7 @@ export const OutbreakMode: GameModeConfig = {
     if (!d || d.owned) return null;
 
     const group = dfsSameColor(x, y, d.colorIndex, map);
-    if (group.length === 0) return null;
+    if (isEmpty(group)) return null;
     if (!touchesTerritory(group, map)) return null;
 
     const groupKeys = new Set(group.map((t) => `${t.x},${t.y}`));

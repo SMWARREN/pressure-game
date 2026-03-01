@@ -10,6 +10,7 @@
 //   import { spawnBlockers, unblockNearGroup } from '../blockingAddon';
 
 import { Tile } from '../types';
+import { isEmpty } from '@/utils/conditionalStyles';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -41,7 +42,7 @@ export function spawnBlockers(
   if (Math.random() > config.spawnChance) return null;
 
   const candidates = tiles.filter((t) => t.canRotate && !existingBlocked.has(`${t.x},${t.y}`));
-  if (candidates.length === 0) return null;
+  if (isEmpty(candidates)) return null;
 
   const shuffled = [...candidates].sort(() => Math.random() - 0.5);
   const newPositions: string[] = [];
@@ -49,7 +50,7 @@ export function spawnBlockers(
   for (let i = 0; i < Math.min(config.maxCount, shuffled.length); i++) {
     newPositions.push(`${shuffled[i].x},${shuffled[i].y}`);
   }
-  if (newPositions.length === 0) return null;
+  if (isEmpty(newPositions)) return null;
 
   const newSet = new Set(newPositions);
   return {

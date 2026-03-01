@@ -2,7 +2,7 @@
 // Periodic symbol scramble - randomly changes tiles
 
 import type { Tile } from '../types';
-import { pickRandom } from '@/utils/conditionalStyles';
+import { pickRandom, isEmpty } from '@/utils/conditionalStyles';
 
 export function tickRain(
   tiles: Tile[],
@@ -18,7 +18,7 @@ export function tickRain(
 
   // Find all tiles that can be changed
   const changeableTiles = tiles.filter((t) => t.canRotate && t.displayData?.symbol);
-  if (changeableTiles.length === 0) {
+  if (isEmpty(changeableTiles)) {
     return null;
   }
 

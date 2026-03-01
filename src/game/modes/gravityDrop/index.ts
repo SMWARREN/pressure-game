@@ -25,6 +25,7 @@ import {
   GravityTileData,
   makeNumberTile,
 } from './levels';
+import { isEmpty, isNotEmpty } from '@/utils/conditionalStyles';
 import { seededRandom } from '../seedUtils';
 import { GRAVITY_TUTORIAL_STEPS } from './tutorial';
 import { renderGravityDropDemo } from './demo';
@@ -300,7 +301,7 @@ export const GravityDropMode: GameModeConfig = {
     }
 
     // ── EXTEND CHAIN: tap adjacent tile ────────────────────────────────────
-    if (chain.length > 0 && lastInChain) {
+    if (isNotEmpty(chain) && lastInChain) {
       // Check if this tile is adjacent to the chain tail
       if (!isAdjacent(lastInChain, { x, y })) {
         // Not adjacent — cancel existing chain and start fresh
@@ -398,7 +399,7 @@ export const GravityDropMode: GameModeConfig = {
   getHintTiles(tiles, _g, modeState): Set<string> {
     const ms = modeState as GravityModeState | undefined;
     const chain = ms?.chain ?? [];
-    if (chain.length === 0) return new Set();
+    if (isEmpty(chain)) return new Set();
 
     const last = chain[chain.length - 1];
     const chainKeys = new Set(chain.map((c) => `${c.x},${c.y}`));

@@ -3,6 +3,7 @@
 
 import type { Tile } from '../types';
 import type { TileColors } from './types';
+import { isEmpty } from '@/utils/conditionalStyles';
 
 export const BOMB_SYMBOL = '💣';
 
@@ -30,7 +31,7 @@ export function applyBombExplosion(
   _gridSize: number
 ): { extraClearedKeys: Set<string>; bonusScore: number } {
   const bombsInGroup = group.filter(isBomb);
-  if (bombsInGroup.length === 0) {
+  if (isEmpty(bombsInGroup)) {
     return { extraClearedKeys: new Set(), bonusScore: 0 };
   }
 

@@ -15,7 +15,7 @@
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
 import { getMinGroupSizeForWorld } from '../utils';
-import { pickRandom } from '@/utils/conditionalStyles';
+import { pickRandom, isNotEmpty } from '@/utils/conditionalStyles';
 import { SHOPPING_LEVELS, SHOPPING_WORLDS, SHOPPING_ITEMS, ITEM_VALUES } from './levels';
 import { SHOPPING_SPREE_TUTORIAL_STEPS } from './tutorial';
 import { renderShoppingSpreeDemo } from './demo';
@@ -504,7 +504,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
       'hasThief',
       minGroupSize
     );
-    const thiefScared = scaredThiefKeys.size > 0;
+    const thiefScared = isNotEmpty(scaredThiefKeys);
     const newThiefPositions = (state.thiefPositions || []).filter(
       (pos) => !scaredThiefKeys.has(pos)
     );

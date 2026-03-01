@@ -22,6 +22,7 @@
 
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { Tile, GameState } from '../../types';
+import { isEmpty } from '@/utils/conditionalStyles';
 import { FUSE_LEVELS, FUSE_WORLDS } from './levels';
 import { FUSE_TUTORIAL_STEPS } from './tutorial';
 import { renderFuseDemo } from './demo';
@@ -209,7 +210,7 @@ export const FuseMode: GameModeConfig = {
     const gridSize = state.currentLevel?.gridSize ?? 5;
     const tick = (ms.tick ?? 0) + 1;
 
-    if (frontier.length === 0) {
+    if (isEmpty(frontier)) {
       // Chain already stopped — checkWin/onTick loss handles resolution
       return null;
     }
@@ -248,7 +249,7 @@ export const FuseMode: GameModeConfig = {
     };
 
     // Chain fizzled without reaching all goals?
-    if (nextFrontier.length === 0) {
+    if (isEmpty(nextFrontier)) {
       const goalNodes = state.currentLevel?.goalNodes ?? [];
       const allReached = goalNodes.every((g) => exploded.has(`${g.x},${g.y}`));
       if (!allReached) {
@@ -267,7 +268,7 @@ export const FuseMode: GameModeConfig = {
   },
 
   checkWin(tiles, goalNodes): WinResult {
-    if (goalNodes.length === 0) return { won: false };
+    if (isEmpty(goalNodes)) return { won: false };
     const allReached = goalNodes.every((g) => {
       const tile = tiles.find((t) => t.x === g.x && t.y === g.y);
       return tile?.displayData?.exploded === true;
