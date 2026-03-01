@@ -69,7 +69,7 @@ class UnionFind {
     if (parent !== key) {
       this.parent.set(key, this.find(parent));
     }
-    return this.parent.get(key) || key;
+    return this.parent.get(key) ?? key;
   }
 
   union(key1: string, key2: string): void {
@@ -79,8 +79,8 @@ class UnionFind {
     if (root1 === root2) return;
 
     // Union by rank
-    const rank1 = this.rank.get(root1) || 0;
-    const rank2 = this.rank.get(root2) || 0;
+    const rank1 = this.rank.get(root1) ?? 0;
+    const rank2 = this.rank.get(root2) ?? 0;
 
     if (rank1 < rank2) {
       this.parent.set(root1, root2);

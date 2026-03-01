@@ -125,7 +125,7 @@ function traceBeam(
       const portalKey = `${portalId}-${x}-${y}`;
       if (portalId && !visitedPortals.has(portalKey)) {
         visitedPortals.add(portalKey);
-        const portals = portalMap.get(portalId) || [];
+        const portals = portalMap.get(portalId) ?? [];
         const otherPortal = portals.find((t) => t.x !== x || t.y !== y);
         if (otherPortal) {
           x = otherPortal.x;
