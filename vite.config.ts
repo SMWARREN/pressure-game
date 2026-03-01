@@ -69,11 +69,7 @@ export default defineConfig({
     host: '0.0.0.0',
     strictPort: false,
     cors: true,
-    hmr: {
-      host: '0.0.0.0',
-      port: 3000,
-      protocol: 'ws',
-    },
+    hmr: false,  // Disable HMR to prevent reload hangs
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
