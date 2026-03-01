@@ -173,7 +173,7 @@ export function generateLevel(opts: GenerateOptions): Level {
     hard: { compressionDelay: 4000, movePadding: 1, decoyCount: 3 },
   }[difficulty];
 
-  const useDecoys = opts.decoys !== undefined ? opts.decoys : diffParams.decoyCount > 0;
+  const useDecoys = opts.decoys ?? (diffParams.decoyCount > 0);
   const decoyCount = useDecoys ? diffParams.decoyCount : 0;
 
   // Pipe shapes: straight and L-shapes

@@ -131,7 +131,7 @@ export function PressureGamePreview({ level }: PressureGamePreviewProps) {
   }
 
   // Mark tiles as crushed based on wall offset
-  const compressionDir = level.compressionDirection || 'all';
+  const compressionDir = level.compressionDirection ?? 'all';
   const gridCols = level.gridSize;
   const gridRows = level.gridSize;
 
@@ -201,7 +201,7 @@ export function PressureGamePreview({ level }: PressureGamePreviewProps) {
           wallOffset={animState.wallOffset}
           wallsJustAdvanced={false}
           compressionActive={animState.wallOffset > 0}
-          compressionDirection={level.compressionDirection || 'all'}
+          compressionDirection={level.compressionDirection ?? 'all'}
           hintPos={animState.hintPos}
           status="playing"
           onTileTap={() => {}} // read-only

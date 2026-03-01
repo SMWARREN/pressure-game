@@ -105,7 +105,7 @@ export function WalkthroughOverlay({
       return;
     }
 
-    const position = currentStep.position || 'bottom';
+    const position = currentStep.position ?? 'bottom';
     const offset = 20;
     const tooltipWidth = 280;
     const tooltipHeight = 200; // Approximate height

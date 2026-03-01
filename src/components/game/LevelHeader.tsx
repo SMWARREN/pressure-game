@@ -56,7 +56,7 @@ export function LevelHeader({
             marginTop: 2,
           }}
         >
-          LEVEL {levelDisplayNum || currentLevel.id}
+          LEVEL {levelDisplayNum ?? currentLevel.id}
           {currentLevel.isGenerated ? ' · CUSTOM' : ''}
         </div>
       </div>
