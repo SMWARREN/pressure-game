@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useGameStore } from '@/game/store';
 import { useStats, useAchievements } from '@/game/contexts';
 import { useShallow } from 'zustand/react/shallow';
-import { getSolution } from '@/game/levels';
 import TutorialScreen from './TutorialScreen';
 import { WalkthroughOverlay, useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '../game/modes';
@@ -10,7 +9,6 @@ import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
 import type { GameEndEvent } from '@/game/stats/types';
 import ReplayOverlay from '@/components/game/ReplayOverlay';
-import { ReplayEngine } from '@/game/stats/replay';
 import UnlimitedRulesDialog from './UnlimitedRulesDialog';
 import { getUnlimitedHighScore, setUnlimitedHighScore } from '@/game/unlimited';
 import HowToPlayModal from './HowToPlayModal';
@@ -19,6 +17,7 @@ import PressureHubScreen from './PressureHubScreen';
 import ParticleLayer, { type ParticleSystemHandle } from './game/ParticleLayer';
 import { useViewport } from './hooks/useViewport';
 import { usePauseOnCondition } from '@/hooks/usePauseOnCondition';
+import { useSolutionComputation, useLevelRecord, useReplayEngine } from './hooks/useGameBoardInitialization';
 import { StarField } from './game/StarField';
 import { Overlay } from './overlays/Overlay';
 import { ensureNotifStyles, ensureSpinnerStyles } from './utils/styles';
@@ -224,59 +223,19 @@ export default function GameBoard() {
     !mode.tileRenderer ||
     mode.tileRenderer.type === 'default' ||
     mode.tileRenderer.hidePipes === false;
-  const [computedSolution, setComputedSolution] = useState<
-    { x: number; y: number; rotations: number }[] | null
-  >(null);
-  const [isComputingSolution, setIsComputingSolution] = useState(false);
 
-  // Compute solution lazily when hint is requested
-  const computeSolution = useCallback(() => {
-    if (
-      !currentLevel ||
-      !isPipeMode ||
-      editor.enabled ||
-      computedSolution !== null ||
-      isComputingSolution
-    )
-      return;
-    setIsComputingSolution(true);
-    // Use setTimeout to defer computation to next tick, allowing UI to render first
-    setTimeout(() => {
-      const sol = getSolution(currentLevel);
-      setComputedSolution(sol);
-      setIsComputingSolution(false);
-    }, 0);
-  }, [currentLevel, isPipeMode, editor.enabled, computedSolution, isComputingSolution]);
-
-  // Reset solution when level changes
-  useEffect(() => {
-    setComputedSolution(null);
-    setIsComputingSolution(false);
-  }, [currentLevel?.id]);
-
-  const solution = computedSolution;
+  const { solution, isComputing: isComputingSolution, computeSolution } = useSolutionComputation(
+    currentLevel,
+    isPipeMode,
+    editor.enabled
+  );
 
   // Level-specific all-time record — computed once per level load, not reactive
-  const levelRecord = useMemo(() => {
-    if (!currentLevel) return undefined;
-    const ends = stats
-      .getBackend()
-      .getAll()
-      .filter((e): e is GameEndEvent => e.type === 'game_end' && e.levelId === currentLevel.id);
-    return { attempts: ends.length, wins: ends.filter((e) => e.outcome === 'won').length };
-  }, [currentLevel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const levelRecord = useLevelRecord(currentLevel);
 
   // Build replay engine whenever a replay is requested
   // Falls back to generatedLevels so Workshop levels are also replayable
-  const replayEngine = useMemo(() => {
-    if (!replayEvent) return null;
-    const level =
-      ReplayEngine.findLevel(replayEvent.levelId) ??
-      generatedLevels.find((l) => l.id === replayEvent.levelId) ??
-      null;
-    if (!level) return null;
-    return new ReplayEngine(replayEvent, level);
-  }, [replayEvent]); // eslint-disable-line react-hooks/exhaustive-deps
+  const replayEngine = useReplayEngine(replayEvent, generatedLevels);
 
   useEffect(() => {
     if (status === 'won' && animationsEnabled && boardRef.current) {
@@ -871,7 +830,7 @@ export default function GameBoard() {
               iconBtn={iconBtn}
               onUndo={undoMove}
               onHint={() => {
-                if (computedSolution === null && !isComputingSolution) {
+                if (solution === null && !isComputingSolution) {
                   computeSolution();
                 }
                 setShowHint((h) => !h);
