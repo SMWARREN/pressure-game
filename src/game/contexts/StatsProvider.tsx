@@ -4,7 +4,7 @@ import { LocalStorageStatsBackend } from '@/game/stats/backends/localStorage';
 import type { StatsBackend } from '@/game/stats/types';
 
 interface StatsContextType {
-  engine: StatsEngine;
+  readonly engine: StatsEngine;
 }
 
 export const StatsContext = createContext<StatsContextType | null>(null);

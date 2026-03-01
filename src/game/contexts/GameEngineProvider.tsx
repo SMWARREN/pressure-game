@@ -8,9 +8,9 @@ import { getModeById } from '@/game/modes';
 import type { StatsBackend } from '@/game/stats/types';
 
 interface GameEngineContextType {
-  pressureEngine: PressureEngine;
-  statsEngine: StatsEngine;
-  achievementEngine: AchievementEngine;
+  readonly pressureEngine: PressureEngine;
+  readonly statsEngine: StatsEngine;
+  readonly achievementEngine: AchievementEngine;
 }
 
 export const GameEngineContext = createContext<GameEngineContextType | null>(null);

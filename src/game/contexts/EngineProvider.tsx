@@ -4,7 +4,7 @@ import { createPressureEngine, type PressureEngine } from '@/game/engine/index';
 import { getModeById } from '@/game/modes';
 
 interface EngineContextType {
-  engine: PressureEngine;
+  readonly engine: PressureEngine;
 }
 
 export const EngineContext = createContext<EngineContextType | null>(null);

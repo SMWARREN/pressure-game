@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo } from 'react';
 import { AchievementEngine } from '@/game/achievements/engine';
 
 interface AchievementsContextType {
-  engine: AchievementEngine;
+  readonly engine: AchievementEngine;
 }
 
 export const AchievementsContext = createContext<AchievementsContextType | null>(null);

@@ -16,9 +16,9 @@ import { isEmpty } from '@/utils/conditionalStyles';
 
 export interface SpawnConfig {
   /** Probability (0–1) that spawning succeeds this tick. Use 1 to always spawn. */
-  spawnChance: number;
+  readonly spawnChance: number;
   /** Max number of new blockers to place in this tick. */
-  maxCount: number;
+  readonly maxCount: number;
 }
 
 // ── spawnBlockers ─────────────────────────────────────────────────────────────
