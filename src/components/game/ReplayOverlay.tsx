@@ -31,6 +31,19 @@ function fmtElapsed(ms: number): string {
   return `${s}s`;
 }
 
+// ── Compute replay metadata (extracts from props/engine) ────────────────────
+function computeReplayMetadata(event: GameEndEvent, engine: ReplayEngine, vw: number) {
+  const mode = getModeById(event.modeId);
+  const gridSize = engine.level.gridSize;
+  const gap = getGapValue(gridSize);
+  const tileSize = calculateTileSize(vw, gridSize, 380, 16);
+  const totalMoves = engine.totalMoves;
+  const boardW = calculateBoardWidth(tileSize, gridSize);
+  const won = event.outcome === 'won';
+
+  return { mode, gridSize, gap, tileSize, totalMoves, boardW, won };
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -57,12 +70,11 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   }, []);
 
   const snapshot: ReplaySnapshot = engine.snapshots[step];
-  const gridSize = engine.level.gridSize;
-  const mode = getModeById(event.modeId);
-  const gap = getGapValue(gridSize);
-  const tileSize = calculateTileSize(vw, gridSize, 380, 16);
-  const totalMoves = engine.totalMoves;
-  const boardW = calculateBoardWidth(tileSize, gridSize);
+  const { mode, gridSize, gap, tileSize, totalMoves, boardW, won } = computeReplayMetadata(
+    event,
+    engine,
+    vw
+  );
 
   // Auto-play effect
   useEffect(() => {
@@ -86,8 +98,6 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
     setStep(Math.max(0, Math.min(s, engine.snapshots.length - 1)));
     setPlaying(false);
   };
-
-  const won = event.outcome === 'won';
 
   /* ── Styles ─────────────────────────────────────────────────────────────── */
 
