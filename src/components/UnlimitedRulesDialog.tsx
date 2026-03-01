@@ -54,6 +54,27 @@ export default function UnlimitedRulesDialog({
   const hasRain = features?.rain;
 
   // Mode-specific rule sets
+  const getFeatureRules = () => {
+    const rules: Array<{ icon: string; text: string }> = [];
+    if (hasThieves) {
+      rules.push(
+        { icon: '🦹', text: 'Thieves spawn as time runs low — they block tiles!' },
+        { icon: '💥', text: 'Big combos (4+) scare away nearby thieves!' }
+      );
+    }
+    if (hasIce) {
+      rules.push(
+        { icon: '🧊', text: 'Tiles freeze as time runs low!' },
+        { icon: '💥', text: 'Big combos (4+) unfreeze nearby tiles' }
+      );
+    }
+    if (hasWildcards) rules.push({ icon: '⭐', text: 'Wildcards match any color!' });
+    if (hasBombs) rules.push({ icon: '💣', text: 'Bombs clear a 3×3 area when matched!' });
+    if (hasComboChain) rules.push({ icon: '🔥', text: 'Chain combos multiply your score!' });
+    if (hasRain) rules.push({ icon: '🌧️', text: 'Tiles shuffle randomly every 10 seconds!' });
+    return rules;
+  };
+
   const getRules = () => {
     const baseRules = [
       { icon: '⏱️', text: 'Start with limited time — survive as long as you can!' },
@@ -61,83 +82,24 @@ export default function UnlimitedRulesDialog({
     ];
 
     if (isShoppingMode) {
-      const shoppingRules = [...baseRules];
-      // Shopping mode always has thieves
-      shoppingRules.push(
+      return [
+        ...baseRules,
         { icon: '🦹', text: 'Thieves spawn as time runs low — they block tiles!' },
-        { icon: '💥', text: 'Big combos (4+) scare away nearby thieves!' }
-      );
-      // Add extra features if enabled
-      if (hasWildcards) {
-        shoppingRules.push({ icon: '⭐', text: 'Wildcards match any color!' });
-      }
-      if (hasBombs) {
-        shoppingRules.push({ icon: '💣', text: 'Bombs clear a 3×3 area when matched!' });
-      }
-      shoppingRules.push({ icon: '🏆', text: 'Beat your high score to win!' });
-      return shoppingRules;
+        { icon: '💥', text: 'Big combos (4+) scare away nearby thieves!' },
+        ...getFeatureRules().filter((r) => r.icon === '⭐' || r.icon === '💣'),
+        { icon: '🏆', text: 'Beat your high score to win!' },
+      ];
     }
 
     if (isCandyMode) {
-      const candyRules = [...baseRules];
-      // Add feature-specific rules for candy mode
-      if (hasIce) {
-        candyRules.push(
-          { icon: '🧊', text: 'Tiles freeze as time runs low!' },
-          { icon: '💥', text: 'Big combos (4+) unfreeze nearby tiles' }
-        );
-      }
-      if (hasWildcards) {
-        candyRules.push({ icon: '⭐', text: 'Wildcards match any color!' });
-      }
-      if (hasBombs) {
-        candyRules.push({ icon: '💣', text: 'Bombs clear a 3×3 area when matched!' });
-      }
-      if (hasComboChain) {
-        candyRules.push({ icon: '🔥', text: 'Chain combos multiply your score!' });
-      }
-      if (hasRain) {
-        candyRules.push({ icon: '🌧️', text: 'Tiles shuffle randomly every 10 seconds!' });
-      }
-      candyRules.push({ icon: '🏆', text: 'Beat your high score to win!' });
-      return candyRules;
+      return [
+        ...baseRules,
+        ...getFeatureRules(),
+        { icon: '🏆', text: 'Beat your high score to win!' },
+      ];
     }
 
-    // Build rules based on features for other modes
-    const featureRules = [];
-
-    if (hasThieves) {
-      featureRules.push(
-        { icon: '🦹', text: 'Thieves spawn as time runs low — they block tiles!' },
-        { icon: '💥', text: 'Big combos (4+) scare away nearby thieves!' }
-      );
-    }
-
-    if (hasIce) {
-      featureRules.push(
-        { icon: '🧊', text: 'Tiles freeze as time runs low!' },
-        { icon: '💥', text: 'Big combos (4+) unfreeze nearby tiles' }
-      );
-    }
-
-    if (hasWildcards) {
-      featureRules.push({ icon: '⭐', text: 'Wildcards match any color!' });
-    }
-
-    if (hasBombs) {
-      featureRules.push({ icon: '💣', text: 'Bombs clear a 3×3 area when matched!' });
-    }
-
-    if (hasComboChain) {
-      featureRules.push({ icon: '🔥', text: 'Chain combos multiply your score!' });
-    }
-
-    if (hasRain) {
-      featureRules.push({ icon: '🌧️', text: 'Tiles shuffle randomly every 10 seconds!' });
-    }
-
-    // Default rules for other modes
-    return [...baseRules, ...featureRules, { icon: '🏆', text: 'Beat your high score to win!' }];
+    return [...baseRules, ...getFeatureRules(), { icon: '🏆', text: 'Beat your high score to win!' }];
   };
 
   const rules = getRules();
