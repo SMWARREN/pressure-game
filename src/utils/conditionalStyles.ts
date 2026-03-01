@@ -73,3 +73,20 @@ export function clamp(value: number, min: number, max: number): number {
 export function coalesce<T>(value: T | null | undefined, fallback: T): T {
   return value ?? fallback;
 }
+
+/**
+ * Check if array/set is not empty
+ * Replaces: array.length > 0 or set.size > 0
+ */
+export function isNotEmpty<T>(collection: T[] | Set<T> | null | undefined): boolean {
+  if (!collection) return false;
+  return collection instanceof Set ? collection.size > 0 : collection.length > 0;
+}
+
+/**
+ * Check if array/set is empty
+ * Replaces: array.length === 0 or set.size === 0
+ */
+export function isEmpty<T>(collection: T[] | Set<T> | null | undefined): boolean {
+  return !isNotEmpty(collection);
+}
