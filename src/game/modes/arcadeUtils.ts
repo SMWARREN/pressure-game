@@ -14,8 +14,8 @@ import { findGroup, buildTileMap } from './arcadeShared';
  * Optionally marks refilled tiles as new for animation.
  */
 export interface ReshuffleOptions {
-  markNew?: boolean; // Mark shuffled tiles as isNew (default: false)
-  filterFn?: (tile: Tile) => boolean; // Custom filter (default: canRotate)
+  readonly markNew?: boolean; // Mark shuffled tiles as isNew (default: false)
+  readonly filterFn?: (tile: Tile) => boolean; // Custom filter (default: canRotate)
 }
 
 export function reshuffleTiles(tiles: Tile[], options?: ReshuffleOptions): Tile[] {

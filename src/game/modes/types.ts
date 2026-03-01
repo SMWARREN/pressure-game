@@ -12,22 +12,22 @@ import { WalkthroughConfig } from '../../components/WalkthroughOverlay';
 export type WallCompressionSetting = 'always' | 'never' | 'optional';
 
 export interface TapResult {
-  tiles: Tile[];
-  valid: boolean;
-  scoreDelta?: number;
-  customState?: Record<string, unknown>;
+  readonly tiles: Tile[];
+  readonly valid: boolean;
+  readonly scoreDelta?: number;
+  readonly customState?: Record<string, unknown>;
   /** Time bonus in seconds to add to the timer (for unlimited/survival modes) */
-  timeBonus?: number;
+  readonly timeBonus?: number;
 }
 
 export interface WinResult {
-  won: boolean;
-  reason?: string;
+  readonly won: boolean;
+  readonly reason?: string;
 }
 
 export interface LossResult {
-  lost: boolean;
-  reason?: string;
+  readonly lost: boolean;
+  readonly reason?: string;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface LossResult {
 export type StatComponentType = 'moves' | 'compressionBar' | 'countdown' | 'score' | 'timeleft';
 
 export interface StatComponentConfig {
-  type: StatComponentType;
+  readonly type: StatComponentType;
   // Future: could add more specific options per component, e.g., { type: 'moves', showMax: true }
 }
 
@@ -121,12 +121,12 @@ export type TutorialDemoType =
   | 'gemblast-ready';
 
 export interface TutorialStep {
-  icon: string;
-  iconColor: string;
-  title: string;
-  subtitle: string;
-  demo: TutorialDemoType;
-  body: string;
+  readonly icon: string;
+  readonly iconColor: string;
+  readonly title: string;
+  readonly subtitle: string;
+  readonly demo: TutorialDemoType;
+  readonly body: string;
 }
 
 // ─── Tile Renderer ───────────────────────────────────────────────────────────
@@ -139,10 +139,10 @@ export interface TutorialStep {
 // All functions are optional — fall back to the default pipe renderer.
 
 export interface TileColors {
-  background: string;
-  border: string;
-  boxShadow?: string;
-  color?: string;
+  readonly background: string;
+  readonly border: string;
+  readonly boxShadow?: string;
+  readonly color?: string;
 }
 
 export interface TileRenderer {
@@ -150,39 +150,39 @@ export interface TileRenderer {
    * Unique identifier so GameTile knows which rendering branch to use.
    * 'pipe' is the default. Add 'slots' | 'candy' | 'match3' etc. as you create modes.
    */
-  type: 'pipe' | 'slots' | 'candy' | string;
+  readonly type: 'pipe' | 'slots' | 'candy' | string;
 
   /**
    * Return the background/border/shadow for a tile given its state.
    * If omitted, uses the default pipe palette.
    */
-  getColors?: (tile: Tile, ctx: TileRenderContext) => TileColors;
+  readonly getColors?: (tile: Tile, ctx: TileRenderContext) => TileColors;
 
   /**
    * Return content to render inside the tile (emoji, letter, icon, SVG string).
    * For pipe modes this is undefined — pipes draw their own connection lines.
    */
-  getSymbol?: (tile: Tile, ctx: TileRenderContext) => string | null;
+  readonly getSymbol?: (tile: Tile, ctx: TileRenderContext) => string | null;
 
   /**
    * If true, the pipe connection lines are hidden and the mode draws its own
    * content entirely via getSymbol / getColors.
    */
-  hidePipes?: boolean;
+  readonly hidePipes?: boolean;
 
   /**
    * Custom CSS font size for the symbol (e.g. '1.4rem').
    * Only used when getSymbol returns a value.
    */
-  symbolSize?: string;
+  readonly symbolSize?: string;
 }
 
 export interface TileRenderContext {
-  isHint: boolean;
-  inDanger: boolean;
-  justRotated: boolean;
-  compressionActive: boolean;
-  tileSize: number;
+  readonly isHint: boolean;
+  readonly inDanger: boolean;
+  readonly justRotated: boolean;
+  readonly compressionActive: boolean;
+  readonly tileSize: number;
 }
 
 // ─── Game Mode Config ─────────────────────────────────────────────────────────
