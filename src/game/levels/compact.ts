@@ -190,27 +190,30 @@ export function hydrateLevel(compact: CompactLevel): Level {
 
 // ─── Dehydrator (Level → CompactLevel) ────────────────────────────────────
 // Useful for extracting existing verbose levels into compact form.
-export function dehydrateLevel(level: Level, autoWalls: boolean = true): CompactLevel {
-  const cols = level.gridCols ?? level.gridSize;
-  const rows = level.gridRows ?? level.gridSize;
-  const goalSet = new Set(level.goalNodes.map((g) => `${g.x},${g.y}`));
+// ── Helper functions for dehydrateLevel ────────────────────────────────────
 
+function createBorderSet(cols: number, rows: number): Set<string> {
   const borderSet = new Set<string>();
-  if (autoWalls) {
-    for (let x = 0; x < cols; x++) {
-      borderSet.add(`${x},0`);
-      borderSet.add(`${x},${rows - 1}`);
-    }
-    for (let y = 1; y < rows - 1; y++) {
-      borderSet.add(`0,${y}`);
-      borderSet.add(`${cols - 1},${y}`);
-    }
+  for (let x = 0; x < cols; x++) {
+    borderSet.add(`${x},0`);
+    borderSet.add(`${x},${rows - 1}`);
   }
+  for (let y = 1; y < rows - 1; y++) {
+    borderSet.add(`0,${y}`);
+    borderSet.add(`${cols - 1},${y}`);
+  }
+  return borderSet;
+}
 
+function processTilesToCompact(
+  tiles: Tile[],
+  goalSet: Set<string>,
+  borderSet: Set<string>
+): { compactTiles: CompactTile[]; interiorWalls: [number, number][] } {
   const interiorWalls: [number, number][] = [];
-  const tiles: CompactTile[] = [];
+  const compactTiles: CompactTile[] = [];
 
-  for (const tile of level.tiles) {
+  for (const tile of tiles) {
     const key = `${tile.x},${tile.y}`;
     if (goalSet.has(key)) continue;
 
@@ -225,8 +228,19 @@ export function dehydrateLevel(level: Level, autoWalls: boolean = true): Compact
     if (tile.connections.length > 0) ct.c = dirsToCode(tile.connections);
     if (!tile.canRotate) ct.r = false;
     if (tile.type !== 'path') ct.t = tile.type as 'node';
-    tiles.push(ct);
+    compactTiles.push(ct);
   }
+
+  return { compactTiles, interiorWalls };
+}
+
+export function dehydrateLevel(level: Level, autoWalls: boolean = true): CompactLevel {
+  const cols = level.gridCols ?? level.gridSize;
+  const rows = level.gridRows ?? level.gridSize;
+  const goalSet = new Set(level.goalNodes.map((g) => `${g.x},${g.y}`));
+
+  const borderSet = autoWalls ? createBorderSet(cols, rows) : new Set<string>();
+  const { compactTiles, interiorWalls } = processTilesToCompact(level.tiles, goalSet, borderSet);
 
   return {
     id: level.id,
@@ -240,7 +254,7 @@ export function dehydrateLevel(level: Level, autoWalls: boolean = true): Compact
     goals: level.goalNodes.map((g) => [g.x, g.y]),
     autoWalls: autoWalls ? 'border' : undefined,
     ...(interiorWalls.length > 0 && { interiorWalls }),
-    tiles,
+    tiles: compactTiles,
     ...(level.timeLimit !== undefined && { timeLimit: level.timeLimit }),
     ...(level.isGenerated !== undefined && { isGenerated: level.isGenerated }),
   };
