@@ -3,52 +3,44 @@
  * Pure functions for computing colors based on game state
  */
 
+// Status color lookup tables (reduces cognitive complexity vs switch statements)
+const STATUS_BACKGROUND_COLORS: Record<string, string> = {
+  playing: '#10b98120',
+  won: '#22c55e20',
+  lost: '#ef444420',
+};
+
+const STATUS_BORDER_COLORS: Record<string, string> = {
+  playing: '#10b98140',
+  won: '#22c55e40',
+  lost: '#ef444440',
+};
+
+const STATUS_TEXT_COLORS: Record<string, string> = {
+  playing: '#10b981',
+  won: '#22c55e',
+  lost: '#ef4444',
+};
+
 /**
  * Get background color based on game status
  */
 function getStatusBackgroundColor(status: string): string {
-  switch (status) {
-    case 'playing':
-      return '#10b98120';
-    case 'won':
-      return '#22c55e20';
-    case 'lost':
-      return '#ef444420';
-    default:
-      return '#f59e0b20';
-  }
+  return STATUS_BACKGROUND_COLORS[status] ?? '#f59e0b20';
 }
 
 /**
  * Get border color based on game status
  */
 function getStatusBorderColor(status: string): string {
-  switch (status) {
-    case 'playing':
-      return '#10b98140';
-    case 'won':
-      return '#22c55e40';
-    case 'lost':
-      return '#ef444440';
-    default:
-      return '#f59e0b40';
-  }
+  return STATUS_BORDER_COLORS[status] ?? '#f59e0b40';
 }
 
 /**
  * Get text color based on game status
  */
 function getStatusTextColor(status: string): string {
-  switch (status) {
-    case 'playing':
-      return '#10b981';
-    case 'won':
-      return '#22c55e';
-    case 'lost':
-      return '#ef4444';
-    default:
-      return '#f59e0b';
-  }
+  return STATUS_TEXT_COLORS[status] ?? '#f59e0b';
 }
 
 /**

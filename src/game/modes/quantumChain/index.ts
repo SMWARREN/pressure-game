@@ -77,6 +77,17 @@ function getNeighbors(tile: Tile, tiles: Tile[]): Tile[] {
   return neighbors;
 }
 
+// Quantum flux effect processors (replaces switch statement)
+const FLUX_EFFECT_PROCESSORS: Record<
+  string,
+  (value: number, fluxValue?: number) => number
+> = {
+  double: (v) => v * 2,
+  halve: (v) => Math.floor(v / 2),
+  add: (v, fv) => v + (fv ?? 0),
+  subtract: (v, fv) => v - (fv ?? 0),
+};
+
 function applyQuantumFlux(tile: Tile, allTiles: Tile[]): number {
   if (tile.type !== 'number' || !tile.displayData) return 0;
 
@@ -87,25 +98,23 @@ function applyQuantumFlux(tile: Tile, allTiles: Tile[]): number {
   for (const neighbor of neighbors) {
     if (neighbor.type === 'quantumFlux' && neighbor.displayData) {
       const flux = neighbor.displayData as QuantumFluxTileData;
-      switch (flux.effect) {
-        case 'double':
-          value *= 2;
-          break;
-        case 'halve':
-          value = Math.floor(value / 2);
-          break;
-        case 'add':
-          value += flux.value ?? 0;
-          break;
-        case 'subtract':
-          value -= flux.value ?? 0;
-          break;
+      const processor = FLUX_EFFECT_PROCESSORS[flux.effect];
+      if (processor) {
+        value = processor(value, flux.value);
       }
     }
   }
 
   return value;
 }
+
+// Arithmetic operator evaluators (replaces switch statement)
+const OPERATOR_EVALUATORS: Record<string, (a: number, b: number) => number> = {
+  '+': (a, b) => a + b,
+  '-': (a, b) => a - b,
+  '*': (a, b) => a * b,
+  '/': (a, b) => Math.floor(a / b),
+};
 
 function evaluateExpression(expression: string): number {
   const tokens = expression.match(/\d+|[+\-*/]/g);
@@ -116,20 +125,9 @@ function evaluateExpression(expression: string): number {
   for (let i = 1; i < tokens.length; i += 2) {
     const operator = tokens[i];
     const operand = Number.parseInt(tokens[i + 1], 10);
-
-    switch (operator) {
-      case '+':
-        result += operand;
-        break;
-      case '-':
-        result -= operand;
-        break;
-      case '*':
-        result *= operand;
-        break;
-      case '/':
-        result = Math.floor(result / operand);
-        break;
+    const evaluator = OPERATOR_EVALUATORS[operator];
+    if (evaluator) {
+      result = evaluator(result, operand);
     }
   }
 

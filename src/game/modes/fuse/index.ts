@@ -39,52 +39,63 @@ interface FuseState extends Record<string, unknown> {
 
 // ── Tile visuals ──────────────────────────────────────────────────────────────
 
-function fuseColors(tile: Tile) {
+// Lookup table for fuse tile colors by kind (reduces cognitive complexity vs switch statements)
+const FUSE_KIND_COLORS = {
+  detonator: {
+    background: 'linear-gradient(145deg,#1c1f00,#2d2f00)',
+    border: '2px solid #facc15',
+    boxShadow: '0 0 14px rgba(250,204,21,0.6)',
+  },
+  relay: {
+    background: 'linear-gradient(145deg,#0f1f3d,#0a1529)',
+    border: '2px solid #60a5fa',
+    boxShadow: '0 0 12px rgba(96,165,250,0.5)',
+  },
+  blocker: {
+    background: '#111118',
+    border: '2px solid #374151',
+    boxShadow: 'none',
+  },
+} satisfies Record<string, any>;
+
+// Static color definitions
+const FUSE_COLORS_BY_STATE = {
+  exploded: {
+    background: 'linear-gradient(145deg,#3d1f00,#2d1500)',
+    border: '2px solid #fb923c',
+    boxShadow: '0 0 20px rgba(251,146,60,0.8)',
+  },
+  armed: {
+    background: 'linear-gradient(145deg,#2d0a00,#3d0f00)',
+    border: '2px solid #ef4444',
+    boxShadow: '0 0 10px rgba(239,68,68,0.55)',
+  },
+  unarmed: {
+    background: 'rgba(15,15,25,0.4)',
+    border: '1px solid #1e293b',
+    boxShadow: 'none',
+  },
+} satisfies Record<string, any>;
+
+// Lookup table for fuse tile symbols
+const FUSE_KIND_SYMBOLS = {
+  detonator: '⚡',
+  relay: '🎯',
+  blocker: '◼',
+} satisfies Record<string, string>;
+
+function fuseColors(tile: Tile): any {
   const kind = tile.displayData?.kind as string;
   const armed = tile.displayData?.armed as boolean;
   const exploded = tile.displayData?.exploded as boolean;
 
-  if (exploded) {
-    return {
-      background: 'linear-gradient(145deg,#3d1f00,#2d1500)',
-      border: '2px solid #fb923c',
-      boxShadow: '0 0 20px rgba(251,146,60,0.8)',
-    };
-  }
+  if (exploded) return FUSE_COLORS_BY_STATE.exploded;
 
-  switch (kind) {
-    case 'detonator':
-      return {
-        background: 'linear-gradient(145deg,#1c1f00,#2d2f00)',
-        border: '2px solid #facc15',
-        boxShadow: '0 0 14px rgba(250,204,21,0.6)',
-      };
-    case 'relay':
-      return {
-        background: 'linear-gradient(145deg,#0f1f3d,#0a1529)',
-        border: '2px solid #60a5fa',
-        boxShadow: '0 0 12px rgba(96,165,250,0.5)',
-      };
-    case 'blocker':
-      return {
-        background: '#111118',
-        border: '2px solid #374151',
-        boxShadow: 'none',
-      };
-    default: // regular
-      if (armed) {
-        return {
-          background: 'linear-gradient(145deg,#2d0a00,#3d0f00)',
-          border: '2px solid #ef4444',
-          boxShadow: '0 0 10px rgba(239,68,68,0.55)',
-        };
-      }
-      return {
-        background: 'rgba(15,15,25,0.4)',
-        border: '1px solid #1e293b',
-        boxShadow: 'none',
-      };
-  }
+  const kindColor = FUSE_KIND_COLORS[kind as keyof typeof FUSE_KIND_COLORS];
+  if (kindColor) return kindColor;
+
+  // Default: regular tile
+  return armed ? FUSE_COLORS_BY_STATE.armed : FUSE_COLORS_BY_STATE.unarmed;
 }
 
 function fuseSymbol(tile: Tile): string | null {
@@ -93,16 +104,9 @@ function fuseSymbol(tile: Tile): string | null {
   const exploded = tile.displayData?.exploded as boolean;
 
   if (exploded) return '💥';
-  switch (kind) {
-    case 'detonator':
-      return '⚡';
-    case 'relay':
-      return '🎯';
-    case 'blocker':
-      return '◼';
-    default:
-      return armed ? '💣' : null;
-  }
+  if (kind in FUSE_KIND_SYMBOLS) return FUSE_KIND_SYMBOLS[kind as keyof typeof FUSE_KIND_SYMBOLS];
+  // Default: regular tile
+  return armed ? '💣' : null;
 }
 
 // ── Chain propagation helpers ─────────────────────────────────────────────────
