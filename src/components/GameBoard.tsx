@@ -497,6 +497,141 @@ export default function GameBoard() {
   const editorButtonTitle = isEditorActive ? 'Exit Editor' : 'Level Editor';
   const editorButtonIcon = isEditorActive ? '✓' : '🛠️';
 
+  // Render pause overlay conditionally
+  const pauseOverlay = isPaused && !editor.enabled ? (
+    <PauseOverlay onResume={resumeGame} onMenu={goToMenu} />
+  ) : null;
+
+  // Render main overlay conditionally
+  const mainOverlay =
+    !(isUnlimited && showUnlimitedRules) &&
+    !walkthroughActive &&
+    !isPaused &&
+    !editor.enabled ? (
+      <Overlay
+        status={status}
+        moves={moves}
+        levelName={currentLevel.name}
+        onStart={isUnlimited ? handleUnlimitedStart : startGame}
+        onNext={() => nextLevel && loadLevel(nextLevel)}
+        onMenu={goToMenu}
+        onRetry={restartLevel}
+        solution={solution}
+        hasNext={!!nextLevel}
+        elapsedSeconds={elapsedSeconds}
+        winTitle={winTitle}
+        lossTitle={lossTitle}
+        finalScore={score}
+        targetScore={currentLevel.targetScore}
+        levelRecord={levelRecord}
+        onReplay={onReplayForOverlay}
+        newHighScore={isNewHighScore}
+      />
+    ) : null;
+
+  // Render notification conditionally
+  const scoreNotification = notification ? (
+    <div
+      key={notification.key}
+      style={{
+        position: 'absolute',
+        top: -24,
+        left: '50%',
+        animation: 'notifFloat 1.4s ease forwards',
+        fontSize: 15,
+        fontWeight: 900,
+        color: notification.isScore ? mode.color : '#fbbf24',
+        letterSpacing: '0.05em',
+        pointerEvents: 'none',
+        zIndex: 20,
+        whiteSpace: 'nowrap',
+        textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
+      }}
+    >
+      {notification.text}
+    </div>
+  ) : null;
+
+  // Render replay overlay conditionally
+  const replayOverlay = replayEngine && replayEvent ? (
+    <ReplayOverlay
+      event={replayEvent}
+      engine={replayEngine}
+      onClose={() => setReplayEvent(null)}
+    />
+  ) : null;
+
+  // Render walkthrough overlay conditionally
+  const walkthroughOverlay = walkthroughActive && walkthroughConfig ? (
+    <WalkthroughOverlay
+      steps={walkthroughConfig.steps}
+      currentStepIndex={walkthroughStepIndex}
+      onAdvance={advanceWalkthrough}
+      onSkip={skipWalkthrough}
+      targetTile={walkthroughStep?.targetTile}
+      boardRef={boardRef}
+      gridSize={gs}
+      onStartGame={startGame}
+    />
+  ) : null;
+
+  // Render unlimited rules dialog conditionally
+  const unlimitedRulesDialog = showUnlimitedRules && currentLevel ? (
+    <UnlimitedRulesDialog
+      levelName={currentLevel.name}
+      previousScore={unlimitedPreviousScore}
+      onStart={handleUnlimitedStart}
+      onBack={goToMenu}
+      modeId={currentModeId}
+      features={currentLevel.features}
+      onWatchBest={onWatchBestUnlimited}
+    />
+  ) : null;
+
+  // Render how to play modal conditionally
+  const howToPlayModal = showHowToPlay ? (
+    <HowToPlayModal onClose={() => setShowHowToPlay(false)} />
+  ) : null;
+
+  // Render feature info sheet conditionally
+  const featureInfoSheet = (
+    <FeatureInfoSheet feature={showFeatureInfo} onClose={() => setShowFeatureInfo(null)} />
+  );
+
+  // Render editor toolbar conditionally
+  const editorToolbar = editor.enabled ? (
+    <div
+      style={{
+        position: 'fixed',
+        left: '50%',
+        bottom: 100,
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        padding: '8px 12px',
+        background: 'rgba(10,10,22,0.95)',
+        borderRadius: 16,
+        border: '1px solid #a855f740',
+        boxShadow: '0 4px 24px rgba(168,85,247,0.2)',
+        zIndex: 100,
+        maxWidth: '95vw',
+      }}
+    >
+      <EditorToolbar
+        editor={editor}
+        tiles={tiles}
+        setEditorTool={setEditorTool}
+        showNotification={showNotification}
+      />
+    </div>
+  ) : null;
+
+  // Render notification log conditionally
+  const notificationLog = status === 'playing' ? (
+    <NotificationLog notifLog={notifLog} mode={mode} viewportWidth={vw} boardMaxWidth={238} />
+  ) : null;
+
   return (
     <>
       <div
@@ -612,97 +747,26 @@ export default function GameBoard() {
             />
 
             {/* Pause overlay - hide when editor is enabled */}
-            {isPaused && !editor.enabled && (
-              <PauseOverlay onResume={resumeGame} onMenu={goToMenu} />
-            )}
+            {pauseOverlay}
 
             {/* Editor mode indicator in top bar - no blocking overlay */}
 
-            {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active, or when paused, or when editor is enabled */}
-            {!(isUnlimited && showUnlimitedRules) &&
-              !walkthroughActive &&
-              !isPaused &&
-              !editor.enabled && (
-                <Overlay
-                  status={status}
-                  moves={moves}
-                  levelName={currentLevel.name}
-                  onStart={isUnlimited ? handleUnlimitedStart : startGame}
-                  onNext={() => nextLevel && loadLevel(nextLevel)}
-                  onMenu={goToMenu}
-                  onRetry={restartLevel}
-                  solution={solution}
-                  hasNext={!!nextLevel}
-                  elapsedSeconds={elapsedSeconds}
-                  winTitle={winTitle}
-                  lossTitle={lossTitle}
-                  finalScore={score}
-                  targetScore={currentLevel.targetScore}
-                  levelRecord={levelRecord}
-                  onReplay={onReplayForOverlay}
-                  newHighScore={isNewHighScore}
-                />
-              )}
+            {/* Main overlay screens */}
+            {mainOverlay}
+
             {/* Score / mode notification — floats above the board, fades out */}
-            {notification && (
-              <div
-                key={notification.key}
-                style={{
-                  position: 'absolute',
-                  top: -24,
-                  left: '50%',
-                  animation: 'notifFloat 1.4s ease forwards',
-                  fontSize: 15,
-                  fontWeight: 900,
-                  color: notification.isScore ? mode.color : '#fbbf24',
-                  letterSpacing: '0.05em',
-                  pointerEvents: 'none',
-                  zIndex: 20,
-                  whiteSpace: 'nowrap',
-                  textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
-                }}
-              >
-                {notification.text}
-              </div>
-            )}
+            {scoreNotification}
           </div>
         </div>
 
         {/* ── REPLAY OVERLAY ──────────────────────────────────────── */}
-        {replayEngine && replayEvent && (
-          <ReplayOverlay
-            event={replayEvent}
-            engine={replayEngine}
-            onClose={() => setReplayEvent(null)}
-          />
-        )}
+        {replayOverlay}
 
         {/* ── WALKTHROUGH OVERLAY ──────────────────────────────────── */}
-        {walkthroughActive && walkthroughConfig && (
-          <WalkthroughOverlay
-            steps={walkthroughConfig.steps}
-            currentStepIndex={walkthroughStepIndex}
-            onAdvance={advanceWalkthrough}
-            onSkip={skipWalkthrough}
-            targetTile={walkthroughStep?.targetTile}
-            boardRef={boardRef}
-            gridSize={gs}
-            onStartGame={startGame}
-          />
-        )}
+        {walkthroughOverlay}
 
         {/* ── UNLIMITED RULES DIALOG ────────────────────────────────── */}
-        {showUnlimitedRules && currentLevel && (
-          <UnlimitedRulesDialog
-            levelName={currentLevel.name}
-            previousScore={unlimitedPreviousScore}
-            onStart={handleUnlimitedStart}
-            onBack={goToMenu}
-            modeId={currentModeId}
-            features={currentLevel.features}
-            onWatchBest={onWatchBestUnlimited}
-          />
-        )}
+        {unlimitedRulesDialog}
 
         {/* ── FOOTER / CONTROLS ───────────────────────────────────── */}
         <footer
@@ -801,45 +865,17 @@ export default function GameBoard() {
         </footer>
 
         {/* How to Play Modal */}
-        {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
+        {howToPlayModal}
 
         {/* Feature Info Sheet */}
-        <FeatureInfoSheet feature={showFeatureInfo} onClose={() => setShowFeatureInfo(null)} />
+        {featureInfoSheet}
 
         {/* ── EDITOR TOOLBAR ─────────────────────────────────────── */}
-        {editor.enabled && (
-          <div
-            style={{
-              position: 'fixed',
-              left: '50%',
-              bottom: 100,
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              padding: '8px 12px',
-              background: 'rgba(10,10,22,0.95)',
-              borderRadius: 16,
-              border: '1px solid #a855f740',
-              boxShadow: '0 4px 24px rgba(168,85,247,0.2)',
-              zIndex: 100,
-              maxWidth: '95vw',
-            }}
-          >
-            <EditorToolbar
-              editor={editor}
-              tiles={tiles}
-              setEditorTool={setEditorTool}
-              showNotification={showNotification}
-            />
-          </div>
-        )}
+        {editorToolbar}
       </div>
 
       {/* ── NOTIFICATION LOG — fixed right panel, escapes overflow:hidden ── */}
-      {status === 'playing' && (
-        <NotificationLog notifLog={notifLog} mode={mode} viewportWidth={vw} boardMaxWidth={238} />
-      )}
+      {notificationLog}
     </>
   );
 }
