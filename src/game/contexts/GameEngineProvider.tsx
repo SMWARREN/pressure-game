@@ -23,6 +23,23 @@ interface GameEngineProviderProps {
 let globalContext: GameEngineContextType | null = null;
 let initAttempted = false;
 
+// HMR cleanup - reset globals on reload
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    console.log('[HMR] Disposing GameEngineProvider - cleaning up globals');
+    if (globalContext) {
+      try {
+        globalContext.pressureEngine.destroy();
+        globalContext.statsEngine.stop();
+      } catch (e) {
+        console.error('[HMR] Cleanup error:', e);
+      }
+    }
+    globalContext = null;
+    initAttempted = false;
+  });
+}
+
 export function GameEngineProvider({ children, statsBackend }: GameEngineProviderProps) {
   const contextRef = useRef<GameEngineContextType | null>(null);
 
