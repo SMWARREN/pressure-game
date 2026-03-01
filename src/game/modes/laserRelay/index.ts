@@ -158,6 +158,22 @@ function processBeamStep(
   return { shouldBreak: false, hitTarget: false };
 }
 
+// ── Helper to build portal pairs map ────────────────────────────────────────
+
+function buildPortalPairs(tiles: Tile[]): Map<string, Tile[]> {
+  const portalPairs = new Map<string, Tile[]>();
+  for (const t of tiles) {
+    if (t.displayData?.kind === 'portal') {
+      const portalId = t.displayData.portalId as string;
+      if (portalId) {
+        if (!portalPairs.has(portalId)) portalPairs.set(portalId, []);
+        portalPairs.get(portalId)!.push(t);
+      }
+    }
+  }
+  return portalPairs;
+}
+
 export function traceLaser(
   tiles: Tile[],
   gridSize: number,
@@ -170,17 +186,7 @@ export function traceLaser(
   const source = tiles.find((t) => t.displayData?.kind === 'source');
   if (!source) return { beamKeys: new Set(), hitTarget: false };
 
-  // Build portal pairs map
-  const portalPairs = new Map<string, Tile[]>();
-  for (const t of tiles) {
-    if (t.displayData?.kind === 'portal') {
-      const portalId = t.displayData.portalId as string;
-      if (portalId) {
-        if (!portalPairs.has(portalId)) portalPairs.set(portalId, []);
-        portalPairs.get(portalId)!.push(t);
-      }
-    }
-  }
+  const portalPairs = buildPortalPairs(tiles);
 
   let x = source.x;
   let y = source.y;
