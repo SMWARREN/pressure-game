@@ -429,6 +429,9 @@ export const CandyMode: GameModeConfig = {
     };
   },
 
+  // ── onTick feature handlers ──────────────────────────────────────────────
+  // These helpers reduce the cognitive complexity of the tick method
+
   onTick(state, modeState) {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const world = (modeState?.world as number) ?? 0;
@@ -436,11 +439,10 @@ export const CandyMode: GameModeConfig = {
       | { rain?: boolean; ice?: boolean; blockerIntensity?: 0 | 1 | 2 }
       | undefined;
 
-    // Accumulate tile/state changes so rain + ice can both fire in the same tick
     let updatedState: Record<string, unknown> | null = null;
     let updatedTiles = state.tiles;
 
-    // ── Rain — scramble 2-3 tiles every 10s on Tropical levels ───────────────
+    // Apply rain feature if enabled
     if (features?.rain) {
       const activeSymbols =
         (updatedTiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ??
@@ -462,7 +464,7 @@ export const CandyMode: GameModeConfig = {
       }
     }
 
-    // ── Ice (Tropical) — spawn 1 frozen tile every 15s ────────────────────────
+    // Apply tropical ice feature if enabled
     if (features?.ice) {
       const lastIceAt = (state.modeState?.lastIceAt as number) ?? 0;
       if (state.elapsedSeconds >= 15 && state.elapsedSeconds - lastIceAt >= 15) {
@@ -483,18 +485,13 @@ export const CandyMode: GameModeConfig = {
     }
 
     if (updatedState !== null) return { tiles: updatedTiles, modeState: updatedState };
-
-    // Only run time-based ice freezing on timed levels (World 4 + Unlimited W5)
     if (timeLeft === undefined) return null;
 
-    // Use config-driven approach: blockerIntensity determines spawn behavior
     const freezeCount = getBlockerCount(features, timeLeft);
     if (freezeCount === 0) return null;
 
-    // Spawn ice with appropriate max count based on mode
     const existingFrozen = getExistingFrozenPositions(state.tiles);
     const maxCount = features?.ice ? freezeCount : getFrozenTileMaxCount(timeLeft);
-
     const result = spawnBlockers(state.tiles, 'frozen', existingFrozen, {
       spawnChance: 1,
       maxCount,
