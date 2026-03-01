@@ -20,14 +20,14 @@ interface GameEngineProviderProps {
   statsBackend?: StatsBackend;
 }
 
-export function GameEngineProvider({ children, statsBackend }: GameEngineProviderProps) {
-  const pressureEngineRef = useRef<PressureEngine | null>(null);
-  const statsEngineRef = useRef<StatsEngine | null>(null);
-  const achievementEngineRef = useRef<AchievementEngine | null>(null);
+let globalContext: GameEngineContextType | null = null;
 
-  useEffect(() => {
-    // Create fresh engine instances on mount - all at once
-    if (!pressureEngineRef.current) {
+export function GameEngineProvider({ children, statsBackend }: GameEngineProviderProps) {
+  const contextRef = useRef<GameEngineContextType | null>(null);
+
+  // Initialize engines on first render
+  if (!contextRef.current && !globalContext) {
+    try {
       // Create pressure engine
       const pressureEngine = createPressureEngine();
       pressureEngine.init(
@@ -49,48 +49,56 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
 
       // Make pressure engine available to store actions
       _setEngineInstance(pressureEngine);
-      pressureEngineRef.current = pressureEngine;
 
-      // Create stats engine
+      // Create stats engine and start it immediately
       const backend = statsBackend ?? new LocalStorageStatsBackend();
       const statsEngine = new StatsEngine(backend);
       statsEngine.start();
-      statsEngineRef.current = statsEngine;
 
       // Create achievement engine
       const achievementEngine = new AchievementEngine();
-      achievementEngineRef.current = achievementEngine;
-    }
 
+      // Store context both locally and globally
+      contextRef.current = {
+        pressureEngine,
+        statsEngine,
+        achievementEngine,
+      };
+      globalContext = contextRef.current;
+
+      console.log('[GameEngineProvider] Initialized successfully');
+    } catch (error) {
+      console.error('[GameEngineProvider] Initialization error:', error);
+      throw error;
+    }
+  } else if (globalContext && !contextRef.current) {
+    contextRef.current = globalContext;
+  }
+
+  useEffect(() => {
     // Cleanup on unmount
     return () => {
-      if (pressureEngineRef.current) {
-        pressureEngineRef.current.destroy();
-        _setEngineInstance(null as any);
-        pressureEngineRef.current = null;
-      }
-      if (statsEngineRef.current) {
-        statsEngineRef.current.stop();
-        statsEngineRef.current = null;
-      }
-      if (achievementEngineRef.current) {
-        achievementEngineRef.current = null;
+      if (contextRef.current) {
+        try {
+          contextRef.current.pressureEngine.destroy();
+          _setEngineInstance(null as any);
+          contextRef.current.statsEngine.stop();
+          globalContext = null;
+          contextRef.current = null;
+        } catch (error) {
+          console.error('[GameEngineProvider] Cleanup error:', error);
+        }
       }
     };
-  }, [statsBackend]);
+  }, []);
 
-  if (!pressureEngineRef.current || !statsEngineRef.current || !achievementEngineRef.current) {
+  if (!contextRef.current) {
+    console.warn('[GameEngineProvider] No context available, returning null');
     return null;
   }
 
   return (
-    <GameEngineContext.Provider
-      value={{
-        pressureEngine: pressureEngineRef.current,
-        statsEngine: statsEngineRef.current,
-        achievementEngine: achievementEngineRef.current,
-      }}
-    >
+    <GameEngineContext.Provider value={contextRef.current}>
       {children}
     </GameEngineContext.Provider>
   );
