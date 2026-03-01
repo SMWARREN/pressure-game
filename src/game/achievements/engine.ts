@@ -204,33 +204,32 @@ class AchievementEngine {
         continue;
       }
 
-      let current = 0;
-      switch (achievement.condition.type) {
-        case 'levels_completed':
-          current = this.state.stats.totalLevelsCompleted;
-          break;
-        case 'moves_under_par':
-          current = this.state.stats.totalMovesUnderPar;
-          break;
-        case 'speedrun':
-          current = this.state.stats.totalSpeedruns;
-          break;
-        case 'streak':
-          current = stats.currentStreak; // Streak is not cumulative
-          break;
-        case 'no_hints':
-          current = this.state.stats.totalNoHintsLevels;
-          break;
-        case 'perfect_world':
-          current = stats.perfectWorlds; // Perfect world is not cumulative
-          break;
-        case 'survive_walls':
-          current = this.state.stats.totalWallsSurvived;
-          break;
-        case 'custom':
-          // Custom checks are handled separately
-          continue;
-      }
+      // Helper function to get current progress value by condition type (replaces switch)
+      const getProgressValue = (type: string): number | null => {
+        switch (type) {
+          case 'levels_completed':
+            return this.state.stats.totalLevelsCompleted;
+          case 'moves_under_par':
+            return this.state.stats.totalMovesUnderPar;
+          case 'speedrun':
+            return this.state.stats.totalSpeedruns;
+          case 'streak':
+            return stats.currentStreak;
+          case 'no_hints':
+            return this.state.stats.totalNoHintsLevels;
+          case 'perfect_world':
+            return stats.perfectWorlds;
+          case 'survive_walls':
+            return this.state.stats.totalWallsSurvived;
+          case 'custom':
+            return null; // Custom checks handled separately
+          default:
+            return 0;
+        }
+      };
+
+      const current = getProgressValue(achievement.condition.type);
+      if (current === null) continue; // Skip custom checks
 
       if (this.updateProgress(achievement.id, current)) {
         newlyEarned.push(achievement.id);
@@ -254,16 +253,14 @@ class AchievementEngine {
     const existing = this.state.progress[achievement.id];
     if (existing?.earned) return false;
 
-    // Custom check logic based on checkId
-    let earned = false;
-    switch (checkId) {
-      case 'zen_complete':
-        earned = data.allZenLevelsComplete === true;
-        break;
-      case 'blitz_complete':
-        earned = data.allBlitzLevelsComplete === true;
-        break;
-    }
+    // Custom check evaluators (replaces switch statement)
+    const CUSTOM_CHECK_EVALUATORS: Record<string, (data: Record<string, unknown>) => boolean> = {
+      zen_complete: (d) => d.allZenLevelsComplete === true,
+      blitz_complete: (d) => d.allBlitzLevelsComplete === true,
+    };
+
+    const evaluator = CUSTOM_CHECK_EVALUATORS[checkId];
+    const earned = evaluator ? evaluator(data) : false;
 
     if (earned) {
       this.state.progress[achievement.id] = {

@@ -40,31 +40,19 @@ function buildFuseLevel(
   const tiles: Tile[] = [];
   const goalNodes: { x: number; y: number }[] = [];
 
+  // Character-to-tile config mapping (replaces switch statement)
+  const CHAR_TILE_CONFIGS: Record<string, { kind: string; canRotate: boolean; isGoalNode: boolean }> = {
+    '#': { kind: 'blocker', canRotate: false, isGoalNode: false },
+    'E': { kind: 'detonator', canRotate: true, isGoalNode: false },
+    'R': { kind: 'relay', canRotate: false, isGoalNode: true },
+  };
+
   for (let y = 0; y < gridSize; y++) {
     const chars = rows[y].split(' ');
     for (let x = 0; x < gridSize; x++) {
       const ch = chars[x] ?? '.';
-      let kind = 'regular';
-      let canRotate = true;
-      let isGoalNode = false;
-
-      switch (ch) {
-        case '#':
-          kind = 'blocker';
-          canRotate = false;
-          break;
-        case 'E':
-          kind = 'detonator';
-          break;
-        case 'R':
-          kind = 'relay';
-          canRotate = false;
-          isGoalNode = true;
-          break;
-        default:
-          // kind = 'regular' (already default)
-          // canRotate = true (already default)
-      }
+      const config = CHAR_TILE_CONFIGS[ch] ?? { kind: 'regular', canRotate: true, isGoalNode: false };
+      const { kind, canRotate, isGoalNode } = config;
 
       if (isGoalNode) goalNodes.push({ x, y });
 
