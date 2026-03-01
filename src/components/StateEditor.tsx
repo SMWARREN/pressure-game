@@ -972,18 +972,7 @@ export const StateEditor: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ fontSize: 12, color: '#fff' }}>
                   Status:{' '}
-                  <span
-                    style={{
-                      color:
-                        status === 'playing'
-                          ? '#10b981'
-                          : status === 'won'
-                            ? '#22c55e'
-                            : status === 'lost'
-                              ? '#ef4444'
-                              : '#f59e0b',
-                    }}
-                  >
+                  <span style={{ color: getStatusTextColor(status) }}>
                     {status}
                   </span>
                 </div>
@@ -1812,14 +1801,7 @@ export const StateEditor: React.FC = () => {
                   <span
                     style={{
                       fontSize: 11,
-                      color:
-                        status === 'playing'
-                          ? '#10b981'
-                          : status === 'won'
-                            ? '#22c55e'
-                            : status === 'lost'
-                              ? '#ef4444'
-                              : '#f59e0b',
+                      color: getStatusTextColor(status),
                       fontWeight: 600,
                     }}
                   >

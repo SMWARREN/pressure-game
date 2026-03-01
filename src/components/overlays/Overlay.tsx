@@ -92,6 +92,13 @@ export function Overlay({
   const timeStr = formatElapsedTime(elapsedSeconds);
   const isScoreMode = targetScore !== undefined;
 
+  // Compute solution message to avoid nested ternary
+  const solutionMessage = !solution
+    ? ''
+    : solution.length === 0
+      ? 'Already solved'
+      : `${solution.length} move${solution.length !== 1 ? 's' : ''} to solve`;
+
   if (status === 'idle')
     return (
       <div style={overlayStyle}>
@@ -100,11 +107,7 @@ export function Overlay({
         </div>
         <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>{levelName}</div>
         <div style={{ fontSize: 10, color: '#25253a', marginBottom: 28 }}>
-          {solution
-            ? solution.length === 0
-              ? 'Already solved'
-              : `${solution.length} move${solution.length !== 1 ? 's' : ''} to solve`
-            : ''}
+          {solutionMessage}
         </div>
         <button onClick={onStart} style={btnPrimary}>
           START
