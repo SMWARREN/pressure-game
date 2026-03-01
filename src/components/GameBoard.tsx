@@ -77,44 +77,9 @@ const iconBtn: React.CSSProperties = {
    MAIN GAME BOARD COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
 
-export default function GameBoard() {
-  // Destructure from store using useShallow to avoid unnecessary re-renders
-  const {
-    status,
-    tiles,
-    currentLevel,
-    currentModeId,
-    moves,
-    score,
-    elapsedSeconds,
-    wallOffset,
-    wallsJustAdvanced,
-    compressionActive,
-    isPaused,
-    animationsEnabled,
-    screenShake,
-    editor,
-    history,
-    lossReason,
-    modeState,
-    timeUntilCompression,
-    generatedLevels,
-    showArcadeHub,
-    showPressureHub,
-    tapTile,
-    loadLevel,
-    startGame,
-    restartLevel,
-    goToMenu,
-    pauseGame,
-    resumeGame,
-    completeTutorial,
-    toggleEditor,
-    setEditorTool,
-    editorUpdateTile,
-    undoMove,
-    toggleAnimations,
-  } = useGameStore(
+// Extract GameBoard store state into custom hook for reduced complexity
+function useGameBoardState() {
+  return useGameStore(
     useShallow((s) => ({
       status: s.status,
       tiles: s.tiles,
@@ -152,6 +117,46 @@ export default function GameBoard() {
       toggleAnimations: s.toggleAnimations,
     }))
   );
+}
+
+export default function GameBoard() {
+  // Destructure from store using useShallow to avoid unnecessary re-renders
+  const {
+    status,
+    tiles,
+    currentLevel,
+    currentModeId,
+    moves,
+    score,
+    elapsedSeconds,
+    wallOffset,
+    wallsJustAdvanced,
+    compressionActive,
+    isPaused,
+    animationsEnabled,
+    screenShake,
+    editor,
+    history,
+    lossReason,
+    modeState,
+    timeUntilCompression,
+    generatedLevels,
+    showArcadeHub,
+    showPressureHub,
+    tapTile,
+    loadLevel,
+    startGame,
+    restartLevel,
+    goToMenu,
+    pauseGame,
+    resumeGame,
+    completeTutorial,
+    toggleEditor,
+    setEditorTool,
+    editorUpdateTile,
+    undoMove,
+    toggleAnimations,
+  } = useGameBoardState();
 
   const stats = useStats();
   const achievementEngine = useAchievements();
@@ -300,39 +305,28 @@ export default function GameBoard() {
     '🍓': '#ec4899',
   };
 
-  // Handle tile tap - routes to editor or game logic
-  const handleTileTap = useCallback(
-    (x: number, y: number) => {
-      if (editor.enabled && editor.tool) {
-        editorUpdateTile(x, y);
-        return;
+  // Helper to show particle burst on tap
+  const showParticleBurst = useCallback(
+    (x: number, y: number, tile: any, accepted: boolean) => {
+      if (!animationsEnabled || !boardRef.current || !currentLevel) return;
+      const rect = boardRef.current.getBoundingClientRect();
+      const gs = currentLevel.gridSize;
+      const px = rect.left + (x + 0.5) * (rect.width / gs);
+      const py = rect.top + (y + 0.5) * (rect.height / gs);
+      const sym = tile.displayData?.symbol as string | undefined;
+      if (accepted) {
+        const color = sym && CANDY_BURST_COLORS[sym] ? CANDY_BURST_COLORS[sym] : '#f59e0b';
+        particleRef.current?.burst(px, py, color, sym ? 8 : 5);
+      } else {
+        particleRef.current?.burst(px, py, '#ef4444', 4);
       }
+    },
+    [animationsEnabled, currentLevel]
+  );
 
-      if (status !== 'playing') return;
-      const tile = tiles.find((t) => t.x === x && t.y === y);
-      if (!tile?.canRotate) return;
-
-      const prevMoves = useGameStore.getState().moves;
-      const prevScore = useGameStore.getState().score;
-      tapTile(x, y);
-      const accepted = useGameStore.getState().moves > prevMoves;
-      const scoreDelta = useGameStore.getState().score - prevScore;
-
-      if (animationsEnabled && boardRef.current && currentLevel) {
-        const rect = boardRef.current.getBoundingClientRect();
-        const gs = currentLevel.gridSize;
-        const px = rect.left + (x + 0.5) * (rect.width / gs);
-        const py = rect.top + (y + 0.5) * (rect.height / gs);
-
-        const sym = tile.displayData?.symbol as string | undefined;
-        if (accepted) {
-          const color = sym && CANDY_BURST_COLORS[sym] ? CANDY_BURST_COLORS[sym] : '#f59e0b';
-          particleRef.current?.burst(px, py, color, sym ? 8 : 5);
-        } else {
-          particleRef.current?.burst(px, py, '#ef4444', 4);
-        }
-      }
-
+  // Helper to show notification or handle rejection
+  const handleTapResult = useCallback(
+    (accepted: boolean, scoreDelta: number, x: number, y: number) => {
       if (accepted) {
         const tappedMode = getModeById(currentModeId);
         let notifText: string | null = null;
@@ -352,7 +346,31 @@ export default function GameBoard() {
         setTimeout(() => setRejectedPos(null), 380);
       }
     },
-    [status, tiles, currentLevel, tapTile, animationsEnabled, currentModeId, showNotification]
+    [currentModeId, showNotification]
+  );
+
+  // Handle tile tap - routes to editor or game logic
+  const handleTileTap = useCallback(
+    (x: number, y: number) => {
+      if (editor.enabled && editor.tool) {
+        editorUpdateTile(x, y);
+        return;
+      }
+
+      if (status !== 'playing') return;
+      const tile = tiles.find((t) => t.x === x && t.y === y);
+      if (!tile?.canRotate) return;
+
+      const prevMoves = useGameStore.getState().moves;
+      const prevScore = useGameStore.getState().score;
+      tapTile(x, y);
+      const accepted = useGameStore.getState().moves > prevMoves;
+      const scoreDelta = useGameStore.getState().score - prevScore;
+
+      showParticleBurst(x, y, tile, accepted);
+      handleTapResult(accepted, scoreDelta, x, y);
+    },
+    [status, tiles, tapTile, editor, editorUpdateTile, showParticleBurst, handleTapResult]
   );
 
   // ── WALKTHROUGH SYSTEM ────────────────────────────────────────────────────
