@@ -3,6 +3,8 @@
  * Pure functions for computing tile colors based on state
  */
 
+import { selectByCondition } from '@/utils/conditionalStyles';
+
 interface TileStyleContext {
   readonly type: string;
   readonly isHint: boolean;
@@ -152,31 +154,39 @@ function getTileBackgroundStyle(
     };
   }
   if (type === 'path' && isDecoy) {
-    const bg = isHint
-      ? 'linear-gradient(145deg, #1e4060 0%, #153049 100%)'
-      : inDanger
-        ? 'linear-gradient(145deg, #3d1a1a 0%, #2d1010 100%)'
-        : 'linear-gradient(145deg, #1e3060 0%, #172349 100%)';
-    const borderColor = isHint ? '#60a5fa' : inDanger ? '#ef4444' : '#3b82f6';
-    const shadow = isHint
-      ? '0 0 18px rgba(96,165,250,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'
-      : inDanger
-        ? '0 0 14px rgba(239,68,68,0.4)'
-        : '0 0 10px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.06)';
+    const bg = selectByCondition(
+      [isHint, 'linear-gradient(145deg, #1e4060 0%, #153049 100%)'],
+      [inDanger, 'linear-gradient(145deg, #3d1a1a 0%, #2d1010 100%)'],
+      [true, 'linear-gradient(145deg, #1e3060 0%, #172349 100%)']
+    );
+    const borderColor = selectByCondition(
+      [isHint, '#60a5fa'],
+      [inDanger, '#ef4444'],
+      [true, '#3b82f6']
+    );
+    const shadow = selectByCondition(
+      [isHint, '0 0 18px rgba(96,165,250,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'],
+      [inDanger, '0 0 14px rgba(239,68,68,0.4)'],
+      [true, '0 0 10px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.06)']
+    );
     return { background: bg, border: `2px solid ${borderColor}`, boxShadow: shadow };
   }
   if (type === 'path' && canRotate) {
-    const bg = isHint
-      ? 'linear-gradient(145deg, #7c5c00 0%, #5c4400 100%)'
-      : inDanger
-        ? 'linear-gradient(145deg, #5c1a1a 0%, #3d1010 100%)'
-        : 'linear-gradient(145deg, #78350f 0%, #5c2a0a 100%)';
-    const borderColor = isHint ? '#fde68a' : inDanger ? '#ef4444' : '#f59e0b';
-    const shadow = isHint
-      ? '0 0 18px rgba(253,230,138,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'
-      : inDanger
-        ? '0 0 14px rgba(239,68,68,0.4)'
-        : '0 0 8px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.06)';
+    const bg = selectByCondition(
+      [isHint, 'linear-gradient(145deg, #7c5c00 0%, #5c4400 100%)'],
+      [inDanger, 'linear-gradient(145deg, #5c1a1a 0%, #3d1010 100%)'],
+      [true, 'linear-gradient(145deg, #78350f 0%, #5c2a0a 100%)']
+    );
+    const borderColor = selectByCondition(
+      [isHint, '#fde68a'],
+      [inDanger, '#ef4444'],
+      [true, '#f59e0b']
+    );
+    const shadow = selectByCondition(
+      [isHint, '0 0 18px rgba(253,230,138,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'],
+      [inDanger, '0 0 14px rgba(239,68,68,0.4)'],
+      [true, '0 0 8px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.06)']
+    );
     return { background: bg, border: `2px solid ${borderColor}`, boxShadow: shadow };
   }
   if (type === 'path') {
