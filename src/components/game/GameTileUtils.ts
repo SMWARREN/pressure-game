@@ -218,10 +218,16 @@ export function getIndicatorColor(isHint: boolean, inDanger: boolean): string {
   return '#fcd34d';
 }
 
+export function getHintIndicatorGlow(): string {
+  return 'rgba(253,230,138,0.8)';
+}
+
+export function getNormalIndicatorGlow(): string {
+  return 'rgba(252,211,77,0.6)';
+}
+
 export function getIndicatorGlow(isHint: boolean): string {
-  return isHint
-    ? 'rgba(253,230,138,0.8)'
-    : 'rgba(252,211,77,0.6)';
+  return isHint ? getHintIndicatorGlow() : getNormalIndicatorGlow();
 }
 
 export function getDecoyBorderColor(isHint: boolean, inDanger: boolean): string {
