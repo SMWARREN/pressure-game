@@ -154,6 +154,7 @@ export default function GameBoard() {
   );
 
   const stats = useStats();
+  const achievementEngine = useAchievements();
 
   const particleRef = useRef<ParticleSystemHandle>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -421,8 +422,6 @@ export default function GameBoard() {
     if (status !== 'won' && status !== 'lost') return;
     if (!currentLevel) return;
 
-    const achievementEngine = useAchievements();
-
     // Update daily streak when playing a game
     const currentStreak = achievementEngine.updateDailyStreak();
 
@@ -450,7 +449,7 @@ export default function GameBoard() {
       currentModeId,
       currentLevelId: currentLevel.id,
     });
-  }, [status, currentLevel, elapsedSeconds, currentModeId, showHint]);
+  }, [status, currentLevel, elapsedSeconds, currentModeId, showHint, achievementEngine]);
 
   // Check if we're in test/harness mode (skip tutorial for E2E tests)
   // Early returns for tutorial and menu screens (must come AFTER all hooks)

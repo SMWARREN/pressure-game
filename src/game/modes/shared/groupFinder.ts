@@ -47,17 +47,13 @@ export function findGroup(
     // Check 4 adjacent cells (up, down, left, right)
     for (const [dx, dy] of [
       [0, -1], // up
-      [0, 1],  // down
+      [0, 1], // down
       [-1, 0], // left
-      [1, 0],  // right
+      [1, 0], // right
     ] as [number, number][]) {
       const neighbor = map.get(`${cur.x + dx},${cur.y + dy}`);
 
-      if (
-        neighbor?.canRotate &&
-        !visited.has(`${neighbor.x},${neighbor.y}`) &&
-        matchFn(neighbor)
-      ) {
+      if (neighbor?.canRotate && !visited.has(`${neighbor.x},${neighbor.y}`) && matchFn(neighbor)) {
         stack.push(neighbor);
       }
     }

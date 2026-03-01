@@ -34,13 +34,19 @@ export function ArcadeColumn({
 }: ArcadeColumnProps) {
   // Extract conditional info button styles (S3358: reduce nested ternaries)
   const infoBtnStyles = showInfo
-    ? { border: `1.5px solid ${def.accentColor}80`, background: `${def.accentColor}20`, color: def.accentColor }
+    ? {
+        border: `1.5px solid ${def.accentColor}80`,
+        background: `${def.accentColor}20`,
+        color: def.accentColor,
+      }
     : { border: '1.5px solid #1e1e35', background: '#0d0d1e', color: '#3a3a55' };
   const infoBtnIcon = showInfo ? '✕' : 'ℹ';
   const infoBtnLabel = showInfo ? 'Close info' : 'Show info';
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       style={{
         flex: 1,
         minWidth: 'unset',
@@ -61,11 +67,17 @@ export function ArcadeColumn({
         minHeight: 'unset',
       }}
       onClick={onPlay}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPlay();
+        }
+      }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = `${def.accentColor}10`;
+        (e.currentTarget as HTMLDivElement).style.background = `${def.accentColor}10`;
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = `${def.accentColor}04`;
+        (e.currentTarget as HTMLDivElement).style.background = `${def.accentColor}04`;
       }}
     >
       {/* ℹ button */}
@@ -163,6 +175,6 @@ export function ArcadeColumn({
           PLAY
         </button>
       )}
-    </button>
+    </div>
   );
 }

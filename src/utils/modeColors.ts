@@ -7,14 +7,14 @@
 
 // Mode accent colors
 export const MODE_COLORS = {
-  candy: '#ec4899',      // pink
-  shopping: '#f97316',   // orange
-  gemBlast: '#6366f1',   // indigo
+  candy: '#ec4899', // pink
+  shopping: '#f97316', // orange
+  gemBlast: '#6366f1', // indigo
   gravityDrop: '#06b6d4', // cyan
-  laserRelay: '#8b5cf6',  // violet
-  outbreak: '#06b6d4',   // cyan
-  fuse: '#eab308',       // yellow
-  voltage: '#22c55e',    // green
+  laserRelay: '#8b5cf6', // violet
+  outbreak: '#06b6d4', // cyan
+  fuse: '#eab308', // yellow
+  voltage: '#22c55e', // green
   mirrorForge: '#3b82f6', // blue
   memoryMatch: '#ec4899', // pink
   quantumChain: '#f97316', // orange

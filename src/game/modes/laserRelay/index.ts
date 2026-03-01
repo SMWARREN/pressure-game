@@ -78,10 +78,7 @@ function getGridDimensions(tiles: Tile[]): {
 }
 
 // Helper: Process mirror reflection based on rotation
-function processMirrorReflection(
-  dir: string,
-  rotation: number | undefined
-): string | null {
+function processMirrorReflection(dir: string, rotation: number | undefined): string | null {
   const rot = rotation ?? 0;
   const newDir = rot === 0 ? SLASH[dir] : BACK[dir];
   return newDir ?? null;

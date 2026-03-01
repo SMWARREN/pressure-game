@@ -277,14 +277,52 @@ export interface GameActions {
   ) => void;
   setEditorSelectedTile: (pos: { x: number; y: number } | null) => void;
   editorUpdateTile: (x: number, y: number) => void;
-  editorHandleEraserTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[], currentLevel: Level) => void;
+  editorHandleEraserTool: (
+    x: number,
+    y: number,
+    existing: Tile | null,
+    existingIdx: number,
+    tiles: Tile[],
+    currentLevel: Level
+  ) => void;
   editorHandleSelectTool: (x: number, y: number, existing: Tile | null) => void;
   editorHandleMoveTool: (x: number, y: number, existing: Tile | null) => void;
-  editorHandleRotateTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
-  editorHandleNodeTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[], currentLevel: Level) => void;
-  editorHandleWallTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
-  editorHandlePathTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
-  editorHandleDecoyTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
+  editorHandleRotateTool: (
+    x: number,
+    y: number,
+    existing: Tile | null,
+    existingIdx: number,
+    tiles: Tile[]
+  ) => void;
+  editorHandleNodeTool: (
+    x: number,
+    y: number,
+    existing: Tile | null,
+    existingIdx: number,
+    tiles: Tile[],
+    currentLevel: Level
+  ) => void;
+  editorHandleWallTool: (
+    x: number,
+    y: number,
+    existing: Tile | null,
+    existingIdx: number,
+    tiles: Tile[]
+  ) => void;
+  editorHandlePathTool: (
+    x: number,
+    y: number,
+    existing: Tile | null,
+    existingIdx: number,
+    tiles: Tile[]
+  ) => void;
+  editorHandleDecoyTool: (
+    x: number,
+    y: number,
+    existing: Tile | null,
+    existingIdx: number,
+    tiles: Tile[]
+  ) => void;
   editorRotateTile: (clockwise?: boolean) => void;
   editorMoveTile: (fromX: number, fromY: number, toX: number, toY: number) => void;
   editorToggleGoalNode: (x: number, y: number) => void;

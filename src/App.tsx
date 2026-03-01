@@ -4,7 +4,6 @@ import GameBoard from './components/GameBoard';
 import TestHarness from './components/testing/TestHarness';
 import InstallPrompt from './components/InstallPrompt';
 import { AchievementToastContainer } from './components/AchievementToast';
-import type { PressureEngine } from '@/game/engine';
 
 function LoadingScreen() {
   return (
@@ -58,11 +57,7 @@ function AppContent() {
   );
 }
 
-interface AppProps {
-  readonly pressureEngine?: PressureEngine;
-}
-
-function App({ pressureEngine }: AppProps) {
+function App() {
   const [isTestMode, setIsTestMode] = useState(false);
   const [engineReady, setEngineReady] = useState(false);
 
@@ -73,12 +68,12 @@ function App({ pressureEngine }: AppProps) {
   }, []);
 
   if (isTestMode) {
-    return <TestHarness pressureEngine={pressureEngine} />;
+    return <TestHarness />;
   }
 
   return (
     <>
-      <GameProviders pressureEngine={pressureEngine} onEngineReady={() => setEngineReady(true)}>
+      <GameProviders onEngineReady={() => setEngineReady(true)}>
         <AppContent />
       </GameProviders>
       {/* Show loading screen overlay until engine is ready */}

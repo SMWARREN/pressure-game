@@ -116,7 +116,6 @@ function getThiefSpawnChance(intensity: number, timeLeft: number): number {
   return 0;
 }
 
-
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 
 /** Find the full connected group of same-symbol tiles starting at (x, y). */
@@ -164,11 +163,7 @@ function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
  */
 // ── Tile creation helpers ───────────────────────────────────────────────────
 
-function createRandomShoppingItem(
-  col: number,
-  row: number,
-  activeSymbols: string[]
-): Tile {
+function createRandomShoppingItem(col: number, row: number, activeSymbols: string[]): Tile {
   const symbol = Math.random() < 0.1 ? '💎' : pickRandom(activeSymbols.filter((s) => s !== '💎'));
   return {
     id: `sn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
@@ -306,7 +301,9 @@ function calculateScoreDelta(
   bonusScore: number,
   cartBonus: number
 ): number {
-  return Math.round(baseValue * groupSize * comboMultiplier * comboChainMult) + bonusScore + cartBonus;
+  return (
+    Math.round(baseValue * groupSize * comboMultiplier * comboChainMult) + bonusScore + cartBonus
+  );
 }
 
 /**
@@ -410,7 +407,11 @@ const TIME_BONUS_TIERS: Array<{ minSize: number; bonus: number }> = [
 /**
  * Get notification for special events (combo, unlock, thief, etc.)
  */
-function getEventNotification(state: ShoppingModeState, modeState: any, delta: number): string | null {
+function getEventNotification(
+  state: ShoppingModeState,
+  modeState: any,
+  delta: number
+): string | null {
   // Combo chain notification (Black Friday levels)
   if (state.combo) {
     const cn = comboNotification(state.combo);
@@ -454,7 +455,11 @@ function getEventNotification(state: ShoppingModeState, modeState: any, delta: n
 /**
  * Get score notification for score changes
  */
-function getScoreNotification(delta: number, timeBonus: number, timeLeft: number | undefined): string | null {
+function getScoreNotification(
+  delta: number,
+  timeBonus: number,
+  timeLeft: number | undefined
+): string | null {
   if (delta <= 0) return null;
 
   // In timed/Unlimited mode, show time bonus
@@ -497,7 +502,9 @@ function processTileClearing(
   group: Tile[],
   tiles: Tile[],
   extraClearedKeys: Set<string>,
-  features: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined,
+  features:
+    | { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean }
+    | undefined,
   gcols: number,
   grows: number,
   unlockState: SymbolUnlockState
@@ -725,7 +732,9 @@ export const ShoppingSpreeMode: GameModeConfig = {
       return { tiles: updatedTiles, modeState: updatedState };
     }
 
-    return features?.thieves ? processUnlimitedThiefTick(state, modeState, storedState, features) : null;
+    return features?.thieves
+      ? processUnlimitedThiefTick(state, modeState, storedState, features)
+      : null;
   },
 
   onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
@@ -758,7 +767,12 @@ export const ShoppingSpreeMode: GameModeConfig = {
     // Get item and calculate scores
     const symbol = group[0].displayData?.symbol as string;
     const isFreshClear = unlockState.freshSymbols.includes(symbol);
-    const baseValue = calculateBaseValue(symbol, state.flashSaleItem, state.flashSaleTapsLeft, isFreshClear);
+    const baseValue = calculateBaseValue(
+      symbol,
+      state.flashSaleItem,
+      state.flashSaleTapsLeft,
+      isFreshClear
+    );
     const comboMultiplier = getComboMultiplier(group.length);
 
     // Apply bomb explosion if enabled
@@ -774,18 +788,21 @@ export const ShoppingSpreeMode: GameModeConfig = {
     // Calculate bonuses
     const newCartItems = state.cartItems + group.length;
     const cartBonus = calculateCartBonus(state.cartItems, newCartItems);
-    const scoreDelta = calculateScoreDelta(baseValue, group.length, comboMultiplier, comboChainMult, bonusScore, cartBonus);
+    const scoreDelta = calculateScoreDelta(
+      baseValue,
+      group.length,
+      comboMultiplier,
+      comboChainMult,
+      bonusScore,
+      cartBonus
+    );
 
     // Process tile clearing and gravity
-    const { tiles: nextTiles, unlockState: newUnlockState, newSymbolUnlocked } = processTileClearing(
-      group,
-      tiles,
-      extraClearedKeys,
-      features,
-      gcols,
-      grows,
-      unlockState
-    );
+    const {
+      tiles: nextTiles,
+      unlockState: newUnlockState,
+      newSymbolUnlocked,
+    } = processTileClearing(group, tiles, extraClearedKeys, features, gcols, grows, unlockState);
 
     // Handle thief scaring
     const { tiles: remainingWithThiefClear, unblocked: scaredThiefKeys } = unblockNearGroup(
@@ -830,7 +847,13 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const timeBonus = calculateTimeBonus(group.length, timeLeft, features);
 
-    return { tiles: remainingWithThiefClear, valid: true, scoreDelta, customState: newState, timeBonus };
+    return {
+      tiles: remainingWithThiefClear,
+      valid: true,
+      scoreDelta,
+      customState: newState,
+      timeBonus,
+    };
   },
 
   checkWin(_tiles, _goalNodes, moves, maxMoves, modeState): WinResult {

@@ -855,8 +855,7 @@ export const StateEditor: React.FC = () => {
                         onChange={() =>
                           toggleTileProperty(selectedTileData.x, selectedTileData.y, 'isGoalNode')
                         }
-                      />
-                      {' '}
+                      />{' '}
                       Goal Node
                     </label>
                     <label
@@ -874,8 +873,7 @@ export const StateEditor: React.FC = () => {
                         onChange={() =>
                           toggleTileProperty(selectedTileData.x, selectedTileData.y, 'canRotate')
                         }
-                      />
-                      {' '}
+                      />{' '}
                       Can Rotate
                     </label>
                     <label
@@ -893,8 +891,7 @@ export const StateEditor: React.FC = () => {
                         onChange={() =>
                           toggleTileProperty(selectedTileData.x, selectedTileData.y, 'isDecoy')
                         }
-                      />
-                      {' '}
+                      />{' '}
                       Decoy
                     </label>
                   </div>
@@ -974,10 +971,7 @@ export const StateEditor: React.FC = () => {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ fontSize: 12, color: '#fff' }}>
-                  Status:{' '}
-                  <span style={{ color: getStatusTextColor(status) }}>
-                    {status}
-                  </span>
+                  Status: <span style={{ color: getStatusTextColor(status) }}>{status}</span>
                 </div>
                 <div style={{ fontSize: 12, color: '#fff' }}>
                   Mode:{' '}
@@ -1007,7 +1001,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <label htmlFor="moves-input" style={{ fontSize: 12, color: '#fff' }}>Moves</label>
+                  <label htmlFor="moves-input" style={{ fontSize: 12, color: '#fff' }}>
+                    Moves
+                  </label>
                   <input
                     id="moves-input"
                     type="number"
@@ -1027,7 +1023,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <label htmlFor="score-input" style={{ fontSize: 12, color: '#fff' }}>Score</label>
+                  <label htmlFor="score-input" style={{ fontSize: 12, color: '#fff' }}>
+                    Score
+                  </label>
                   <input
                     id="score-input"
                     type="number"
@@ -1072,7 +1070,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <label htmlFor="elapsed-input" style={{ fontSize: 12, color: '#fff' }}>Elapsed (s)</label>
+                  <label htmlFor="elapsed-input" style={{ fontSize: 12, color: '#fff' }}>
+                    Elapsed (s)
+                  </label>
                   <input
                     id="elapsed-input"
                     type="number"
@@ -1094,7 +1094,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <label htmlFor="compression-input" style={{ fontSize: 12, color: '#fff' }}>Compression in (s)</label>
+                  <label htmlFor="compression-input" style={{ fontSize: 12, color: '#fff' }}>
+                    Compression in (s)
+                  </label>
                   <input
                     id="compression-input"
                     type="number"
@@ -1844,7 +1846,8 @@ export const StateEditor: React.FC = () => {
                     style={{
                       padding: '6px 10px',
                       borderRadius: 6,
-                      background: status === 'playing' ? getStatusColor('playing', 'text') : '#1e1e3a',
+                      background:
+                        status === 'playing' ? getStatusColor('playing', 'text') : '#1e1e3a',
                       color: status === 'playing' ? '#fff' : '#888',
                       border: 'none',
                       cursor: 'pointer',

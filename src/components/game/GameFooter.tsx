@@ -32,7 +32,12 @@ function getHintButtonState(showHint: boolean, isComputingSolution: boolean, sta
     ? { color: '#fbbf24', border: '1px solid #fbbf2440' }
     : { color: '#3a3a55', border: '1px solid #12122a' };
   const disabled = isComputingSolution || status !== 'playing';
-  return { buttonStyles, disabled, opacity: disabled ? 0.25 : 1, title: isComputingSolution ? 'Computing...' : 'Hint' };
+  return {
+    buttonStyles,
+    disabled,
+    opacity: disabled ? 0.25 : 1,
+    title: isComputingSolution ? 'Computing...' : 'Hint',
+  };
 }
 
 // Helper: compute pause button state

@@ -182,7 +182,13 @@ export function renderShoppingSpreeDemo(
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{ display: 'flex', gap: 3 }}>
               {['👗', '👗', '👗'].map((sym, i) => (
-                <ArcadeTile colors={SHOPPING_COLORS} key={`dress-${sym}-${i}`} sym={sym} highlight small />
+                <ArcadeTile
+                  colors={SHOPPING_COLORS}
+                  key={`dress-${sym}-${i}`}
+                  sym={sym}
+                  highlight
+                  small
+                />
               ))}
             </div>
             <div style={{ display: 'flex', gap: 3 }}>

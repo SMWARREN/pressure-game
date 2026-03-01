@@ -131,20 +131,140 @@ function makeLevel({
 
 export const VOLTAGE_LEVELS: Level[] = [
   // World 1: Circuit — uniform grid, learn the timing rhythm
-  makeLevel({ id: 901, name: 'First Charge', world: 1, gridSize: 5, targetScore: 150, maxMoves: 3, hotCount: 0, coldCount: 0, seed: 901 }), // 3 discharges needed around charge 2
-  makeLevel({ id: 902, name: 'Building Up', world: 1, gridSize: 5, targetScore: 300, maxMoves: 3, hotCount: 0, coldCount: 0, seed: 902 }), // must discharge at charge 4+
-  makeLevel({ id: 903, name: 'Peak Timing', world: 1, gridSize: 5, targetScore: 450, maxMoves: 4, hotCount: 0, coldCount: 0, seed: 903 }), // 4 discharges at charge ~5
-  makeLevel({ id: 904, name: 'Max Voltage', world: 1, gridSize: 5, targetScore: 600, maxMoves: 4, hotCount: 0, coldCount: 0, seed: 904 }), // must approach charge 7
+  makeLevel({
+    id: 901,
+    name: 'First Charge',
+    world: 1,
+    gridSize: 5,
+    targetScore: 150,
+    maxMoves: 3,
+    hotCount: 0,
+    coldCount: 0,
+    seed: 901,
+  }), // 3 discharges needed around charge 2
+  makeLevel({
+    id: 902,
+    name: 'Building Up',
+    world: 1,
+    gridSize: 5,
+    targetScore: 300,
+    maxMoves: 3,
+    hotCount: 0,
+    coldCount: 0,
+    seed: 902,
+  }), // must discharge at charge 4+
+  makeLevel({
+    id: 903,
+    name: 'Peak Timing',
+    world: 1,
+    gridSize: 5,
+    targetScore: 450,
+    maxMoves: 4,
+    hotCount: 0,
+    coldCount: 0,
+    seed: 903,
+  }), // 4 discharges at charge ~5
+  makeLevel({
+    id: 904,
+    name: 'Max Voltage',
+    world: 1,
+    gridSize: 5,
+    targetScore: 600,
+    maxMoves: 4,
+    hotCount: 0,
+    coldCount: 0,
+    seed: 904,
+  }), // must approach charge 7
 
   // World 2: Power Grid — hot cells spike faster, forcing earlier partial discharges
-  makeLevel({ id: 905, name: 'Hot Spots', world: 2, gridSize: 6, targetScore: 700, maxMoves: 3, hotCount: 4, coldCount: 0, seed: 905 }), // 4 hot tiles (2× charge)
-  makeLevel({ id: 906, name: 'Surge Zone', world: 2, gridSize: 6, targetScore: 900, maxMoves: 4, hotCount: 5, coldCount: 3, seed: 906 }), // mix of hot and cold
-  makeLevel({ id: 907, name: 'Reactor', world: 2, gridSize: 6, targetScore: 1200, maxMoves: 4, hotCount: 6, coldCount: 0, seed: 907 }), // many hot tiles, tight timing
-  makeLevel({ id: 908, name: 'Meltdown', world: 2, gridSize: 7, targetScore: 1500, maxMoves: 4, hotCount: 8, coldCount: 4, seed: 908 }), // 7×7 with hot/cold mix
+  makeLevel({
+    id: 905,
+    name: 'Hot Spots',
+    world: 2,
+    gridSize: 6,
+    targetScore: 700,
+    maxMoves: 3,
+    hotCount: 4,
+    coldCount: 0,
+    seed: 905,
+  }), // 4 hot tiles (2× charge)
+  makeLevel({
+    id: 906,
+    name: 'Surge Zone',
+    world: 2,
+    gridSize: 6,
+    targetScore: 900,
+    maxMoves: 4,
+    hotCount: 5,
+    coldCount: 3,
+    seed: 906,
+  }), // mix of hot and cold
+  makeLevel({
+    id: 907,
+    name: 'Reactor',
+    world: 2,
+    gridSize: 6,
+    targetScore: 1200,
+    maxMoves: 4,
+    hotCount: 6,
+    coldCount: 0,
+    seed: 907,
+  }), // many hot tiles, tight timing
+  makeLevel({
+    id: 908,
+    name: 'Meltdown',
+    world: 2,
+    gridSize: 7,
+    targetScore: 1500,
+    maxMoves: 4,
+    hotCount: 8,
+    coldCount: 4,
+    seed: 908,
+  }), // 7×7 with hot/cold mix
 
   // World 3: Overload — maximum pressure, minimal margin for error
-  makeLevel({ id: 909, name: 'Critical Mass', world: 3, gridSize: 7, targetScore: 2000, maxMoves: 5, hotCount: 10, coldCount: 0, seed: 909 }), // mostly hot tiles
-  makeLevel({ id: 910, name: 'Live Wire', world: 3, gridSize: 7, targetScore: 2500, maxMoves: 5, hotCount: 12, coldCount: 3, seed: 910 }),
-  makeLevel({ id: 911, name: 'Zero Margin', world: 3, gridSize: 8, targetScore: 3500, maxMoves: 6, hotCount: 15, coldCount: 5, seed: 911 }),
-  makeLevel({ id: 912, name: 'Total Overload', world: 3, gridSize: 8, targetScore: 5000, maxMoves: 6, hotCount: 18, coldCount: 0, seed: 912 }),
+  makeLevel({
+    id: 909,
+    name: 'Critical Mass',
+    world: 3,
+    gridSize: 7,
+    targetScore: 2000,
+    maxMoves: 5,
+    hotCount: 10,
+    coldCount: 0,
+    seed: 909,
+  }), // mostly hot tiles
+  makeLevel({
+    id: 910,
+    name: 'Live Wire',
+    world: 3,
+    gridSize: 7,
+    targetScore: 2500,
+    maxMoves: 5,
+    hotCount: 12,
+    coldCount: 3,
+    seed: 910,
+  }),
+  makeLevel({
+    id: 911,
+    name: 'Zero Margin',
+    world: 3,
+    gridSize: 8,
+    targetScore: 3500,
+    maxMoves: 6,
+    hotCount: 15,
+    coldCount: 5,
+    seed: 911,
+  }),
+  makeLevel({
+    id: 912,
+    name: 'Total Overload',
+    world: 3,
+    gridSize: 8,
+    targetScore: 5000,
+    maxMoves: 6,
+    hotCount: 18,
+    coldCount: 0,
+    seed: 912,
+  }),
 ];

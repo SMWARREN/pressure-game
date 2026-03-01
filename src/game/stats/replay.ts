@@ -66,9 +66,7 @@ export class ReplayEngine {
     const stateStub = { currentModeId: this.event.modeId } as Parameters<
       NonNullable<typeof mode.initialState>
     >[0];
-    let modeState: Record<string, unknown> = mode.initialState
-      ? mode.initialState(stateStub)
-      : {};
+    let modeState: Record<string, unknown> = mode.initialState ? mode.initialState(stateStub) : {};
 
     const snapshots: ReplaySnapshot[] = [
       {

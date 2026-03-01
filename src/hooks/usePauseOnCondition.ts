@@ -9,7 +9,7 @@ export function usePauseOnCondition(
   condition: unknown,
   status: GameStatus,
   pauseGame: () => void,
-  resumeGame: () => void,
+  resumeGame: () => void
 ) {
   useEffect(() => {
     if (condition && status === 'playing') {

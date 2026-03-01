@@ -236,8 +236,18 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
             const active = currentModeId === id;
             // Extract conditional mode button styles (S3358: reduce nested ternaries)
             const modeButtonStyles = active
-              ? { border: `1.5px solid ${color}55`, background: `${color}18`, color, cursor: 'default' }
-              : { border: '1.5px solid #12122a', background: 'transparent', color: '#2e2e48', cursor: 'pointer' };
+              ? {
+                  border: `1.5px solid ${color}55`,
+                  background: `${color}18`,
+                  color,
+                  cursor: 'default',
+                }
+              : {
+                  border: '1.5px solid #12122a',
+                  background: 'transparent',
+                  color: '#2e2e48',
+                  cursor: 'pointer',
+                };
             return (
               <button
                 key={id}

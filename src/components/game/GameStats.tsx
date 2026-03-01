@@ -11,7 +11,13 @@ import {
 /**
  * CompressionBar - Visual indicator showing wall compression progress
  */
-function CompressionBar({ percent, active }: { readonly percent: number; readonly active: boolean }) {
+function CompressionBar({
+  percent,
+  active,
+}: {
+  readonly percent: number;
+  readonly active: boolean;
+}) {
   const color = getCompressionColor(percent);
   const glow = getCompressionGlow(percent);
   const label = getCompressionLabel(percent, active);
@@ -145,7 +151,13 @@ function MovesCounter({ moves, maxMoves }: { readonly moves: number; readonly ma
 /**
  * CountdownTimer - Shows seconds until next wall compression
  */
-function CountdownTimer({ seconds, active }: { readonly seconds: number; readonly active: boolean }) {
+function CountdownTimer({
+  seconds,
+  active,
+}: {
+  readonly seconds: number;
+  readonly active: boolean;
+}) {
   return (
     <div
       style={{
@@ -182,7 +194,13 @@ function CountdownTimer({ seconds, active }: { readonly seconds: number; readonl
 /**
  * ScoreDisplay - Shows current score vs target score with a progress bar
  */
-function ScoreDisplay({ score, targetScore }: { readonly score: number; readonly targetScore?: number }) {
+function ScoreDisplay({
+  score,
+  targetScore,
+}: {
+  readonly score: number;
+  readonly targetScore?: number;
+}) {
   const pct = targetScore ? Math.min((score / targetScore) * 100, 100) : 0;
   const color = getScoreColor(pct);
   return (
@@ -246,7 +264,13 @@ function ScoreDisplay({ score, targetScore }: { readonly score: number; readonly
 /**
  * TimeleftDisplay - Countdown timer for time-limited levels (e.g. Frozen world)
  */
-function TimeleftDisplay({ timeLeft, timeLimit }: { readonly timeLeft: number; readonly timeLimit?: number }) {
+function TimeleftDisplay({
+  timeLeft,
+  timeLimit,
+}: {
+  readonly timeLeft: number;
+  readonly timeLimit?: number;
+}) {
   const urgent = timeLeft <= 10;
   const pct = timeLimit ? Math.min((timeLeft / timeLimit) * 100, 100) : 100;
   return (

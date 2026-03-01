@@ -108,7 +108,15 @@ function buildMirrorLevel(
 
     // Left tile
     tiles.push(
-      tile({ x: t.x, y: t.y, connections: t.connections, canRotate: t.canRotate !== false, isGoalNode: t.isGoalNode === true, side: 'left', mirrorX })
+      tile({
+        x: t.x,
+        y: t.y,
+        connections: t.connections,
+        canRotate: t.canRotate !== false,
+        isGoalNode: t.isGoalNode === true,
+        side: 'left',
+        mirrorX,
+      })
     );
 
     // Right mirror tile (auto-generated with flipped connections)
@@ -130,7 +138,15 @@ function buildMirrorLevel(
     const existing = leftTiles.find((t) => t.x === center && t.y === y);
     const c = existing ?? { connections: [], canRotate: true, isGoalNode: false };
     tiles.push(
-      tile({ x: center, y, connections: c.connections, canRotate: c.canRotate !== false, isGoalNode: c.isGoalNode === true, side: 'center', mirrorX: center })
+      tile({
+        x: center,
+        y,
+        connections: c.connections,
+        canRotate: c.canRotate !== false,
+        isGoalNode: c.isGoalNode === true,
+        side: 'center',
+        mirrorX: center,
+      })
     );
   }
 

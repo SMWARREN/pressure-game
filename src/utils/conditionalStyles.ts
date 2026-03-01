@@ -16,9 +16,7 @@
  *   [undefined, '#3b82f6'] // fallback
  * )
  */
-export function selectByCondition<T>(
-  ...options: Array<[boolean | undefined, T]>
-): T {
+export function selectByCondition<T>(...options: Array<[boolean | undefined, T]>): T {
   for (const [condition, value] of options) {
     if (condition) return value;
   }
@@ -36,11 +34,7 @@ export function getStateColor(
   dangerColor: string,
   normalColor: string
 ): string {
-  return selectByCondition(
-    [isHint, hintColor],
-    [inDanger, dangerColor],
-    [true, normalColor]
-  );
+  return selectByCondition([isHint, hintColor], [inDanger, dangerColor], [true, normalColor]);
 }
 
 /**

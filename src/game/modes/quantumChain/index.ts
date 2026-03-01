@@ -78,10 +78,7 @@ function getNeighbors(tile: Tile, tiles: Tile[]): Tile[] {
 }
 
 // Quantum flux effect processors (replaces switch statement)
-const FLUX_EFFECT_PROCESSORS: Record<
-  string,
-  (value: number, fluxValue?: number) => number
-> = {
+const FLUX_EFFECT_PROCESSORS: Record<string, (value: number, fluxValue?: number) => number> = {
   double: (v) => v * 2,
   halve: (v) => Math.floor(v / 2),
   add: (v, fv) => v + (fv ?? 0),
@@ -291,11 +288,7 @@ function handleOperatorTile(
   };
 }
 
-function handleTargetTile(
-  tappedTile: Tile,
-  currentCalculation: string,
-  tiles: Tile[]
-): TapResult {
+function handleTargetTile(tappedTile: Tile, currentCalculation: string, tiles: Tile[]): TapResult {
   const targetData = tappedTile.displayData as TargetTileData;
   const calculatedResult = evaluateExpression(currentCalculation);
 

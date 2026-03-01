@@ -55,6 +55,31 @@ function deltaToDir(dx: number, dy: number): Direction {
   return 'up';
 }
 
+// ─── Helper: Explore neighbors in BFS connectivity check ─────────────────
+function exploreNeighbors(
+  tile: Tile,
+  visited: Set<string>,
+  queue: Position[],
+  connected: Set<string>,
+  map: Map<string, Tile>,
+  goalsMap: Set<string>
+): void {
+  for (const d of tile.connections) {
+    const [dx, dy] = DXDY[d];
+    const nx = tile.x + dx;
+    const ny = tile.y + dy;
+    const key = `${nx},${ny}`;
+    if (visited.has(key)) continue;
+    const neighbor = map.get(key);
+    if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
+    if (neighbor.connections.includes(OPP[d])) {
+      visited.add(key);
+      queue.push({ x: nx, y: ny });
+      if (goalsMap.has(key)) connected.add(key);
+    }
+  }
+}
+
 // ─── Fast connectivity check (no BFS solver) ──────────────────────────────
 function isConnected(tiles: Tile[], goals: Position[]): boolean {
   if (goals.length < 2) return true;
@@ -71,20 +96,7 @@ function isConnected(tiles: Tile[], goals: Position[]): boolean {
     const curr = queue.shift()!;
     const tile = map.get(`${curr.x},${curr.y}`);
     if (!tile) continue;
-    for (const d of tile.connections) {
-      const [dx, dy] = DXDY[d];
-      const nx = curr.x + dx;
-      const ny = curr.y + dy;
-      const key = `${nx},${ny}`;
-      if (visited.has(key)) continue;
-      const neighbor = map.get(key);
-      if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
-      if (neighbor.connections.includes(OPP[d])) {
-        visited.add(key);
-        queue.push({ x: nx, y: ny });
-        if (goalsMap.has(key)) connected.add(key);
-      }
-    }
+    exploreNeighbors(tile, visited, queue, connected, map, goalsMap);
   }
   return goals.every((g) => connected.has(`${g.x},${g.y}`));
 }
@@ -170,12 +182,7 @@ function isInBounds(x: number, y: number, cols: number, rows: number): boolean {
 }
 
 // Helper: Count adjacent visited cells (for corridor width constraint)
-function countAdjacentVisited(
-  x: number,
-  y: number,
-  curr: Position,
-  visited: Set<string>
-): number {
+function countAdjacentVisited(x: number, y: number, curr: Position, visited: Set<string>): number {
   let count = 0;
   for (const d of DIRS) {
     const [dx, dy] = DXDY[d];

@@ -18,86 +18,84 @@ export const GameEngineContext = createContext<GameEngineContextType | null>(nul
 interface GameEngineProviderProps {
   readonly children: ReactNode;
   readonly statsBackend?: StatsBackend;
-  readonly pressureEngine?: PressureEngine;
   readonly onReady?: () => void;
 }
 
-export function GameEngineProvider({
-  children,
-  statsBackend,
-  pressureEngine: initialEngine,
-  onReady,
-}: GameEngineProviderProps) {
-  const [engines, setEngines] = useState<GameEngineContextType | null>(null);
+// Module-level tracking for StrictMode compatibility
+// In StrictMode, the useState initializer runs twice, but we only want to create engines once
+let enginesCreated = false;
+let enginesInstance: GameEngineContextType | null = null;
 
-  // Ensure engine exists - fallback if not created in main.tsx
-  useEffect(() => {
-    // Check if engine was already set (from main.tsx)
-    if (!initialEngine) {
-      // Create and set engine if it doesn't exist
-      const newEngine = createPressureEngine();
-      _setEngineInstance(newEngine);
-    }
-  }, [initialEngine]);
-
-  useEffect(() => {
-    try {
-      // Dev-only initialization hook
-      const pressureEngine = initialEngine ?? createPressureEngine();
-      pressureEngine.init(
-        () => useGameStore.getState(),
-        (partial) => useGameStore.setState(partial)
-      );
-
-      const initialState = pressureEngine.getInitialState();
-      const currentMode = getModeById(initialState.currentModeId);
-      const defaultWorld = currentMode.worlds?.[0]?.id ?? 1;
-
-      useGameStore.setState({
-        ...initialState,
-        selectedWorld: defaultWorld,
-      });
-
-      _setEngineInstance(pressureEngine);
-
-      const backend = statsBackend ?? new LocalStorageStatsBackend();
-      const statsEngine = new StatsEngine(backend);
-      statsEngine.start();
-
-      const achievementEngine = new AchievementEngine();
-
-      setEngines({ pressureEngine, statsEngine, achievementEngine });
-      // Signal that initialization is complete
-      onReady?.();
-    } catch (error) {
-      console.error('[GameEngineProvider] ❌ Init error:', error);
-      console.error('[GameEngineProvider] Error details:', (error as any)?.message);
-      // Even on error, try to at least render something
-      if (onReady) {
-        onReady();
-      }
-    }
-
-    return () => {
-      setEngines((prev) => {
-        if (prev) {
-          try {
-            prev.pressureEngine.destroy();
-            prev.statsEngine.stop();
-            // Don't set engine to null — it breaks StrictMode double-mount
-            // Just clean up the engines, leave the module instance
-          } catch (error) {
-            console.error('[GameEngineProvider] Cleanup error:', error);
-          }
-        }
-        return null;
-      });
-    };
-  }, [statsBackend]);
-
-  if (!engines) {
-    return null;
+/**
+ * Create engines - this function is called during render
+ * but the engines are only created once due to module-level tracking.
+ */
+function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType {
+  // Return existing instance if already created (handles StrictMode double-invocation)
+  if (enginesCreated && enginesInstance) {
+    return enginesInstance;
   }
+
+  // Create engine
+  const pressureEngine = createPressureEngine();
+
+  // Initialize engine with store access
+  pressureEngine.init(
+    () => useGameStore.getState(),
+    (partial) => useGameStore.setState(partial)
+  );
+
+  const initialState = pressureEngine.getInitialState();
+  const currentMode = getModeById(initialState.currentModeId);
+  const defaultWorld = currentMode.worlds?.[0]?.id ?? 1;
+
+  useGameStore.setState({
+    ...initialState,
+    selectedWorld: defaultWorld,
+  });
+
+  // Set engine instance in store for module-level access
+  _setEngineInstance(pressureEngine);
+
+  // Expose engine for E2E testing
+  if (process.env.NODE_ENV !== 'production') {
+    (window as any).__PRESSURE_ENGINE__ = pressureEngine;
+  }
+
+  const backend = statsBackend ?? new LocalStorageStatsBackend();
+  const statsEngine = new StatsEngine(backend);
+  statsEngine.start();
+
+  const achievementEngine = new AchievementEngine();
+
+  // Connect achievement engine to pressure engine for achievement tracking
+  pressureEngine.setAchievementEngine(achievementEngine);
+
+  enginesInstance = { pressureEngine, statsEngine, achievementEngine };
+  enginesCreated = true;
+
+  return enginesInstance;
+}
+
+export function GameEngineProvider({ children, statsBackend, onReady }: GameEngineProviderProps) {
+  // Create engines synchronously during first render using useState initializer
+  // This ensures the engine is available immediately when children render
+  const [engines] = useState<GameEngineContextType>(() => getOrCreateEngines(statsBackend));
+
+  // Call onReady callback after engines are created
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
+
+  // Cleanup on unmount - but don't clear the module-level instance
+  // because StrictMode will remount and expect the same engines
+  useEffect(() => {
+    return () => {
+      // Only cleanup if the component is truly unmounting (not StrictMode remount)
+      // We don't clear enginesCreated here because React StrictMode will remount
+      // and expect the same state. Real cleanup happens on page unload.
+    };
+  }, []);
 
   return <GameEngineContext.Provider value={engines}>{children}</GameEngineContext.Provider>;
 }

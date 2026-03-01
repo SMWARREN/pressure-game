@@ -311,7 +311,9 @@ ${tilesStr}
         <div className="w-64 space-y-4">
           {/* Mode Selection */}
           <div>
-            <label htmlFor="game-mode" className="block text-sm mb-1">Game Mode</label>
+            <label htmlFor="game-mode" className="block text-sm mb-1">
+              Game Mode
+            </label>
             <select
               id="game-mode"
               value={selectedMode}
@@ -328,7 +330,9 @@ ${tilesStr}
 
           {/* Grid Size */}
           <div>
-            <label htmlFor="grid-size" className="block text-sm mb-1">Grid Size</label>
+            <label htmlFor="grid-size" className="block text-sm mb-1">
+              Grid Size
+            </label>
             <input
               id="grid-size"
               type="number"
@@ -342,7 +346,9 @@ ${tilesStr}
 
           {/* Tools */}
           <div>
-            <label htmlFor="tools-group" className="block text-sm mb-1">Tools</label>
+            <label htmlFor="tools-group" className="block text-sm mb-1">
+              Tools
+            </label>
             <div id="tools-group" className="grid grid-cols-2 gap-2">
               {(['select', 'node', 'path', 'wall', 'eraser'] as ToolType[]).map((tool) => (
                 <button
@@ -362,7 +368,9 @@ ${tilesStr}
           {/* Connection Presets */}
           {selectedTile && selectedTile.type === 'path' && (
             <div>
-              <label htmlFor="connections-group" className="block text-sm mb-1">Connections</label>
+              <label htmlFor="connections-group" className="block text-sm mb-1">
+                Connections
+              </label>
               <div id="connections-group" className="grid grid-cols-4 gap-1">
                 {CONNECTION_PRESETS.map((preset) => {
                   const selectedConns = [...selectedTile.connections];
@@ -393,7 +401,9 @@ ${tilesStr}
           {/* Tile Properties */}
           {selectedTile && (
             <div className="space-y-2">
-              <div id="tile-properties" className="block text-sm font-bold">Tile Properties</div>
+              <div id="tile-properties" className="block text-sm font-bold">
+                Tile Properties
+              </div>
 
               {selectedTile.type === 'node' && (
                 <label className="flex items-center gap-2">
@@ -419,7 +429,9 @@ ${tilesStr}
 
               {selectedTile.type !== 'wall' && (
                 <div>
-                  <label htmlFor="manual-connections" className="block text-xs mb-1">Manual Connections</label>
+                  <label htmlFor="manual-connections" className="block text-xs mb-1">
+                    Manual Connections
+                  </label>
                   <div id="manual-connections" className="flex gap-1">
                     {DIRECTIONS.map((dir) => (
                       <button
@@ -475,7 +487,9 @@ ${tilesStr}
         {/* Right Panel - Level Settings */}
         <div className="w-64 space-y-4">
           <div>
-            <label htmlFor="level-name" className="block text-sm mb-1">Level Name</label>
+            <label htmlFor="level-name" className="block text-sm mb-1">
+              Level Name
+            </label>
             <input
               id="level-name"
               type="text"
@@ -486,7 +500,9 @@ ${tilesStr}
           </div>
 
           <div>
-            <label htmlFor="world-id" className="block text-sm mb-1">World ID</label>
+            <label htmlFor="world-id" className="block text-sm mb-1">
+              World ID
+            </label>
             <input
               id="world-id"
               type="number"
@@ -498,7 +514,9 @@ ${tilesStr}
           </div>
 
           <div>
-            <label htmlFor="max-moves" className="block text-sm mb-1">Max Moves</label>
+            <label htmlFor="max-moves" className="block text-sm mb-1">
+              Max Moves
+            </label>
             <input
               id="max-moves"
               type="number"
@@ -510,7 +528,9 @@ ${tilesStr}
           </div>
 
           <div>
-            <label htmlFor="compression-delay" className="block text-sm mb-1">Compression Delay (ms)</label>
+            <label htmlFor="compression-delay" className="block text-sm mb-1">
+              Compression Delay (ms)
+            </label>
             <input
               id="compression-delay"
               type="number"

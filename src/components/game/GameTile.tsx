@@ -317,9 +317,10 @@ function GameTileComponent({
               animation: iconAnimation,
               // Dim interior zombie icons slightly so they don't compete with frontier numbers
               opacity: isOutbreak && obInterior ? 0.55 : 1,
-              filter: isOutbreak && obOwned && !isNewTile
-                ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
-                : undefined,
+              filter:
+                isOutbreak && obOwned && !isNewTile
+                  ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
+                  : undefined,
             }}
           >
             {symbol}

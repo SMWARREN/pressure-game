@@ -14,11 +14,6 @@ import { useGameStore } from '@/game/store';
 import { getModeById } from '@/game/modes';
 import { GameProviders } from '@/game/GameProviders';
 import GameBoard from '../GameBoard';
-import type { PressureEngine } from '@/game/engine';
-
-interface TestHarnessProps {
-  readonly pressureEngine?: PressureEngine;
-}
 
 function TestHarnessContent() {
   const initializedRef = useRef(false);
@@ -67,8 +62,7 @@ function TestHarnessContent() {
       return;
     }
 
-    // Engine is created at module load, but needs React context to work
-    // So wait a tick for GameEngineProvider to initialize it
+    // Engine is created by GameEngineProvider, wait for it to initialize
     setTimeout(() => {
       startGameWithDelay(levelId, modeId);
     }, 0);
@@ -78,9 +72,9 @@ function TestHarnessContent() {
   return <GameBoard />;
 }
 
-export default function TestHarness({ pressureEngine }: TestHarnessProps) {
+export default function TestHarness() {
   return (
-    <GameProviders pressureEngine={pressureEngine}>
+    <GameProviders>
       <TestHarnessContent />
     </GameProviders>
   );

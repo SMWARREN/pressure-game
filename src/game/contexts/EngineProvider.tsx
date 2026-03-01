@@ -57,11 +57,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
 
   const value = useMemo(() => ({ engine: engineRef.current! }), []);
 
-  return (
-    <EngineContext.Provider value={value}>
-      {children}
-    </EngineContext.Provider>
-  );
+  return <EngineContext.Provider value={value}>{children}</EngineContext.Provider>;
 }
 
 export function useEngine(): PressureEngine {

@@ -99,7 +99,11 @@ export default function UnlimitedRulesDialog({
       ];
     }
 
-    return [...baseRules, ...getFeatureRules(), { icon: '🏆', text: 'Beat your high score to win!' }];
+    return [
+      ...baseRules,
+      ...getFeatureRules(),
+      { icon: '🏆', text: 'Beat your high score to win!' },
+    ];
   };
 
   const rules = getRules();

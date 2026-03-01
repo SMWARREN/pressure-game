@@ -202,7 +202,9 @@ function processCandyClear(
   group: Tile[],
   tiles: Tile[],
   extraClearedKeys: Set<string>,
-  features: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined,
+  features:
+    | { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean }
+    | undefined,
   gcols: number,
   grows: number,
   unlockState: SymbolUnlockState
@@ -390,15 +392,11 @@ export const CandyMode: GameModeConfig = {
     const scoreDelta = calculateCandyScore(group.length, scoreMultiplier, comboMult, bonusScore);
 
     // Process tile clearing, gravity, and freshness updates
-    const { tiles: nextTiles, unlockState: newUnlockState, newSymbolUnlocked } = processCandyClear(
-      group,
-      tiles,
-      extraClearedKeys,
-      features,
-      gcols,
-      grows,
-      unlockState
-    );
+    const {
+      tiles: nextTiles,
+      unlockState: newUnlockState,
+      newSymbolUnlocked,
+    } = processCandyClear(group, tiles, extraClearedKeys, features, gcols, grows, unlockState);
 
     // Unfreeze nearby frozen tiles
     const { tiles: remainingWithUnfrozen } = unblockNearGroup(

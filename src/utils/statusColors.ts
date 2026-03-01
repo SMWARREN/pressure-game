@@ -21,10 +21,7 @@ export const STATUS_COLORS = {
  * Get a status color value by variant.
  * Falls back to 'idle' if status not found.
  */
-export function getStatusColor(
-  status: GameStatus,
-  variant: 'bg' | 'border' | 'text'
-): string {
+export function getStatusColor(status: GameStatus, variant: 'bg' | 'border' | 'text'): string {
   return STATUS_COLORS[status]?.[variant] ?? STATUS_COLORS.idle[variant];
 }
 

@@ -64,19 +64,9 @@ function calculateTileSize(
 /**
  * Calculate total board width (tiles + gaps + padding)
  */
-function calculateBoardWidth(
-  tileSize: number,
-  gridSize: number,
-  padding: number = 0
-): number {
+function calculateBoardWidth(tileSize: number, gridSize: number, padding: number = 0): number {
   const gap = getGapValue(gridSize);
   return tileSize * gridSize + gap * (gridSize - 1) + padding * 2;
 }
 
-export {
-  getSymbolSize,
-  getGapValue,
-  getPaddingValue,
-  calculateTileSize,
-  calculateBoardWidth,
-};
+export { getSymbolSize, getGapValue, getPaddingValue, calculateTileSize, calculateBoardWidth };

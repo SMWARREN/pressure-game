@@ -57,11 +57,7 @@ function getConnGlow(ctx: TileStyleContext): string {
  * Get indicator color for hint/danger states
  */
 function getIndicatorColor(isHint: boolean, inDanger: boolean): string {
-  return selectByCondition(
-    [isHint, '#fde68a'],
-    [inDanger, '#fca5a5'],
-    [true, '#fcd34d']
-  );
+  return selectByCondition([isHint, '#fde68a'], [inDanger, '#fca5a5'], [true, '#fcd34d']);
 }
 
 /**
@@ -105,17 +101,9 @@ function getDecoyBoxShadow(isHint: boolean, inDanger: boolean): string {
  */
 function getNodeBorderColor(isHint: boolean, inDanger: boolean, isDecoy: boolean): string {
   if (isDecoy) {
-    return selectByCondition(
-      [isHint, '#60a5fa'],
-      [inDanger, '#ef4444'],
-      [true, '#3b82f6']
-    );
+    return selectByCondition([isHint, '#60a5fa'], [inDanger, '#ef4444'], [true, '#3b82f6']);
   }
-  return selectByCondition(
-    [inDanger, '#ef4444'],
-    [isHint, '#86efac'],
-    [true, '#22c55e']
-  );
+  return selectByCondition([inDanger, '#ef4444'], [isHint, '#86efac'], [true, '#22c55e']);
 }
 
 /**

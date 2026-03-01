@@ -27,22 +27,26 @@ function shouldCrushAtPosition(
 
   // Direction predicates: check if tile is within crush zone based on direction
   const directionalChecks: Record<CompressionDirection, boolean> = {
-    'none': false,
-    'all': Math.min(distFromTop, distFromBottom, distFromLeft, distFromRight) < wallOffset,
-    'top': distFromTop < wallOffset,
-    'bottom': distFromBottom < wallOffset,
-    'left': distFromLeft < wallOffset,
-    'right': distFromRight < wallOffset,
+    none: false,
+    all: Math.min(distFromTop, distFromBottom, distFromLeft, distFromRight) < wallOffset,
+    top: distFromTop < wallOffset,
+    bottom: distFromBottom < wallOffset,
+    left: distFromLeft < wallOffset,
+    right: distFromRight < wallOffset,
     'top-bottom': distFromTop < wallOffset || distFromBottom < wallOffset,
     'left-right': distFromLeft < wallOffset || distFromRight < wallOffset,
     'top-left': distFromTop < wallOffset || distFromLeft < wallOffset,
     'top-right': distFromTop < wallOffset || distFromRight < wallOffset,
     'bottom-left': distFromBottom < wallOffset || distFromLeft < wallOffset,
     'bottom-right': distFromBottom < wallOffset || distFromRight < wallOffset,
-    'top-left-right': distFromTop < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset,
-    'bottom-left-right': distFromBottom < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset,
-    'left-top-bottom': distFromLeft < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset,
-    'right-top-bottom': distFromRight < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset,
+    'top-left-right':
+      distFromTop < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset,
+    'bottom-left-right':
+      distFromBottom < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset,
+    'left-top-bottom':
+      distFromLeft < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset,
+    'right-top-bottom':
+      distFromRight < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset,
   };
 
   return directionalChecks[direction];

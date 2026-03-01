@@ -191,7 +191,13 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
           <span style={{ fontSize: 12, color: getStatusColor(won ? 'won' : 'lost', 'text') }}>
             {won ? '✦' : '✕'}
           </span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: getStatusColor(won ? 'won' : 'lost', 'text') }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: getStatusColor(won ? 'won' : 'lost', 'text'),
+            }}
+          >
             {won ? 'WON' : 'LOST'}
           </span>
         </div>

@@ -74,10 +74,7 @@ function getRegularGemStyle(baseColor: TileColors): TileColors {
 
 // ── Blast gem logic helpers ────────────────────────────────────────────────────
 
-function processBlastGemClear(
-  group: Tile[],
-  tiles: Tile[]
-): Set<string> {
+function processBlastGemClear(group: Tile[], tiles: Tile[]): Set<string> {
   const extraClearedKeys = new Set<string>();
   const hasBlast = group.some((t) => t.displayData?.symbol === BLAST_GEM);
 
@@ -276,7 +273,10 @@ const TIME_BONUS_TIERS: Array<{ minLevel: number; minSize?: number; bonus: numbe
  */
 function calculateGemTimeBonus(cascadeLevel: number, groupSize: number): number {
   for (const tier of TIME_BONUS_TIERS) {
-    if (cascadeLevel >= tier.minLevel && (tier.minSize === undefined || groupSize >= tier.minSize)) {
+    if (
+      cascadeLevel >= tier.minLevel &&
+      (tier.minSize === undefined || groupSize >= tier.minSize)
+    ) {
       return tier.bonus;
     }
   }
@@ -372,9 +372,10 @@ export const GemBlastMode: GameModeConfig = {
 
     // Time bonus for timed levels (World 3, 4, 5) — bigger cascades = more time
     const timeLeft = modeState?.timeLeft as number | undefined;
-    const timeBonus = timeLeft !== undefined && group.length >= 3
-      ? calculateGemTimeBonus(cascadeLevel, group.length)
-      : 0;
+    const timeBonus =
+      timeLeft !== undefined && group.length >= 3
+        ? calculateGemTimeBonus(cascadeLevel, group.length)
+        : 0;
 
     const CASCADE_MULTS = [1, 2, 4, 7, 12];
     const cascadeMult = CASCADE_MULTS[Math.min(cascadeLevel, CASCADE_MULTS.length) - 1];

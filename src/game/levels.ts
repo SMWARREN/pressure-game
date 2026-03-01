@@ -25,18 +25,19 @@ function rotate(conns: Direction[], times: number): Direction[] {
 // Helper: Get next position in a direction
 function getNextPosition(x: number, y: number, direction: Direction): Position {
   switch (direction) {
-    case 'up': return { x, y: y - 1 };
-    case 'down': return { x, y: y + 1 };
-    case 'left': return { x: x - 1, y };
-    case 'right': return { x: x + 1, y };
+    case 'up':
+      return { x, y: y - 1 };
+    case 'down':
+      return { x, y: y + 1 };
+    case 'left':
+      return { x: x - 1, y };
+    case 'right':
+      return { x: x + 1, y };
   }
 }
 
 // Helper: Check if neighbor tile is valid and connected
-function isValidConnectedNeighbor(
-  neighbor: Tile | undefined,
-  direction: Direction
-): boolean {
+function isValidConnectedNeighbor(neighbor: Tile | undefined, direction: Direction): boolean {
   if (!neighbor) return false;
   if (neighbor.type === 'wall' || neighbor.type === 'crushed') return false;
   return neighbor.connections.includes(OPP[direction]);
@@ -100,7 +101,7 @@ function processTileRotations(
   goals: Position[],
   maxMoves: number,
   visited: Set<string>,
-  queue: typeof currState[]
+  queue: (typeof currState)[]
 ): SolutionPath | null {
   for (const rt of rotatableTiles) {
     for (let r = 1; r <= 3; r++) {
@@ -123,20 +124,14 @@ function processTileRotations(
 }
 
 // BFS solver - returns solution path or undefined
-function solve(
-  tiles: Tile[],
-  goals: Position[],
-  maxMoves: number
-): SolutionPath | undefined {
+function solve(tiles: Tile[], goals: Position[], maxMoves: number): SolutionPath | undefined {
   if (isConnected(tiles, goals)) return [];
 
   const rotatable = tiles.filter((t) => t.canRotate);
   if (rotatable.length === 0) return undefined;
 
   const visited = new Set<string>();
-  const queue: { tiles: Tile[]; path: SolutionPath }[] = [
-    { tiles: [...tiles], path: [] },
-  ];
+  const queue: { tiles: Tile[]; path: SolutionPath }[] = [{ tiles: [...tiles], path: [] }];
 
   visited.add(hashTileState(tiles));
 
@@ -280,10 +275,7 @@ function createNodeTiles(goalPositions: Position[]): Tile[] {
 }
 
 // Helper: Route paths between goal nodes using Manhattan distance
-function createRoutePaths(
-  goalPositions: Position[],
-  pathDirs: Map<string, Direction[]>
-): void {
+function createRoutePaths(goalPositions: Position[], pathDirs: Map<string, Direction[]>): void {
   const addPath = (x: number, y: number, dirs: Direction[]) => {
     const key = `${x},${y}`;
     const existing = pathDirs.get(key) ?? [];
@@ -368,11 +360,7 @@ function createPathTiles(pathDirs: Map<string, Direction[]>, goalSet: Set<string
 }
 
 // Helper: Create decoy tiles in empty spaces
-function createDecoyTiles(
-  decoyCount: number,
-  gridSize: number,
-  occupiedKeys: Set<string>
-): Tile[] {
+function createDecoyTiles(decoyCount: number, gridSize: number, occupiedKeys: Set<string>): Tile[] {
   const pipeShapes: Direction[][] = [
     ['up', 'down'],
     ['left', 'right'],
@@ -412,7 +400,7 @@ function createDecoyTiles(
 export function generateLevel(opts: GenerateOptions): Level {
   const { gridSize, nodeCount, difficulty } = opts;
   const diffParams = getDifficultyParams(difficulty);
-  const useDecoys = opts.decoys ?? (diffParams.decoyCount > 0);
+  const useDecoys = opts.decoys ?? diffParams.decoyCount > 0;
   const decoyCount = useDecoys ? diffParams.decoyCount : 0;
 
   for (let attempt = 0; attempt < 50; attempt++) {

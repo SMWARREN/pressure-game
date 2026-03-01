@@ -86,9 +86,7 @@ function IdleOverlay({
         READY
       </div>
       <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>{levelName}</div>
-      <div style={{ fontSize: 10, color: '#25253a', marginBottom: 28 }}>
-        {solutionMessage}
-      </div>
+      <div style={{ fontSize: 10, color: '#25253a', marginBottom: 28 }}>{solutionMessage}</div>
       <button onClick={onStart} style={btnPrimary}>
         START
       </button>
@@ -293,7 +291,9 @@ export function Overlay({
   }
 
   if (status === 'idle')
-    return <IdleOverlay levelName={levelName} onStart={onStart} solutionMessage={solutionMessage} />;
+    return (
+      <IdleOverlay levelName={levelName} onStart={onStart} solutionMessage={solutionMessage} />
+    );
   if (status === 'won')
     return (
       <WinOverlay

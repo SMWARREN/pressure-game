@@ -6,7 +6,6 @@ import { TimerSystem, createTimerSystem } from './timer';
 import { AudioSystem, createAudioSystem } from './audio';
 import { PersistenceSystem, createPersistenceSystem } from './persistence';
 import { CompressionSystem, createCompressionSystem } from './compression';
-import { useAchievements } from '../contexts';
 import type {
   IPressureEngine,
   PressureEngineConfig,
@@ -15,6 +14,7 @@ import type {
   PersistedState,
   WallAdvanceResult,
 } from './types';
+import type { AchievementEngine } from '../achievements/engine';
 import type { GameState, Level, Tile } from '../types';
 import { getModeById } from '../modes';
 import { getConnectedTiles } from '../modes/utils';
@@ -51,6 +51,7 @@ export class PressureEngine implements IPressureEngine {
   // Store reference for callbacks
   private getState: (() => GameState) | null = null;
   private setState: ((partial: Partial<GameState>) => void) | null = null;
+  private achievementEngine: AchievementEngine | null = null;
 
   constructor(config: PressureEngineConfig = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -68,6 +69,13 @@ export class PressureEngine implements IPressureEngine {
   init(getState: () => GameState, setState: (partial: Partial<GameState>) => void): void {
     this.getState = getState;
     this.setState = setState;
+  }
+
+  /**
+   * Set the achievement engine instance
+   */
+  setAchievementEngine(engine: AchievementEngine): void {
+    this.achievementEngine = engine;
   }
 
   /**
@@ -248,7 +256,12 @@ export class PressureEngine implements IPressureEngine {
     const mode = getModeById(currentModeId);
     this.handleModeTick(mode, state, currentLevel, newElapsedSeconds, stateChanges);
 
-    const timeLimitResult = this.checkTimeLimit(currentLevel, newElapsedSeconds, state, stateChanges);
+    const timeLimitResult = this.checkTimeLimit(
+      currentLevel,
+      newElapsedSeconds,
+      state,
+      stateChanges
+    );
     if (timeLimitResult) return timeLimitResult;
 
     if (!compressionActive) {
@@ -542,7 +555,7 @@ export class PressureEngine implements IPressureEngine {
    * Check achievements when a level is won
    */
   private checkAchievementsOnWin(state: GameState, level: Level): void {
-    const achievementEngine = useAchievements();
+    if (!this.achievementEngine) return;
 
     // Calculate stats for achievements
     const levelsCompleted = state.completedLevels.length + 1; // +1 for current level
@@ -556,7 +569,7 @@ export class PressureEngine implements IPressureEngine {
     // Get current mode for mode-specific achievements
     const currentModeId = state.currentModeId;
 
-    achievementEngine.checkAchievements({
+    this.achievementEngine.checkAchievements({
       levelsCompleted,
       movesUnderPar,
       speedruns,
@@ -573,10 +586,10 @@ export class PressureEngine implements IPressureEngine {
    * Track walls survived for achievements
    */
   private trackWallsSurvived(): void {
-    const achievementEngine = useAchievements();
-    const progress = achievementEngine.getProgress('survivor');
+    if (!this.achievementEngine) return;
+    const progress = this.achievementEngine.getProgress('survivor');
     const current = progress?.current ?? 0;
-    achievementEngine.updateProgress('survivor', current + 1);
+    this.achievementEngine.updateProgress('survivor', current + 1);
   }
 }
 

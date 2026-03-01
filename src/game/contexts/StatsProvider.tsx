@@ -14,10 +14,7 @@ type StatsProviderProps = {
   readonly backendOverride?: StatsBackend;
 };
 
-export function StatsProvider({
-  children,
-  backendOverride,
-}: StatsProviderProps) {
+export function StatsProvider({ children, backendOverride }: StatsProviderProps) {
   const engineRef = useRef<StatsEngine | null>(null);
 
   useEffect(() => {
@@ -45,9 +42,7 @@ export function StatsProvider({
 
   const value = useMemo(() => ({ engine: engineRef.current! }), []);
 
-  return (
-    <StatsContext.Provider value={value}>{children}</StatsContext.Provider>
-  );
+  return <StatsContext.Provider value={value}>{children}</StatsContext.Provider>;
 }
 
 export function useStats(): StatsEngine {

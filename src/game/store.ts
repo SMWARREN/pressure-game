@@ -8,7 +8,6 @@ import { getModeById } from './modes';
 import type { TapResult } from './modes/types';
 import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
 import type { PressureEngine, SoundEffect } from './engine';
-import { createPressureEngine } from './engine';
 import {
   UNDO_DELAY_MS,
   HISTORY_TRIM_DELAY_MS,
@@ -21,11 +20,11 @@ export { checkConnected, getConnectedTiles, createTileMap };
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ENGINE INSTANCE
-   Created at module load time. GameEngineProvider will initialize it with
-   store access (getState/setState) when React mounts.
+   Created by GameEngineProvider when React mounts. The provider will call
+   _setEngineInstance to set the engine after creating it.
 ═══════════════════════════════════════════════════════════════════════════ */
 
-let engine: PressureEngine | null = createPressureEngine();
+let engine: PressureEngine | null = null;
 
 export function _setEngineInstance(engineInstance: PressureEngine | null) {
   engine = engineInstance;
@@ -99,9 +98,7 @@ function restoreEditorState(
   status: string
 ): { tiles: any[]; currentLevel: Level | null; timerAction: 'start' | 'none' } {
   const { tiles, goalNodes, gridSize } = savedState;
-  const restoredLevel = currentLevel
-    ? { ...currentLevel, gridSize, goalNodes }
-    : null;
+  const restoredLevel = currentLevel ? { ...currentLevel, gridSize, goalNodes } : null;
 
   const timerAction = wasPlaying && status === 'playing' ? 'start' : 'none';
 
@@ -311,7 +308,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
     tapTile: (x: number, y: number) => {
       const state = get();
-      const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState, elapsedSeconds } = state;
+      const {
+        tiles,
+        status,
+        moves,
+        currentLevel,
+        showingWin,
+        currentModeId,
+        modeState,
+        elapsedSeconds,
+      } = state;
 
       // Validate tap is allowed
       if (!get().isTapValid(status, showingWin)) return;
@@ -341,7 +347,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       // Update state
       set((s) => {
-        const tileUpdateState = buildTileUpdateState(s, result, newElapsedSeconds, currentLevel?.timeLimit);
+        const tileUpdateState = buildTileUpdateState(
+          s,
+          result,
+          newElapsedSeconds,
+          currentLevel?.timeLimit
+        );
         return {
           ...tileUpdateState,
           history: prevTiles ? [...s.history, prevTiles] : s.history,
@@ -654,7 +665,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       set((s) => ({ editor: { ...s.editor, selectedTile: pos } }));
     },
 
-    editorHandleEraserTool: (x: number, y: number, existing: Tile | null, _existingIdx: number, tiles: Tile[], currentLevel: Level) => {
+    editorHandleEraserTool: (
+      x: number,
+      y: number,
+      existing: Tile | null,
+      _existingIdx: number,
+      tiles: Tile[],
+      currentLevel: Level
+    ) => {
       if (!existing) return;
       const newTiles = tiles.filter((t) => t.id !== existing.id);
       let newGoalNodes = currentLevel.goalNodes;
@@ -689,7 +707,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       }
     },
 
-    editorHandleRotateTool: (_x: number, _y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+    editorHandleRotateTool: (
+      _x: number,
+      _y: number,
+      existing: Tile | null,
+      existingIdx: number,
+      tiles: Tile[]
+    ) => {
       if (!existing?.canRotate) return;
       const dirOrder: Direction[] = ['up', 'right', 'down', 'left'];
       const newConnections = existing.connections.map((conn) => {
@@ -702,7 +726,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       set({ tiles: newTiles });
     },
 
-    editorHandleNodeTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[], currentLevel: Level) => {
+    editorHandleNodeTool: (
+      x: number,
+      y: number,
+      existing: Tile | null,
+      existingIdx: number,
+      tiles: Tile[],
+      currentLevel: Level
+    ) => {
       const goalNodes = currentLevel.goalNodes;
       if (existing && existing.type === 'node') {
         const newTiles = [...tiles];
@@ -747,7 +778,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       }
     },
 
-    editorHandleWallTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+    editorHandleWallTool: (
+      x: number,
+      y: number,
+      existing: Tile | null,
+      existingIdx: number,
+      tiles: Tile[]
+    ) => {
       if (existing && (existing.type === 'wall' || existing.type === 'node')) {
         return;
       }
@@ -770,7 +807,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
     },
 
-    editorHandlePathTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+    editorHandlePathTool: (
+      x: number,
+      y: number,
+      existing: Tile | null,
+      existingIdx: number,
+      tiles: Tile[]
+    ) => {
       const newTile: Tile = {
         id: `path-${x}-${y}-${Date.now()}`,
         type: 'path',
@@ -791,7 +834,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
     },
 
-    editorHandleDecoyTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+    editorHandleDecoyTool: (
+      x: number,
+      y: number,
+      existing: Tile | null,
+      existingIdx: number,
+      tiles: Tile[]
+    ) => {
       const newTile: Tile = {
         id: `decoy-${x}-${y}-${Date.now()}`,
         type: 'path',
@@ -820,7 +869,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const existing = existingIdx >= 0 ? tiles[existingIdx] : null;
 
       const toolHandlers: Record<string, () => void> = {
-        eraser: () => get().editorHandleEraserTool(x, y, existing, existingIdx, tiles, currentLevel),
+        eraser: () =>
+          get().editorHandleEraserTool(x, y, existing, existingIdx, tiles, currentLevel),
         select: () => get().editorHandleSelectTool(x, y, existing),
         move: () => get().editorHandleMoveTool(x, y, existing),
         rotate: () => get().editorHandleRotateTool(x, y, existing, existingIdx, tiles),
