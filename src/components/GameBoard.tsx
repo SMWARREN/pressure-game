@@ -302,7 +302,6 @@ export default function GameBoard() {
   // Handle tile tap - routes to editor or game logic
   const handleTileTap = useCallback(
     (x: number, y: number) => {
-      // In editor mode, use editor actions
       if (editor.enabled && editor.tool) {
         editorUpdateTile(x, y);
         return;
@@ -312,7 +311,6 @@ export default function GameBoard() {
       const tile = tiles.find((t) => t.x === x && t.y === y);
       if (!tile?.canRotate) return;
 
-      // Zustand set() is synchronous — read before/after to detect validity and score change
       const prevMoves = useGameStore.getState().moves;
       const prevScore = useGameStore.getState().score;
       tapTile(x, y);
@@ -325,8 +323,8 @@ export default function GameBoard() {
         const px = rect.left + (x + 0.5) * (rect.width / gs);
         const py = rect.top + (y + 0.5) * (rect.height / gs);
 
+        const sym = tile.displayData?.symbol as string | undefined;
         if (accepted) {
-          const sym = tile.displayData?.symbol as string | undefined;
           const color = sym && CANDY_BURST_COLORS[sym] ? CANDY_BURST_COLORS[sym] : '#f59e0b';
           particleRef.current?.burst(px, py, color, sym ? 8 : 5);
         } else {
@@ -335,13 +333,10 @@ export default function GameBoard() {
       }
 
       if (accepted) {
-        // Mode gets first crack at the notification (can include combo text + score delta).
-        // Falls back to plain "+N" if the mode returns null.
         const tappedMode = getModeById(currentModeId);
         let notifText: string | null = null;
         if (tappedMode.getNotification) {
           const freshState = useGameStore.getState();
-          // Merge scoreDelta into modeState so every mode's getNotification can read it
           const notifModeState = { ...(freshState.modeState ?? {}), scoreDelta };
           notifText = tappedMode.getNotification(
             freshState.tiles,
