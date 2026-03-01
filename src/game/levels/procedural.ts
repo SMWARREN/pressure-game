@@ -62,16 +62,19 @@ function isConnected(tiles: Tile[], goals: Position[]): boolean {
   for (const t of tiles) map.set(`${t.x},${t.y}`, t);
   const visited = new Set<string>();
   const queue = [goals[0]];
-  visited.add(`${goals[0].x},${goals[0].y}`);
-  const connected = new Set([`${goals[0].x},${goals[0].y}`]);
+  const startKey = `${goals[0].x},${goals[0].y}`;
+  visited.add(startKey);
+  const connected = new Set([startKey]);
+  const goalsMap = new Set(goals.map((g) => `${g.x},${g.y}`));
+
   while (queue.length > 0) {
     const curr = queue.shift()!;
     const tile = map.get(`${curr.x},${curr.y}`);
     if (!tile) continue;
     for (const d of tile.connections) {
       const [dx, dy] = DXDY[d];
-      const nx = curr.x + dx,
-        ny = curr.y + dy;
+      const nx = curr.x + dx;
+      const ny = curr.y + dy;
       const key = `${nx},${ny}`;
       if (visited.has(key)) continue;
       const neighbor = map.get(key);
@@ -79,7 +82,7 @@ function isConnected(tiles: Tile[], goals: Position[]): boolean {
       if (neighbor.connections.includes(OPP[d])) {
         visited.add(key);
         queue.push({ x: nx, y: ny });
-        if (goals.some((g) => g.x === nx && g.y === ny)) connected.add(key);
+        if (goalsMap.has(key)) connected.add(key);
       }
     }
   }
