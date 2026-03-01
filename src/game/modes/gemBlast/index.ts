@@ -72,6 +72,69 @@ function getRegularGemStyle(baseColor: TileColors): TileColors {
   };
 }
 
+// ── Blast gem logic helpers ────────────────────────────────────────────────────
+
+function processBlastGemClear(
+  group: Tile[],
+  tiles: Tile[]
+): Set<string> {
+  const extraClearedKeys = new Set<string>();
+  const hasBlast = group.some((t) => t.displayData?.symbol === BLAST_GEM);
+
+  if (!hasBlast) return extraClearedKeys;
+
+  const blastGems = group.filter((t) => t.displayData?.symbol === BLAST_GEM);
+  const nearbySymbols = tiles
+    .filter((bg) => {
+      if (!bg.canRotate || bg.displayData?.symbol === BLAST_GEM) return false;
+      return blastGems.some((b) => Math.abs(b.x - bg.x) + Math.abs(b.y - bg.y) <= 4);
+    })
+    .map((t) => t.displayData?.symbol as string)
+    .filter(Boolean);
+
+  if (isEmpty(nearbySymbols)) return extraClearedKeys;
+
+  const targetSym = pickRandom(nearbySymbols);
+  for (const t of tiles) {
+    if (!t.canRotate || t.displayData?.symbol !== targetSym) continue;
+    if (blastGems.some((b) => Math.abs(b.x - t.x) + Math.abs(b.y - t.y) <= 3)) {
+      extraClearedKeys.add(`${t.x},${t.y}`);
+    }
+  }
+
+  return extraClearedKeys;
+}
+
+function processCascades(
+  tiles: Tile[],
+  gcols: number,
+  grows: number,
+  blastChance: number
+): { tiles: Tile[]; totalScore: number; cascadeLevel: number } {
+  let remaining = tiles;
+  let totalScore = 0;
+  let cascadeLevel = 1;
+  const CASCADE_MULTS = [1, 2, 4, 7, 12];
+
+  while (true) {
+    const newGroups = findAllGroups(remaining, 2);
+    if (isEmpty(newGroups)) break;
+
+    cascadeLevel = Math.min(cascadeLevel + 1, CASCADE_MULTS.length);
+    const cascadeMult = CASCADE_MULTS[cascadeLevel - 1];
+
+    for (const g of newGroups) {
+      totalScore += Math.round(g.length * g.length * 3 * cascadeMult);
+      const gKeys = new Set(g.map((t) => `${t.x},${t.y}`));
+      remaining = remaining.filter((t) => !gKeys.has(`${t.x},${t.y}`));
+    }
+
+    remaining = applyGravity(remaining, gcols, grows, blastChance);
+  }
+
+  return { tiles: remaining, totalScore, cascadeLevel };
+}
+
 // ── Gem color palette ─────────────────────────────────────────────────────────
 
 const GEM_COLORS: Record<string, TileColors> = {
@@ -280,64 +343,27 @@ export const GemBlastMode: GameModeConfig = {
     const activeSymbols =
       (tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ?? GEM_SYMBOLS;
 
-    // ── Blast gem: clears tiles of one color within radius 3 of any blast gem ──
-    const hasBlast = group.some((t) => t.displayData?.symbol === BLAST_GEM);
-    const extraClearedKeys = new Set<string>();
-    if (hasBlast) {
-      const blastGems = group.filter((t) => t.displayData?.symbol === BLAST_GEM);
-      // Pick a random non-blast color from nearby tiles
-      const nearbySymbols = tiles
-        .filter((bg) => {
-          if (!bg.canRotate || bg.displayData?.symbol === BLAST_GEM) return false;
-          return blastGems.some((b) => Math.abs(b.x - bg.x) + Math.abs(b.y - bg.y) <= 4);
-        })
-        .map((t) => t.displayData?.symbol as string)
-        .filter(Boolean);
-      if (isNotEmpty(nearbySymbols)) {
-        const targetSym = pickRandom(nearbySymbols);
-        // Clear all tiles of that color within radius 3 of any blast gem
-        for (const t of tiles) {
-          if (!t.canRotate || t.displayData?.symbol !== targetSym) continue;
-          if (blastGems.some((b) => Math.abs(b.x - t.x) + Math.abs(b.y - t.y) <= 3)) {
-            extraClearedKeys.add(`${t.x},${t.y}`);
-          }
-        }
-      }
-    }
+    // Process blast gem side effects
+    const extraClearedKeys = processBlastGemClear(group, tiles);
 
-    // Step 1: Remove initial group + blast extras
+    // Remove initial group + blast extras
     const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
     let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
 
-    // Step 2: Apply gravity
+    // Apply gravity
     remaining = applyGravity(remaining, gcols, grows, blastChance);
 
-    // Step 3: Initial score — n²×3, linear bonus for blast-cleared tiles
-    let cascadeMult = 1;
+    // Initial score — n²×3, linear bonus for blast-cleared tiles
     let totalScore = group.length * group.length * 3;
     if (isNotEmpty(extraClearedKeys)) {
       totalScore += extraClearedKeys.size * 5;
     }
 
-    // Step 4: Cascade loop — exponential multiplier: 2× → 4× → 7× → 12×
-    // Each cascade level dramatically increases score to reward chain reactions
-    const CASCADE_MULTS = [1, 2, 4, 7, 12];
-    let cascadeLevel = 1;
-    while (true) {
-      const newGroups = findAllGroups(remaining, 2);
-      if (isEmpty(newGroups)) break;
-
-      cascadeLevel = Math.min(cascadeLevel + 1, CASCADE_MULTS.length);
-      cascadeMult = CASCADE_MULTS[cascadeLevel - 1];
-
-      for (const g of newGroups) {
-        totalScore += Math.round(g.length * g.length * 3 * cascadeMult);
-        const gKeys = new Set(g.map((t) => `${t.x},${t.y}`));
-        remaining = remaining.filter((t) => !gKeys.has(`${t.x},${t.y}`));
-      }
-
-      remaining = applyGravity(remaining, gcols, grows, blastChance);
-    }
+    // Process cascades
+    const cascadeResult = processCascades(remaining, gcols, grows, blastChance);
+    remaining = cascadeResult.tiles;
+    totalScore += cascadeResult.totalScore;
+    const cascadeLevel = cascadeResult.cascadeLevel;
 
     // Deadlock check
     if (!hasValidMove(remaining)) {
@@ -349,6 +375,9 @@ export const GemBlastMode: GameModeConfig = {
     const timeBonus = timeLeft !== undefined && group.length >= 3
       ? calculateGemTimeBonus(cascadeLevel, group.length)
       : 0;
+
+    const CASCADE_MULTS = [1, 2, 4, 7, 12];
+    const cascadeMult = CASCADE_MULTS[Math.min(cascadeLevel, CASCADE_MULTS.length) - 1];
 
     return {
       tiles: remaining,
