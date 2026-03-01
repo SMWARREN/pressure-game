@@ -324,29 +324,33 @@ export default function GameBoard() {
     [animationsEnabled, currentLevel]
   );
 
-  // Helper to show notification or handle rejection
-  const handleTapResult = useCallback(
-    (accepted: boolean, scoreDelta: number, x: number, y: number) => {
-      if (accepted) {
-        const tappedMode = getModeById(currentModeId);
-        let notifText: string | null = null;
-        if (tappedMode.getNotification) {
-          const freshState = useGameStore.getState();
-          const notifModeState = { ...(freshState.modeState ?? {}), scoreDelta };
-          notifText = tappedMode.getNotification(
-            freshState.tiles,
-            freshState.moves,
-            notifModeState
-          );
-        }
-        if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;
-        if (notifText) showNotification(notifText, scoreDelta > 0);
-      } else {
-        setRejectedPos({ x, y });
-        setTimeout(() => setRejectedPos(null), 380);
+  // Helper to show notification for accepted tap
+  const handleAcceptedTap = useCallback(
+    (scoreDelta: number) => {
+      const tappedMode = getModeById(currentModeId);
+      let notifText: string | null = null;
+      if (tappedMode.getNotification) {
+        const freshState = useGameStore.getState();
+        const notifModeState = { ...(freshState.modeState ?? {}), scoreDelta };
+        notifText = tappedMode.getNotification(
+          freshState.tiles,
+          freshState.moves,
+          notifModeState
+        );
       }
+      if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;
+      if (notifText) showNotification(notifText, scoreDelta > 0);
     },
     [currentModeId, showNotification]
+  );
+
+  // Helper to show rejection feedback
+  const handleRejectedTap = useCallback(
+    (x: number, y: number) => {
+      setRejectedPos({ x, y });
+      setTimeout(() => setRejectedPos(null), 380);
+    },
+    []
   );
 
   // Handle tile tap - routes to editor or game logic
@@ -368,9 +372,13 @@ export default function GameBoard() {
       const scoreDelta = useGameStore.getState().score - prevScore;
 
       showParticleBurst(x, y, tile, accepted);
-      handleTapResult(accepted, scoreDelta, x, y);
+      if (accepted) {
+        handleAcceptedTap(scoreDelta);
+      } else {
+        handleRejectedTap(x, y);
+      }
     },
-    [status, tiles, tapTile, editor, editorUpdateTile, showParticleBurst, handleTapResult]
+    [status, tiles, tapTile, editor, editorUpdateTile, showParticleBurst, handleAcceptedTap, handleRejectedTap]
   );
 
   // ── WALKTHROUGH SYSTEM ────────────────────────────────────────────────────
