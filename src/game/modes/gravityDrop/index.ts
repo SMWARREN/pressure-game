@@ -213,7 +213,7 @@ function handleExtend(
       tiles: markChain(tiles, newChain),
       valid: true,
       scoreDelta: 0,
-      customState: { chain: newChain, chainSum: d!.special !== 'star' ? d!.value : 0 },
+      customState: { chain: newChain, chainSum: d.special !== 'star' ? d.value : 0 },
     };
   }
 
@@ -229,7 +229,7 @@ function handleExtend(
       tiles: markChain(cleared, newChain),
       valid: true,
       scoreDelta: 0,
-      customState: { chain: newChain, chainSum: d!.special !== 'star' ? d!.value : 0 },
+      customState: { chain: newChain, chainSum: d.special !== 'star' ? d.value : 0 },
     };
   }
 
