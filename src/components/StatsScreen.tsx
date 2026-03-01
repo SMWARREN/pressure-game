@@ -274,7 +274,7 @@ export default function StatsScreen({
                       const hasReplay = onReplay && e.moveLog && e.moveLog.length > 0;
                       return (
                         <div
-                          key={`${e.modeId}-${e.timestamp}`}
+                          key={`${e.modeId}-${e.ts}`}
                           style={{
                             display: 'flex',
                             alignItems: 'center',

@@ -168,6 +168,22 @@ function reshuffle(tiles: Tile[]): Tile[] {
   );
 }
 
+// ── Tick helper functions ─────────────────────────────────────────────────────
+
+function getExistingFrozenPositions(tiles: Tile[]): Set<string> {
+  return new Set(tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`));
+}
+
+function getMinGroupSizeForWorld(world: number): number {
+  return world <= 2 ? 3 : 4;
+}
+
+function getFrozenTileMaxCount(timeLeft: number): number {
+  if (timeLeft <= 8) return 2;
+  if (timeLeft <= 15) return 1;
+  return 0;
+}
+
 // ── Per-symbol color palette ──────────────────────────────────────────────────
 
 const CANDY_COLORS: Record<string, { bg: string; border: string; glow: string }> = {
@@ -421,13 +437,10 @@ export const CandyMode: GameModeConfig = {
     }
 
     // ── Ice (Tropical) — spawn 1 frozen tile every 15s ────────────────────────
-    // Uses elapsed time so it works on move-limited levels (no timeLeft needed)
     if (features?.ice) {
       const lastIceAt = (state.modeState?.lastIceAt as number) ?? 0;
       if (state.elapsedSeconds >= 15 && state.elapsedSeconds - lastIceAt >= 15) {
-        const existingFrozen = new Set(
-          updatedTiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`)
-        );
+        const existingFrozen = getExistingFrozenPositions(updatedTiles);
         const iceResult = spawnBlockers(updatedTiles, 'frozen', existingFrozen, {
           spawnChance: 1,
           maxCount: 1,
@@ -452,37 +465,17 @@ export const CandyMode: GameModeConfig = {
     const freezeCount = getBlockerCount(features, timeLeft);
     if (freezeCount === 0) return null;
 
-    // World 4 (Frozen): original behavior — spawn every tick with chance
-    if (!features?.ice) {
-      // World 4 (non-unlimited): use time-based spawning
-      const existingFrozen = new Set(
-        state.tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`)
-      );
-      const result = spawnBlockers(state.tiles, 'frozen', existingFrozen, {
-        spawnChance: 1,
-        maxCount: timeLeft <= 8 ? 2 : timeLeft <= 15 ? 1 : 0,
-      });
-      if (!result) return null;
-      const minGroupSize = world <= 2 ? 3 : 4;
-      return {
-        tiles: result.tiles,
-        modeState: {
-          ...state.modeState,
-          iceWarning: `🧊 Ice! Match ${minGroupSize}+ to unfreeze!`,
-        },
-      };
-    }
+    // Spawn ice with appropriate max count based on mode
+    const existingFrozen = getExistingFrozenPositions(state.tiles);
+    const maxCount = features?.ice ? freezeCount : getFrozenTileMaxCount(timeLeft);
 
-    // Unlimited with ice (config-driven)
-    const existingFrozen = new Set(
-      state.tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`)
-    );
     const result = spawnBlockers(state.tiles, 'frozen', existingFrozen, {
       spawnChance: 1,
-      maxCount: freezeCount,
+      maxCount,
     });
     if (!result) return null;
-    const minGroupSize = world <= 2 ? 3 : 4;
+
+    const minGroupSize = getMinGroupSizeForWorld(world);
     return {
       tiles: result.tiles,
       modeState: {
@@ -513,37 +506,35 @@ export const CandyMode: GameModeConfig = {
   renderDemo: renderCandyDemo,
 
   getNotification(_tiles, _moves, modeState) {
+    // Early returns for warnings and special notifications
     const iceWarning = modeState?.iceWarning as string | undefined;
     if (iceWarning) return iceWarning;
 
-    // Combo chain notification (Tropical levels)
     const combo = modeState?.combo as ComboState | undefined;
     if (combo) {
       const cn = comboNotification(combo);
       if (cn) return cn;
     }
 
-    // New symbol just unlocked
     const newSymbol = modeState?.newSymbolUnlocked as string | undefined;
     if (newSymbol) return `✨ NEW! ${newSymbol} unlocked — worth 2× until even!`;
 
-    // Cleared a fresh symbol
-    const freshClear = modeState?.freshClear as string | undefined;
+    // Handle score-based notifications
     const delta = (modeState?.scoreDelta as number) ?? 0;
-    if (freshClear && delta > 0) return `+${delta} 🌟 ${freshClear} FRESH BONUS!`;
-    const timeBonus = (modeState?.timeBonus as number) ?? 0;
-    const timeLeft = modeState?.timeLeft as number | undefined;
-
     if (delta <= 0) return null;
+
+    const freshClear = modeState?.freshClear as string | undefined;
+    if (freshClear) return `+${delta} 🌟 ${freshClear} FRESH BONUS!`;
 
     // Derive group size from score formula: n² × 5
     const n = Math.round(Math.sqrt(delta / 5));
+    const timeBonus = (modeState?.timeBonus as number) ?? 0;
+    const timeLeft = modeState?.timeLeft as number | undefined;
 
-    // In timed/Unlimited mode, show time bonus
+    // Timed mode notifications include time bonus
     if (timeLeft !== undefined && timeBonus > 0) {
       if (n >= 7) return `+${delta} ⏱️+${timeBonus}s 🔥 COMBO!`;
       if (n >= 5) return `+${delta} ⏱️+${timeBonus}s ✨`;
-      if (n >= 3) return `+${delta} ⏱️+${timeBonus}s`;
       return `+${delta} ⏱️+${timeBonus}s`;
     }
 
