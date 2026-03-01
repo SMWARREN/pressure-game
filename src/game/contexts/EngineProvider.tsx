@@ -45,7 +45,7 @@ export function EngineProvider({ children }: EngineProviderProps) {
     return () => {
       if (engineRef.current) {
         engineRef.current.destroy();
-        _setEngineInstance(null as any);
+        _setEngineInstance(null);
         engineRef.current = null;
       }
     };
