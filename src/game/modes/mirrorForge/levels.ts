@@ -51,16 +51,27 @@ export interface MirrorTileData extends Record<string, unknown> {
   isNew: boolean;
 }
 
-function tile(
-  x: number,
-  y: number,
-  connections: Dir[],
-  canRotate: boolean,
-  isGoalNode: boolean,
-  side: 'left' | 'right' | 'center',
-  mirrorX: number,
-  anchorId?: string
-): Tile {
+interface TileParams {
+  readonly x: number;
+  readonly y: number;
+  readonly connections: Dir[];
+  readonly canRotate: boolean;
+  readonly isGoalNode: boolean;
+  readonly side: 'left' | 'right' | 'center';
+  readonly mirrorX: number;
+  readonly anchorId?: string;
+}
+
+function tile({
+  x,
+  y,
+  connections,
+  canRotate,
+  isGoalNode,
+  side,
+  mirrorX,
+  anchorId,
+}: TileParams): Tile {
   return {
     id: `m${x}-${y}`,
     type: 'path',
@@ -97,20 +108,20 @@ function buildMirrorLevel(
 
     // Left tile
     tiles.push(
-      tile(t.x, t.y, t.connections, t.canRotate !== false, t.isGoalNode === true, 'left', mirrorX)
+      tile({ x: t.x, y: t.y, connections: t.connections, canRotate: t.canRotate !== false, isGoalNode: t.isGoalNode === true, side: 'left', mirrorX })
     );
 
     // Right mirror tile (auto-generated with flipped connections)
     tiles.push(
-      tile(
-        mirrorX,
-        t.y,
-        mirrorConnections(t.connections),
-        t.canRotate !== false,
-        t.isGoalNode === true,
-        'right',
-        t.x
-      )
+      tile({
+        x: mirrorX,
+        y: t.y,
+        connections: mirrorConnections(t.connections),
+        canRotate: t.canRotate !== false,
+        isGoalNode: t.isGoalNode === true,
+        side: 'right',
+        mirrorX: t.x,
+      })
     );
   }
 
@@ -119,7 +130,7 @@ function buildMirrorLevel(
     const existing = leftTiles.find((t) => t.x === center && t.y === y);
     const c = existing ?? { connections: [], canRotate: true, isGoalNode: false };
     tiles.push(
-      tile(center, y, c.connections, c.canRotate !== false, c.isGoalNode === true, 'center', center)
+      tile({ x: center, y, connections: c.connections, canRotate: c.canRotate !== false, isGoalNode: c.isGoalNode === true, side: 'center', mirrorX: center })
     );
   }
 

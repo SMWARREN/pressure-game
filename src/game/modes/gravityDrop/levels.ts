@@ -94,16 +94,27 @@ function generateGrid(gridSize: number, seed: number, density = 0.6): Tile[] {
   return tiles;
 }
 
-function makeLevel(
-  id: number,
-  name: string,
-  world: number,
-  gridSize: number,
-  maxMoves: number,
-  targetScore: number,
-  seed: number,
-  density = 0.55
-): Level {
+interface MakeLevelParams {
+  readonly id: number;
+  readonly name: string;
+  readonly world: number;
+  readonly gridSize: number;
+  readonly maxMoves: number;
+  readonly targetScore: number;
+  readonly seed: number;
+  readonly density?: number;
+}
+
+function makeLevel({
+  id,
+  name,
+  world,
+  gridSize,
+  maxMoves,
+  targetScore,
+  seed,
+  density = 0.55,
+}: MakeLevelParams): Level {
   return {
     id,
     name,
@@ -120,31 +131,31 @@ function makeLevel(
 
 export const GRAVITY_LEVELS: Level[] = [
   // World 1 — Freefall (5×5)
-  makeLevel(601, 'First Drop', 1, 5, 20, 200, 6001, 0.5),
-  makeLevel(602, 'Chain Basics', 1, 5, 18, 300, 6002, 0.5),
-  makeLevel(603, 'Stack Attack', 1, 5, 16, 400, 6003, 0.55),
-  makeLevel(604, 'Combo Rising', 1, 5, 16, 500, 6004, 0.55),
-  makeLevel(605, 'Freefall Pro', 1, 5, 14, 600, 6005, 0.6),
+  makeLevel({ id: 601, name: 'First Drop', world: 1, gridSize: 5, maxMoves: 20, targetScore: 200, seed: 6001, density: 0.5 }),
+  makeLevel({ id: 602, name: 'Chain Basics', world: 1, gridSize: 5, maxMoves: 18, targetScore: 300, seed: 6002, density: 0.5 }),
+  makeLevel({ id: 603, name: 'Stack Attack', world: 1, gridSize: 5, maxMoves: 16, targetScore: 400, seed: 6003, density: 0.55 }),
+  makeLevel({ id: 604, name: 'Combo Rising', world: 1, gridSize: 5, maxMoves: 16, targetScore: 500, seed: 6004, density: 0.55 }),
+  makeLevel({ id: 605, name: 'Freefall Pro', world: 1, gridSize: 5, maxMoves: 14, targetScore: 600, seed: 6005, density: 0.6 }),
 
   // World 2 — Cascade (6×6)
-  makeLevel(611, 'Wide Open', 2, 6, 28, 600, 6011, 0.5),
-  makeLevel(612, 'Current Pull', 2, 6, 26, 800, 6012, 0.55),
-  makeLevel(613, 'Deep Cascade', 2, 6, 24, 1000, 6013, 0.55),
-  makeLevel(614, 'Undercurrent', 2, 6, 22, 1200, 6014, 0.6),
-  makeLevel(615, 'The Waterfall', 2, 6, 20, 1400, 6015, 0.6),
+  makeLevel({ id: 611, name: 'Wide Open', world: 2, gridSize: 6, maxMoves: 28, targetScore: 600, seed: 6011, density: 0.5 }),
+  makeLevel({ id: 612, name: 'Current Pull', world: 2, gridSize: 6, maxMoves: 26, targetScore: 800, seed: 6012, density: 0.55 }),
+  makeLevel({ id: 613, name: 'Deep Cascade', world: 2, gridSize: 6, maxMoves: 24, targetScore: 1000, seed: 6013, density: 0.55 }),
+  makeLevel({ id: 614, name: 'Undercurrent', world: 2, gridSize: 6, maxMoves: 22, targetScore: 1200, seed: 6014, density: 0.6 }),
+  makeLevel({ id: 615, name: 'The Waterfall', world: 2, gridSize: 6, maxMoves: 20, targetScore: 1400, seed: 6015, density: 0.6 }),
 
   // World 3 — Abyss (7×7)
-  makeLevel(621, 'Descending', 3, 7, 36, 1200, 6021, 0.5),
-  makeLevel(622, 'Dark Matter', 3, 7, 34, 1500, 6022, 0.55),
-  makeLevel(623, 'Void Walker', 3, 7, 32, 1800, 6023, 0.55),
-  makeLevel(624, 'Event Horizon', 3, 7, 30, 2100, 6024, 0.6),
-  makeLevel(625, 'Singularity', 3, 7, 28, 2500, 6025, 0.65),
+  makeLevel({ id: 621, name: 'Descending', world: 3, gridSize: 7, maxMoves: 36, targetScore: 1200, seed: 6021, density: 0.5 }),
+  makeLevel({ id: 622, name: 'Dark Matter', world: 3, gridSize: 7, maxMoves: 34, targetScore: 1500, seed: 6022, density: 0.55 }),
+  makeLevel({ id: 623, name: 'Void Walker', world: 3, gridSize: 7, maxMoves: 32, targetScore: 1800, seed: 6023, density: 0.55 }),
+  makeLevel({ id: 624, name: 'Event Horizon', world: 3, gridSize: 7, maxMoves: 30, targetScore: 2100, seed: 6024, density: 0.6 }),
+  makeLevel({ id: 625, name: 'Singularity', world: 3, gridSize: 7, maxMoves: 28, targetScore: 2500, seed: 6025, density: 0.65 }),
 
   // ── Bonus levels — one per world, pushing the upper limit of each tier ────
   // World 1: Freefall — densest 5×5, fewest moves, highest score target
-  makeLevel(606, 'Turbo Drop', 1, 5, 12, 700, 6006, 0.65),
+  makeLevel({ id: 606, name: 'Turbo Drop', world: 1, gridSize: 5, maxMoves: 12, targetScore: 700, seed: 6006, density: 0.65 }),
   // World 2: Cascade — 6×6, one move below The Waterfall, more score pressure
-  makeLevel(616, 'Rapid Cascade', 2, 6, 18, 1600, 6016, 0.65),
+  makeLevel({ id: 616, name: 'Rapid Cascade', world: 2, gridSize: 6, maxMoves: 18, targetScore: 1600, seed: 6016, density: 0.65 }),
   // World 3: Abyss — 7×7 filled to the brim, chain or perish
-  makeLevel(626, 'Black Hole', 3, 7, 25, 3000, 6026, 0.72),
+  makeLevel({ id: 626, name: 'Black Hole', world: 3, gridSize: 7, maxMoves: 25, targetScore: 3000, seed: 6026, density: 0.72 }),
 ];

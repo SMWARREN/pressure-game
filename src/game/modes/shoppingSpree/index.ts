@@ -355,24 +355,44 @@ function processTileClearing(
 }
 
 /**
+ * Parameters for building new mode state.
+ */
+interface BuildModeStateParams {
+  readonly state: ShoppingModeState;
+  readonly groupSize: number;
+  readonly scoreDelta: number;
+  readonly newCartItems: number;
+  readonly cartBonus: number;
+  readonly newFlashSaleTapsLeft: number;
+  readonly flashSaleItem: string | null;
+  readonly newThiefPositions: string[];
+  readonly thiefScared: boolean;
+  readonly newUnlockState: SymbolUnlockState;
+  readonly newSymbolUnlocked: string | undefined;
+  readonly symbol: string;
+  readonly isFreshClear: boolean;
+  readonly newCombo: ComboState;
+}
+
+/**
  * Build new mode state from all calculated values.
  */
-function buildNewModeState(
-  state: ShoppingModeState,
-  groupSize: number,
-  scoreDelta: number,
-  newCartItems: number,
-  cartBonus: number,
-  newFlashSaleTapsLeft: number,
-  flashSaleItem: string | null,
-  newThiefPositions: string[],
-  thiefScared: boolean,
-  newUnlockState: SymbolUnlockState,
-  newSymbolUnlocked: string | undefined,
-  symbol: string,
-  isFreshClear: boolean,
-  newCombo: ComboState
-): ShoppingModeState {
+function buildNewModeState({
+  state,
+  groupSize,
+  scoreDelta,
+  newCartItems,
+  cartBonus,
+  newFlashSaleTapsLeft,
+  flashSaleItem,
+  newThiefPositions,
+  thiefScared,
+  newUnlockState,
+  newSymbolUnlocked,
+  symbol,
+  isFreshClear,
+  newCombo,
+}: BuildModeStateParams): ShoppingModeState {
   return {
     ...state,
     cartItems: newCartItems,
@@ -664,22 +684,22 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const newFlashSaleItem = newFlashSaleTapsLeft <= 0 ? null : state.flashSaleItem;
 
     // Build new mode state
-    let newState = buildNewModeState(
+    let newState = buildNewModeState({
       state,
-      group.length,
+      groupSize: group.length,
       scoreDelta,
       newCartItems,
       cartBonus,
       newFlashSaleTapsLeft,
-      newFlashSaleItem,
+      flashSaleItem: newFlashSaleItem,
       newThiefPositions,
       thiefScared,
       newUnlockState,
       newSymbolUnlocked,
       symbol,
       isFreshClear,
-      newCombo
-    );
+      newCombo,
+    });
 
     // Maybe trigger a new flash sale
     if (!newState.flashSaleItem) {
