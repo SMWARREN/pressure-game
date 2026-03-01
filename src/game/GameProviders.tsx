@@ -1,7 +1,5 @@
 import { ReactNode } from 'react';
-import { EngineProvider } from '@/game/contexts/EngineProvider';
-import { StatsProvider } from '@/game/contexts/StatsProvider';
-import { AchievementsProvider } from '@/game/contexts/AchievementsProvider';
+import { GameEngineProvider } from '@/game/contexts/GameEngineProvider';
 import type { StatsBackend } from '@/game/stats/types';
 
 interface GameProvidersProps {
@@ -11,12 +9,8 @@ interface GameProvidersProps {
 
 export function GameProviders({ children, statsBackend }: GameProvidersProps) {
   return (
-    <EngineProvider>
-      <StatsProvider backendOverride={statsBackend}>
-        <AchievementsProvider>
-          {children}
-        </AchievementsProvider>
-      </StatsProvider>
-    </EngineProvider>
+    <GameEngineProvider statsBackend={statsBackend}>
+      {children}
+    </GameEngineProvider>
   );
 }
