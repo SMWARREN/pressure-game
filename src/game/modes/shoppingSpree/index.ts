@@ -83,6 +83,30 @@ function maybeTriggerFlashSale(state: ShoppingModeState): ShoppingModeState {
   };
 }
 
+// ── Thief spawn helpers ───────────────────────────────────────────────────────
+
+function getThiefSpawnChance(intensity: number, timeLeft: number): number {
+  if (intensity === 1) {
+    // Moderate: thieves in last 20s
+    if (timeLeft < 10) return 0.4;
+    if (timeLeft < 20) return 0.25;
+    if (timeLeft < 25) return 0.15;
+    return 0;
+  }
+  if (intensity === 2) {
+    // Aggressive: thieves throughout
+    if (timeLeft < 10) return 0.55;
+    if (timeLeft < 20) return 0.4;
+    if (timeLeft < 30) return 0.25;
+    return 0.15;
+  }
+  return 0;
+}
+
+function getMinGroupSizeForWorld(world: number): number {
+  return world <= 2 ? 3 : 4;
+}
+
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 
 function buildMap(tiles: Tile[]): Map<string, Tile> {
@@ -402,32 +426,18 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const count = getBlockerCount(features, timeLeft);
     if (count === 0) return null;
 
-    // Determine spawn chance based on intensity
-    let spawnChance = 0;
     const intensity = features.blockerIntensity ?? 0;
-    if (intensity === 1) {
-      // Moderate: thieves in last 20s
-      if (timeLeft < 10) spawnChance = 0.4;
-      else if (timeLeft < 20) spawnChance = 0.25;
-      else if (timeLeft < 25) spawnChance = 0.15;
-    } else if (intensity === 2) {
-      // Aggressive: thieves throughout
-      if (timeLeft < 10) spawnChance = 0.55;
-      else if (timeLeft < 20) spawnChance = 0.4;
-      else if (timeLeft < 30) spawnChance = 0.25;
-      else spawnChance = 0.15;
-    }
-
+    const spawnChance = getThiefSpawnChance(intensity, timeLeft);
     if (spawnChance === 0) return null;
 
     const existingThieves = new Set(storedState.thiefPositions || []);
-    const result = spawnBlockers(updatedTiles, 'hasThief', existingThieves, {
+    const result = spawnBlockers(state.tiles, 'hasThief', existingThieves, {
       spawnChance,
       maxCount: count,
     });
     if (!result) return null;
 
-    const minGroupSize = world <= 2 ? 3 : 4;
+    const minGroupSize = getMinGroupSizeForWorld(world);
     return {
       tiles: result.tiles,
       modeState: {
