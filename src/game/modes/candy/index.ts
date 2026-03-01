@@ -10,6 +10,7 @@
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
 import { getMinGroupSizeForWorld } from '../utils';
+import { pickRandom } from '@/utils/conditionalStyles';
 import { CANDY_LEVELS, CANDY_WORLDS, CANDY_SYMBOLS } from './levels';
 import { CANDY_TUTORIAL_STEPS } from './tutorial';
 import { renderCandyDemo } from './demo';
@@ -77,7 +78,7 @@ function applyGravity(
       } else if (features?.wildcards && roll < 0.08) {
         result.push(makeWildcardTile(col, row, activeSymbols));
       } else {
-        const symbol = activeSymbols[Math.floor(Math.random() * activeSymbols.length)];
+        const symbol = pickRandom(activeSymbols);
         result.push({
           id: `cn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
           type: 'path' as const,

@@ -49,3 +49,11 @@ export function getStateColor(
     [true, normalColor]
   );
 }
+
+/**
+ * Pick a random item from an array
+ * Replaces the common pattern: array[Math.floor(Math.random() * array.length)]
+ */
+export function pickRandom<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
+}

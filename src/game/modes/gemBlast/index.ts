@@ -9,6 +9,7 @@
 
 import type { GameModeConfig, TapResult, WinResult, LossResult, TileColors } from '../types';
 import type { Tile } from '../../types';
+import { pickRandom } from '@/utils/conditionalStyles';
 import { GEM_LEVELS, GEM_WORLDS, GEM_SYMBOLS, BLAST_GEM, generateGrid } from './levels';
 import { GEM_BLAST_TUTORIAL_STEPS } from './tutorial';
 import { renderGemBlastDemo } from './demo';
@@ -91,12 +92,7 @@ function applyGravity(
 
     const fillCount = gridRows - colTiles.length;
     for (let row = 0; row < fillCount; row++) {
-      let symbol: string;
-      if (Math.random() < blastChance) {
-        symbol = BLAST_GEM;
-      } else {
-        symbol = activeSymbols[Math.floor(Math.random() * activeSymbols.length)];
-      }
+      const symbol = Math.random() < blastChance ? BLAST_GEM : pickRandom(activeSymbols);
       result.push({
         id: `gb-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
         type: 'path' as const,

@@ -15,6 +15,7 @@
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
 import { getMinGroupSizeForWorld } from '../utils';
+import { pickRandom } from '@/utils/conditionalStyles';
 import { SHOPPING_LEVELS, SHOPPING_WORLDS, SHOPPING_ITEMS, ITEM_VALUES } from './levels';
 import { SHOPPING_SPREE_TUTORIAL_STEPS } from './tutorial';
 import { renderShoppingSpreeDemo } from './demo';
@@ -76,7 +77,7 @@ function maybeTriggerFlashSale(state: ShoppingModeState): ShoppingModeState {
 
   // Pick a random common item (not 💎)
   const commonItems = SHOPPING_ITEMS.filter((s) => s !== '💎');
-  const saleItem = commonItems[Math.floor(Math.random() * commonItems.length)];
+  const saleItem = pickRandom(commonItems);
 
   return {
     ...state,
