@@ -70,7 +70,8 @@ const COMPRESSION_DIRECTIONS: { dir: CompressionDirection; label: string; title:
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export const StateEditor: React.FC = () => {
+// Extract state editor hooks for reduced complexity
+function useStateEditorState() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     'tiles' | 'game' | 'mode' | 'debug' | 'windows' | 'presets'
@@ -80,12 +81,63 @@ export const StateEditor: React.FC = () => {
   const [presetName, setPresetName] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [wasPausedByEditor, setWasPausedByEditor] = useState(false);
-
-  // Debug/Replay state
   const [debugHistory, setDebugHistory] = useState<HistorySnapshot[]>([]);
   const [debugStep, setDebugStep] = useState(-1);
   const [isDebugPlaying, setIsDebugPlaying] = useState(false);
-  const [debugSpeed, setDebugSpeed] = useState(0); // 0=800ms, 1=400ms, 2=200ms
+  const [debugSpeed, setDebugSpeed] = useState(0);
+
+  return {
+    isOpen,
+    setIsOpen,
+    activeTab,
+    setActiveTab: setActiveTab,
+    selectedTile,
+    setSelectedTile: setSelectedTile,
+    presets,
+    setPresets,
+    presetName,
+    setPresetName,
+    message,
+    setMessage,
+    wasPausedByEditor,
+    setWasPausedByEditor,
+    debugHistory,
+    setDebugHistory,
+    debugStep,
+    setDebugStep,
+    isDebugPlaying,
+    setIsDebugPlaying,
+    debugSpeed,
+    setDebugSpeed,
+  };
+}
+
+export const StateEditor: React.FC = () => {
+  const {
+    isOpen,
+    setIsOpen,
+    activeTab,
+    setActiveTab,
+    selectedTile,
+    setSelectedTile,
+    presets,
+    setPresets,
+    presetName,
+    setPresetName,
+    message,
+    setMessage,
+    wasPausedByEditor,
+    setWasPausedByEditor,
+    debugHistory,
+    setDebugHistory,
+    debugStep,
+    setDebugStep,
+    isDebugPlaying,
+    setIsDebugPlaying,
+    debugSpeed,
+    setDebugSpeed,
+  } = useStateEditorState();
+
   const debugIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const DEBUG_SPEEDS = [800, 400, 200];
   const DEBUG_SPEED_LABELS = ['1×', '2×', '4×'];
