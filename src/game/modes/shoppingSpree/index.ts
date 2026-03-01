@@ -27,7 +27,8 @@ import {
   applyFreshFlags,
   type SymbolUnlockState,
 } from '../symbolUnlockAddon';
-import { findGroupWithWildcards } from '../arcadeShared';
+import { findGroupWithWildcards, buildTileMap } from '../arcadeShared';
+import { reshuffleTiles, hasAdjacentMatch } from '../arcadeUtils';
 import { WILDCARD_SYMBOL, isWildcard, makeWildcardTile, getWildcardColors } from '../wildcardAddon';
 import { BOMB_SYMBOL, isBomb, makeBombTile, applyBombExplosion, getBombColors } from '../bombAddon';
 import { updateCombo, resetCombo, comboNotification, type ComboState } from '../comboChainAddon';
@@ -109,15 +110,9 @@ function getMinGroupSizeForWorld(world: number): number {
 
 // ── Group flood-fill ──────────────────────────────────────────────────────────
 
-function buildMap(tiles: Tile[]): Map<string, Tile> {
-  const m = new Map<string, Tile>();
-  for (const t of tiles) m.set(`${t.x},${t.y}`, t);
-  return m;
-}
-
 /** Find the full connected group of same-symbol tiles starting at (x, y). */
 function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
-  const map = buildMap(tiles);
+  const map = buildTileMap(tiles);
   const start = map.get(`${x},${y}`);
   if (!start?.canRotate) return [];
 
@@ -222,33 +217,12 @@ function applyGravity(
 
 /** Returns true if any two adjacent tiles share the same symbol (valid move exists). */
 function hasValidMove(tiles: Tile[]): boolean {
-  const map = buildMap(tiles);
-  for (const t of tiles) {
-    if (!t.canRotate) continue;
-    const sym = t.displayData?.symbol as string;
-    for (const [dx, dy] of [
-      [0, 1],
-      [1, 0],
-    ] as [number, number][]) {
-      const nb = map.get(`${t.x + dx},${t.y + dy}`);
-      if (nb?.canRotate && nb.displayData?.symbol === sym) return true;
-    }
-  }
-  return false;
+  return hasAdjacentMatch(tiles);
 }
 
 /** Fisher-Yates shuffle of the symbols while keeping tile positions. */
 function reshuffle(tiles: Tile[]): Tile[] {
-  const itemTiles = tiles.filter((t) => t.canRotate);
-  const symbols = itemTiles.map((t) => t.displayData?.symbol as string);
-  for (let i = symbols.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
-  }
-  let idx = 0;
-  return tiles.map((t) =>
-    t.canRotate ? { ...t, displayData: { ...t.displayData, symbol: symbols[idx++] } } : t
-  );
+  return reshuffleTiles(tiles);
 }
 
 // ── Per-item color palette ────────────────────────────────────────────────────

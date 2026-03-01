@@ -14,6 +14,7 @@
 // Lose: board fills to the top (any column has a tile at y=0 when a new row drops).
 
 import { Level, Tile } from '../../types';
+import { seededRandom } from '../seedUtils';
 
 export const GRAVITY_WORLDS = [
   { id: 1, name: 'Freefall', tagline: 'Learn to chain numbers', color: '#38bdf8', icon: '🔢' },
@@ -28,17 +29,6 @@ export const GRAVITY_WORLDS = [
 ];
 
 export const GRAVITY_TARGET = 10; // chains must sum to exactly this
-
-// ── Seeded PRNG ──────────────────────────────────────────────────────────────
-export function seededRandom(seed: number): () => number {
-  let s = seed;
-  return (): number => {
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 export interface GravityTileData extends Record<string, unknown> {
   value: number; // 1–6, or special: -1=bomb, 0=star

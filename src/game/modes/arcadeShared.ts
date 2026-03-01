@@ -4,6 +4,17 @@
 import type { Tile } from '../types';
 import { isWildcard } from './wildcardAddon';
 
+// ── Grid Mapping ─────────────────────────────────────────────────────────────
+
+/**
+ * Build a spatial map of tiles for O(1) lookup by grid position.
+ */
+export function buildTileMap(tiles: Tile[]): Map<string, Tile> {
+  const m = new Map<string, Tile>();
+  for (const t of tiles) m.set(`${t.x},${t.y}`, t);
+  return m;
+}
+
 // ── Group Finding ────────────────────────────────────────────────────────────
 
 /**

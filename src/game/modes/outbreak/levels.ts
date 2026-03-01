@@ -11,6 +11,7 @@
 // IDs start at 501 to avoid collisions with all other modes.
 
 import { Level, Tile } from '../../types';
+import { seededRandom } from '../seedUtils';
 
 // ── Color palette ──────────────────────────────────────────────────────────────
 
@@ -83,19 +84,6 @@ export const OUTBREAK_WORLDS = [
     icon: '🔬',
   },
 ];
-
-// ── Seeded PRNG (mulberry32) ───────────────────────────────────────────────────
-
-export function seededRandom(seed: number): () => number {
-  let s = seed;
-  return (): number => {
-    s |= 0;
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 // ── Frontier pre-computation ───────────────────────────────────────────────────
 //

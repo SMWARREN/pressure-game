@@ -15,12 +15,12 @@ import {
   GEM_SYMBOLS,
   BLAST_GEM,
   generateGrid,
-  seededRandom,
 } from './levels';
 import { GEM_BLAST_TUTORIAL_STEPS } from './tutorial';
 import { renderGemBlastDemo } from './demo';
 import { GEM_BLAST_WALKTHROUGH } from './walkthrough';
 import { findGroup, findAllGroups } from '../arcadeShared';
+import { reshuffleTiles, hasValidGroup } from '../arcadeUtils';
 
 // ── Helper functions ──────────────────────────────────────────────────────────
 
@@ -123,11 +123,7 @@ function applyGravity(
 // ── Check for valid moves ─────────────────────────────────────────────────────
 
 function hasValidMove(tiles: Tile[]): boolean {
-  return tiles.some((t) => {
-    if (!t.canRotate || !t.displayData?.symbol) return false;
-    const group = findGroup(t.x, t.y, tiles);
-    return group.length >= 2;
-  });
+  return hasValidGroup(tiles);
 }
 
 // ── Notification helpers ──────────────────────────────────────────────────────
@@ -144,27 +140,9 @@ function getCascadeNotification(delta: number, cascade: number, modeState: any):
 // ── Reshuffle if no valid moves ───────────────────────────────────────────────
 
 function reshuffle(tiles: Tile[]): Tile[] {
-  const symbols = tiles
-    .filter((t) => t.canRotate && t.displayData?.symbol)
-    .map((t) => t.displayData!.symbol as string);
-
-  // Shuffle symbols
-  for (let i = symbols.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
-  }
-
-  let idx = 0;
-  return tiles.map((t) => {
-    if (!t.canRotate || !t.displayData?.symbol) return t;
-    return {
-      ...t,
-      displayData: {
-        ...t.displayData,
-        symbol: symbols[idx++],
-        isNew: true,
-      },
-    };
+  return reshuffleTiles(tiles, {
+    markNew: true,
+    filterFn: (t) => t.canRotate && !!t.displayData?.symbol,
   });
 }
 
@@ -376,4 +354,5 @@ export const GemBlastMode: GameModeConfig = {
 };
 
 // Re-export for use in ArcadeHubScreen
-export { generateGrid, seededRandom, GEM_SYMBOLS };
+export { generateGrid, GEM_SYMBOLS };
+export { seededRandom } from '../seedUtils';

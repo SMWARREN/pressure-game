@@ -3,6 +3,7 @@
 // Gems: 💎💍🔮🟣🔵  Blast gem: 💥 (rare, 3-8% spawn in higher worlds)
 
 import type { Level, Tile } from '../../types';
+import { seededRandom } from '../seedUtils';
 
 export const GEM_SYMBOLS = ['💎', '💍', '🔮', '🟣', '🔵'];
 export const BLAST_GEM = '💥';
@@ -34,19 +35,6 @@ export const GEM_WORLDS = [
     icon: '🔵',
   },
 ];
-
-// ── Seeded PRNG ───────────────────────────────────────────────────────────────
-
-export function seededRandom(seed: number): () => number {
-  let s = seed;
-  return (): number => {
-    s |= 0;
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 // ── Grid generation ───────────────────────────────────────────────────────────
 

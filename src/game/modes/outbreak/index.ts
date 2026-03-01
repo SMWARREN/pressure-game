@@ -12,6 +12,7 @@
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
+import { buildTileMap } from '../arcadeShared';
 import {
   OUTBREAK_LEVELS,
   OUTBREAK_WORLDS,
@@ -44,11 +45,6 @@ const DIRS: [number, number][] = [
   [1, 0],
 ];
 
-function buildMap(tiles: Tile[]): Map<string, Tile> {
-  const m = new Map<string, Tile>();
-  for (const t of tiles) m.set(`${t.x},${t.y}`, t);
-  return m;
-}
 
 function dfsSameColor(x: number, y: number, colorIndex: number, map: Map<string, Tile>): Tile[] {
   const visited = new Set<string>();
@@ -182,7 +178,7 @@ export const OutbreakMode: GameModeConfig = {
 
   // ── Core logic ───────────────────────────────────────────────────────────────
   onTileTap(x, y, tiles, _gridSize, _modeState): TapResult | null {
-    const map = buildMap(tiles);
+    const map = buildTileMap(tiles);
     const tapped = map.get(`${x},${y}`);
     if (!tapped) return null;
 

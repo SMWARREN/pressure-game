@@ -24,8 +24,8 @@ import {
   GRAVITY_TARGET,
   GravityTileData,
   makeNumberTile,
-  seededRandom,
 } from './levels';
+import { seededRandom } from '../seedUtils';
 import { GRAVITY_TUTORIAL_STEPS } from './tutorial';
 import { renderGravityDropDemo } from './demo';
 import { GRAVITY_DROP_WALKTHROUGH } from './walkthrough';
