@@ -30,35 +30,52 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
   if (!contextRef.current && !initAttempted) {
     initAttempted = true;
     try {
+      console.time('[perf] GameEngineProvider init');
+
       // Create pressure engine
+      console.time('[perf] createPressureEngine');
       const pressureEngine = createPressureEngine();
+      console.timeEnd('[perf] createPressureEngine');
+
+      console.time('[perf] engine.init');
       pressureEngine.init(
         () => useGameStore.getState(),
         (partial) => useGameStore.setState(partial)
       );
+      console.timeEnd('[perf] engine.init');
 
       // Hydrate store with engine's initial state
+      console.time('[perf] getInitialState');
       const initialState = pressureEngine.getInitialState();
+      console.timeEnd('[perf] getInitialState');
 
       // Set selectedWorld to the first world of the current mode
+      console.time('[perf] getModeById');
       const currentMode = getModeById(initialState.currentModeId);
+      console.timeEnd('[perf] getModeById');
       const defaultWorld = currentMode.worlds?.[0]?.id ?? 1;
 
+      console.time('[perf] store.setState');
       useGameStore.setState({
         ...initialState,
         selectedWorld: defaultWorld,
       });
+      console.timeEnd('[perf] store.setState');
 
       // Make pressure engine available to store actions
       _setEngineInstance(pressureEngine);
 
       // Create stats engine and start it immediately
+      console.time('[perf] StatsEngine');
       const backend = statsBackend ?? new LocalStorageStatsBackend();
       const statsEngine = new StatsEngine(backend);
       statsEngine.start();
+      console.timeEnd('[perf] StatsEngine');
 
       // Create achievement engine
+      console.time('[perf] AchievementEngine');
       const achievementEngine = new AchievementEngine();
+      console.timeEnd('[perf] AchievementEngine');
 
       // Store context both locally and globally
       contextRef.current = {
@@ -67,6 +84,8 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
         achievementEngine,
       };
       globalContext = contextRef.current;
+      console.timeEnd('[perf] GameEngineProvider init');
+      console.log('[perf] All engines initialized successfully');
     } catch (error) {
       console.error('[GameEngineProvider] Initialization error:', error);
       // Don't throw - just render null and let the error propagate through context access
