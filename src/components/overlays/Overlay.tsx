@@ -70,6 +70,32 @@ export interface OverlayProps {
   readonly newHighScore?: boolean;
 }
 
+// Render idle overlay (ready to play)
+function IdleOverlay({
+  levelName,
+  onStart,
+  solutionMessage,
+}: {
+  levelName: string;
+  onStart: () => void;
+  solutionMessage: string;
+}) {
+  return (
+    <div style={overlayStyle}>
+      <div style={{ fontSize: 11, color: '#3a3a55', letterSpacing: '0.2em', marginBottom: 8 }}>
+        READY
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>{levelName}</div>
+      <div style={{ fontSize: 10, color: '#25253a', marginBottom: 28 }}>
+        {solutionMessage}
+      </div>
+      <button onClick={onStart} style={btnPrimary}>
+        START
+      </button>
+    </div>
+  );
+}
+
 export function Overlay({
   status,
   moves,
@@ -102,20 +128,7 @@ export function Overlay({
       : `${moveCount} move${moveSuffix} to solve`;
 
   if (status === 'idle')
-    return (
-      <div style={overlayStyle}>
-        <div style={{ fontSize: 11, color: '#3a3a55', letterSpacing: '0.2em', marginBottom: 8 }}>
-          READY
-        </div>
-        <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>{levelName}</div>
-        <div style={{ fontSize: 10, color: '#25253a', marginBottom: 28 }}>
-          {solutionMessage}
-        </div>
-        <button onClick={onStart} style={btnPrimary}>
-          START
-        </button>
-      </div>
-    );
+    return <IdleOverlay levelName={levelName} onStart={onStart} solutionMessage={solutionMessage} />;
   if (status === 'won')
     return (
       <div style={overlayStyle} data-testid="win-overlay">
