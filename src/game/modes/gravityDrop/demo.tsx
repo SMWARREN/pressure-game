@@ -46,14 +46,16 @@ function GravTile({
     );
   }
 
-  const sym =
-    special === 'bomb'
-      ? '💣'
-      : special === 'star'
-        ? '⭐'
-        : special === 'lock'
-          ? '🔒'
-          : ['①', '②', '③', '④', '⑤', '⑥'][(value ?? 1) - 1];
+  // Extract special symbol mapping
+  const specialSymbols: Record<string, string> = {
+    bomb: '💣',
+    star: '⭐',
+    lock: '🔒',
+  };
+
+  const sym = specialSymbols[special]
+    ? specialSymbols[special]
+    : ['①', '②', '③', '④', '⑤', '⑥'][(value ?? 1) - 1];
   const col = value ? VALUE_COLORS[value] : { bg: '#1a1a2e', border: '#6b7280', text: '#9ca3af' };
 
   return (

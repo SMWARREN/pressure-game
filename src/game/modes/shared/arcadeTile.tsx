@@ -18,6 +18,20 @@ export function ArcadeTile({
 }: ArcadeTileProps) {
   const col = colors[sym] ?? '#6366f1';
   const size = small ? 34 : 42;
+
+  // Extract nested ternaries to variables
+  const borderStyle = flashSale
+    ? '2px solid #fbbf24'
+    : highlight
+      ? `2px solid ${col}`
+      : `2px solid ${col}30`;
+
+  const boxShadowStyle = flashSale
+    ? '0 0 18px rgba(251,191,36,0.8)'
+    : highlight
+      ? `0 0 12px ${col}70`
+      : 'none';
+
   return (
     <div
       style={{
@@ -31,16 +45,8 @@ export function ArcadeTile({
         background: highlight
           ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)`
           : 'rgba(10,10,20,0.6)',
-        border: flashSale
-          ? '2px solid #fbbf24'
-          : highlight
-            ? `2px solid ${col}`
-            : `2px solid ${col}30`,
-        boxShadow: flashSale
-          ? '0 0 18px rgba(251,191,36,0.8)'
-          : highlight
-            ? `0 0 12px ${col}70`
-            : 'none',
+        border: borderStyle,
+        boxShadow: boxShadowStyle,
         opacity: highlight ? 1 : 0.35,
       }}
     >

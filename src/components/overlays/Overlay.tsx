@@ -93,11 +93,13 @@ export function Overlay({
   const isScoreMode = targetScore !== undefined;
 
   // Compute solution message to avoid nested ternary
+  const moveCount = solution?.length ?? 0;
+  const moveSuffix = moveCount !== 1 ? 's' : '';
   const solutionMessage = !solution
     ? ''
     : solution.length === 0
       ? 'Already solved'
-      : `${solution.length} move${solution.length !== 1 ? 's' : ''} to solve`;
+      : `${moveCount} move${moveSuffix} to solve`;
 
   if (status === 'idle')
     return (
