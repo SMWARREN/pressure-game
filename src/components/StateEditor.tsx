@@ -693,7 +693,6 @@ export const StateEditor: React.FC = () => {
           padding: 16,
         }}
       >
-        {/* TILES TAB */}
         {activeTab === 'tiles' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Mini Grid */}
@@ -919,7 +918,6 @@ export const StateEditor: React.FC = () => {
           </div>
         )}
 
-        {/* GAME TAB */}
         {activeTab === 'game' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Status */}
@@ -1303,7 +1301,6 @@ export const StateEditor: React.FC = () => {
           </div>
         )}
 
-        {/* MODE TAB */}
         {activeTab === 'mode' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Mode Info */}
@@ -1402,7 +1399,6 @@ export const StateEditor: React.FC = () => {
           </div>
         )}
 
-        {/* DEBUG TAB */}
         {activeTab === 'debug' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Debug Controls */}
@@ -1752,7 +1748,6 @@ export const StateEditor: React.FC = () => {
           </div>
         )}
 
-        {/* WINDOWS TAB */}
         {activeTab === 'windows' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Current State Windows */}

@@ -15,6 +15,11 @@ type ToolType = 'node' | 'path' | 'wall' | 'eraser' | 'select';
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];
 
+// Comparator for consistently sorting direction strings
+const compareDirections = (a: Direction, b: Direction): number => {
+  return DIRECTIONS.indexOf(a) - DIRECTIONS.indexOf(b);
+};
+
 const CONNECTION_PRESETS: { name: string; connections: Direction[] }[] = [
   { name: '─', connections: ['left', 'right'] },
   { name: '│', connections: ['up', 'down'] },
@@ -374,9 +379,9 @@ ${tilesStr}
               <div id="connections-group" className="grid grid-cols-4 gap-1">
                 {CONNECTION_PRESETS.map((preset) => {
                   const selectedConns = [...selectedTile.connections];
-                  selectedConns.sort();
+                  selectedConns.sort(compareDirections);
                   const presetConns = [...preset.connections];
-                  presetConns.sort();
+                  presetConns.sort(compareDirections);
                   return (
                     <button
                       key={preset.name}

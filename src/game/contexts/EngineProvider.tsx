@@ -51,11 +51,11 @@ export function EngineProvider({ children }: EngineProviderProps) {
     };
   }, []);
 
+  const value = useMemo(() => ({ engine: engineRef.current! }), []);
+
   if (!engineRef.current) {
     return null;
   }
-
-  const value = useMemo(() => ({ engine: engineRef.current! }), []);
 
   return <EngineContext.Provider value={value}>{children}</EngineContext.Provider>;
 }

@@ -387,6 +387,47 @@ export default function GameBoard() {
     });
   }, [status, currentLevel, elapsedSeconds, currentModeId, showHint, achievementEngine]);
 
+  // Helper: find best-scoring game event from array
+  const findBestScoreEvent = (events: GameEndEvent[]): GameEndEvent => {
+    return events.reduce((best, e) => (e.score > best.score ? e : best), events[0]);
+  };
+
+  // Extract computation of replay events (must be before early returns)
+  const computeReplayEvents = useCallback((): GameEndEvent[] => {
+    if (!currentLevel) return [];
+    return stats
+      .getBackend()
+      .getAll()
+      .filter(
+        (e): e is GameEndEvent =>
+          e.type === 'game_end' &&
+          e.levelId === currentLevel.id &&
+          (e.moveLog?.length ?? 0) > 0
+      );
+  }, [stats, currentLevel?.id]);
+
+  // Compute the onReplay callback: win overlay uses latest, unlimited loss uses best-score game
+  // (must be before early returns)
+  const onReplayForOverlay = useMemo(() => {
+    const shouldShow = status === 'won' || (isUnlimited && status === 'lost');
+    if (!shouldShow) return undefined;
+    const allEnds = computeReplayEvents();
+    if (!allEnds.length) return undefined;
+    const target = isUnlimited ? findBestScoreEvent(allEnds) : allEnds[allEnds.length - 1];
+    return () => setReplayEvent(target);
+  }, [status, isUnlimited, computeReplayEvents, findBestScoreEvent, setReplayEvent]);
+
+  // Compute the onWatchBest callback for unlimited rules dialog (must be before early returns)
+  const onWatchBestUnlimited = useMemo(() => {
+    const ends = computeReplayEvents();
+    if (!ends.length) return undefined;
+    const best = findBestScoreEvent(ends);
+    return () => {
+      setShowUnlimitedRules(false);
+      setReplayEvent(best);
+    };
+  }, [computeReplayEvents, findBestScoreEvent]);
+
   // Check if we're in test/harness mode (skip tutorial for E2E tests)
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
@@ -444,34 +485,6 @@ export default function GameBoard() {
   const levelStatsDisplay = currentLevel.timeLimit
     ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
     : undefined;
-
-  // Helper: find best-scoring game event from array
-  const findBestScoreEvent = (events: GameEndEvent[]): GameEndEvent => {
-    return events.reduce((best, e) => (e.score > best.score ? e : best), events[0]);
-  };
-
-  // Extract computation of replay events
-  const computeReplayEvents = useCallback((): GameEndEvent[] => {
-    return stats
-      .getBackend()
-      .getAll()
-      .filter(
-        (e): e is GameEndEvent =>
-          e.type === 'game_end' &&
-          e.levelId === (currentLevel?.id ?? -1) &&
-          (e.moveLog?.length ?? 0) > 0
-      );
-  }, [stats, currentLevel?.id]);
-
-  // Compute the onReplay callback: win overlay uses latest, unlimited loss uses best-score game
-  const onReplayForOverlay = useMemo(() => {
-    const shouldShow = status === 'won' || (isUnlimited && status === 'lost');
-    if (!shouldShow) return undefined;
-    const allEnds = computeReplayEvents();
-    if (!allEnds.length) return undefined;
-    const target = isUnlimited ? findBestScoreEvent(allEnds) : allEnds[allEnds.length - 1];
-    return () => setReplayEvent(target);
-  }, [status, isUnlimited, computeReplayEvents, findBestScoreEvent, setReplayEvent]);
 
   // Extract conditional editor button styles (S3358: reduce nested ternaries)
   const editorButtonStyles = editor.enabled
@@ -683,15 +696,7 @@ export default function GameBoard() {
             onBack={goToMenu}
             modeId={currentModeId}
             features={currentLevel.features}
-            onWatchBest={useMemo(() => {
-              const ends = computeReplayEvents();
-              if (!ends.length) return undefined;
-              const best = findBestScoreEvent(ends);
-              return () => {
-                setShowUnlimitedRules(false);
-                setReplayEvent(best);
-              };
-            }, [computeReplayEvents, findBestScoreEvent])}
+            onWatchBest={onWatchBestUnlimited}
           />
         )}
 

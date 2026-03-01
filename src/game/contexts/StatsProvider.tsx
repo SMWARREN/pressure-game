@@ -36,11 +36,14 @@ export function StatsProvider({ children, backendOverride }: StatsProviderProps)
     };
   }, [backendOverride]);
 
-  if (!engineRef.current) {
+  const value = useMemo(() => {
+    if (!engineRef.current) return null;
+    return { engine: engineRef.current };
+  }, []);
+
+  if (!value) {
     return null;
   }
-
-  const value = useMemo(() => ({ engine: engineRef.current! }), []);
 
   return <StatsContext.Provider value={value}>{children}</StatsContext.Provider>;
 }
