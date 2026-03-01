@@ -25,7 +25,7 @@ import {
   GravityTileData,
   makeNumberTile,
 } from './levels';
-import { isEmpty, isNotEmpty } from '@/utils/conditionalStyles';
+import { isEmpty } from '@/utils/conditionalStyles';
 import { seededRandom } from '../seedUtils';
 import { GRAVITY_TUTORIAL_STEPS } from './tutorial';
 import { renderGravityDropDemo } from './demo';
@@ -159,6 +159,110 @@ function markChain(tiles: Tile[], chain: GravityModeState['chain']): Tile[] {
   });
 }
 
+// ── Tap handler helpers ─────────────────────────────────────────────────────
+function calcChainSum(chain: Array<{ x: number; y: number; value: number; special: string }>): {
+  sum: number;
+  starCount: number;
+  total: number;
+} {
+  let sum = 0;
+  let starCount = 0;
+  for (const c of chain) {
+    if (c.special === 'star') starCount++;
+    else sum += c.value;
+  }
+  const starFill = starCount > 0 ? GRAVITY_TARGET - sum : 0;
+  return { sum, starCount, total: sum + starFill };
+}
+
+function handleCommit(
+  chain: Array<{ x: number; y: number; value: number; special: string }>,
+  tiles: Tile[],
+  gridSize: number
+): TapResult | null {
+  const { total } = calcChainSum(chain);
+  const hasBombs = chain.some((c) => c.special === 'bomb');
+
+  if (total !== GRAVITY_TARGET && !hasBombs) {
+    return null;
+  }
+
+  const { tiles: newTiles, scoreDelta } = commitChain(chain, tiles, gridSize);
+  const cleared = markChain(newTiles, []);
+
+  return {
+    tiles: cleared,
+    valid: true,
+    scoreDelta,
+    customState: emptyState(),
+  };
+}
+
+function handleExtend(
+  x: number,
+  y: number,
+  chain: Array<{ x: number; y: number; value: number; special: string }>,
+  d: ReturnType<typeof getData>,
+  tiles: Tile[]
+): TapResult | null {
+  if (isEmpty(chain)) {
+    const newChain: Array<{ x: number; y: number; value: number; special: string }> = [
+      { x, y, value: d!.value, special: d!.special as string },
+    ];
+    return {
+      tiles: markChain(tiles, newChain),
+      valid: true,
+      scoreDelta: 0,
+      customState: { chain: newChain, chainSum: d!.special !== 'star' ? d!.value : 0 },
+    };
+  }
+
+  const lastInChain = chain[chain.length - 1];
+
+  // Check if adjacent to chain tail
+  if (!isAdjacent(lastInChain, { x, y })) {
+    const cleared = markChain(tiles, []);
+    const newChain: Array<{ x: number; y: number; value: number; special: string }> = [
+      { x, y, value: d!.value, special: d!.special as string },
+    ];
+    return {
+      tiles: markChain(cleared, newChain),
+      valid: true,
+      scoreDelta: 0,
+      customState: { chain: newChain, chainSum: d!.special !== 'star' ? d!.value : 0 },
+    };
+  }
+
+  // Check if already in chain (undo last step)
+  const existingIdx = chain.findIndex((c) => c.x === x && c.y === y);
+  if (existingIdx >= 0 && existingIdx < chain.length - 1) {
+    const truncated = chain.slice(0, existingIdx + 1);
+    const newSum = truncated.reduce((s, c) => s + (c.special === 'star' ? 0 : c.value), 0);
+    return {
+      tiles: markChain(tiles, truncated),
+      valid: true,
+      scoreDelta: 0,
+      customState: { chain: truncated, chainSum: newSum },
+    };
+  }
+
+  // Normal extend: add new tile to chain
+  const newChain = [...chain, { x, y, value: d!.value, special: d!.special as string }];
+  const { sum, starCount } = calcChainSum(newChain);
+
+  if (sum > GRAVITY_TARGET && starCount === 0) {
+    return null;
+  }
+
+  const effectiveSum = starCount > 0 ? GRAVITY_TARGET : sum;
+  return {
+    tiles: markChain(tiles, newChain),
+    valid: true,
+    scoreDelta: 0,
+    customState: { chain: newChain, chainSum: effectiveSum },
+  };
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 export const GravityDropMode: GameModeConfig = {
   id: 'gravityDrop',
@@ -279,102 +383,13 @@ export const GravityDropMode: GameModeConfig = {
     const chain = ms.chain;
     const lastInChain = chain[chain.length - 1];
 
-    // ── COMMIT: tap last tile again when sum = 10 ────────────────────────────
+    // Commit: tap last tile again when sum = 10
     if (lastInChain && lastInChain.x === x && lastInChain.y === y) {
-      // Calculate actual sum including star wildcard fills
-      let sum = 0;
-      let starCount = 0;
-      for (const c of chain) {
-        if (c.special === 'star') starCount++;
-        else sum += c.value;
-      }
-      // Stars fill the remaining gap to reach target
-      const starFill = starCount > 0 ? GRAVITY_TARGET - sum : 0;
-      const total = sum + starFill;
-
-      // Bombs are always valid (they nuke the column)
-      const hasBombs = chain.some((c) => c.special === 'bomb');
-
-      if (total !== GRAVITY_TARGET && !hasBombs) {
-        // Invalid commit — flash the chain red by returning null
-        return null;
-      }
-
-      // COMMIT!
-      const { tiles: newTiles, scoreDelta } = commitChain(chain, tiles, gridSize);
-      const cleared = markChain(newTiles, []); // clear all chain markers
-
-      return {
-        tiles: cleared,
-        valid: true,
-        scoreDelta,
-        customState: emptyState(),
-      };
+      return handleCommit(chain, tiles, gridSize);
     }
 
-    // ── EXTEND CHAIN: tap adjacent tile ────────────────────────────────────
-    if (isNotEmpty(chain) && lastInChain) {
-      // Check if this tile is adjacent to the chain tail
-      if (!isAdjacent(lastInChain, { x, y })) {
-        // Not adjacent — cancel existing chain and start fresh
-        const cleared = markChain(tiles, []);
-        const newChain: GravityModeState['chain'] = [
-          { x, y, value: d.value, special: d.special as string },
-        ];
-        return {
-          tiles: markChain(cleared, newChain),
-          valid: true,
-          scoreDelta: 0,
-          customState: { chain: newChain, chainSum: d.special !== 'star' ? d.value : 0 },
-        };
-      }
-
-      // Already in chain? Walk back (undo last step)
-      const existingIdx = chain.findIndex((c) => c.x === x && c.y === y);
-      if (existingIdx >= 0 && existingIdx < chain.length - 1) {
-        const truncated = chain.slice(0, existingIdx + 1);
-        const newSum = truncated.reduce((s, c) => s + (c.special === 'star' ? 0 : c.value), 0);
-        return {
-          tiles: markChain(tiles, truncated),
-          valid: true,
-          scoreDelta: 0,
-          customState: { chain: truncated, chainSum: newSum },
-        };
-      }
-
-      // Normal extend
-      const newChain = [...chain, { x, y, value: d.value, special: d.special as string }];
-      let newSum = 0;
-      let starCount = 0;
-      for (const c of newChain) {
-        if (c.special === 'star') starCount++;
-        else newSum += c.value;
-      }
-      const effectiveSum = starCount > 0 ? GRAVITY_TARGET : newSum; // stars complete the chain
-
-      // Don't allow chains that would go over (unless stars handle it)
-      if (newSum > GRAVITY_TARGET && starCount === 0) {
-        return null; // over limit with no stars to compensate
-      }
-
-      return {
-        tiles: markChain(tiles, newChain),
-        valid: true,
-        scoreDelta: 0,
-        customState: { chain: newChain, chainSum: effectiveSum },
-      };
-    }
-
-    // ── START NEW CHAIN ──────────────────────────────────────────────────────
-    const newChain: GravityModeState['chain'] = [
-      { x, y, value: d.value, special: d.special as string },
-    ];
-    return {
-      tiles: markChain(tiles, newChain),
-      valid: true,
-      scoreDelta: 0,
-      customState: { chain: newChain, chainSum: d.special !== 'star' ? d.value : 0 },
-    };
+    // Extend chain or start new
+    return handleExtend(x, y, chain, d, tiles);
   },
 
   // ── Win / Loss ────────────────────────────────────────────────────────────

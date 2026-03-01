@@ -105,6 +105,62 @@ function processPortalTeleport(
   return otherPortal ? { x: otherPortal.x, y: otherPortal.y } : null;
 }
 
+// Helper: Process a single step of laser beam tracing
+interface LaserStepResult {
+  shouldBreak: boolean;
+  hitTarget: boolean;
+  newDir?: string;
+  newX?: number;
+  newY?: number;
+  addBeamKey?: string;
+}
+
+function processBeamStep(
+  x: number,
+  y: number,
+  dir: string,
+  tile: Tile | undefined,
+  portalPairs: Map<string, Tile[]>,
+  visitedPortals: Set<string>
+): LaserStepResult {
+  if (!tile) return { shouldBreak: false, hitTarget: false }; // Empty space: continue
+
+  const kind = tile.displayData?.kind as string;
+
+  // Terminal tiles
+  if (kind === 'wall' || kind === 'source') {
+    return { shouldBreak: true, hitTarget: false };
+  }
+  if (kind === 'target') {
+    return { shouldBreak: true, hitTarget: true };
+  }
+
+  // Mirrors
+  if (kind === 'mirror' || kind === 'doubleMirror') {
+    const newDir = processMirrorReflection(dir, tile.displayData?.rotation as number | undefined);
+    if (!newDir) return { shouldBreak: true, hitTarget: false };
+    return { shouldBreak: false, hitTarget: false, newDir };
+  }
+
+  // Portals
+  if (kind === 'portal') {
+    const teleport = processPortalTeleport(tile, x, y, portalPairs, visitedPortals);
+    if (teleport) {
+      return {
+        shouldBreak: false,
+        hitTarget: false,
+        newX: teleport.x,
+        newY: teleport.y,
+        addBeamKey: `${teleport.x},${teleport.y}`,
+      };
+    }
+    return { shouldBreak: false, hitTarget: false };
+  }
+
+  // Splitters and other tiles: continue
+  return { shouldBreak: false, hitTarget: false };
+}
+
 export function traceLaser(
   tiles: Tile[],
   gridSize: number,
@@ -148,37 +204,24 @@ export function traceLaser(
     beamKeys.add(key);
 
     const tile = map.get(key);
-    if (!tile) continue; // Empty space: beam continues
+    const result = processBeamStep(x, y, dir, tile, portalPairs, visitedPortals);
 
-    const kind = tile.displayData?.kind as string;
-
-    // Handle terminal tiles (stop beam)
-    if (kind === 'wall' || kind === 'source') break;
-    if (kind === 'target') {
+    if (result.newDir) {
+      dir = result.newDir;
+    }
+    if (result.newX !== undefined && result.newY !== undefined) {
+      x = result.newX;
+      y = result.newY;
+    }
+    if (result.addBeamKey) {
+      beamKeys.add(result.addBeamKey);
+    }
+    if (result.hitTarget) {
       hitTarget = true;
+    }
+    if (result.shouldBreak) {
       break;
     }
-
-    // Handle redirecting tiles
-    if (kind === 'mirror' || kind === 'doubleMirror') {
-      const newDir = processMirrorReflection(dir, tile.displayData?.rotation as number | undefined);
-      if (!newDir) break;
-      dir = newDir;
-      continue;
-    }
-
-    // Handle portal teleportation
-    if (kind === 'portal') {
-      const teleport = processPortalTeleport(tile, x, y, portalPairs, visitedPortals);
-      if (teleport) {
-        x = teleport.x;
-        y = teleport.y;
-        beamKeys.add(`${x},${y}`);
-      }
-      continue;
-    }
-
-    // Splitters and empty tiles: beam continues same direction
   }
 
   return { beamKeys, hitTarget };
