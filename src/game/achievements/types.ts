@@ -11,22 +11,22 @@ export type AchievementCategory =
   | 'special'; // Hidden/unique
 
 export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  rarity: AchievementRarity;
-  category: AchievementCategory;
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly icon: string;
+  readonly rarity: AchievementRarity;
+  readonly category: AchievementCategory;
   /** Points awarded for earning this achievement */
-  points: number;
+  readonly points: number;
   /** Whether this achievement is hidden until earned */
-  hidden?: boolean;
+  readonly hidden?: boolean;
   /** Condition to check if achievement is earned */
-  condition: AchievementCondition;
+  readonly condition: AchievementCondition;
 }
 
 export interface AchievementCondition {
-  type:
+  readonly type:
     | 'levels_completed'
     | 'moves_under_par'
     | 'speedrun'
@@ -36,23 +36,23 @@ export interface AchievementCondition {
     | 'survive_walls'
     | 'custom';
   /** Target value to reach */
-  target?: number;
+  readonly target?: number;
   /** Level ID to restrict to (optional) */
-  levelId?: number;
+  readonly levelId?: number;
   /** World ID to restrict to (optional) */
-  worldId?: number;
+  readonly worldId?: number;
   /** Mode ID to restrict to (optional) */
-  modeId?: string;
+  readonly modeId?: string;
   /** Custom condition function name */
-  customCheck?: string;
+  readonly customCheck?: string;
 }
 
 export interface AchievementProgress {
-  achievementId: string;
-  current: number;
-  target: number;
-  earned: boolean;
-  earnedAt?: number;
+  readonly achievementId: string;
+  readonly current: number;
+  readonly target: number;
+  readonly earned: boolean;
+  readonly earnedAt?: number;
 }
 
 export interface AchievementState {
@@ -221,8 +221,8 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
  * Level-specific achievements (configurable per level)
  */
 export interface LevelAchievementConfig {
-  levelId: number;
-  achievements: Achievement[];
+  readonly levelId: number;
+  readonly achievements: Achievement[];
 }
 
 /**
