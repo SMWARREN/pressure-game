@@ -266,7 +266,9 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
 
 /* ── main component ───────────────────────────────────────────────────────── */
 
-export default function AchievementsScreen({ onBack }: { onBack: () => void }) {
+type AchievementsScreenProps = { readonly onBack: () => void };
+
+export default function AchievementsScreen({ onBack }: AchievementsScreenProps) {
   const engine = useAchievements();
 
   const { achievements, earnedCount, totalPoints, maxPoints, byCategory } = useMemo(() => {

@@ -9,7 +9,9 @@ interface EngineContextType {
 
 export const EngineContext = createContext<EngineContextType | null>(null);
 
-export function EngineProvider({ children }: { children: React.ReactNode }) {
+type EngineProviderProps = { readonly children: React.ReactNode };
+
+export function EngineProvider({ children }: EngineProviderProps) {
   const engineRef = useRef<PressureEngine | null>(null);
 
   useEffect(() => {

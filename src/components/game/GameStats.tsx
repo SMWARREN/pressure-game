@@ -11,7 +11,7 @@ import {
 /**
  * CompressionBar - Visual indicator showing wall compression progress
  */
-function CompressionBar({ percent, active }: { percent: number; active: boolean }) {
+function CompressionBar({ percent, active }: { readonly percent: number; readonly active: boolean }) {
   const color = getCompressionColor(percent);
   const glow = getCompressionGlow(percent);
   const label = getCompressionLabel(percent, active);
@@ -62,7 +62,7 @@ function CompressionBar({ percent, active }: { percent: number; active: boolean 
  * MovesCounter - Shows current moves vs max moves
  * If maxMoves is 0 or undefined, shows just the move count (for modes without move limits)
  */
-function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) {
+function MovesCounter({ moves, maxMoves }: { readonly moves: number; readonly maxMoves: number }) {
   const hasLimit = maxMoves && maxMoves > 0;
   const outOfMoves = hasLimit && moves >= maxMoves;
   const color = outOfMoves ? '#ef4444' : '#fff';
@@ -145,7 +145,7 @@ function MovesCounter({ moves, maxMoves }: { moves: number; maxMoves: number }) 
 /**
  * CountdownTimer - Shows seconds until next wall compression
  */
-function CountdownTimer({ seconds, active }: { seconds: number; active: boolean }) {
+function CountdownTimer({ seconds, active }: { readonly seconds: number; readonly active: boolean }) {
   return (
     <div
       style={{
@@ -182,7 +182,7 @@ function CountdownTimer({ seconds, active }: { seconds: number; active: boolean 
 /**
  * ScoreDisplay - Shows current score vs target score with a progress bar
  */
-function ScoreDisplay({ score, targetScore }: { score: number; targetScore?: number }) {
+function ScoreDisplay({ score, targetScore }: { readonly score: number; readonly targetScore?: number }) {
   const pct = targetScore ? Math.min((score / targetScore) * 100, 100) : 0;
   const color = getScoreColor(pct);
   return (
@@ -246,7 +246,7 @@ function ScoreDisplay({ score, targetScore }: { score: number; targetScore?: num
 /**
  * TimeleftDisplay - Countdown timer for time-limited levels (e.g. Frozen world)
  */
-function TimeleftDisplay({ timeLeft, timeLimit }: { timeLeft: number; timeLimit?: number }) {
+function TimeleftDisplay({ timeLeft, timeLimit }: { readonly timeLeft: number; readonly timeLimit?: number }) {
   const urgent = timeLeft <= 10;
   const pct = timeLimit ? Math.min((timeLeft / timeLimit) * 100, 100) : 100;
   return (

@@ -9,13 +9,15 @@ interface StatsContextType {
 
 export const StatsContext = createContext<StatsContextType | null>(null);
 
+type StatsProviderProps = {
+  readonly children: React.ReactNode;
+  readonly backendOverride?: StatsBackend;
+};
+
 export function StatsProvider({
   children,
   backendOverride,
-}: {
-  children: React.ReactNode;
-  backendOverride?: StatsBackend;
-}) {
+}: StatsProviderProps) {
   const engineRef = useRef<StatsEngine | null>(null);
 
   useEffect(() => {

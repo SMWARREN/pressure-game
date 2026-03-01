@@ -311,7 +311,7 @@ export default function UnlimitedRulesDialog({
   );
 }
 
-function RuleItem({ icon, text }: { icon: string; text: string }) {
+function RuleItem({ icon, text }: { readonly icon: string; readonly text: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
       <span style={{ fontSize: 14, flexShrink: 0 }}>{icon}</span>

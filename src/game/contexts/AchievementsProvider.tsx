@@ -7,7 +7,9 @@ interface AchievementsContextType {
 
 export const AchievementsContext = createContext<AchievementsContextType | null>(null);
 
-export function AchievementsProvider({ children }: { children: React.ReactNode }) {
+type AchievementsProviderProps = { readonly children: React.ReactNode };
+
+export function AchievementsProvider({ children }: AchievementsProviderProps) {
   const value = useMemo(
     () => ({
       engine: new AchievementEngine(),
