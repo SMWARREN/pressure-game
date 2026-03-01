@@ -32,6 +32,13 @@ export function ArcadeTile({
       ? `0 0 12px ${col}70`
       : 'none';
 
+  const backgroundStyle = highlight
+    ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)`
+    : 'rgba(10,10,20,0.6)';
+
+  const fontSize = small ? '1rem' : '1.2rem';
+  const opacity = highlight ? 1 : 0.35;
+
   return (
     <div
       style={{
@@ -41,13 +48,11 @@ export function ArcadeTile({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: small ? '1rem' : '1.2rem',
-        background: highlight
-          ? `linear-gradient(145deg, ${col}44 0%, ${col}22 100%)`
-          : 'rgba(10,10,20,0.6)',
+        fontSize,
+        background: backgroundStyle,
         border: borderStyle,
         boxShadow: boxShadowStyle,
-        opacity: highlight ? 1 : 0.35,
+        opacity,
       }}
     >
       {sym}
