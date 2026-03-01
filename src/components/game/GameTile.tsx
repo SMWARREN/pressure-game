@@ -311,7 +311,12 @@ function GameTileComponent({
       : zpShadowLo;
 
     // Pick the right animation for each outbreak state
-    const outbreakAnimation = getOutbreakAnimation(isOutbreak, animationsEnabled, isNewTile, obFrontier);
+    const outbreakAnimation = getOutbreakAnimation(
+      isOutbreak,
+      animationsEnabled,
+      isNewTile,
+      obFrontier
+    );
 
     // Icon animation: newly absorbed tiles get a spin-in for the owned icon
     const iconAnimation = getIconAnimation(isOutbreak, animationsEnabled, isNewTile, obOwned);

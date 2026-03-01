@@ -221,9 +221,7 @@ function renderGameState(
   console.log(`${colors.bold}Mode:${colors.reset} ${colors.green}${modeName}${colors.reset}`);
   console.log(`${colors.bold}Moves:${colors.reset} ${moves}/${maxMoves}`);
   const statusColor = getStatusColor(status);
-  console.log(
-    `${colors.bold}Status:${colors.reset} ${statusColor}${status}${colors.reset}`
-  );
+  console.log(`${colors.bold}Status:${colors.reset} ${statusColor}${status}${colors.reset}`);
   console.log(
     `${colors.bold}Wall Offset:${colors.reset} ${wallOffset}/${Math.floor(gridSize / 2)}`
   );

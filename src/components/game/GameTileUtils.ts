@@ -32,11 +32,7 @@ export {
   getTileTransitionStyle,
 } from './utils/tileAnimationHelpers';
 
-export {
-  getSymbolSize,
-  getGapValue,
-  getPaddingValue,
-} from './utils/tileLayoutHelpers';
+export { getSymbolSize, getGapValue, getPaddingValue } from './utils/tileLayoutHelpers';
 
 export {
   getStatusBackgroundColor,
@@ -47,7 +43,4 @@ export {
   getCursorStyle,
 } from './utils/statusColorHelpers';
 
-export {
-  getPipeSegmentStyle,
-  type PipeSegmentStyle,
-} from './utils/pipeSegmentHelpers';
+export { getPipeSegmentStyle, type PipeSegmentStyle } from './utils/pipeSegmentHelpers';

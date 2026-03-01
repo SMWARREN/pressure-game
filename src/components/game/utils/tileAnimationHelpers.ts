@@ -20,10 +20,7 @@ function getTileTransform(
 /**
  * Get tile transition string
  */
-function getTileTransition(
-  animationsEnabled: boolean | undefined,
-  pressed: boolean
-): string {
+function getTileTransition(animationsEnabled: boolean | undefined, pressed: boolean): string {
   if (!animationsEnabled) return 'none';
   if (pressed) return 'transform 0.08s ease';
   return 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)';
@@ -78,10 +75,7 @@ function getTileAnimation(
 /**
  * Get combined transition style for tile
  */
-function getTileTransitionStyle(
-  isNewTile: boolean,
-  tileTransition: string
-): string {
+function getTileTransitionStyle(isNewTile: boolean, tileTransition: string): string {
   if (isNewTile) return 'border-color 0.6s ease, box-shadow 0.6s ease';
   return `${tileTransition}, border-color 0.4s ease, box-shadow 0.4s ease`;
 }

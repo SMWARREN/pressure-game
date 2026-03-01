@@ -26,11 +26,7 @@ export {
   getTileTransitionStyle,
 } from './tileAnimationHelpers';
 
-export {
-  getSymbolSize,
-  getGapValue,
-  getPaddingValue,
-} from './tileLayoutHelpers';
+export { getSymbolSize, getGapValue, getPaddingValue } from './tileLayoutHelpers';
 
 export {
   getStatusBackgroundColor,
@@ -41,21 +37,12 @@ export {
   getCursorStyle,
 } from './statusColorHelpers';
 
-export {
-  getPipeSegmentStyle,
-  type PipeSegmentStyle,
-} from './pipeSegmentHelpers';
+export { getPipeSegmentStyle, type PipeSegmentStyle } from './pipeSegmentHelpers';
 
 // GameBoard utilities
-export {
-  computeBoardDimensions,
-  computeGridDimensions,
-} from './boardDimensions';
+export { computeBoardDimensions, computeGridDimensions } from './boardDimensions';
 
-export {
-  getParticleBurstColor,
-  getParticleBurstShape,
-} from './particleEffects';
+export { getParticleBurstColor, getParticleBurstShape } from './particleEffects';
 
 export {
   getWallCompressionLabel,
@@ -69,7 +56,4 @@ export {
   computeLevelDisplayNum,
 } from './levelNavigation';
 
-export {
-  computeOverlayProps,
-  type OverlayPropsContext,
-} from './overlayProps';
+export { computeOverlayProps, type OverlayPropsContext } from './overlayProps';

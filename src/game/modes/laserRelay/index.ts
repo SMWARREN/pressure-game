@@ -345,10 +345,14 @@ function getTileColors(tile: Tile) {
  */
 function directionToArrow(dir: string): string {
   switch (dir) {
-    case 'right': return '▶';
-    case 'down': return '▼';
-    case 'left': return '◀';
-    default: return '▲';
+    case 'right':
+      return '▶';
+    case 'down':
+      return '▼';
+    case 'left':
+      return '◀';
+    default:
+      return '▲';
   }
 }
 
@@ -357,9 +361,12 @@ function directionToArrow(dir: string): string {
  */
 function portalIdToSymbol(portalId: string): string {
   switch (portalId) {
-    case '1': return '①';
-    case '2': return '②';
-    default: return '③';
+    case '1':
+      return '①';
+    case '2':
+      return '②';
+    default:
+      return '③';
   }
 }
 

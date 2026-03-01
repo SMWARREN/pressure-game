@@ -12,9 +12,7 @@ interface PipeSegmentStyle {
 /**
  * Get CSS styles for a pipe segment in a specific direction
  */
-function getPipeSegmentStyle(
-  direction: 'up' | 'down' | 'left' | 'right'
-): React.CSSProperties {
+function getPipeSegmentStyle(direction: 'up' | 'down' | 'left' | 'right'): React.CSSProperties {
   const base: React.CSSProperties = {
     position: 'absolute',
     width: 5,
@@ -65,7 +63,4 @@ function getPipeSegmentStyle(
   }
 }
 
-export {
-  getPipeSegmentStyle,
-  type PipeSegmentStyle,
-};
+export { getPipeSegmentStyle, type PipeSegmentStyle };

@@ -46,8 +46,4 @@ function getPaddingValue(gridSize: number): number {
   return 10;
 }
 
-export {
-  getSymbolSize,
-  getGapValue,
-  getPaddingValue,
-};
+export { getSymbolSize, getGapValue, getPaddingValue };

@@ -45,7 +45,6 @@ const DIRS: [number, number][] = [
   [1, 0],
 ];
 
-
 function dfsSameColor(x: number, y: number, colorIndex: number, map: Map<string, Tile>): Tile[] {
   const visited = new Set<string>();
   const stack: string[] = [`${x},${y}`];

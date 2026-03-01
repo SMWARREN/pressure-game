@@ -9,13 +9,7 @@
 
 import type { GameModeConfig, TapResult, WinResult, LossResult, TileColors } from '../types';
 import type { Tile } from '../../types';
-import {
-  GEM_LEVELS,
-  GEM_WORLDS,
-  GEM_SYMBOLS,
-  BLAST_GEM,
-  generateGrid,
-} from './levels';
+import { GEM_LEVELS, GEM_WORLDS, GEM_SYMBOLS, BLAST_GEM, generateGrid } from './levels';
 import { GEM_BLAST_TUTORIAL_STEPS } from './tutorial';
 import { renderGemBlastDemo } from './demo';
 import { GEM_BLAST_WALKTHROUGH } from './walkthrough';

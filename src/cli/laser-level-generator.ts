@@ -945,10 +945,14 @@ const LEVEL_DEFS: LevelDef[] = [
  */
 function getDirectionArrow(dir: string): string {
   switch (dir) {
-    case 'right': return '▶';
-    case 'down': return '▼';
-    case 'left': return '◀';
-    default: return '▲';
+    case 'right':
+      return '▶';
+    case 'down':
+      return '▼';
+    case 'left':
+      return '◀';
+    default:
+      return '▲';
   }
 }
 

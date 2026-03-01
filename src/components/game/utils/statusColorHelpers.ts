@@ -54,10 +54,7 @@ function getStatusTextColor(status: string): string {
 /**
  * Get charge indicator color based on charge level
  */
-function getChargeIndicator(
-  charge: number,
-  overloadThreshold: number = 8
-): string {
+function getChargeIndicator(charge: number, overloadThreshold: number = 8): string {
   if (charge >= overloadThreshold) return '#ef4444'; // Red - overload
   if (charge >= overloadThreshold * 0.75) return '#f59e0b'; // Amber - warning
   if (charge >= overloadThreshold * 0.5) return '#fbbf24'; // Yellow - caution
@@ -67,11 +64,7 @@ function getChargeIndicator(
 /**
  * Get step indicator background color
  */
-function getStepBackground(
-  step: number,
-  currentStep: number,
-  accentColor: string
-): string {
+function getStepBackground(step: number, currentStep: number, accentColor: string): string {
   if (step === currentStep) return accentColor;
   if (step < currentStep) return '#3a3a55';
   return '#1a1a2e';
@@ -80,10 +73,7 @@ function getStepBackground(
 /**
  * Get cursor style based on editor mode and tile interactivity
  */
-function getCursorStyle(
-  editorMode: boolean,
-  canRotate: boolean
-): string {
+function getCursorStyle(editorMode: boolean, canRotate: boolean): string {
   if (editorMode) return 'pointer';
   if (canRotate) return 'pointer';
   return 'default';

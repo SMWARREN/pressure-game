@@ -10,15 +10,9 @@
  */
 
 // Re-export everything from specialized modules
-export {
-  computeBoardDimensions,
-  computeGridDimensions,
-} from './utils/boardDimensions';
+export { computeBoardDimensions, computeGridDimensions } from './utils/boardDimensions';
 
-export {
-  getParticleBurstColor,
-  getParticleBurstShape,
-} from './utils/particleEffects';
+export { getParticleBurstColor, getParticleBurstShape } from './utils/particleEffects';
 
 export {
   getWallCompressionLabel,
@@ -32,7 +26,4 @@ export {
   computeLevelDisplayNum,
 } from './utils/levelNavigation';
 
-export {
-  computeOverlayProps,
-  type OverlayPropsContext,
-} from './utils/overlayProps';
+export { computeOverlayProps, type OverlayPropsContext } from './utils/overlayProps';
