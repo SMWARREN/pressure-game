@@ -15,6 +15,7 @@
 
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { Tile } from '../../types';
+import { buildTileMap } from '../arcadeShared';
 import { LASER_LEVELS, LASER_WORLDS } from './levels';
 import { LASER_TUTORIAL_STEPS } from './tutorial';
 import { renderLaserDemo } from './demo';
@@ -42,12 +43,6 @@ const STEP: Record<string, { dx: number; dy: number }> = {
 };
 
 // ── Beam trace ────────────────────────────────────────────────────────────────
-
-function buildTileMap(tiles: Tile[]): Map<string, Tile> {
-  const m = new Map<string, Tile>();
-  for (const t of tiles) m.set(`${t.x},${t.y}`, t);
-  return m;
-}
 
 interface BeamResult {
   beamKeys: Set<string>;
