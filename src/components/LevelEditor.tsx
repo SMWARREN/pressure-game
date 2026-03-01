@@ -306,8 +306,9 @@ ${tilesStr}
         <div className="w-64 space-y-4">
           {/* Mode Selection */}
           <div>
-            <label className="block text-sm mb-1">Game Mode</label>
+            <label htmlFor="game-mode" className="block text-sm mb-1">Game Mode</label>
             <select
+              id="game-mode"
               value={selectedMode}
               onChange={(e) => setSelectedMode(e.target.value)}
               className="w-full bg-gray-700 rounded p-2"
@@ -322,8 +323,9 @@ ${tilesStr}
 
           {/* Grid Size */}
           <div>
-            <label className="block text-sm mb-1">Grid Size</label>
+            <label htmlFor="grid-size" className="block text-sm mb-1">Grid Size</label>
             <input
+              id="grid-size"
               type="number"
               min={4}
               max={12}
@@ -335,8 +337,8 @@ ${tilesStr}
 
           {/* Tools */}
           <div>
-            <label className="block text-sm mb-1">Tools</label>
-            <div className="grid grid-cols-2 gap-2">
+            <label htmlFor="tools-group" className="block text-sm mb-1">Tools</label>
+            <div id="tools-group" className="grid grid-cols-2 gap-2">
               {(['select', 'node', 'path', 'wall', 'eraser'] as ToolType[]).map((tool) => (
                 <button
                   key={tool}
@@ -355,8 +357,8 @@ ${tilesStr}
           {/* Connection Presets */}
           {selectedTile && selectedTile.type === 'path' && (
             <div>
-              <label className="block text-sm mb-1">Connections</label>
-              <div className="grid grid-cols-4 gap-1">
+              <label htmlFor="connections-group" className="block text-sm mb-1">Connections</label>
+              <div id="connections-group" className="grid grid-cols-4 gap-1">
                 {CONNECTION_PRESETS.map((preset) => {
                   const selectedConns = [...selectedTile.connections];
                   selectedConns.sort();
@@ -386,7 +388,7 @@ ${tilesStr}
           {/* Tile Properties */}
           {selectedTile && (
             <div className="space-y-2">
-              <label className="block text-sm">Tile Properties</label>
+              <label id="tile-properties" className="block text-sm">Tile Properties</label>
 
               {selectedTile.type === 'node' && (
                 <label className="flex items-center gap-2">
@@ -412,8 +414,8 @@ ${tilesStr}
 
               {selectedTile.type !== 'wall' && (
                 <div>
-                  <label className="block text-xs mb-1">Manual Connections</label>
-                  <div className="flex gap-1">
+                  <label htmlFor="manual-connections" className="block text-xs mb-1">Manual Connections</label>
+                  <div id="manual-connections" className="flex gap-1">
                     {DIRECTIONS.map((dir) => (
                       <button
                         key={dir}
@@ -468,8 +470,9 @@ ${tilesStr}
         {/* Right Panel - Level Settings */}
         <div className="w-64 space-y-4">
           <div>
-            <label className="block text-sm mb-1">Level Name</label>
+            <label htmlFor="level-name" className="block text-sm mb-1">Level Name</label>
             <input
+              id="level-name"
               type="text"
               value={levelName}
               onChange={(e) => setLevelName(e.target.value)}
@@ -478,8 +481,9 @@ ${tilesStr}
           </div>
 
           <div>
-            <label className="block text-sm mb-1">World ID</label>
+            <label htmlFor="world-id" className="block text-sm mb-1">World ID</label>
             <input
+              id="world-id"
               type="number"
               min={1}
               value={worldId}
@@ -489,8 +493,9 @@ ${tilesStr}
           </div>
 
           <div>
-            <label className="block text-sm mb-1">Max Moves</label>
+            <label htmlFor="max-moves" className="block text-sm mb-1">Max Moves</label>
             <input
+              id="max-moves"
               type="number"
               min={1}
               value={maxMoves}
@@ -500,8 +505,9 @@ ${tilesStr}
           </div>
 
           <div>
-            <label className="block text-sm mb-1">Compression Delay (ms)</label>
+            <label htmlFor="compression-delay" className="block text-sm mb-1">Compression Delay (ms)</label>
             <input
+              id="compression-delay"
               type="number"
               value={compressionDelay}
               onChange={(e) => setCompressionDelay(Number.parseInt(e.target.value) || 5000)}
