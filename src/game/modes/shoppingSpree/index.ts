@@ -708,14 +708,12 @@ export const ShoppingSpreeMode: GameModeConfig = {
     let updatedState: ShoppingModeState | null = null;
     let updatedTiles = state.tiles;
 
-    // ── Rain — scramble 2-3 tiles every 10s on Black Friday levels ───────────
     if (features?.rain) {
       const rainResult = processRainTick(updatedTiles, state, storedState);
       updatedTiles = rainResult.tiles;
       if (rainResult.newState) updatedState = rainResult.newState;
     }
 
-    // ── Thieves (Black Friday) — spawn 1 thief every 18s ─────────────────────
     if (features?.thieves) {
       const base = updatedState ?? storedState;
       const thiefResult = processThiefTick(updatedTiles, state, base);
@@ -723,13 +721,11 @@ export const ShoppingSpreeMode: GameModeConfig = {
       if (thiefResult.newState) updatedState = thiefResult.newState;
     }
 
-    // Early exit if any effect triggered
-    if (updatedState !== null) return { tiles: updatedTiles, modeState: updatedState };
+    if (updatedState !== null) {
+      return { tiles: updatedTiles, modeState: updatedState };
+    }
 
-    // Only run time-based thief spawning on Unlimited world with config-driven thieves
-    if (!features?.thieves) return null;
-
-    return processUnlimitedThiefTick(state, modeState, storedState, features);
+    return features?.thieves ? processUnlimitedThiefTick(state, modeState, storedState, features) : null;
   },
 
   onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
