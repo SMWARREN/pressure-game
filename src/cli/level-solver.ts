@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 
 // Import all level sets
 import { CLASSIC_LEVELS } from '../game/modes/classic/levels';
+import { PRESSURE_LEVELS } from '../game/modes/shared/levels';
 
 // ANSI color codes for terminal output
 const colors = {
@@ -36,6 +37,8 @@ const compressionSystem = createCompressionSystem();
 // All level collections
 const ALL_LEVELS: Record<string, Level[]> = {
   classic: CLASSIC_LEVELS,
+  zen: PRESSURE_LEVELS,
+  blitz: PRESSURE_LEVELS,
 };
 
 // Pipe characters for connections
@@ -1058,6 +1061,7 @@ ${colors.bold}Options:${colors.reset}
   --verbose, -v    Show detailed output for each level
   --fix            Automatically fix broken levels (scramble, adjust maxMoves, or regenerate)
   --write          Write fixed levels back to the source file (requires --fix)
+  --json           Output solutions as JSON to tests/fixtures/solutions.json
   --list           List all available modes and level counts
   --help, -h       Show this help message
 
@@ -1067,6 +1071,7 @@ ${colors.bold}Examples:${colors.reset}
   npm run solve -- --verbose        Solve all levels with detailed output
   npm run solve -- --fix            Solve and auto-fix broken levels
   npm run solve -- --fix --write    Solve, fix, and write changes to file
+  npm run solve -- --json           Solve and output solutions as JSON for E2E tests
   npm run solve -- --list           List all modes
 `);
 }
@@ -1088,6 +1093,46 @@ function listModes(): void {
 }
 
 /**
+ * Expand solution moves: { x, y, rotations } → array of { x, y } for each rotation
+ */
+function expandSolutionMoves(solution: { x: number; y: number; rotations: number }[]): { x: number; y: number }[] {
+  const expanded: { x: number; y: number }[] = [];
+  for (const move of solution) {
+    for (let i = 0; i < move.rotations; i++) {
+      expanded.push({ x: move.x, y: move.y });
+    }
+  }
+  return expanded;
+}
+
+/**
+ * Write solutions to JSON file for E2E tests
+ */
+function writeSolutionsJson(allResults: SolveResult[], outputPath: string): void {
+  const solutions = allResults
+    .filter((r) => r.status === 'won')
+    .map((r) => ({
+      modeId: r.modeId,
+      levelId: r.levelId,
+      levelName: r.levelName,
+      status: r.status as 'won',
+      moves: expandSolutionMoves(r.solution),
+    }));
+
+  // Ensure directory exists
+  const dir = path.dirname(outputPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  fs.writeFileSync(outputPath, JSON.stringify(solutions, null, 2), 'utf-8');
+  console.log(`\n${colors.green}✓ Solutions written to ${outputPath}${colors.reset}`);
+  console.log(
+    `${colors.dim}  ${solutions.length} solvable levels (${solutions.reduce((sum, s) => sum + s.moves.length, 0)} total moves)${colors.reset}`
+  );
+}
+
+/**
  * Main entry point
  */
 async function main() {
@@ -1098,6 +1143,7 @@ async function main() {
   let showList = false;
   let autoFix = false;
   let writeToFile = false;
+  let outputJson = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -1112,6 +1158,8 @@ async function main() {
       autoFix = true;
     } else if (arg === '--write') {
       writeToFile = true;
+    } else if (arg === '--json') {
+      outputJson = true;
     } else if (arg === '--mode') {
       specificMode = args[++i];
     }
@@ -1176,6 +1224,12 @@ async function main() {
   }
 
   printSummary(allResults);
+
+  // Write JSON output if requested
+  if (outputJson) {
+    const fixturesPath = path.join(__dirname, '../../tests/fixtures/solutions.json');
+    writeSolutionsJson(allResults, fixturesPath);
+  }
 
   // Exit with error code if any levels failed
   const failedCount = allResults.filter((r) => r.status !== 'won').length;

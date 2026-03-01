@@ -406,14 +406,4 @@ class AchievementEngine {
   }
 }
 
-// Singleton instance
-let instance: AchievementEngine | null = null;
-
-export function getAchievementEngine(): AchievementEngine {
-  if (!instance) {
-    instance = new AchievementEngine();
-  }
-  return instance;
-}
-
 export { AchievementEngine };

@@ -7,16 +7,15 @@ export default defineConfig({
   base: './',
   plugins: [
     react(),
-    // PWA DISABLED: re-enable once caching issues are resolved
-    // VitePWA({ ... })
-    VitePWA({
-      selfDestroying: true, // kills any existing SW on load
-      registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: [], // cache nothing
-      },
-      devOptions: { enabled: false },
-    }),
+    // PWA DISABLED: causing slow dev server startup
+    // VitePWA({
+    //   selfDestroying: true,
+    //   registerType: 'autoUpdate',
+    //   workbox: {
+    //     globPatterns: [],
+    //   },
+    //   devOptions: { enabled: false },
+    // }),
   ],
   resolve: {
     alias: {
@@ -73,10 +72,12 @@ export default defineConfig({
     hmr: {
       host: '0.0.0.0',
       port: 3000,
+      protocol: 'ws',
     },
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
+    middlewareMode: false,
   },
   preview: {
     host: '0.0.0.0',

@@ -1,9 +1,21 @@
 import { useEffect, useState } from 'react';
+import { GameProviders } from '@/game/GameProviders';
 import GameBoard from './components/GameBoard';
 import TestHarness from './components/testing/TestHarness';
 import InstallPrompt from './components/InstallPrompt';
 import { AchievementToastContainer } from './components/AchievementToast';
 import StateEditor from './components/StateEditor';
+
+function AppContent() {
+  return (
+    <>
+      <GameBoard />
+      <InstallPrompt />
+      <AchievementToastContainer />
+      {false && import.meta.env.DEV && <StateEditor />}
+    </>
+  );
+}
 
 function App() {
   const [isTestMode, setIsTestMode] = useState(false);
@@ -14,13 +26,14 @@ function App() {
     setIsTestMode(params.has('levelId') && params.has('modeId'));
   }, []);
 
+  if(isTestMode) {
+    return <TestHarness />
+  }
+
   return (
-    <>
-      {isTestMode ? <TestHarness /> : <GameBoard />}
-      <InstallPrompt />
-      <AchievementToastContainer />
-      {false && import.meta.env.DEV && <StateEditor />}
-    </>
+    <GameProviders>
+      <AppContent />
+    </GameProviders>
   );
 }
 

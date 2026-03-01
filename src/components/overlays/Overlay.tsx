@@ -111,7 +111,7 @@ export function Overlay({
     );
   if (status === 'won')
     return (
-      <div style={overlayStyle}>
+      <div style={overlayStyle} data-testid="win-overlay">
         <div style={{ fontSize: 32, marginBottom: 4 }}>✦</div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 4 }}>
           {winTitle.toUpperCase()}

@@ -1,0 +1,69 @@
+import { createContext, useContext, useEffect, useRef } from 'react';
+import { useGameStore, _setEngineInstance } from '@/game/store';
+import { createPressureEngine, type PressureEngine } from '@/game/engine/index';
+import { getModeById } from '@/game/modes';
+
+interface EngineContextType {
+  engine: PressureEngine;
+}
+
+export const EngineContext = createContext<EngineContextType | null>(null);
+
+export function EngineProvider({ children }: { children: React.ReactNode }) {
+  const engineRef = useRef<PressureEngine | null>(null);
+
+  useEffect(() => {
+    // Create a fresh engine instance on mount
+    if (!engineRef.current) {
+      const engine = createPressureEngine();
+      // Initialize with store access
+      engine.init(
+        () => useGameStore.getState(),
+        (partial) => useGameStore.setState(partial)
+      );
+
+      // Hydrate store with engine's initial state
+      const initialState = engine.getInitialState();
+
+      // Set selectedWorld to the first world of the current mode
+      const currentMode = getModeById(initialState.currentModeId);
+      const defaultWorld = currentMode.worlds?.[0]?.id ?? 1;
+
+      useGameStore.setState({
+        ...initialState,
+        selectedWorld: defaultWorld,
+      });
+
+      // Make engine available to store actions
+      _setEngineInstance(engine);
+      engineRef.current = engine;
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (engineRef.current) {
+        engineRef.current.destroy();
+        _setEngineInstance(null as any);
+        engineRef.current = null;
+      }
+    };
+  }, []);
+
+  if (!engineRef.current) {
+    return null;
+  }
+
+  return (
+    <EngineContext.Provider value={{ engine: engineRef.current }}>
+      {children}
+    </EngineContext.Provider>
+  );
+}
+
+export function useEngine(): PressureEngine {
+  const context = useContext(EngineContext);
+  if (!context) {
+    throw new Error('useEngine() must be used within <EngineProvider>');
+  }
+  return context.engine;
+}

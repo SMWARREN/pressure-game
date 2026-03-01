@@ -3,7 +3,7 @@
 // Reads directly from the stats backend — no Zustand dependency.
 
 import { useMemo } from 'react';
-import { statsEngine } from '@/game/stats';
+import { useStats } from '@/game/contexts';
 import type { GameEndEvent } from '@/game/stats/types';
 import { GAME_MODES } from '@/game/modes';
 
@@ -54,6 +54,7 @@ export default function StatsScreen({
   readonly onBack: () => void;
   readonly onReplay?: (event: GameEndEvent) => void;
 }) {
+  const statsEngine = useStats();
   const stats = useMemo(() => {
     const all = statsEngine.getBackend().getAll();
     const ends = all.filter((e): e is GameEndEvent => e.type === 'game_end');
@@ -341,7 +342,7 @@ export default function StatsScreen({
               <button
                 onClick={() => {
                   if (confirm('Clear all stats? This cannot be undone.')) {
-                    statsEngine.getBackend().clear();
+                    statsEngine?.getBackend().clear();
                     // force re-mount by popping back and letting parent re-open if needed
                     onBack();
                   }

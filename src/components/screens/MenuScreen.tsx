@@ -5,7 +5,7 @@ import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
 import { getModeById } from '@/game/modes';
 import { ReplayEngine } from '@/game/stats/replay';
-import { statsEngine } from '@/game/stats';
+import { useStats } from '@/game/contexts';
 import { getUnlimitedHighScores } from '@/game/unlimited';
 import { StarField } from '../game/StarField';
 import ModeSelectorModal from '../ModeSelectorModal';
@@ -20,6 +20,7 @@ export interface MenuScreenProps {
 }
 
 export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
+  const statsEngine = useStats();
   const {
     completedLevels,
     bestMoves,

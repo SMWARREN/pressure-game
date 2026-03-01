@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getAchievementEngine } from '@/game/achievements/engine';
+import { useAchievements } from '@/game/contexts';
 
 interface AchievementToastProps {
   readonly achievementId: string;
@@ -11,7 +11,7 @@ interface AchievementToastProps {
 }
 
 function AchievementToast({ achievementId, onClose }: AchievementToastProps) {
-  const engine = getAchievementEngine();
+  const engine = useAchievements();
   const achievement = engine.getAchievement(achievementId);
 
   if (!achievement) return null;
@@ -112,7 +112,7 @@ export function AchievementToastContainer() {
 
   useEffect(() => {
     ensureStyles();
-    const engine = getAchievementEngine();
+    const engine = useAchievements();
 
     const checkRecent = () => {
       const recent = engine.getRecentlyEarned();

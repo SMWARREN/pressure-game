@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useGameStore } from '@/game/store';
+import { useStats, useAchievements } from '@/game/contexts';
 import { useShallow } from 'zustand/react/shallow';
 import { getSolution } from '@/game/levels';
 import TutorialScreen from './TutorialScreen';
 import { WalkthroughOverlay, useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '../game/modes';
-import { getAchievementEngine } from '@/game/achievements/engine';
 import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
-import { statsEngine } from '@/game/stats';
 import type { GameEndEvent } from '@/game/stats/types';
 import ReplayOverlay from '@/components/game/ReplayOverlay';
 import { ReplayEngine } from '@/game/stats/replay';
@@ -70,81 +69,80 @@ const iconBtn: React.CSSProperties = {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function GameBoard() {
+  // Destructure from store using useShallow to avoid unnecessary re-renders
   const {
-    currentLevel,
-    tiles,
-    wallOffset,
-    compressionActive,
-    moves,
     status,
-    elapsedSeconds,
-    screenShake,
-    timeUntilCompression,
-    wallsJustAdvanced,
-    loadLevel,
-    startGame,
-    tapTile,
-    restartLevel,
-    goToMenu,
-    undoMove,
-    completeTutorial,
-    generatedLevels,
-    history,
+    tiles,
+    currentLevel,
     currentModeId,
-    animationsEnabled,
-    toggleAnimations,
+    moves,
     score,
+    elapsedSeconds,
+    wallOffset,
+    wallsJustAdvanced,
+    compressionActive,
+    isPaused,
+    animationsEnabled,
+    screenShake,
+    editor,
+    history,
     lossReason,
     modeState,
-    pauseGame,
-    resumeGame,
-    isPaused,
-    toggleEditor,
-    editor,
-    setEditorTool,
-    editorUpdateTile,
+    timeUntilCompression,
+    generatedLevels,
     showArcadeHub,
     showPressureHub,
-  } = useGameStore(
-    useShallow((s) => ({
-      currentLevel: s.currentLevel,
-      tiles: s.tiles,
-      wallOffset: s.wallOffset,
-      compressionActive: s.compressionActive,
-      moves: s.moves,
-      status: s.status,
-      elapsedSeconds: s.elapsedSeconds,
-      screenShake: s.screenShake,
-      timeUntilCompression: s.timeUntilCompression,
-      wallsJustAdvanced: s.wallsJustAdvanced,
-      loadLevel: s.loadLevel,
-      startGame: s.startGame,
-      tapTile: s.tapTile,
-      restartLevel: s.restartLevel,
-      goToMenu: s.goToMenu,
-      undoMove: s.undoMove,
-      completeTutorial: s.completeTutorial,
-      generatedLevels: s.generatedLevels,
-      history: s.history,
-      currentModeId: s.currentModeId,
-      animationsEnabled: s.animationsEnabled,
-      toggleAnimations: s.toggleAnimations,
-      score: s.score,
-      lossReason: s.lossReason,
-      modeState: s.modeState,
-      pauseGame: s.pauseGame,
-      resumeGame: s.resumeGame,
-      isPaused: s.isPaused,
-      toggleEditor: s.toggleEditor,
-      editor: s.editor,
-      setEditorTool: s.setEditorTool,
-      setEditorSelectedTile: s.setEditorSelectedTile,
-      editorUpdateTile: s.editorUpdateTile,
-      editorRotateTile: s.editorRotateTile,
-      showArcadeHub: s.showArcadeHub,
-      showPressureHub: s.showPressureHub,
-    }))
-  );
+    tapTile,
+    loadLevel,
+    startGame,
+    restartLevel,
+    goToMenu,
+    pauseGame,
+    resumeGame,
+    completeTutorial,
+    toggleEditor,
+    setEditorTool,
+    editorUpdateTile,
+    undoMove,
+    toggleAnimations,
+  } = useGameStore(useShallow((s) => ({
+    status: s.status,
+    tiles: s.tiles,
+    currentLevel: s.currentLevel,
+    currentModeId: s.currentModeId,
+    moves: s.moves,
+    score: s.score,
+    elapsedSeconds: s.elapsedSeconds,
+    wallOffset: s.wallOffset,
+    wallsJustAdvanced: s.wallsJustAdvanced,
+    compressionActive: s.compressionActive,
+    isPaused: s.isPaused,
+    animationsEnabled: s.animationsEnabled,
+    screenShake: s.screenShake,
+    editor: s.editor,
+    history: s.history,
+    lossReason: s.lossReason,
+    modeState: s.modeState,
+    timeUntilCompression: s.timeUntilCompression,
+    generatedLevels: s.generatedLevels,
+    showArcadeHub: s.showArcadeHub,
+    showPressureHub: s.showPressureHub,
+    tapTile: s.tapTile,
+    loadLevel: s.loadLevel,
+    startGame: s.startGame,
+    restartLevel: s.restartLevel,
+    goToMenu: s.goToMenu,
+    pauseGame: s.pauseGame,
+    resumeGame: s.resumeGame,
+    completeTutorial: s.completeTutorial,
+    toggleEditor: s.toggleEditor,
+    setEditorTool: s.setEditorTool,
+    editorUpdateTile: s.editorUpdateTile,
+    undoMove: s.undoMove,
+    toggleAnimations: s.toggleAnimations,
+  })));
+
+  const stats = useStats();
 
   const particleRef = useRef<ParticleSystemHandle>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -262,7 +260,7 @@ export default function GameBoard() {
   // Level-specific all-time record — computed once per level load, not reactive
   const levelRecord = useMemo(() => {
     if (!currentLevel) return undefined;
-    const ends = statsEngine
+    const ends = stats
       .getBackend()
       .getAll()
       .filter((e): e is GameEndEvent => e.type === 'game_end' && e.levelId === currentLevel.id);
@@ -435,7 +433,7 @@ export default function GameBoard() {
     if (status !== 'won' && status !== 'lost') return;
     if (!currentLevel) return;
 
-    const achievementEngine = getAchievementEngine();
+    const achievementEngine = useAchievements();
 
     // Update daily streak when playing a game
     const currentStreak = achievementEngine.updateDailyStreak();
@@ -466,11 +464,27 @@ export default function GameBoard() {
     });
   }, [status, currentLevel, elapsedSeconds, currentModeId, showHint]);
 
+  // Check if we're in test/harness mode (skip tutorial for E2E tests)
+  const isTestMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('levelId');
+
+  // Auto-skip tutorial and start game in test mode
+  useEffect(() => {
+    if (status === 'tutorial' && isTestMode) {
+      completeTutorial();
+    }
+    if (isTestMode && currentLevel && (status === 'menu' || status === 'idle')) {
+      startGame();
+    }
+  }, [status, isTestMode, currentLevel, completeTutorial, startGame]);
+
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
-  if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
-  if (showArcadeHub) return <ArcadeHubScreen />;
-  if (showPressureHub) return <PressureHubScreen />;
-  if (status === 'menu' || !currentLevel) return <MenuScreen />;
+  if (status === 'tutorial' && !isTestMode) return <TutorialScreen onComplete={completeTutorial} />;
+  if (showArcadeHub && !isTestMode) return <ArcadeHubScreen />;
+  if (showPressureHub && !isTestMode) return <PressureHubScreen />;
+  if ((status === 'menu' || !currentLevel) && !isTestMode) return <MenuScreen />;
+
+  // If no level loaded at all, show menu
+  if (!currentLevel) return <MenuScreen />;
 
   const gs = currentLevel.gridSize;
   const maxOff = Math.floor(gs / 2);
@@ -538,7 +552,7 @@ export default function GameBoard() {
   const onReplayForOverlay = (() => {
     const show = status === 'won' || (isUnlimited && status === 'lost');
     if (!show) return undefined;
-    const allEnds = statsEngine
+    const allEnds = stats
       .getBackend()
       .getAll()
       .filter(
@@ -758,7 +772,7 @@ export default function GameBoard() {
             modeId={currentModeId}
             features={currentLevel.features}
             onWatchBest={(() => {
-              const ends = statsEngine
+              const ends = stats
                 .getBackend()
                 .getAll()
                 .filter(
@@ -917,4 +931,11 @@ export default function GameBoard() {
       )}
     </>
   );
+}
+
+// HMR cleanup for GameBoard
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    console.log('[GameBoard] HMR dispose');
+  });
 }

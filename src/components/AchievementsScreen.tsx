@@ -4,7 +4,7 @@
  */
 
 import { useMemo } from 'react';
-import { getAchievementEngine } from '@/game/achievements/engine';
+import { useAchievements } from '@/game/contexts';
 import { Achievement, AchievementCategory, AchievementRarity } from '@/game/achievements/types';
 
 /* ── styles ───────────────────────────────────────────────────────────────── */
@@ -254,7 +254,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
 /* ── main component ───────────────────────────────────────────────────────── */
 
 export default function AchievementsScreen({ onBack }: { onBack: () => void }) {
-  const engine = getAchievementEngine();
+  const engine = useAchievements();
 
   const { achievements, earnedCount, totalPoints, maxPoints, byCategory } = useMemo(() => {
     const all = engine.getAllAchievements();

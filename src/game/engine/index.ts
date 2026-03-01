@@ -6,7 +6,7 @@ import { TimerSystem, createTimerSystem } from './timer';
 import { AudioSystem, createAudioSystem } from './audio';
 import { PersistenceSystem, createPersistenceSystem } from './persistence';
 import { CompressionSystem, createCompressionSystem } from './compression';
-import { getAchievementEngine } from '../achievements/engine';
+import { useAchievements } from '../contexts';
 import type {
   IPressureEngine,
   PressureEngineConfig,
@@ -507,7 +507,7 @@ export class PressureEngine implements IPressureEngine {
    * Check achievements when a level is won
    */
   private checkAchievementsOnWin(state: GameState, level: Level): void {
-    const achievementEngine = getAchievementEngine();
+    const achievementEngine = useAchievements();
 
     // Calculate stats for achievements
     const levelsCompleted = state.completedLevels.length + 1; // +1 for current level
@@ -538,7 +538,7 @@ export class PressureEngine implements IPressureEngine {
    * Track walls survived for achievements
    */
   private trackWallsSurvived(): void {
-    const achievementEngine = getAchievementEngine();
+    const achievementEngine = useAchievements();
     const progress = achievementEngine.getProgress('survivor');
     const current = progress?.current ?? 0;
     achievementEngine.updateProgress('survivor', current + 1);
@@ -550,29 +550,4 @@ export class PressureEngine implements IPressureEngine {
  */
 export function createPressureEngine(config?: PressureEngineConfig): PressureEngine {
   return new PressureEngine(config);
-}
-
-// Singleton instance for convenience
-let _instance: PressureEngine | null = null;
-
-/**
- * Get the singleton engine instance
- */
-export function getEngine(): PressureEngine {
-  if (!_instance) {
-    _instance = createPressureEngine();
-  }
-  return _instance;
-}
-
-/**
- * Initialize the singleton engine with store access
- */
-export function initEngine(
-  getState: () => GameState,
-  setState: (partial: Partial<GameState>) => void
-): PressureEngine {
-  const engine = getEngine();
-  engine.init(getState, setState);
-  return engine;
 }

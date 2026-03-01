@@ -12,6 +12,8 @@ node_modules
 
 # testing
 /coverage
+tests/fixtures/
+tests/screenshots/
 
 # next.js
 /.next/

@@ -6,10 +6,29 @@ import { create } from 'zustand';
 import { GameState, GameActions, Level, Direction, Tile } from './types';
 import { getModeById } from './modes';
 import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
-import { getEngine, initEngine, type PressureEngine, type SoundEffect } from './engine';
+import type { PressureEngine, SoundEffect } from './engine';
 
 // Re-export utilities so existing imports don't break
 export { checkConnected, getConnectedTiles, createTileMap };
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ENGINE INSTANCE
+   The store needs access to the engine for lifecycle management.
+   EngineProvider sets this when the engine is created.
+═══════════════════════════════════════════════════════════════════════════ */
+
+let engine: PressureEngine | null = null;
+
+export function _setEngineInstance(engineInstance: PressureEngine | null) {
+  engine = engineInstance;
+}
+
+function getEngine(): PressureEngine {
+  if (!engine) {
+    throw new Error('Engine not initialized. Make sure EngineProvider is mounted.');
+  }
+  return engine;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    STORE
@@ -18,23 +37,61 @@ export { checkConnected, getConnectedTiles, createTileMap };
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export const useGameStore = create<GameState & GameActions>((set, get) => {
-  // Initialize the engine with store access
-  const engine = initEngine(get, set);
-
-  // Get initial state from engine (loads from persistence)
-  const initialState = engine.getInitialState();
-
-  // Get the default world from the current mode
-  const currentMode = getModeById(initialState.currentModeId);
-  const defaultWorld = currentMode.worlds[0]?.id ?? 1;
+  // Provide initial state structure — engine will hydrate real state via EngineProvider
+  const initialState: GameState = {
+    currentLevel: null,
+    tiles: [],
+    wallOffset: 0,
+    compressionActive: false,
+    compressionDelay: 10000,
+    moves: 0,
+    status: 'menu',
+    completedLevels: [],
+    bestMoves: {},
+    history: [],
+    lastRotatedPos: null,
+    showTutorial: false,
+    seenTutorials: [],
+    generatedLevels: [],
+    elapsedSeconds: 0,
+    screenShake: false,
+    timeUntilCompression: 0,
+    wallsJustAdvanced: false,
+    showingWin: false,
+    connectedTiles: new Set(),
+    currentModeId: 'classic',
+    compressionOverride: null,
+    animationsEnabled: true,
+    score: 0,
+    lossReason: null,
+    modeState: {},
+    _winCheckPending: false,
+    isPaused: false,
+    showArcadeHub: false,
+    showPressureHub: false,
+    lastPlayedLevelId: {},
+    selectedWorld: 1,
+    editor: {
+      enabled: false,
+      tool: null,
+      selectedTile: null,
+      moveSource: null,
+      connectionPreset: null,
+      gridSize: null,
+      compressionDirection: 'all',
+      savedState: null,
+    },
+    featuredLevel: null,
+  };
 
   return {
     ...initialState,
-    selectedWorld: initialState.selectedWorld ?? defaultWorld,
 
     setGameMode: (modeId: string) => {
       const { seenTutorials } = get();
-      const alreadySeen = seenTutorials.includes(modeId);
+      // Check if in test/harness mode (E2E tests with ?levelId=X)
+      const isTestMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('levelId');
+      const alreadySeen = seenTutorials.includes(modeId) || isTestMode;
       set({
         currentModeId: modeId,
         status: alreadySeen ? 'menu' : 'tutorial',
@@ -42,13 +99,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         showArcadeHub: false,
         showPressureHub: false,
       });
-      engine.persist({ ...get(), currentModeId: modeId });
+      getEngine().persist({ ...get(), currentModeId: modeId });
     },
 
     toggleAnimations: () => {
       set((s) => {
         const next = !s.animationsEnabled;
-        engine.persist({ ...s, animationsEnabled: next });
+        getEngine().persist({ ...s, animationsEnabled: next });
         return { animationsEnabled: next };
       });
     },
@@ -58,8 +115,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     },
 
     loadLevel: (level: Level) => {
-      engine.clearTimers();
-      const levelState = engine.getInitialLevelState(level);
+      getEngine().clearTimers();
+      const levelState = getEngine().getInitialLevelState(level);
       // Save the world so returning to menu goes back to the same world
       set({ ...levelState, selectedWorld: level.world });
     },
@@ -69,7 +126,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     },
 
     restartLevel: () => {
-      engine.clearTimers();
+      getEngine().clearTimers();
       const { currentLevel } = get();
       if (currentLevel) get().loadLevel(currentLevel);
     },
@@ -80,15 +137,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       if (status === 'playing' || status === 'won' || status === 'lost') return;
 
       // Clear any existing timers before starting a new game
-      engine.clearTimers();
+      getEngine().clearTimers();
 
-      const compressionEnabled = engine.resolveCompressionEnabled(
+      const compressionEnabled = getEngine().resolveCompressionEnabled(
         currentLevel,
         currentModeId,
         compressionOverride
       );
 
-      engine.playSound('start');
+      getEngine().playSound('start');
       set({
         status: 'playing',
         elapsedSeconds: 0,
@@ -101,7 +158,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       // Check if already solved (e.g., pre-solved demo levels)
       const alreadyWon = get().checkWin();
       if (!alreadyWon && get().status === 'playing') {
-        engine.startTimer();
+        getEngine().startTimer();
       }
     },
 
@@ -131,7 +188,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeStateWithTime);
       if (!result || !result.valid) return;
 
-      engine.playSound('rotate');
+      getEngine().playSound('rotate');
 
       const prevTiles =
         mode.supportsUndo !== false
@@ -163,14 +220,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       }));
 
       // Clear justRotated flag after animation
-      engine.setTimeout(() => {
+      getEngine().setTimeout(() => {
         set((s) => ({
           tiles: s.tiles.map((t) => (t.justRotated ? { ...t, justRotated: false } : t)),
         }));
       }, 300);
 
       // Clear "new tile" glow after it has had time to show
-      engine.setTimeout(() => {
+      getEngine().setTimeout(() => {
         set((s) => {
           if (!s.tiles.some((t) => t.displayData?.isNew)) return {};
           return {
@@ -203,8 +260,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         );
         if (lost) {
           set({ status: 'lost', lossReason: reason ?? null });
-          engine.stopTimer();
-          engine.playSound('lose');
+          getEngine().stopTimer();
+          getEngine().playSound('lose');
         }
       }
     },
@@ -228,7 +285,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       if (!won) return false;
 
       // Use engine to handle win
-      engine.handleWin(tiles, currentLevel.goalNodes);
+      getEngine().handleWin(tiles, currentLevel.goalNodes);
       return true;
     },
 
@@ -239,7 +296,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       if (status !== 'playing' || history.length === 0) return;
 
       const prev = history[history.length - 1];
-      engine.playSound('undo');
+      getEngine().playSound('undo');
       set((s) => ({
         tiles: prev,
         moves: Math.max(0, s.moves - 1),
@@ -249,11 +306,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     },
 
     advanceWalls: () => {
-      engine.advanceWalls();
+      getEngine().advanceWalls();
     },
 
     tickTimer: () => {
-      const updates = engine.onTick();
+      const updates = getEngine().onTick();
       if (updates) {
         set(updates);
       }
@@ -264,11 +321,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
     triggerShake: () => {
       set({ screenShake: true });
-      engine.setTimeout(() => set({ screenShake: false }), 400);
+      getEngine().setTimeout(() => set({ screenShake: false }), 400);
     },
 
     goToMenu: () => {
-      engine.clearTimers();
+      getEngine().clearTimers();
       set({
         status: 'menu',
         currentLevel: null,
@@ -285,7 +342,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     pauseGame: () => {
       const { status } = get();
       if (status === 'playing') {
-        engine.stopTimer();
+        getEngine().stopTimer();
         set({ isPaused: true });
       }
     },
@@ -294,7 +351,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const { isPaused } = get();
       if (isPaused) {
         set({ isPaused: false });
-        engine.startTimer();
+        getEngine().startTimer();
       }
     },
 
@@ -329,8 +386,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         const levels = mode.getLevels();
         const firstLevel = levels.find((l) => l.id === walkthrough.levelId) ?? levels[0];
         if (firstLevel) {
-          engine.clearTimers();
-          const levelState = engine.getInitialLevelState(firstLevel);
+          getEngine().clearTimers();
+          const levelState = getEngine().getInitialLevelState(firstLevel);
           // Set a flag to trigger walkthrough replay and reset moves to 0
           set({ ...levelState, status: 'idle', _replayWalkthrough: Date.now() });
         }
@@ -340,14 +397,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     completeTutorial: () => {
       const state = get();
       const newSeenTutorials = [...new Set([...state.seenTutorials, state.currentModeId])];
-      engine.persist({ ...state, showTutorial: false, seenTutorials: newSeenTutorials });
+      getEngine().persist({ ...state, showTutorial: false, seenTutorials: newSeenTutorials });
       set({ showTutorial: false, seenTutorials: newSeenTutorials, status: 'menu' });
     },
 
     addGeneratedLevel: (level: Level) => {
       set((state) => {
         const generatedLevels = [...state.generatedLevels, level];
-        engine.persist({ ...state, generatedLevels });
+        getEngine().persist({ ...state, generatedLevels });
         return { generatedLevels };
       });
     },
@@ -355,7 +412,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     deleteGeneratedLevel: (id: number) => {
       set((state) => {
         const generatedLevels = state.generatedLevels.filter((l) => l.id !== id);
-        engine.persist({ ...state, generatedLevels });
+        getEngine().persist({ ...state, generatedLevels });
         return { generatedLevels };
       });
     },
@@ -367,7 +424,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         if (next) {
           // Entering editor mode - save current state and pause
           const wasPlaying = s.status === 'playing';
-          engine.stopTimer();
+          getEngine().stopTimer();
           const savedState = {
             tiles: s.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
             goalNodes: s.currentLevel ? [...s.currentLevel.goalNodes] : [],
@@ -402,7 +459,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
             // Restart timer if game was playing before editor
             if (wasPlaying && s.status === 'playing') {
-              engine.startTimer();
+              getEngine().startTimer();
             }
 
             return {
@@ -423,7 +480,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
           // Restart timer if game was playing before editor
           if (wasPlaying && s.status === 'playing') {
-            engine.startTimer();
+            getEngine().startTimer();
           }
 
           return {
@@ -780,5 +837,5 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
   };
 });
 
-// Export engine access for advanced use cases
-export { getEngine, type PressureEngine, type SoundEffect };
+// Export type helpers
+export type { PressureEngine, SoundEffect };
