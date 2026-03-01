@@ -4,6 +4,7 @@
  */
 
 import type { Tile } from '../../types';
+import { pickRandom } from '@/utils/conditionalStyles';
 
 /**
  * Apply gravity - tiles fall down to fill empty spaces.
@@ -42,7 +43,7 @@ function applyGravity(
     // Fill empty spots at top with new tiles
     for (let i = 0; i < emptyCount; i++) {
       const y = emptyCount - 1 - i;
-      const symbol = activeSymbols[Math.floor(Math.random() * activeSymbols.length)];
+      const symbol = pickRandom(activeSymbols);
 
       // Check for wildcard spawn (5% chance)
       let newTile: Tile = {

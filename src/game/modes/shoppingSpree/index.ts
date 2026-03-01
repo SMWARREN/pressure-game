@@ -187,13 +187,7 @@ function applyGravity(
       } else if (features?.wildcards && roll < 0.08) {
         result.push(makeWildcardTile(col, row, activeSymbols));
       } else {
-        let symbol: string;
-        if (Math.random() < 0.1) {
-          symbol = '💎';
-        } else {
-          const commonSymbols = activeSymbols.filter((s) => s !== '💎');
-          symbol = commonSymbols[Math.floor(Math.random() * commonSymbols.length)];
-        }
+        const symbol = Math.random() < 0.1 ? '💎' : pickRandom(activeSymbols.filter((s) => s !== '💎'));
         result.push({
           id: `sn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
           type: 'path' as const,

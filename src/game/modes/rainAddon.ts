@@ -2,6 +2,7 @@
 // Periodic symbol scramble - randomly changes tiles
 
 import type { Tile } from '../types';
+import { pickRandom } from '@/utils/conditionalStyles';
 
 export function tickRain(
   tiles: Tile[],
@@ -32,7 +33,7 @@ export function tickRain(
     if (shouldChange && tile.displayData?.symbol) {
       const currentSymbol = tile.displayData.symbol;
       const otherSymbols = activeSymbols.filter((s) => s !== currentSymbol);
-      const newSymbol = otherSymbols[Math.floor(Math.random() * otherSymbols.length)];
+      const newSymbol = pickRandom(otherSymbols);
       return {
         ...tile,
         displayData: {

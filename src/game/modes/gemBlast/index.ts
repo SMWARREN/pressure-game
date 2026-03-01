@@ -226,7 +226,7 @@ export const GemBlastMode: GameModeConfig = {
         .map((t) => t.displayData?.symbol as string)
         .filter(Boolean);
       if (nearbySymbols.length > 0) {
-        const targetSym = nearbySymbols[Math.floor(Math.random() * nearbySymbols.length)];
+        const targetSym = pickRandom(nearbySymbols);
         // Clear all tiles of that color within radius 3 of any blast gem
         for (const t of tiles) {
           if (!t.canRotate || t.displayData?.symbol !== targetSym) continue;
