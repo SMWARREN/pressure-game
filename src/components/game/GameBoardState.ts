@@ -136,14 +136,15 @@ export function useNotificationSystem(): {
   );
   const [rejectedPos, setRejectedPos] = useState<{ x: number; y: number } | null>(null);
 
+  const removeNotificationById = useCallback((key: string) => {
+    setNotifLog((prev) => prev.filter((n) => n.key !== key));
+  }, []);
+
   const showNotification = useCallback((text: string, isScore = false) => {
     const key = `${Date.now()}-${Math.random()}`;
     setNotifLog((prev) => [...prev, { text, key, isScore }]);
-    const removeNotification = () => {
-      setNotifLog((prev) => prev.filter((n) => n.key !== key));
-    };
-    setTimeout(removeNotification, 2500);
-  }, []);
+    setTimeout(() => removeNotificationById(key), 2500);
+  }, [removeNotificationById]);
 
   return { notifLog, rejectedPos, setRejectedPos, setNotifLog, showNotification };
 }

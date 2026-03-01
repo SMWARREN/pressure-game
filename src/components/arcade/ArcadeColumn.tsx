@@ -60,6 +60,7 @@ export function ArcadeColumn({
       }}
       onClick={onPlay}
       role="button"
+      aria-pressed={false}
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onPlay()}
       onMouseEnter={(e) => {

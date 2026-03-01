@@ -3,8 +3,10 @@
  * Pure functions for computing pipe segment styles
  */
 
+type PipeDirection = 'up' | 'down' | 'left' | 'right';
+
 interface PipeSegmentStyle {
-  readonly position: 'up' | 'down' | 'left' | 'right';
+  readonly position: PipeDirection;
   readonly color: string;
   readonly glow: string;
 }
@@ -17,7 +19,7 @@ const BASE_SEGMENT: React.CSSProperties = {
 };
 
 // Direction-specific pipe segment styles (replaces switch statement)
-const PIPE_SEGMENT_STYLES: Record<'up' | 'down' | 'left' | 'right', React.CSSProperties> = {
+const PIPE_SEGMENT_STYLES: Record<PipeDirection, React.CSSProperties> = {
   up: {
     ...BASE_SEGMENT,
     top: 0,
@@ -59,7 +61,7 @@ const PIPE_SEGMENT_STYLES: Record<'up' | 'down' | 'left' | 'right', React.CSSPro
 /**
  * Get CSS styles for a pipe segment in a specific direction
  */
-function getPipeSegmentStyle(direction: 'up' | 'down' | 'left' | 'right'): React.CSSProperties {
+function getPipeSegmentStyle(direction: PipeDirection): React.CSSProperties {
   return PIPE_SEGMENT_STYLES[direction];
 }
 

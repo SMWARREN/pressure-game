@@ -236,10 +236,15 @@ export const LevelEditor: React.FC = () => {
 
   // Generate TypeScript code
   const generateCode = useCallback((): string => {
+    const formatConnectionsList = (connections: Direction[]): string => {
+      if (connections.length === 0) return '[]';
+      const quoted = connections.map((c) => `'${c}'`).join(', ');
+      return `[${quoted}]`;
+    };
+
     const tilesStr = tiles
       .map((t) => {
-        const conns =
-          t.connections.length > 0 ? `[${t.connections.map((c) => `'${c}'`).join(', ')}]` : '[]';
+        const conns = formatConnectionsList(t.connections);
         return `    {
       id: '${t.id}',
       type: '${t.type}',

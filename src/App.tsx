@@ -53,7 +53,8 @@ function AppContent() {
       <GameBoard />
       <InstallPrompt />
       <AchievementToastContainer />
-      {false && import.meta.env.DEV && <StateEditor />}
+      {/* StateEditor disabled during normal development */}
+      {import.meta.env.DEV && false && <StateEditor />}
     </>
   );
 }
