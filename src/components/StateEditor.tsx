@@ -856,6 +856,7 @@ export const StateEditor: React.FC = () => {
                           toggleTileProperty(selectedTileData.x, selectedTileData.y, 'isGoalNode')
                         }
                       />
+                      {' '}
                       Goal Node
                     </label>
                     <label
@@ -874,6 +875,7 @@ export const StateEditor: React.FC = () => {
                           toggleTileProperty(selectedTileData.x, selectedTileData.y, 'canRotate')
                         }
                       />
+                      {' '}
                       Can Rotate
                     </label>
                     <label
@@ -892,6 +894,7 @@ export const StateEditor: React.FC = () => {
                           toggleTileProperty(selectedTileData.x, selectedTileData.y, 'isDecoy')
                         }
                       />
+                      {' '}
                       Decoy
                     </label>
                   </div>

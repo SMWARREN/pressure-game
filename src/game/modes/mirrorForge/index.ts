@@ -132,7 +132,7 @@ export const MirrorForgeMode: GameModeConfig = {
   // ── Mirror tap logic ──────────────────────────────────────────────────────
   onTileTap(x, y, tiles): TapResult | null {
     const tapped = tiles.find((t) => t.x === x && t.y === y);
-    if (!tapped || !tapped.canRotate) return null;
+    if (!tapped?.canRotate) return null;
 
     const d = tapped.displayData as MirrorTileData;
     if (!d) return null;
@@ -149,7 +149,7 @@ export const MirrorForgeMode: GameModeConfig = {
     const mirrorX = d.mirrorX;
     const mirrorTile = tiles.find((t) => t.x === mirrorX && t.y === y);
 
-    if (!mirrorTile || !mirrorTile.canRotate) {
+    if (!mirrorTile?.canRotate) {
       // No mirror (shouldn't happen), just rotate solo
       const newTiles = tiles.map((t) => (t.x === x && t.y === y ? rotateTile(t) : t));
       return { tiles: newTiles, valid: true };

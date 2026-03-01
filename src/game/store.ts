@@ -324,7 +324,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       // Call mode tap handler
       const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeStateWithTime);
-      if (!result || !result.valid) return;
+      if (!result?.valid) return;
 
       getEngine().playSound('rotate');
 
