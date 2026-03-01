@@ -26,7 +26,15 @@ export function SettingsPanel({
     <>
       {/* backdrop */}
       <div
+        role="button"
+        tabIndex={0}
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            onClose();
+          }
+        }}
         style={{
           position: 'fixed',
           inset: 0,

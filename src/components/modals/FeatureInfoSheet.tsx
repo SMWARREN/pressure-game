@@ -14,6 +14,8 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       style={{
         position: 'fixed',
         inset: 0,
@@ -24,8 +26,16 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
         zIndex: 200,
       }}
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onClose();
+        }
+      }}
     >
       <div
+        role="button"
+        tabIndex={0}
         style={{
           background: '#0d0d1a',
           border: '1px solid #2a2a45',
@@ -36,6 +46,7 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
           textAlign: 'center',
         }}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <div style={{ fontSize: 40, marginBottom: 8 }}>{feature.icon}</div>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 10 }}>

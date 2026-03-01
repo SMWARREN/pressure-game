@@ -159,6 +159,8 @@ export function WalkthroughOverlay({
       {/* Full-screen dark overlay for center-positioned steps */}
       {!highlightRect && (
         <div
+          role="button"
+          tabIndex={0}
           style={{
             position: 'absolute',
             inset: 0,
@@ -166,6 +168,12 @@ export function WalkthroughOverlay({
             pointerEvents: 'auto',
           }}
           onClick={onSkip}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter') {
+              e.preventDefault();
+              onSkip();
+            }
+          }}
         />
       )}
       {/* Darkened overlay with cutout for highlight */}
@@ -173,6 +181,8 @@ export function WalkthroughOverlay({
         <>
           {/* Top */}
           <div
+            role="button"
+            tabIndex={0}
             style={{
               position: 'absolute',
               top: 0,
@@ -183,9 +193,17 @@ export function WalkthroughOverlay({
               pointerEvents: 'auto',
             }}
             onClick={onSkip}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter') {
+                e.preventDefault();
+                onSkip();
+              }
+            }}
           />
           {/* Bottom */}
           <div
+            role="button"
+            tabIndex={0}
             style={{
               position: 'absolute',
               top: highlightRect.bottom,
@@ -196,9 +214,17 @@ export function WalkthroughOverlay({
               pointerEvents: 'auto',
             }}
             onClick={onSkip}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter') {
+                e.preventDefault();
+                onSkip();
+              }
+            }}
           />
           {/* Left */}
           <div
+            role="button"
+            tabIndex={0}
             style={{
               position: 'absolute',
               top: highlightRect.top,
@@ -209,9 +235,17 @@ export function WalkthroughOverlay({
               pointerEvents: 'auto',
             }}
             onClick={onSkip}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter') {
+                e.preventDefault();
+                onSkip();
+              }
+            }}
           />
           {/* Right */}
           <div
+            role="button"
+            tabIndex={0}
             style={{
               position: 'absolute',
               top: highlightRect.top,
@@ -222,6 +256,12 @@ export function WalkthroughOverlay({
               pointerEvents: 'auto',
             }}
             onClick={onSkip}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter') {
+                e.preventDefault();
+                onSkip();
+              }
+            }}
           />
           {/* Highlight ring */}
           <div

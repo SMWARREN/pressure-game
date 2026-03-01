@@ -276,7 +276,15 @@ function GameTileComponent({
 
     return (
       <div
+        role="button"
+        tabIndex={0}
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
         style={{
           borderRadius: r,
           position: 'relative',
@@ -327,8 +335,16 @@ function GameTileComponent({
   // ── Default pipe renderer ─────────────────────────────────────────────────
   return (
     <div
+      role="button"
+      tabIndex={0}
       data-testid={`tile-${x}-${y}`}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
       style={{
         borderRadius: r,
         position: 'relative',
