@@ -42,11 +42,11 @@ const DEFAULT_CONFIG: PressureEngineConfig = {
  * Can be extended or replaced for custom game behavior.
  */
 export class PressureEngine implements IPressureEngine {
-  private config: PressureEngineConfig;
-  private timer: TimerSystem;
-  private audio: AudioSystem;
-  private persistence: PersistenceSystem;
-  private compression: CompressionSystem;
+  private readonly config: PressureEngineConfig;
+  private readonly timer: TimerSystem;
+  private readonly audio: AudioSystem;
+  private readonly persistence: PersistenceSystem;
+  private readonly compression: CompressionSystem;
 
   // Store reference for callbacks
   private getState: (() => GameState) | null = null;

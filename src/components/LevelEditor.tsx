@@ -362,8 +362,8 @@ ${tilesStr}
                     className={`
                       p-2 rounded text-lg font-mono
                       ${
-                        JSON.stringify(selectedTile.connections.sort()) ===
-                        JSON.stringify(preset.connections.sort())
+                        JSON.stringify([...selectedTile.connections].sort()) ===
+                        JSON.stringify([...preset.connections].sort())
                           ? 'bg-green-600'
                           : 'bg-gray-700'
                       }

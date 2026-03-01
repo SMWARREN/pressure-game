@@ -7,7 +7,7 @@
  * This allows for clean teardown and prevents memory leaks.
  */
 export class TimerSystem {
-  private activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
+  private readonly activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
   private gameTimerInterval: ReturnType<typeof setInterval> | null = null;
   private tickCallback: (() => void) | null = null;
   private tickInterval: number;

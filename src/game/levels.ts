@@ -78,7 +78,7 @@ function solve(
     ts
       .filter((t) => t.canRotate)
       .map((t) => `${t.x},${t.y}:${t.connections.join(',')}`)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .join('|');
 
   visited.add(hash(tiles));
