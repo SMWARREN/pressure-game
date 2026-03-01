@@ -76,9 +76,9 @@ function IdleOverlay({
   onStart,
   solutionMessage,
 }: {
-  levelName: string;
-  onStart: () => void;
-  solutionMessage: string;
+  readonly levelName: string;
+  readonly onStart: () => void;
+  readonly solutionMessage: string;
 }) {
   return (
     <div style={overlayStyle}>

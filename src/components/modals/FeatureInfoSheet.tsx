@@ -36,6 +36,8 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
       aria-label="Close info sheet"
     >
       <div
+        role="dialog"
+        aria-label="Feature information"
         style={{
           background: '#0d0d1a',
           border: '1px solid #2a2a45',

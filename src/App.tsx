@@ -4,7 +4,6 @@ import GameBoard from './components/GameBoard';
 import TestHarness from './components/testing/TestHarness';
 import InstallPrompt from './components/InstallPrompt';
 import { AchievementToastContainer } from './components/AchievementToast';
-import StateEditor from './components/StateEditor';
 import type { PressureEngine } from '@/game/engine';
 
 function LoadingScreen() {
@@ -54,7 +53,7 @@ function AppContent() {
       <InstallPrompt />
       <AchievementToastContainer />
       {/* StateEditor disabled during normal development */}
-      {import.meta.env.DEV && false && <StateEditor />}
+      {/* StateEditor disabled: use query param for dev-only access */}
     </>
   );
 }

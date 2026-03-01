@@ -393,7 +393,7 @@ ${tilesStr}
           {/* Tile Properties */}
           {selectedTile && (
             <div className="space-y-2">
-              <label id="tile-properties" className="block text-sm">Tile Properties</label>
+              <div id="tile-properties" className="block text-sm font-bold">Tile Properties</div>
 
               {selectedTile.type === 'node' && (
                 <label className="flex items-center gap-2">
