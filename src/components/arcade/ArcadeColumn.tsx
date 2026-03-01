@@ -6,13 +6,13 @@ import { SampleGrid } from './SampleGrid';
 import { ArcadeModeInfo } from '../hubs/HubTypes';
 
 export interface ArcadeModeDef {
-  id: string;
-  title: string;
-  tagline: string;
-  symbols: string[];
-  accentColor: string;
-  mode: typeof CandyMode | typeof ShoppingSpreeMode | typeof GemBlastMode;
-  info: ArcadeModeInfo;
+  readonly id: string;
+  readonly title: string;
+  readonly tagline: string;
+  readonly symbols: string[];
+  readonly accentColor: string;
+  readonly mode: typeof CandyMode | typeof ShoppingSpreeMode | typeof GemBlastMode;
+  readonly info: ArcadeModeInfo;
 }
 
 export interface ArcadeColumnProps {

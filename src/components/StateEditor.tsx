@@ -20,14 +20,14 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────
 
 interface StatePreset {
-  name: string;
-  timestamp: number;
-  state: {
-    tiles: Tile[];
-    moves: number;
-    score: number;
-    elapsedSeconds: number;
-    wallOffset: number;
+  readonly name: string;
+  readonly timestamp: number;
+  readonly state: {
+    readonly tiles: Tile[];
+    readonly moves: number;
+    readonly score: number;
+    readonly elapsedSeconds: number;
+    readonly wallOffset: number;
     timeUntilCompression: number;
     modeState?: Record<string, unknown>;
     currentLevel: Level | null;
@@ -36,11 +36,11 @@ interface StatePreset {
 }
 
 interface HistorySnapshot {
-  tiles: Tile[];
-  moves: number;
-  score: number;
-  description: string;
-  timestamp: number;
+  readonly tiles: Tile[];
+  readonly moves: number;
+  readonly score: number;
+  readonly description: string;
+  readonly timestamp: number;
 }
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];

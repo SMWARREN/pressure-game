@@ -46,11 +46,11 @@ const ZEN_INFO: PressureModeInfo = {
 type PressureModeId = 'classic' | 'blitz' | 'zen';
 
 interface PressureModeDef {
-  id: PressureModeId;
-  title: string;
-  tagline: string;
-  info: PressureModeInfo;
-  accentColor: string;
+  readonly id: PressureModeId;
+  readonly title: string;
+  readonly tagline: string;
+  readonly info: PressureModeInfo;
+  readonly accentColor: string;
 }
 
 const PRESSURE_MODES: PressureModeDef[] = [
