@@ -73,6 +73,17 @@ function chargeToSymbol(charge: number, kind: string): string | null {
   return bars[clamp(Math.floor(charge), 0, 7)];
 }
 
+// ── Notification helpers ──────────────────────────────────────────────────────
+
+/**
+ * Discharge point notification by score.
+ */
+function getDischargeTierNotification(last: number): string | null {
+  if (last >= 200) return `⚡ ${last} pts — MASSIVE DISCHARGE!`;
+  if (last >= 100) return `⚡ ${last} pts — nice timing!`;
+  return null;
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 
 export const VoltageMode: GameModeConfig = {
@@ -194,8 +205,7 @@ export const VoltageMode: GameModeConfig = {
   getNotification(_tiles, _moves, modeState) {
     const last = modeState?.lastDischarge as number | undefined;
     if (!last) return null;
-    if (last >= 200) return `⚡ ${last} pts — MASSIVE DISCHARGE!`;
-    return last >= 100 ? `⚡ ${last} pts — nice timing!` : null;
+    return getDischargeTierNotification(last);
   },
 
   statsLabels: { moves: 'DISCHARGES' },
