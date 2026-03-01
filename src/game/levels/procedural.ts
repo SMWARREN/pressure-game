@@ -185,23 +185,27 @@ function countAdjacentVisited(
 }
 
 // Helper: Check if cell is valid for winding path movement
+interface PathValidationContext {
+  cols: number;
+  rows: number;
+  blocked: Set<string>;
+  visited: Set<string>;
+  target: Position;
+}
+
 function isValidPathCell(
   nx: number,
   ny: number,
-  cols: number,
-  rows: number,
-  blocked: Set<string>,
-  visited: Set<string>,
-  target: Position,
-  curr: Position
+  curr: Position,
+  ctx: PathValidationContext
 ): boolean {
-  if (!isInBounds(nx, ny, cols, rows)) return false;
-  if (blocked.has(`${nx},${ny}`) || visited.has(`${nx},${ny}`)) return false;
+  if (!isInBounds(nx, ny, ctx.cols, ctx.rows)) return false;
+  if (ctx.blocked.has(`${nx},${ny}`) || ctx.visited.has(`${nx},${ny}`)) return false;
 
-  const distToTarget = Math.abs(nx - target.x) + Math.abs(ny - target.y);
+  const distToTarget = Math.abs(nx - ctx.target.x) + Math.abs(ny - ctx.target.y);
   if (distToTarget <= 2) return true;
 
-  const adjCount = countAdjacentVisited(nx, ny, curr, visited);
+  const adjCount = countAdjacentVisited(nx, ny, curr, ctx.visited);
   return adjCount <= 1;
 }
 
@@ -216,6 +220,7 @@ function windingPath(
 ): Position[] | null {
   const path: Position[] = [start];
   const visited = new Set<string>([`${start.x},${start.y}`]);
+  const ctx: PathValidationContext = { cols, rows, blocked, visited, target };
 
   function dfs(curr: Position): boolean {
     if (curr.x === target.x && curr.y === target.y) return true;
@@ -226,7 +231,7 @@ function windingPath(
       const nx = curr.x + dx,
         ny = curr.y + dy;
 
-      if (!isValidPathCell(nx, ny, cols, rows, blocked, visited, target, curr)) continue;
+      if (!isValidPathCell(nx, ny, curr, ctx)) continue;
 
       visited.add(`${nx},${ny}`);
       path.push({ x: nx, y: ny });

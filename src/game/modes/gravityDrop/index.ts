@@ -207,7 +207,7 @@ function handleExtend(
 ): TapResult | null {
   if (isEmpty(chain)) {
     const newChain: Array<{ x: number; y: number; value: number; special: string }> = [
-      { x, y, value: d!.value, special: d!.special as string },
+      { x, y, value: d!.value, special: d!.special },
     ];
     return {
       tiles: markChain(tiles, newChain),
@@ -223,7 +223,7 @@ function handleExtend(
   if (!isAdjacent(lastInChain, { x, y })) {
     const cleared = markChain(tiles, []);
     const newChain: Array<{ x: number; y: number; value: number; special: string }> = [
-      { x, y, value: d!.value, special: d!.special as string },
+      { x, y, value: d!.value, special: d!.special },
     ];
     return {
       tiles: markChain(cleared, newChain),
@@ -247,7 +247,7 @@ function handleExtend(
   }
 
   // Normal extend: add new tile to chain
-  const newChain = [...chain, { x, y, value: d!.value, special: d!.special as string }];
+  const newChain = [...chain, { x, y, value: d!.value, special: d!.special }];
   const { sum, starCount } = calcChainSum(newChain);
 
   if (sum > GRAVITY_TARGET && starCount === 0) {

@@ -7,9 +7,12 @@ import { Level, Tile, Position, Direction } from './types';
 // Re-export CLASSIC_LEVELS for backward compatibility
 export { CLASSIC_LEVELS } from './modes/classic/levels';
 
+// Type alias for solution path
+type SolutionPath = { x: number; y: number; rotations: number }[];
+
 // null  = computed, no solution found
 // entry missing = not yet computed
-const solutionCache = new Map<number, { x: number; y: number; rotations: number }[] | null>();
+const solutionCache = new Map<number, SolutionPath | null>();
 
 const DIRS: Direction[] = ['up', 'right', 'down', 'left'];
 const OPP: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' };
@@ -91,13 +94,13 @@ function rotateTileAt(tiles: Tile[], x: number, y: number, rotations: number): T
 
 // Helper: Try rotation at each rotatable tile
 function processTileRotations(
-  currState: { tiles: Tile[]; path: { x: number; y: number; rotations: number }[] },
+  currState: { tiles: Tile[]; path: SolutionPath },
   rotatableTiles: Tile[],
   goals: Position[],
   maxMoves: number,
   visited: Set<string>,
   queue: typeof currState[]
-): { x: number; y: number; rotations: number }[] | null {
+): SolutionPath | null {
   for (const rt of rotatableTiles) {
     for (let r = 1; r <= 3; r++) {
       const newTiles = rotateTileAt(currState.tiles, rt.x, rt.y, r);
@@ -123,14 +126,14 @@ function solve(
   tiles: Tile[],
   goals: Position[],
   maxMoves: number
-): { x: number; y: number; rotations: number }[] | undefined {
+): SolutionPath | undefined {
   if (isConnected(tiles, goals)) return [];
 
   const rotatable = tiles.filter((t) => t.canRotate);
   if (rotatable.length === 0) return undefined;
 
   const visited = new Set<string>();
-  const queue: { tiles: Tile[]; path: { x: number; y: number; rotations: number }[] }[] = [
+  const queue: { tiles: Tile[]; path: SolutionPath }[] = [
     { tiles: [...tiles], path: [] },
   ];
 
@@ -152,7 +155,7 @@ function solve(
 
 // Get solution for a level — computed on first call, then cached.
 // Generated levels already embed their solution so no BFS is needed for them.
-export function getSolution(level: Level): { x: number; y: number; rotations: number }[] | null {
+export function getSolution(level: Level): SolutionPath | null {
   // Generated levels store their solution directly on the object
   if (level.solution !== undefined) return level.solution;
   // Check module-level cache for hand-authored levels

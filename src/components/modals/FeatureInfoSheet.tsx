@@ -35,8 +35,7 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
       }}
       aria-label="Close info sheet"
     >
-      <div
-        role="dialog"
+      <dialog
         aria-label="Feature information"
         style={{
           background: '#0d0d1a',
@@ -46,9 +45,9 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
           width: '100%',
           maxWidth: 440,
           textAlign: 'center',
+          cursor: 'auto',
         }}
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
       >
         <div style={{ fontSize: 40, marginBottom: 8 }}>{feature.icon}</div>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 10 }}>
@@ -80,7 +79,7 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
         >
           Got it
         </button>
-      </div>
+      </dialog>
     </button>
   );
 }
