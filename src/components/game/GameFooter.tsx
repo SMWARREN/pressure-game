@@ -21,6 +21,48 @@ export interface GameFooterProps {
   readonly computeSolution: () => void;
 }
 
+// Helper: compute undo button state
+function getUndoButtonState(history: unknown[], status: GameStatus) {
+  const disabled = history.length === 0 || status !== 'playing';
+  return { disabled, opacity: disabled ? 0.25 : 1 };
+}
+
+// Helper: compute hint button state
+function getHintButtonState(showHint: boolean, isComputingSolution: boolean, status: GameStatus) {
+  const buttonStyles = showHint
+    ? { color: '#fbbf24', border: '1px solid #fbbf2440' }
+    : { color: '#3a3a55', border: '1px solid #12122a' };
+  const disabled = isComputingSolution || status !== 'playing';
+  return { buttonStyles, disabled, opacity: disabled ? 0.25 : 1, title: isComputingSolution ? 'Computing...' : 'Hint' };
+}
+
+// Helper: compute pause button state
+function getPauseButtonState(isPaused: boolean, status: GameStatus) {
+  const buttonStyles = isPaused
+    ? { color: '#22c55e', border: '1px solid #22c55e40' }
+    : { color: '#3a3a55', border: '1px solid #12122a' };
+  const disabled = status !== 'playing' && !isPaused;
+  return {
+    buttonStyles,
+    disabled,
+    opacity: disabled ? 0.25 : 1,
+    title: isPaused ? 'Resume' : 'Pause',
+    icon: isPaused ? '▶' : '⏸',
+  };
+}
+
+// Helper: compute animations button state
+function getAnimButtonState(animationsEnabled: boolean) {
+  const buttonStyles = animationsEnabled
+    ? { color: '#a5b4fc', border: '1px solid #6366f140' }
+    : { color: '#3a3a55', border: '1px solid #12122a' };
+  return {
+    buttonStyles,
+    title: animationsEnabled ? 'Disable effects' : 'Enable effects',
+    icon: animationsEnabled ? '✨' : '◻',
+  };
+}
+
 export function GameFooter({
   showUndoBtn,
   showHintBtn,
@@ -39,25 +81,10 @@ export function GameFooter({
   onToggleAnimations,
   computeSolution,
 }: GameFooterProps) {
-  // Extract conditional styles for hint button (S3358: reduce nested ternaries)
-  const hintButtonStyles = showHint
-    ? { color: '#fbbf24', border: '1px solid #fbbf2440' }
-    : { color: '#3a3a55', border: '1px solid #12122a' };
-  const hintButtonTitle = isComputingSolution ? 'Computing...' : 'Hint';
-
-  // Extract conditional styles for pause button
-  const pauseButtonStyles = isPaused
-    ? { color: '#22c55e', border: '1px solid #22c55e40' }
-    : { color: '#3a3a55', border: '1px solid #12122a' };
-  const pauseButtonTitle = isPaused ? 'Resume' : 'Pause';
-  const pauseButtonIcon = isPaused ? '▶' : '⏸';
-
-  // Extract conditional styles for animations button
-  const animButtonStyles = animationsEnabled
-    ? { color: '#a5b4fc', border: '1px solid #6366f140' }
-    : { color: '#3a3a55', border: '1px solid #12122a' };
-  const animButtonTitle = animationsEnabled ? 'Disable effects' : 'Enable effects';
-  const animButtonIcon = animationsEnabled ? '✨' : '◻';
+  const undoState = getUndoButtonState(history, status);
+  const hintState = getHintButtonState(showHint, isComputingSolution, status);
+  const pauseState = getPauseButtonState(isPaused, status);
+  const animState = getAnimButtonState(animationsEnabled);
 
   return (
     <>
@@ -65,10 +92,10 @@ export function GameFooter({
       {showUndoBtn && (
         <button
           onClick={onUndo}
-          disabled={history.length === 0 || status !== 'playing'}
+          disabled={undoState.disabled}
           style={{
             ...iconBtn,
-            opacity: history.length === 0 || status !== 'playing' ? 0.25 : 1,
+            opacity: undoState.opacity,
           }}
           title="Undo"
         >
@@ -107,13 +134,13 @@ export function GameFooter({
             }
             onHint();
           }}
-          disabled={isComputingSolution || status !== 'playing'}
+          disabled={hintState.disabled}
           style={{
             ...iconBtn,
-            opacity: isComputingSolution || status !== 'playing' ? 0.25 : 1,
-            ...hintButtonStyles,
+            opacity: hintState.opacity,
+            ...hintState.buttonStyles,
           }}
-          title={hintButtonTitle}
+          title={hintState.title}
         >
           {isComputingSolution ? (
             <LoadingSpinner size={18} color="#fbbf24" />
@@ -126,15 +153,15 @@ export function GameFooter({
       {/* Pause button */}
       <button
         onClick={onPauseResume}
-        disabled={status !== 'playing' && !isPaused}
+        disabled={pauseState.disabled}
         style={{
           ...iconBtn,
-          opacity: status !== 'playing' && !isPaused ? 0.25 : 1,
-          ...pauseButtonStyles,
+          opacity: pauseState.opacity,
+          ...pauseState.buttonStyles,
         }}
-        title={pauseButtonTitle}
+        title={pauseState.title}
       >
-        <span style={{ fontSize: 16 }}>{pauseButtonIcon}</span>
+        <span style={{ fontSize: 16 }}>{pauseState.icon}</span>
       </button>
 
       {/* How to Play */}
@@ -155,11 +182,11 @@ export function GameFooter({
         onClick={onToggleAnimations}
         style={{
           ...iconBtn,
-          ...animButtonStyles,
+          ...animState.buttonStyles,
         }}
-        title={animButtonTitle}
+        title={animState.title}
       >
-        <span style={{ fontSize: 14 }}>{animButtonIcon}</span>
+        <span style={{ fontSize: 14 }}>{animState.icon}</span>
       </button>
     </>
   );
