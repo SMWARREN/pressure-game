@@ -96,6 +96,171 @@ function IdleOverlay({
   );
 }
 
+// ── Win Overlay ──────────────────────────────────────────────────────────────
+function WinOverlay({
+  winTitle,
+  finalScore,
+  moves,
+  timeStr,
+  isScoreMode,
+  levelRecord,
+  hasNext,
+  onNext,
+  onRetry,
+  onMenu,
+  onReplay,
+}: {
+  readonly winTitle: string;
+  readonly finalScore?: number;
+  readonly moves: number;
+  readonly timeStr: string;
+  readonly isScoreMode: boolean;
+  readonly levelRecord?: { wins: number; attempts: number };
+  readonly hasNext: boolean;
+  readonly onNext: () => void;
+  readonly onRetry: () => void;
+  readonly onMenu: () => void;
+  readonly onReplay?: () => void;
+}) {
+  const marginTopButtons = levelRecord ? 0 : 14;
+  return (
+    <div style={overlayStyle} data-testid="win-overlay">
+      <div style={{ fontSize: 32, marginBottom: 4 }}>✦</div>
+      <div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 4 }}>
+        {winTitle.toUpperCase()}
+      </div>
+      <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
+        {formatWinStats(isScoreMode, finalScore, moves, timeStr)}
+      </div>
+      {levelRecord && levelRecord.attempts > 0 && (
+        <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
+          {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
+        </div>
+      )}
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          marginTop: marginTopButtons,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
+        {hasNext && (
+          <button onClick={onNext} style={btnPrimary}>
+            NEXT →
+          </button>
+        )}
+        <button onClick={onRetry} style={btnSecondary}>
+          ↺ RETRY
+        </button>
+        <button onClick={onMenu} style={btnSecondary}>
+          MENU
+        </button>
+        {onReplay && (
+          <button onClick={onReplay} style={btnSecondary}>
+            ▶ REPLAY
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Loss Overlay ─────────────────────────────────────────────────────────────
+function LossOverlay({
+  lossTitle,
+  finalScore,
+  targetScore,
+  moves,
+  isScoreMode,
+  levelRecord,
+  newHighScore,
+  onRetry,
+  onMenu,
+  onReplay,
+}: {
+  readonly lossTitle: string;
+  readonly finalScore?: number;
+  readonly targetScore?: number;
+  readonly moves: number;
+  readonly isScoreMode: boolean;
+  readonly levelRecord?: { wins: number; attempts: number };
+  readonly newHighScore?: boolean;
+  readonly onRetry: () => void;
+  readonly onMenu: () => void;
+  readonly onReplay?: () => void;
+}) {
+  const marginTopButtons = levelRecord ? 0 : 14;
+  const shouldShowScore = finalScore !== undefined && targetScore === undefined && finalScore > 0;
+  const titleColor = newHighScore ? '#fbbf24' : '#ef4444';
+  const overlayIcon = newHighScore ? '🏆' : '✕';
+
+  return (
+    <div style={overlayStyle}>
+      <div style={{ fontSize: 32, marginBottom: 4 }}>{overlayIcon}</div>
+      {newHighScore && (
+        <div
+          style={{
+            fontSize: 10,
+            color: '#fbbf24',
+            letterSpacing: '0.12em',
+            fontWeight: 800,
+            marginBottom: 4,
+          }}
+        >
+          NEW HIGH SCORE!
+        </div>
+      )}
+      <div
+        style={{
+          fontSize: 20,
+          fontWeight: 900,
+          color: titleColor,
+          marginBottom: 4,
+        }}
+      >
+        {lossTitle.toUpperCase()}
+      </div>
+      {shouldShowScore && (
+        <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
+          {finalScore.toLocaleString()} pts
+        </div>
+      )}
+      <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
+        {formatLossStats(isScoreMode, moves)}
+      </div>
+      {levelRecord && levelRecord.attempts > 0 && (
+        <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
+          {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
+        </div>
+      )}
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          marginTop: marginTopButtons,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
+        <button onClick={onRetry} style={btnPrimary}>
+          ↺ RETRY
+        </button>
+        <button onClick={onMenu} style={btnSecondary}>
+          MENU
+        </button>
+        {onReplay && (
+          <button onClick={onReplay} style={btnSecondary}>
+            ▶ REPLAY
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main Overlay Router ──────────────────────────────────────────────────────
 export function Overlay({
   status,
   moves,
@@ -131,109 +296,34 @@ export function Overlay({
     return <IdleOverlay levelName={levelName} onStart={onStart} solutionMessage={solutionMessage} />;
   if (status === 'won')
     return (
-      <div style={overlayStyle} data-testid="win-overlay">
-        <div style={{ fontSize: 32, marginBottom: 4 }}>✦</div>
-        <div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 4 }}>
-          {winTitle.toUpperCase()}
-        </div>
-        <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
-          {formatWinStats(isScoreMode, finalScore, moves, timeStr)}
-        </div>
-        {levelRecord && levelRecord.attempts > 0 && (
-          <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
-            {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
-          </div>
-        )}
-        <div
-          style={{
-            display: 'flex',
-            gap: 10,
-            marginTop: levelRecord ? 0 : 14,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-          }}
-        >
-          {hasNext && (
-            <button onClick={onNext} style={btnPrimary}>
-              NEXT →
-            </button>
-          )}
-          <button onClick={onRetry} style={btnSecondary}>
-            ↺ RETRY
-          </button>
-          <button onClick={onMenu} style={btnSecondary}>
-            MENU
-          </button>
-          {onReplay && (
-            <button onClick={onReplay} style={btnSecondary}>
-              ▶ REPLAY
-            </button>
-          )}
-        </div>
-      </div>
+      <WinOverlay
+        winTitle={winTitle}
+        finalScore={finalScore}
+        moves={moves}
+        timeStr={timeStr}
+        isScoreMode={isScoreMode}
+        levelRecord={levelRecord}
+        hasNext={hasNext}
+        onNext={onNext}
+        onRetry={onRetry}
+        onMenu={onMenu}
+        onReplay={onReplay}
+      />
     );
   if (status === 'lost')
     return (
-      <div style={overlayStyle}>
-        <div style={{ fontSize: 32, marginBottom: 4 }}>{newHighScore ? '🏆' : '✕'}</div>
-        {newHighScore && (
-          <div
-            style={{
-              fontSize: 10,
-              color: '#fbbf24',
-              letterSpacing: '0.12em',
-              fontWeight: 800,
-              marginBottom: 4,
-            }}
-          >
-            NEW HIGH SCORE!
-          </div>
-        )}
-        <div
-          style={{
-            fontSize: 20,
-            fontWeight: 900,
-            color: newHighScore ? '#fbbf24' : '#ef4444',
-            marginBottom: 4,
-          }}
-        >
-          {lossTitle.toUpperCase()}
-        </div>
-        {finalScore !== undefined && targetScore === undefined && finalScore > 0 && (
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
-            {finalScore.toLocaleString()} pts
-          </div>
-        )}
-        <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
-          {formatLossStats(isScoreMode, moves)}
-        </div>
-        {levelRecord && levelRecord.attempts > 0 && (
-          <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
-            {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
-          </div>
-        )}
-        <div
-          style={{
-            display: 'flex',
-            gap: 10,
-            marginTop: levelRecord ? 0 : 14,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-          }}
-        >
-          <button onClick={onRetry} style={btnPrimary}>
-            ↺ RETRY
-          </button>
-          <button onClick={onMenu} style={btnSecondary}>
-            MENU
-          </button>
-          {onReplay && (
-            <button onClick={onReplay} style={btnSecondary}>
-              ▶ REPLAY
-            </button>
-          )}
-        </div>
-      </div>
+      <LossOverlay
+        lossTitle={lossTitle}
+        finalScore={finalScore}
+        targetScore={targetScore}
+        moves={moves}
+        isScoreMode={isScoreMode}
+        levelRecord={levelRecord}
+        newHighScore={newHighScore}
+        onRetry={onRetry}
+        onMenu={onMenu}
+        onReplay={onReplay}
+      />
     );
   return null;
 }
