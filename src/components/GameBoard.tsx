@@ -465,26 +465,11 @@ export default function GameBoard() {
   }, [status, currentLevel, elapsedSeconds, currentModeId, showHint]);
 
   // Check if we're in test/harness mode (skip tutorial for E2E tests)
-  const isTestMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('levelId');
-
-  // Auto-skip tutorial and start game in test mode
-  useEffect(() => {
-    if (status === 'tutorial' && isTestMode) {
-      completeTutorial();
-    }
-    if (isTestMode && currentLevel && (status === 'menu' || status === 'idle')) {
-      startGame();
-    }
-  }, [status, isTestMode, currentLevel, completeTutorial, startGame]);
-
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
-  if (status === 'tutorial' && !isTestMode) return <TutorialScreen onComplete={completeTutorial} />;
-  if (showArcadeHub && !isTestMode) return <ArcadeHubScreen />;
-  if (showPressureHub && !isTestMode) return <PressureHubScreen />;
-  if ((status === 'menu' || !currentLevel) && !isTestMode) return <MenuScreen />;
-
-  // If no level loaded at all, show menu
-  if (!currentLevel) return <MenuScreen />;
+  if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
+  if (showArcadeHub) return <ArcadeHubScreen />;
+  if (showPressureHub) return <PressureHubScreen />;
+  if (status === 'menu' || !currentLevel) return <MenuScreen />;
 
   const gs = currentLevel.gridSize;
   const maxOff = Math.floor(gs / 2);

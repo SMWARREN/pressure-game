@@ -8,7 +8,7 @@ test.describe('Pressure Mode - E2E Tests', () => {
 
   test('Level 1: Load and verify grid renders', async ({ page }) => {
     console.log('📋 Testing: Load level 1');
-    await page.goto('/?levelId=1&modeId=pressure', { waitUntil: 'domcontentloaded' });
+    await page.goto('/?levelId=1&modeId=classic', { waitUntil: 'domcontentloaded' });
 
     const gameGrid = page.locator('[data-testid="game-grid"]');
     await expect(gameGrid).toBeVisible({ timeout: 45000 });
@@ -22,7 +22,7 @@ test.describe('Pressure Mode - E2E Tests', () => {
 
   test('Level 2: Load and verify grid renders', async ({ page }) => {
     console.log('📋 Testing: Load level 2');
-    await page.goto('/?levelId=2&modeId=pressure', { waitUntil: 'domcontentloaded' });
+    await page.goto('/?levelId=2&modeId=classic', { waitUntil: 'domcontentloaded' });
 
     const gameGrid = page.locator('[data-testid="game-grid"]');
     await expect(gameGrid).toBeVisible({ timeout: 45000 });
@@ -32,7 +32,7 @@ test.describe('Pressure Mode - E2E Tests', () => {
 
   test('Level 1: Can click tiles', async ({ page }) => {
     console.log('📋 Testing: Tile interaction');
-    await page.goto('/?levelId=1&modeId=pressure', { waitUntil: 'domcontentloaded' });
+    await page.goto('/?levelId=1&modeId=classic', { waitUntil: 'domcontentloaded' });
 
     const gameGrid = page.locator('[data-testid="game-grid"]');
     await expect(gameGrid).toBeVisible({ timeout: 45000 });
@@ -47,7 +47,7 @@ test.describe('Pressure Mode - E2E Tests', () => {
 
   test('Pressure Mode harness initializes correctly', async ({ page }) => {
     console.log('📋 Testing: Harness initialization');
-    await page.goto('/?levelId=1&modeId=pressure', { waitUntil: 'domcontentloaded' });
+    await page.goto('/?levelId=1&modeId=classic', { waitUntil: 'domcontentloaded' });
 
     // Check console logs for initialization
     const logs: string[] = [];

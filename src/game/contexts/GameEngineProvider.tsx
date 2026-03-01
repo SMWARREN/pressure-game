@@ -18,14 +18,29 @@ export const GameEngineContext = createContext<GameEngineContextType | null>(nul
 interface GameEngineProviderProps {
   children: ReactNode;
   statsBackend?: StatsBackend;
+  pressureEngine?: PressureEngine;
+  onReady?: () => void;
 }
 
-export function GameEngineProvider({ children, statsBackend }: GameEngineProviderProps) {
+export function GameEngineProvider({ children, statsBackend, pressureEngine: initialEngine, onReady }: GameEngineProviderProps) {
   const [engines, setEngines] = useState<GameEngineContextType | null>(null);
+
+  // Ensure engine exists - fallback if not created in main.tsx
+  useEffect(() => {
+    // Check if engine was already set (from main.tsx)
+    if (!initialEngine) {
+      // Create and set engine if it doesn't exist
+      const newEngine = createPressureEngine();
+      _setEngineInstance(newEngine);
+    }
+  }, [initialEngine]);
 
   useEffect(() => {
     try {
-      const pressureEngine = createPressureEngine();
+      if (import.meta.env.DEV) {
+        console.log('[GameEngineProvider] Starting engine initialization...');
+      }
+      const pressureEngine = initialEngine ?? createPressureEngine();
       pressureEngine.init(
         () => useGameStore.getState(),
         (partial) => useGameStore.setState(partial)
@@ -50,10 +65,17 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
 
       setEngines({ pressureEngine, statsEngine, achievementEngine });
       if (import.meta.env.DEV) {
-        console.log('[GameEngineProvider] Engines initialized');
+        console.log('[GameEngineProvider] ✅ Engines initialized and ready');
       }
+      // Signal that initialization is complete
+      onReady?.();
     } catch (error) {
-      console.error('[GameEngineProvider] Init error:', error);
+      console.error('[GameEngineProvider] ❌ Init error:', error);
+      console.error('[GameEngineProvider] Error details:', (error as any)?.message);
+      // Even on error, try to at least render something
+      if (onReady) {
+        onReady();
+      }
     }
 
     return () => {
@@ -62,7 +84,8 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
           try {
             prev.pressureEngine.destroy();
             prev.statsEngine.stop();
-            _setEngineInstance(null as any);
+            // Don't set engine to null — it breaks StrictMode double-mount
+            // Just clean up the engines, leave the module instance
           } catch (error) {
             console.error('[GameEngineProvider] Cleanup error:', error);
           }

@@ -7,6 +7,7 @@ import { GameState, GameActions, Level, Direction, Tile } from './types';
 import { getModeById } from './modes';
 import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
 import type { PressureEngine, SoundEffect } from './engine';
+import { createPressureEngine } from './engine';
 import { UNDO_DELAY_MS, HISTORY_TRIM_DELAY_MS, SCREEN_SHAKE_DURATION_MS } from './constants/timings';
 import { GRID_SIZE_MIN, GRID_SIZE_MAX } from './constants/grid';
 
@@ -15,11 +16,11 @@ export { checkConnected, getConnectedTiles, createTileMap };
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ENGINE INSTANCE
-   The store needs access to the engine for lifecycle management.
-   EngineProvider sets this when the engine is created.
+   Created at module load time. GameEngineProvider will initialize it with
+   store access (getState/setState) when React mounts.
 ═══════════════════════════════════════════════════════════════════════════ */
 
-let engine: PressureEngine | null = null;
+let engine: PressureEngine | null = createPressureEngine();
 
 export function _setEngineInstance(engineInstance: PressureEngine | null) {
   engine = engineInstance;
@@ -30,6 +31,15 @@ function getEngine(): PressureEngine {
     console.error('[store] Engine is null! Attempting to use before initialization.');
     console.error('[store] Check: Is GameEngineProvider mounted? Did initialization complete?');
     throw new Error('Engine not initialized. Make sure GameEngineProvider is mounted.');
+  }
+  return engine;
+}
+
+function getOrCreateEngine(): PressureEngine {
+  if (!engine) {
+    console.error('[store] ❌ Engine is null when accessing getOrCreateEngine()');
+    console.error('[store] Did LoadingScreen appear? Did GameEngineProvider initialize?');
+    throw new Error('Engine not initialized');
   }
   return engine;
 }
@@ -119,8 +129,9 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     },
 
     loadLevel: (level: Level) => {
-      getEngine().clearTimers();
-      const levelState = getEngine().getInitialLevelState(level);
+      const eng = getOrCreateEngine();
+      eng.clearTimers();
+      const levelState = eng.getInitialLevelState(level);
       // Save the world so returning to menu goes back to the same world
       set({ ...levelState, selectedWorld: level.world });
     },
@@ -140,16 +151,18 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       if (!currentLevel) return;
       if (status === 'playing' || status === 'won' || status === 'lost') return;
 
-      // Clear any existing timers before starting a new game
-      getEngine().clearTimers();
+      const eng = getOrCreateEngine();
 
-      const compressionEnabled = getEngine().resolveCompressionEnabled(
+      // Clear any existing timers before starting a new game
+      eng.clearTimers();
+
+      const compressionEnabled = eng.resolveCompressionEnabled(
         currentLevel,
         currentModeId,
         compressionOverride
       );
 
-      getEngine().playSound('start');
+      eng.playSound('start');
       set({
         status: 'playing',
         elapsedSeconds: 0,
@@ -162,7 +175,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       // Check if already solved (e.g., pre-solved demo levels)
       const alreadyWon = get().checkWin();
       if (!alreadyWon && get().status === 'playing') {
-        getEngine().startTimer();
+        eng.startTimer();
       }
     },
 

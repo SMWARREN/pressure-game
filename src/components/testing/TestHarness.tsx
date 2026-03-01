@@ -12,9 +12,15 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '@/game/store';
 import { getModeById } from '@/game/modes';
+import { GameProviders } from '@/game/GameProviders';
 import GameBoard from '../GameBoard';
+import type { PressureEngine } from '@/game/engine';
 
-export default function TestHarness() {
+interface TestHarnessProps {
+  pressureEngine?: PressureEngine;
+}
+
+function TestHarnessContent() {
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -48,11 +54,12 @@ export default function TestHarness() {
       return;
     }
 
-    // Get the store actions
-    const { setGameMode, loadLevel, startGame, completeTutorial } = useGameStore.getState();
-
-    // Sequence: complete tutorial → set mode → load level → start game
+    // Engine is created at module load, but needs React context to work
+    // So wait a tick for GameEngineProvider to initialize it
     setTimeout(() => {
+      const { setGameMode, loadLevel, startGame, completeTutorial } = useGameStore.getState();
+
+      // Sequence: complete tutorial → set mode → load level → start game
       completeTutorial();
       setGameMode(modeId);
 
@@ -64,9 +71,17 @@ export default function TestHarness() {
           console.log(`[TestHarness] ✅ Game initialized and started`);
         }, 100);
       }, 100);
-    }, 100);
+    }, 0);
   }, []);
 
   // Render the main GameBoard — it will display the loaded level
   return <GameBoard />;
+}
+
+export default function TestHarness({ pressureEngine }: TestHarnessProps) {
+  return (
+    <GameProviders pressureEngine={pressureEngine}>
+      <TestHarnessContent />
+    </GameProviders>
+  );
 }
