@@ -69,31 +69,26 @@ export class AudioSystem {
   play(name: SoundEffect): void {
     if (!this.enabled) return;
 
-    switch (name) {
-      case 'rotate':
-        this.playTone(440, 'triangle', 0.06, 0.12);
-        break;
-      case 'win':
+    // Sound effect callbacks (replaces switch statement)
+    const SOUND_EFFECTS: Record<SoundEffect, () => void> = {
+      rotate: () => this.playTone(440, 'triangle', 0.06, 0.12),
+      win: () => {
         this.playTone(523, 'sine', 0.2, 0.25);
         setTimeout(() => {
           this.playTone(659, 'sine', 0.2, 0.25);
           setTimeout(() => this.playTone(784, 'sine', 0.3, 0.35), 150);
         }, 150);
-        break;
-      case 'lose':
+      },
+      lose: () => {
         this.playTone(220, 'sawtooth', 0.4, 0.35);
         setTimeout(() => this.playTone(180, 'sawtooth', 0.4, 0.4), 200);
-        break;
-      case 'crush':
-        this.playTone(150, 'square', 0.15, 0.3);
-        break;
-      case 'start':
-        this.playTone(392, 'triangle', 0.12, 0.18);
-        break;
-      case 'undo':
-        this.playTone(330, 'triangle', 0.06, 0.1);
-        break;
-    }
+      },
+      crush: () => this.playTone(150, 'square', 0.15, 0.3),
+      start: () => this.playTone(392, 'triangle', 0.12, 0.18),
+      undo: () => this.playTone(330, 'triangle', 0.06, 0.1),
+    };
+
+    SOUND_EFFECTS[name]?.();
   }
 
   /**
