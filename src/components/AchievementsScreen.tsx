@@ -58,6 +58,22 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
   const color = rarityColors[achievement.rarity];
   const pct = progress ? Math.min(100, Math.round((progress.current / progress.target) * 100)) : 0;
 
+  // Extract conditional styles for earned achievements (S3358: reduce nested ternaries)
+  const cardStyles = isEarned
+    ? {
+        border: `1px solid ${color}40`,
+        background: `linear-gradient(145deg, ${color}08 0%, #07070e 100%)`,
+      }
+    : { border: '1px solid #12122a', background: '#07070e' };
+
+  const iconStyles = isEarned
+    ? { background: `${color}15`, filter: `drop-shadow(0 0 8px ${color}60)` }
+    : { background: '#12122a', filter: 'none' };
+
+  const badgeStyles = isEarned
+    ? { background: `${color}20`, border: `1px solid ${color}40` }
+    : { background: '#12122a', border: '1px solid transparent' };
+
   // Hidden achievements show a mystery card
   if (isHidden) {
     return (
@@ -109,8 +125,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
     <div
       style={{
         ...card,
-        border: isEarned ? `1px solid ${color}40` : '1px solid #12122a',
-        background: isEarned ? `linear-gradient(145deg, ${color}08 0%, #07070e 100%)` : '#07070e',
+        ...cardStyles,
         display: 'flex',
         alignItems: 'center',
         gap: 14,
@@ -123,12 +138,11 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
           width: 48,
           height: 48,
           borderRadius: 12,
-          background: isEarned ? `${color}15` : '#12122a',
+          ...iconStyles,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: 24,
-          filter: isEarned ? `drop-shadow(0 0 8px ${color}60)` : 'none',
           flexShrink: 0,
         }}
       >
@@ -226,8 +240,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
         style={{
           padding: '6px 12px',
           borderRadius: 10,
-          background: isEarned ? `${color}20` : '#12122a',
-          border: isEarned ? `1px solid ${color}40` : '1px solid transparent',
+          ...badgeStyles,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

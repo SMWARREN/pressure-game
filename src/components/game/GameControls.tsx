@@ -33,6 +33,11 @@ export default function GameControls({
   showHint,
   onToggleHint,
 }: GameControlsProps) {
+  // Extract conditional hint button styles (S3358: reduce nested ternaries)
+  const hintButtonStyles = showHint
+    ? { border: '1px solid #f59e0b50', background: 'rgba(245,158,11,0.08)', color: '#fbbf24' }
+    : { border: '1px solid #12122a', background: 'rgba(255,255,255,0.02)', color: '#3a3a55' };
+
   return (
     <div
       style={{
@@ -81,9 +86,7 @@ export default function GameControls({
         onClick={onToggleHint}
         style={{
           ...iconBtn,
-          border: showHint ? '1px solid #f59e0b50' : '1px solid #12122a',
-          background: showHint ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.02)',
-          color: showHint ? '#fbbf24' : '#3a3a55',
+          ...hintButtonStyles,
         }}
         title="Hint"
       >
