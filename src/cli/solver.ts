@@ -20,6 +20,26 @@ const colors = {
 };
 
 /**
+ * Get [dx, dy] offset from a direction
+ */
+function getDirectionOffset(dir: Direction): [number, number] {
+  if (dir === 'right') return [1, 0];
+  if (dir === 'left') return [-1, 0];
+  if (dir === 'down') return [0, 1];
+  return [0, -1]; // 'up'
+}
+
+/**
+ * Get opposite direction (replaces nested ternary)
+ */
+function getOppositeDirection(dir: Direction): Direction {
+  if (dir === 'up') return 'down';
+  if (dir === 'down') return 'up';
+  if (dir === 'left') return 'right';
+  return 'left';
+}
+
+/**
  * Rotate tile connections by 90 degrees clockwise
  */
 function rotateConnections(connections: Direction[], times: number = 1): Direction[] {
@@ -50,8 +70,9 @@ function checkWin(tiles: Tile[], goalNodes: Position[]): boolean {
     if (!tile || tile.type === 'wall' || tile.type === 'crushed') continue;
 
     for (const dir of tile.connections) {
-      const nx = tile.x + (dir === 'right' ? 1 : dir === 'left' ? -1 : 0);
-      const ny = tile.y + (dir === 'down' ? 1 : dir === 'up' ? -1 : 0);
+      const [dx, dy] = getDirectionOffset(dir);
+      const nx = tile.x + dx;
+      const ny = tile.y + dy;
       const nkey = `${nx},${ny}`;
 
       if (visited.has(nkey)) continue;
@@ -59,8 +80,7 @@ function checkWin(tiles: Tile[], goalNodes: Position[]): boolean {
       const neighbor = tileMap.get(nkey);
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
 
-      const opposite: Direction =
-        dir === 'up' ? 'down' : dir === 'down' ? 'up' : dir === 'left' ? 'right' : 'left';
+      const opposite: Direction = getOppositeDirection(dir);
       if (neighbor.connections.includes(opposite)) {
         stack.push(nkey);
       }
@@ -335,13 +355,13 @@ function tryGreedySolution(
       let score = 0;
 
       for (const dir of rotated) {
-        const nx = pos.x + (dir === 'right' ? 1 : dir === 'left' ? -1 : 0);
-        const ny = pos.y + (dir === 'down' ? 1 : dir === 'up' ? -1 : 0);
+        const [dx, dy] = getDirectionOffset(dir);
+        const nx = pos.x + dx;
+        const ny = pos.y + dy;
         const neighbor = tileMap.get(`${nx},${ny}`);
 
         if (neighbor && neighbor.type !== 'wall' && neighbor.type !== 'crushed') {
-          const opposite: Direction =
-            dir === 'up' ? 'down' : dir === 'down' ? 'up' : dir === 'left' ? 'right' : 'left';
+          const opposite: Direction = getOppositeDirection(dir);
           if (neighbor.connections.includes(opposite)) {
             score += 2; // Valid connection
           } else {

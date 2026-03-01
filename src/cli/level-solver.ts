@@ -34,6 +34,15 @@ const colors = {
 // Compression system
 const compressionSystem = createCompressionSystem();
 
+/**
+ * Get difficulty level from compression delay (replaces nested ternary)
+ */
+function getDifficultyFromCompressionDelay(delay: number): 'easy' | 'medium' | 'hard' {
+  if (delay >= 10000) return 'easy';
+  if (delay >= 5000) return 'medium';
+  return 'hard';
+}
+
 // All level collections
 const ALL_LEVELS: Record<string, Level[]> = {
   classic: CLASSIC_LEVELS,
@@ -532,8 +541,7 @@ function fixLevel(level: Level, result: SolveResult): FixedLevel | null {
 
   // Case 3: Level is unsolvable - regenerate with same parameters
   if (result.status === 'no_solution') {
-    const difficulty =
-      level.compressionDelay >= 10000 ? 'easy' : level.compressionDelay >= 5000 ? 'medium' : 'hard';
+    const difficulty = getDifficultyFromCompressionDelay(level.compressionDelay);
     const generated = generateLevel({
       gridSize: level.gridSize,
       nodeCount: level.goalNodes.length,
@@ -1095,7 +1103,9 @@ function listModes(): void {
 /**
  * Expand solution moves: { x, y, rotations } → array of { x, y } for each rotation
  */
-function expandSolutionMoves(solution: { x: number; y: number; rotations: number }[]): { x: number; y: number }[] {
+function expandSolutionMoves(
+  solution: { x: number; y: number; rotations: number }[]
+): { x: number; y: number }[] {
   const expanded: { x: number; y: number }[] = [];
   for (const move of solution) {
     for (let i = 0; i < move.rotations; i++) {

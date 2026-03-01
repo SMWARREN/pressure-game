@@ -27,7 +27,12 @@ export function renderShoppingSpreeDemo(
         {grid.map((row, r) => (
           <div key={`row-${r}`} style={{ display: 'flex', gap: 3 }}>
             {row.map((sym, c) => (
-              <ArcadeTile colors={SHOPPING_COLORS} key={`cell-${r}-${c}`} sym={sym} highlight={inGroup(r, c)} />
+              <ArcadeTile
+                colors={SHOPPING_COLORS}
+                key={`cell-${r}-${c}`}
+                sym={sym}
+                highlight={inGroup(r, c)}
+              />
             ))}
           </div>
         ))}
@@ -182,7 +187,13 @@ export function renderShoppingSpreeDemo(
             </div>
             <div style={{ display: 'flex', gap: 3 }}>
               {['👗', '👗'].map((sym, i) => (
-                <ArcadeTile colors={SHOPPING_COLORS} key={`dress2-${i}`} sym={sym} highlight small />
+                <ArcadeTile
+                  colors={SHOPPING_COLORS}
+                  key={`dress2-${i}`}
+                  sym={sym}
+                  highlight
+                  small
+                />
               ))}
             </div>
             <div style={{ fontSize: 9, color: '#ec4899' }}>5+ COMBO</div>

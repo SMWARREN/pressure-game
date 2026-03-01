@@ -42,9 +42,7 @@ export function StatsProvider({
   }
 
   return (
-    <StatsContext.Provider value={{ engine: engineRef.current }}>
-      {children}
-    </StatsContext.Provider>
+    <StatsContext.Provider value={{ engine: engineRef.current }}>{children}</StatsContext.Provider>
   );
 }
 

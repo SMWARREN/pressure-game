@@ -1,1 +1,7 @@
-export { GameEngineContext, GameEngineProvider, useEngine, useStats, useAchievements } from './GameEngineProvider';
+export {
+  GameEngineContext,
+  GameEngineProvider,
+  useEngine,
+  useStats,
+  useAchievements,
+} from './GameEngineProvider';

@@ -7,6 +7,27 @@ const DIRS: Direction[] = ['up', 'right', 'down', 'left'];
 const OPP: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
 /**
+ * Convert delta x,y to a Direction without nested ternaries.
+ * Replaces patterns like: dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up'
+ */
+export function deltaToDirection(dx: number, dy: number): Direction {
+  if (dx === 1) return 'right';
+  if (dx === -1) return 'left';
+  if (dy === 1) return 'down';
+  return 'up';
+}
+
+/**
+ * Get offset from a Direction: [dx, dy]
+ */
+export function directionToOffset(dir: Direction): [number, number] {
+  if (dir === 'right') return [1, 0];
+  if (dir === 'left') return [-1, 0];
+  if (dir === 'down') return [0, 1];
+  return [0, -1]; // 'up'
+}
+
+/**
  * Create a Map from tiles array for O(1) lookups
  */
 export function createTileMap(tiles: Tile[]): Map<string, Tile> {
@@ -100,8 +121,9 @@ export function checkConnectedFast(tiles: Tile[], goals: Position[]): boolean {
     const key = `${tile.x},${tile.y}`;
 
     for (const d of tile.connections) {
-      const nx = tile.x + (d === 'right' ? 1 : d === 'left' ? -1 : 0);
-      const ny = tile.y + (d === 'down' ? 1 : d === 'up' ? -1 : 0);
+      const [dx, dy] = directionToOffset(d);
+      const nx = tile.x + dx;
+      const ny = tile.y + dy;
       const nkey = `${nx},${ny}`;
 
       const neighbor = tileMap.get(nkey);
@@ -146,8 +168,9 @@ export function getConnectedTilesFast(tiles: Tile[], goals: Position[]): Set<str
     if (!tile || tile.type === 'wall' || tile.type === 'crushed') continue;
 
     for (const d of tile.connections) {
-      const nx = tile.x + (d === 'right' ? 1 : d === 'left' ? -1 : 0);
-      const ny = tile.y + (d === 'down' ? 1 : d === 'up' ? -1 : 0);
+      const [dx, dy] = directionToOffset(d);
+      const nx = tile.x + dx;
+      const ny = tile.y + dy;
       const nkey = `${nx},${ny}`;
 
       if (visited.has(nkey)) continue;
@@ -203,8 +226,9 @@ export function getConnectedTilesDFS(tiles: Tile[], goals: Position[]): Set<stri
     if (!tile || tile.type === 'wall' || tile.type === 'crushed') continue;
 
     for (const d of tile.connections) {
-      const nx = tile.x + (d === 'right' ? 1 : d === 'left' ? -1 : 0);
-      const ny = tile.y + (d === 'down' ? 1 : d === 'up' ? -1 : 0);
+      const [dx, dy] = directionToOffset(d);
+      const nx = tile.x + dx;
+      const ny = tile.y + dy;
       const nkey = `${nx},${ny}`;
       if (visited.has(nkey)) continue;
 

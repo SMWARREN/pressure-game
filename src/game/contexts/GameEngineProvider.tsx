@@ -22,7 +22,12 @@ interface GameEngineProviderProps {
   readonly onReady?: () => void;
 }
 
-export function GameEngineProvider({ children, statsBackend, pressureEngine: initialEngine, onReady }: GameEngineProviderProps) {
+export function GameEngineProvider({
+  children,
+  statsBackend,
+  pressureEngine: initialEngine,
+  onReady,
+}: GameEngineProviderProps) {
   const [engines, setEngines] = useState<GameEngineContextType | null>(null);
 
   // Ensure engine exists - fallback if not created in main.tsx
@@ -99,11 +104,7 @@ export function GameEngineProvider({ children, statsBackend, pressureEngine: ini
     return null;
   }
 
-  return (
-    <GameEngineContext.Provider value={engines}>
-      {children}
-    </GameEngineContext.Provider>
-  );
+  return <GameEngineContext.Provider value={engines}>{children}</GameEngineContext.Provider>;
 }
 
 export function useEngine(): PressureEngine {

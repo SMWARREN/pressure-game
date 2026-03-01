@@ -22,6 +22,18 @@ import { renderGemBlastDemo } from './demo';
 import { GEM_BLAST_WALKTHROUGH } from './walkthrough';
 import { findGroup, findAllGroups } from '../arcadeShared';
 
+// ── Helper functions ──────────────────────────────────────────────────────────
+
+/**
+ * Get blast gem chance based on world (replaces nested ternary)
+ */
+function getBlastChance(world: number): number {
+  if (world >= 4) return 0.07;
+  if (world >= 3) return 0.05;
+  if (world >= 2) return 0.03;
+  return 0;
+}
+
 // ── Gem color palette ─────────────────────────────────────────────────────────
 
 const GEM_COLORS: Record<string, TileColors> = {
@@ -227,7 +239,7 @@ export const GemBlastMode: GameModeConfig = {
     const gcols = (modeState?.gridCols as number) ?? gridSize;
     const grows = (modeState?.gridRows as number) ?? gridSize;
     const world = (modeState?.world as number) ?? 1;
-    const blastChance = world >= 4 ? 0.07 : world >= 3 ? 0.05 : world >= 2 ? 0.03 : 0;
+    const blastChance = getBlastChance(world);
 
     const activeSymbols =
       (tiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ?? GEM_SYMBOLS;

@@ -4,6 +4,26 @@
 import { Level } from '@/game/types';
 
 /**
+ * Blocker spawning for moderate intensity (replaces nested ternary)
+ */
+function getModerateBlockerCount(timeLeft: number): number {
+  if (timeLeft < 5) return 2;
+  if (timeLeft < 10) return 2;
+  if (timeLeft < 15) return 1;
+  return 0;
+}
+
+/**
+ * Blocker spawning for aggressive intensity (replaces nested ternary)
+ */
+function getAggressiveBlockerCount(timeLeft: number): number {
+  if (timeLeft < 5) return 3;
+  if (timeLeft < 10) return 2;
+  if (timeLeft < 20) return 1;
+  return 0;
+}
+
+/**
  * How many blockers to spawn based on intensity + time remaining.
  * Used for both ice cubes (Candy) and thieves (Shopping Spree).
  */
@@ -13,11 +33,11 @@ export function getBlockerCount(features: Level['features'], timeLeft: number): 
 
   if (intensity === 1) {
     // Moderate: progressive spawning in the final seconds
-    return timeLeft < 5 ? 2 : timeLeft < 10 ? 2 : timeLeft < 15 ? 1 : 0;
+    return getModerateBlockerCount(timeLeft);
   }
 
   // intensity === 2 (aggressive)
-  return timeLeft < 5 ? 3 : timeLeft < 10 ? 2 : timeLeft < 20 ? 1 : 0;
+  return getAggressiveBlockerCount(timeLeft);
 }
 
 /**

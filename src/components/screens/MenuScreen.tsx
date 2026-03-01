@@ -521,7 +521,12 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {formatLevelBadge({ isUnlimited: level.isUnlimited, unlimitedBest, scoreBest, best })}
+                              {formatLevelBadge({
+                                isUnlimited: level.isUnlimited,
+                                unlimitedBest,
+                                scoreBest,
+                                best,
+                              })}
                             </div>
                           )}
                         </button>

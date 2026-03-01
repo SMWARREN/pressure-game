@@ -37,6 +37,24 @@ interface HistorySnapshot {
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];
 
+/**
+ * Get status border color (replaces nested ternary)
+ */
+function getStatusBorderColor(status: string): string {
+  if (status === 'playing') return '#10b98140';
+  if (status === 'won') return '#22c55e40';
+  if (status === 'lost') return '#ef444440';
+  return '#f59e0b40';
+}
+
+/**
+ * Get compression override select value (replaces nested ternary)
+ */
+function getCompressionOverrideValue(override: boolean | null): string {
+  if (override === null) return 'default';
+  return override ? 'on' : 'off';
+}
+
 const COMPRESSION_DIRECTIONS: { dir: CompressionDirection; label: string; title: string }[] = [
   { dir: 'all', label: '⬛', title: 'All sides' },
   { dir: 'top', label: '⬇', title: 'From top' },
@@ -533,7 +551,7 @@ export const StateEditor: React.FC = () => {
                     : status === 'lost'
                       ? '#ef444420'
                       : '#f59e0b20',
-              border: `1px solid ${status === 'playing' ? '#10b98140' : status === 'won' ? '#22c55e40' : status === 'lost' ? '#ef444440' : '#f59e0b40'}`,
+              border: `1px solid ${getStatusBorderColor(status)}`,
             }}
           >
             <span
@@ -1278,9 +1296,7 @@ export const StateEditor: React.FC = () => {
                 >
                   <span style={{ fontSize: 12, color: '#fff' }}>Compression Override</span>
                   <select
-                    value={
-                      compressionOverride === null ? 'default' : compressionOverride ? 'on' : 'off'
-                    }
+                    value={getCompressionOverrideValue(compressionOverride)}
                     onChange={(e) => {
                       const val = e.target.value;
                       setCompressionOverride(val === 'default' ? null : val === 'on');

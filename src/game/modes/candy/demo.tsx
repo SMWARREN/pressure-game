@@ -27,7 +27,12 @@ export function renderCandyDemo(
         {grid.map((row, r) => (
           <div key={`row-${r}`} style={{ display: 'flex', gap: 3 }}>
             {row.map((sym, c) => (
-              <ArcadeTile colors={CANDY_COLORS} key={`cell-${r}-${c}`} sym={sym} highlight={inGroup(r, c)} />
+              <ArcadeTile
+                colors={CANDY_COLORS}
+                key={`cell-${r}-${c}`}
+                sym={sym}
+                highlight={inGroup(r, c)}
+              />
             ))}
           </div>
         ))}
@@ -169,7 +174,12 @@ export function renderCandyDemo(
                     🧊
                   </div>
                 ) : (
-                  <ArcadeTile colors={CANDY_COLORS} key={`cell-${r}-${c}`} sym={sym} highlight={inGroup(r, c)} />
+                  <ArcadeTile
+                    colors={CANDY_COLORS}
+                    key={`cell-${r}-${c}`}
+                    sym={sym}
+                    highlight={inGroup(r, c)}
+                  />
                 )
               )}
             </div>

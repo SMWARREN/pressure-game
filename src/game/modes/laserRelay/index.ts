@@ -340,12 +340,35 @@ function getTileColors(tile: Tile) {
   }
 }
 
+/**
+ * Convert direction to arrow symbol (replaces nested ternary)
+ */
+function directionToArrow(dir: string): string {
+  switch (dir) {
+    case 'right': return '▶';
+    case 'down': return '▼';
+    case 'left': return '◀';
+    default: return '▲';
+  }
+}
+
+/**
+ * Convert portal ID to number symbol (replaces nested ternary)
+ */
+function portalIdToSymbol(portalId: string): string {
+  switch (portalId) {
+    case '1': return '①';
+    case '2': return '②';
+    default: return '③';
+  }
+}
+
 function getTileSymbol(tile: Tile): string | null {
   const kind = tile.displayData?.kind as string;
   switch (kind) {
     case 'source': {
       const dir = tile.displayData?.dir as string;
-      return dir === 'right' ? '▶' : dir === 'down' ? '▼' : dir === 'left' ? '◀' : '▲';
+      return directionToArrow(dir);
     }
     case 'target':
       return '◎';
@@ -357,7 +380,7 @@ function getTileSymbol(tile: Tile): string | null {
     }
     case 'portal': {
       const portalId = tile.displayData?.portalId as string;
-      return portalId === '1' ? '①' : portalId === '2' ? '②' : '③';
+      return portalIdToSymbol(portalId);
     }
     case 'splitter':
       return '✦';

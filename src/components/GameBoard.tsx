@@ -113,42 +113,44 @@ export default function GameBoard() {
     editorUpdateTile,
     undoMove,
     toggleAnimations,
-  } = useGameStore(useShallow((s) => ({
-    status: s.status,
-    tiles: s.tiles,
-    currentLevel: s.currentLevel,
-    currentModeId: s.currentModeId,
-    moves: s.moves,
-    score: s.score,
-    elapsedSeconds: s.elapsedSeconds,
-    wallOffset: s.wallOffset,
-    wallsJustAdvanced: s.wallsJustAdvanced,
-    compressionActive: s.compressionActive,
-    isPaused: s.isPaused,
-    animationsEnabled: s.animationsEnabled,
-    screenShake: s.screenShake,
-    editor: s.editor,
-    history: s.history,
-    lossReason: s.lossReason,
-    modeState: s.modeState,
-    timeUntilCompression: s.timeUntilCompression,
-    generatedLevels: s.generatedLevels,
-    showArcadeHub: s.showArcadeHub,
-    showPressureHub: s.showPressureHub,
-    tapTile: s.tapTile,
-    loadLevel: s.loadLevel,
-    startGame: s.startGame,
-    restartLevel: s.restartLevel,
-    goToMenu: s.goToMenu,
-    pauseGame: s.pauseGame,
-    resumeGame: s.resumeGame,
-    completeTutorial: s.completeTutorial,
-    toggleEditor: s.toggleEditor,
-    setEditorTool: s.setEditorTool,
-    editorUpdateTile: s.editorUpdateTile,
-    undoMove: s.undoMove,
-    toggleAnimations: s.toggleAnimations,
-  })));
+  } = useGameStore(
+    useShallow((s) => ({
+      status: s.status,
+      tiles: s.tiles,
+      currentLevel: s.currentLevel,
+      currentModeId: s.currentModeId,
+      moves: s.moves,
+      score: s.score,
+      elapsedSeconds: s.elapsedSeconds,
+      wallOffset: s.wallOffset,
+      wallsJustAdvanced: s.wallsJustAdvanced,
+      compressionActive: s.compressionActive,
+      isPaused: s.isPaused,
+      animationsEnabled: s.animationsEnabled,
+      screenShake: s.screenShake,
+      editor: s.editor,
+      history: s.history,
+      lossReason: s.lossReason,
+      modeState: s.modeState,
+      timeUntilCompression: s.timeUntilCompression,
+      generatedLevels: s.generatedLevels,
+      showArcadeHub: s.showArcadeHub,
+      showPressureHub: s.showPressureHub,
+      tapTile: s.tapTile,
+      loadLevel: s.loadLevel,
+      startGame: s.startGame,
+      restartLevel: s.restartLevel,
+      goToMenu: s.goToMenu,
+      pauseGame: s.pauseGame,
+      resumeGame: s.resumeGame,
+      completeTutorial: s.completeTutorial,
+      toggleEditor: s.toggleEditor,
+      setEditorTool: s.setEditorTool,
+      editorUpdateTile: s.editorUpdateTile,
+      undoMove: s.undoMove,
+      toggleAnimations: s.toggleAnimations,
+    }))
+  );
 
   const stats = useStats();
 
@@ -519,7 +521,10 @@ export default function GameBoard() {
     hasFeatures
   );
 
-  const { timeStr: computedTimeStr, timeLeft } = computeTimeStrings(elapsedSeconds, currentLevel.timeLimit);
+  const { timeStr: computedTimeStr, timeLeft } = computeTimeStrings(
+    elapsedSeconds,
+    currentLevel.timeLimit
+  );
   const timeStr = status === 'playing' ? computedTimeStr : '';
   const countdownSecs = Math.ceil(timeUntilCompression / 1000);
   // Override statsDisplay when the level has a time limit

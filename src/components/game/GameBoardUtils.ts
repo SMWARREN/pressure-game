@@ -92,7 +92,10 @@ export function computeBoardDimensions(
 /**
  * Compute time strings for display
  */
-export function computeTimeStrings(elapsedSeconds: number, timeLimit?: number): {
+export function computeTimeStrings(
+  elapsedSeconds: number,
+  timeLimit?: number
+): {
   timeStr: string;
   timeLeft?: number;
 } {
@@ -153,10 +156,11 @@ export function computeOverlayProps(context: OverlayPropsContext): {
   lossTitle: string;
   statsText: string;
 } {
-  const { score, targetScore, moves, maxMoves, isUnlimited, lossReason, mode, elapsedSeconds } = context;
+  const { score, targetScore, moves, maxMoves, isUnlimited, lossReason, mode, elapsedSeconds } =
+    context;
   const reachedTarget = score >= (targetScore ?? Infinity);
   const outOfTaps = !isUnlimited && moves >= maxMoves && !reachedTarget;
-  const winTitle = outOfTaps ? 'OUT OF TAPS' : mode.overlayText?.win ?? 'CONNECTED';
+  const winTitle = outOfTaps ? 'OUT OF TAPS' : (mode.overlayText?.win ?? 'CONNECTED');
   const lossTitle = lossReason ?? mode.overlayText?.loss ?? 'CRUSHED';
 
   // Determine stats text based on mode type

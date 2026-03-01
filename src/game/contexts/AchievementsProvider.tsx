@@ -15,11 +15,7 @@ export function AchievementsProvider({ children }: { children: React.ReactNode }
     []
   );
 
-  return (
-    <AchievementsContext.Provider value={value}>
-      {children}
-    </AchievementsContext.Provider>
-  );
+  return <AchievementsContext.Provider value={value}>{children}</AchievementsContext.Provider>;
 }
 
 export function useAchievements(): AchievementEngine {

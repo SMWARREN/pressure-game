@@ -19,7 +19,9 @@ export class AudioSystem {
     if (typeof globalThis === 'undefined') return null;
     try {
       if (!this.audioCtx || this.audioCtx.state === 'closed') {
-        this.audioCtx = new (globalThis.AudioContext || (globalThis as unknown as any).webkitAudioContext)();
+        this.audioCtx = new (
+          globalThis.AudioContext || (globalThis as unknown as any).webkitAudioContext
+        )();
       }
       return this.audioCtx;
     } catch {

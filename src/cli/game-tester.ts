@@ -44,6 +44,87 @@ const pipeChars: Record<string, string> = {
 const compressionSystem = createCompressionSystem();
 
 /**
+ * Get ANSI color code for status (replaces nested ternary)
+ */
+function getStatusColor(status: string): string {
+  if (status === 'playing') return colors.green;
+  if (status === 'won') return colors.cyan;
+  return colors.red;
+}
+
+/**
+ * Get [dx, dy] offset from a direction
+ */
+function getDirectionOffset(dir: Direction): [number, number] {
+  if (dir === 'right') return [1, 0];
+  if (dir === 'left') return [-1, 0];
+  if (dir === 'down') return [0, 1];
+  return [0, -1]; // 'up'
+}
+
+/**
+ * Get opposite direction (replaces nested ternary)
+ */
+function getOppositeDirection(dir: Direction): Direction {
+  if (dir === 'up') return 'down';
+  if (dir === 'down') return 'up';
+  if (dir === 'left') return 'right';
+  return 'left';
+}
+
+/**
+ * Build border line with wall visualization (helper to reduce duplication)
+ */
+function buildBorderLine(gridSize: number, wallOffset: number, isTop: boolean): string {
+  const corner1 = isTop ? '┌' : '└';
+  const corner2 = isTop ? '┐' : '┘';
+  let line = `  ${corner1}`;
+  for (let x = 0; x < gridSize; x++) {
+    const dist = Math.min(x, gridSize - 1 - x);
+    if (dist < wallOffset) {
+      line += `${colors.red}──${colors.reset}`;
+    } else {
+      line += `${colors.dim}──${colors.reset}`;
+    }
+  }
+  line += `${colors.dim}${corner2}${colors.reset}`;
+  return line;
+}
+
+/**
+ * Build grid row with borders (helper to reduce duplication)
+ */
+function buildGridRow(
+  y: number,
+  gridSize: number,
+  wallOffset: number,
+  tileMap: Map<string, Tile>
+): string {
+  const yDist = Math.min(y, gridSize - 1 - y);
+  const leftCrushed = yDist < wallOffset;
+
+  let row = leftCrushed ? `${colors.red}  ${colors.reset}` : '  ';
+  row += leftCrushed ? `${colors.red}│${colors.reset}` : `${colors.dim}│${colors.reset}`;
+
+  for (let x = 0; x < gridSize; x++) {
+    const tile = tileMap.get(`${x},${y}`);
+    if (tile) {
+      row += renderTile(tile, wallOffset, gridSize);
+    } else {
+      const dist = Math.min(x, y, gridSize - 1 - x, gridSize - 1 - y);
+      if (dist < wallOffset) {
+        row += `${colors.red}██${colors.reset}`;
+      } else {
+        row += '  ';
+      }
+    }
+  }
+
+  row += leftCrushed ? `${colors.red}│${colors.reset}` : `${colors.dim}│${colors.reset}`;
+  return row;
+}
+
+/**
  * Get the pipe character for a tile based on its connections
  */
 function getPipeChar(connections: Direction[]): string {
@@ -106,59 +187,15 @@ function renderBoard(tiles: Tile[], gridSize: number, wallOffset: number): strin
   const lines: string[] = [];
 
   // Top border
-  let topBorder = '  ┌';
-  for (let x = 0; x < gridSize; x++) {
-    const dist = Math.min(x, gridSize - 1 - x);
-    if (dist < wallOffset) {
-      topBorder += `${colors.red}──${colors.reset}`;
-    } else {
-      topBorder += `${colors.dim}──${colors.reset}`;
-    }
-  }
-  topBorder += `${colors.dim}┐${colors.reset}`;
-  lines.push(topBorder);
+  lines.push(buildBorderLine(gridSize, wallOffset, true));
 
   // Grid rows
   for (let y = 0; y < gridSize; y++) {
-    const yDist = Math.min(y, gridSize - 1 - y);
-    const leftCrushed = yDist < wallOffset;
-
-    // Left border
-    let row = leftCrushed ? `${colors.red}  ${colors.reset}` : '  ';
-    row += leftCrushed ? `${colors.red}│${colors.reset}` : `${colors.dim}│${colors.reset}`;
-
-    // Tiles
-    for (let x = 0; x < gridSize; x++) {
-      const tile = tileMap.get(`${x},${y}`);
-      if (tile) {
-        row += renderTile(tile, wallOffset, gridSize);
-      } else {
-        const dist = Math.min(x, y, gridSize - 1 - x, gridSize - 1 - y);
-        if (dist < wallOffset) {
-          row += `${colors.red}██${colors.reset}`;
-        } else {
-          row += '  ';
-        }
-      }
-    }
-
-    // Right border
-    row += leftCrushed ? `${colors.red}│${colors.reset}` : `${colors.dim}│${colors.reset}`;
-    lines.push(row);
+    lines.push(buildGridRow(y, gridSize, wallOffset, tileMap));
   }
 
   // Bottom border
-  let bottomBorder = '  └';
-  for (let x = 0; x < gridSize; x++) {
-    const dist = Math.min(x, gridSize - 1 - x);
-    if (dist < wallOffset) {
-      bottomBorder += `${colors.red}──${colors.reset}`;
-    } else {
-      bottomBorder += `${colors.dim}──${colors.reset}`;
-    }
-  }
-  bottomBorder += `${colors.dim}┘${colors.reset}`;
-  lines.push(bottomBorder);
+  lines.push(buildBorderLine(gridSize, wallOffset, false));
 
   return lines.join('\n');
 }
@@ -183,8 +220,9 @@ function renderGameState(
 
   console.log(`${colors.bold}Mode:${colors.reset} ${colors.green}${modeName}${colors.reset}`);
   console.log(`${colors.bold}Moves:${colors.reset} ${moves}/${maxMoves}`);
+  const statusColor = getStatusColor(status);
   console.log(
-    `${colors.bold}Status:${colors.reset} ${status === 'playing' ? colors.green : status === 'won' ? colors.cyan : colors.red}${status}${colors.reset}`
+    `${colors.bold}Status:${colors.reset} ${statusColor}${status}${colors.reset}`
   );
   console.log(
     `${colors.bold}Wall Offset:${colors.reset} ${wallOffset}/${Math.floor(gridSize / 2)}`
@@ -230,8 +268,9 @@ function checkWin(tiles: Tile[], goalNodes: Position[]): boolean {
     if (!tile || tile.type === 'wall' || tile.type === 'crushed') continue;
 
     for (const dir of tile.connections) {
-      const nx = tile.x + (dir === 'right' ? 1 : dir === 'left' ? -1 : 0);
-      const ny = tile.y + (dir === 'down' ? 1 : dir === 'up' ? -1 : 0);
+      const [dx, dy] = getDirectionOffset(dir);
+      const nx = tile.x + dx;
+      const ny = tile.y + dy;
       const nkey = `${nx},${ny}`;
 
       if (visited.has(nkey)) continue;
@@ -239,8 +278,7 @@ function checkWin(tiles: Tile[], goalNodes: Position[]): boolean {
       const neighbor = tileMap.get(nkey);
       if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
 
-      const opposite: Direction =
-        dir === 'up' ? 'down' : dir === 'down' ? 'up' : dir === 'left' ? 'right' : 'left';
+      const opposite: Direction = getOppositeDirection(dir);
       if (neighbor.connections.includes(opposite)) {
         stack.push(nkey);
       }

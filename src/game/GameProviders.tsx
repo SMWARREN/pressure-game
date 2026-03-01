@@ -10,9 +10,18 @@ interface GameProvidersProps {
   readonly onEngineReady?: () => void;
 }
 
-export function GameProviders({ children, statsBackend, pressureEngine, onEngineReady }: GameProvidersProps) {
+export function GameProviders({
+  children,
+  statsBackend,
+  pressureEngine,
+  onEngineReady,
+}: GameProvidersProps) {
   return (
-    <GameEngineProvider statsBackend={statsBackend} pressureEngine={pressureEngine} onReady={onEngineReady}>
+    <GameEngineProvider
+      statsBackend={statsBackend}
+      pressureEngine={pressureEngine}
+      onReady={onEngineReady}
+    >
       {children}
     </GameEngineProvider>
   );

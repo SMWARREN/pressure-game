@@ -2,6 +2,20 @@
 
 import { TutorialDemoType } from '../types';
 
+/**
+ * Get display value based on tile type (replaces nested ternary)
+ */
+function getDisplayValue(
+  type: string,
+  fulfilled: boolean,
+  value?: number,
+  symbol?: string
+): string | number | undefined {
+  if (type === 'target') return fulfilled ? '✓' : value;
+  if (type === 'flux') return symbol;
+  return value;
+}
+
 function QuantumTile({
   type,
   value,
@@ -52,8 +66,7 @@ function QuantumTile({
     },
   };
 
-  const displayValue =
-    type === 'target' ? (fulfilled ? '✓' : value) : type === 'flux' ? symbol : value;
+  const displayValue = getDisplayValue(type, fulfilled, value, symbol);
 
   return (
     <div

@@ -72,16 +72,13 @@ function App({ pressureEngine }: AppProps) {
     setIsTestMode(params.has('levelId') && params.has('modeId'));
   }, []);
 
-  if(isTestMode) {
-    return <TestHarness pressureEngine={pressureEngine} />
+  if (isTestMode) {
+    return <TestHarness pressureEngine={pressureEngine} />;
   }
 
   return (
     <>
-      <GameProviders
-        pressureEngine={pressureEngine}
-        onEngineReady={() => setEngineReady(true)}
-      >
+      <GameProviders pressureEngine={pressureEngine} onEngineReady={() => setEngineReady(true)}>
         <AppContent />
       </GameProviders>
       {/* Show loading screen overlay until engine is ready */}

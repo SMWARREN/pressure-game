@@ -6,6 +6,15 @@ import { generateLevel, verifyLevel } from '@/game/levels';
 import { LoadingSpinner } from '../game/LoadingSpinner';
 import { btnPrimary } from '../overlays/Overlay';
 
+/**
+ * Get decoy count for difficulty level (replaces nested ternary)
+ */
+function getDecoyCountForDifficulty(difficulty: string): number {
+  if (difficulty === 'easy') return 2;
+  if (difficulty === 'medium') return 4;
+  return 6;
+}
+
 export interface LevelGeneratorPanelProps {
   readonly onLoad: (level: Level) => void;
 }
@@ -38,8 +47,7 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
     setResult(null);
     await new Promise((r) => setTimeout(r, 50));
     try {
-      const decoys =
-        decoysOverride ?? (difficulty === 'easy' ? 2 : difficulty === 'medium' ? 4 : 6);
+      const decoys = decoysOverride ?? getDecoyCountForDifficulty(difficulty);
       const level = generateLevel({
         gridSize,
         nodeCount: Math.min(nodeCount, maxNodes),

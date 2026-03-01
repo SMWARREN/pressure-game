@@ -35,6 +35,24 @@ function seededRandom(seed: number): () => number {
   };
 }
 
+/**
+ * Get charge rate based on tile type (replaces nested ternary)
+ */
+function getChargeRate(isHot: boolean, isCold: boolean): number {
+  if (isHot) return 2;
+  if (isCold) return 0;
+  return 1; // normal = charges every 1 tick
+}
+
+/**
+ * Get cell kind based on tile type (replaces nested ternary)
+ */
+function getCellKind(isHot: boolean, isCold: boolean): 'hot' | 'cold' | 'cell' {
+  if (isHot) return 'hot';
+  if (isCold) return 'cold';
+  return 'cell';
+}
+
 // ── Grid builder ──────────────────────────────────────────────────────────────
 
 function buildVoltageGrid(
@@ -62,7 +80,8 @@ function buildVoltageGrid(
     const key = `${x},${y}`;
     const isHot = hotSet.has(key);
     const isCold = coldSet.has(key);
-    const chargeRate = isHot ? 2 : isCold ? 0 : 1; // 0 = charges every 2 ticks
+    const chargeRate = getChargeRate(isHot, isCold);
+    const kind = getCellKind(isHot, isCold);
     return {
       id: `v${seed}-${x}-${y}`,
       type: 'path' as const,
@@ -74,7 +93,7 @@ function buildVoltageGrid(
       displayData: {
         charge: 0,
         chargeRate,
-        kind: isHot ? 'hot' : isCold ? 'cold' : 'cell',
+        kind,
       },
     };
   });

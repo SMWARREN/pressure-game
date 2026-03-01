@@ -44,6 +44,17 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+/**
+ * Convert delta x,y to a Direction without nested ternaries.
+ * Replaces: dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up'
+ */
+function deltaToDir(dx: number, dy: number): Direction {
+  if (dx === 1) return 'right';
+  if (dx === -1) return 'left';
+  if (dy === 1) return 'down';
+  return 'up';
+}
+
 // ─── Fast connectivity check (no BFS solver) ──────────────────────────────
 function isConnected(tiles: Tile[], goals: Position[]): boolean {
   if (goals.length < 2) return true;
@@ -461,7 +472,7 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
           b = path[j + 1];
         const dx = b.x - a.x,
           dy = b.y - a.y;
-        const dAB: Direction = dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up';
+        const dAB: Direction = deltaToDir(dx, dy);
         const dBA: Direction = OPP[dAB];
         addConn(mainConnMap, a.x, a.y, dAB);
         addConn(mainConnMap, b.x, b.y, dBA);
@@ -501,7 +512,7 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
       const first = branch[0];
       const dx = first.x - root.x,
         dy = first.y - root.y;
-      const dOut: Direction = dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up';
+      const dOut: Direction = deltaToDir(dx, dy);
       addConn(branchConnMap, root.x, root.y, dOut);
       addConn(branchConnMap, first.x, first.y, OPP[dOut]);
 
@@ -510,8 +521,7 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
           b = branch[j + 1];
         const dxb = b.x - a.x,
           dyb = b.y - a.y;
-        const dAB: Direction =
-          dxb === 1 ? 'right' : dxb === -1 ? 'left' : dyb === 1 ? 'down' : 'up';
+        const dAB: Direction = deltaToDir(dxb, dyb);
         addConn(branchConnMap, a.x, a.y, dAB);
         addConn(branchConnMap, b.x, b.y, OPP[dAB]);
         occupied.add(`${b.x},${b.y}`);

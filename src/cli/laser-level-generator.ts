@@ -938,6 +938,20 @@ const LEVEL_DEFS: LevelDef[] = [
   },
 ];
 
+// ── Helper Functions ──────────────────────────────────────────────────────────
+
+/**
+ * Get arrow symbol for direction (replaces nested ternary)
+ */
+function getDirectionArrow(dir: string): string {
+  switch (dir) {
+    case 'right': return '▶';
+    case 'down': return '▼';
+    case 'left': return '◀';
+    default: return '▲';
+  }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 const colors = {
@@ -986,7 +1000,7 @@ function printBoard(level: Level, mirrorRotations?: number[]): void {
         let char = '  ';
         if (kind === 'source') {
           const dir = tile.displayData?.dir;
-          const arrow = dir === 'right' ? '▶' : dir === 'down' ? '▼' : dir === 'left' ? '◀' : '▲';
+          const arrow = getDirectionArrow(dir as string);
           char = `${colors.cyan}${arrow}${arrow}${colors.reset}`;
         } else if (kind === 'target') {
           char = `${colors.green}★★${colors.reset}`;
@@ -1009,7 +1023,9 @@ function printBoard(level: Level, mirrorRotations?: number[]): void {
     console.log(row);
   }
   console.log(`  └${'──'.repeat(cols)}┘`);
-  const beamStatus = hitsTarget ? `${colors.green}HITS${colors.reset}` : `${colors.red}MISSES${colors.reset}`;
+  const beamStatus = hitsTarget
+    ? `${colors.green}HITS${colors.reset}`
+    : `${colors.red}MISSES${colors.reset}`;
   console.log(`  Beam ${beamStatus}`);
 }
 

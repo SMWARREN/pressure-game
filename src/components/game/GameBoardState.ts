@@ -18,7 +18,10 @@ interface SolutionStep {
 /**
  * Manage hint system (solution computation and visibility)
  */
-export function useHintSystem(currentLevel: Level | null, isPipeMode: boolean): {
+export function useHintSystem(
+  currentLevel: Level | null,
+  isPipeMode: boolean
+): {
   solution: SolutionStep[] | null;
   isComputingSolution: boolean;
   hintPos: SolutionStep | null;
@@ -62,7 +65,10 @@ export function useHintSystem(currentLevel: Level | null, isPipeMode: boolean): 
 /**
  * Manage unlimited level rules dialog and high score tracking
  */
-export function useUnlimitedSystem(currentLevel: Level | null, currentModeId: string): {
+export function useUnlimitedSystem(
+  currentLevel: Level | null,
+  currentModeId: string
+): {
   isUnlimited: boolean;
   showUnlimitedRules: boolean;
   setShowUnlimitedRules: (show: boolean) => void;
