@@ -704,6 +704,7 @@ export const StateEditor: React.FC = () => {
           padding: 16,
         }}
       >
+        {/* Render appropriate tab content */}
         {isTabSelected('tiles') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* Mini Grid */}
