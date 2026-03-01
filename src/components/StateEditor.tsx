@@ -16,6 +16,7 @@ import {
   getStatusBorderColor,
   getStatusTextColor,
 } from './game/GameTileUtils';
+import { useStateEditorLogic, type HistorySnapshot } from './hooks/useStateEditorLogic';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -35,13 +36,6 @@ interface StatePreset {
   };
 }
 
-interface HistorySnapshot {
-  readonly tiles: Tile[];
-  readonly moves: number;
-  readonly score: number;
-  readonly description: string;
-  readonly timestamp: number;
-}
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];
 
@@ -207,41 +201,14 @@ export const StateEditor: React.FC = () => {
     }
   }, [isOpen, status, wasPausedByEditor, setState]);
 
-  // Capture current state for debug history
-  const captureDebugSnapshot = useCallback(
-    (description: string) => {
-      const snapshot: HistorySnapshot = {
-        tiles: tiles.map((t) => ({ ...t, connections: [...t.connections] })),
-        moves,
-        score,
-        description,
-        timestamp: Date.now(),
-      };
-      setDebugHistory((prev) => [...prev.slice(-49), snapshot]); // Keep last 50
-      setDebugStep((prev) => prev + 1);
-    },
-    [tiles, moves, score]
-  );
-
-  // Update tile connections
-  const updateTileConnections = useCallback(
-    (x: number, y: number, connections: Direction[]) => {
-      const newTiles = tiles.map((t) => (t.x === x && t.y === y ? { ...t, connections } : t));
-      setState({ tiles: newTiles });
-      captureDebugSnapshot(`Updated tile (${x},${y}) connections`);
-    },
-    [tiles, setState, captureDebugSnapshot]
-  );
-
-  // Toggle tile property
-  const toggleTileProperty = useCallback(
-    (x: number, y: number, prop: keyof Tile) => {
-      const newTiles = tiles.map((t) => (t.x === x && t.y === y ? { ...t, [prop]: !t[prop] } : t));
-      setState({ tiles: newTiles });
-      captureDebugSnapshot(`Toggled ${prop} on tile (${x},${y})`);
-    },
-    [tiles, setState, captureDebugSnapshot]
-  );
+  // Use extracted logic hook for tile manipulation
+  const { captureDebugSnapshot, updateTileConnections, toggleTileProperty } = useStateEditorLogic({
+    tiles,
+    moves,
+    score,
+    setDebugHistory,
+    setDebugStep,
+  });
 
   // Set game state value
   const setGameState = useCallback(
