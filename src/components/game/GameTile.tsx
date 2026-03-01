@@ -137,206 +137,165 @@ export interface GameTileProps {
   readonly editorMode?: boolean;
 }
 
-/**
- * GameTile - Individual tile component with visual states and click handling
- * Memoized to prevent unnecessary re-renders
- */
-function GameTileComponent({
-  id,
-  x = 0,
-  y = 0,
-  type,
-  connections,
-  canRotate,
-  isGoalNode,
-  isDecoy = false,
-  isHint,
-  inDanger,
-  justRotated,
-  onClick,
-  tileSize,
-  animationsEnabled = true,
-  tileRenderer,
-  displayData,
-  isRejected = false,
-  editorMode = false,
-}: GameTileProps) {
-  const [pressed, setPressed] = useState(false);
-  const [ripple, setRipple] = useState(false);
-  const pressedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const rippleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Ensure danger pulse keyframes are injected (needed for default pipe renderer)
-  ensureCandyStyles();
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (pressedTimeoutRef.current) clearTimeout(pressedTimeoutRef.current);
-      if (rippleTimeoutRef.current) clearTimeout(rippleTimeoutRef.current);
-    };
-  }, []);
-
-  const handleClick = () => {
-    // In editor mode, always allow clicks. In game mode, only allow on rotatable tiles.
-    if (!editorMode && !canRotate) return;
-
-    if (animationsEnabled) {
-      setPressed(true);
-      setRipple(true);
-      if (pressedTimeoutRef.current) clearTimeout(pressedTimeoutRef.current);
-      if (rippleTimeoutRef.current) clearTimeout(rippleTimeoutRef.current);
-      pressedTimeoutRef.current = setTimeout(() => setPressed(false), 150);
-      rippleTimeoutRef.current = setTimeout(() => setRipple(false), 400);
-    }
-
-    onClick();
+// ─── Helper: Custom renderer for special tile types ───────────────────────
+function renderCustomTile(
+  id: string | undefined,
+  x: number,
+  y: number,
+  type: string,
+  connections: Direction[],
+  canRotate: boolean,
+  isGoalNode: boolean,
+  isRejected: boolean,
+  tileSize: number,
+  animationsEnabled: boolean,
+  tileRenderer: TileRenderer,
+  displayData: Record<string, unknown> | undefined,
+  justRotated: any,
+  bgStyle: React.CSSProperties,
+  tileTransform: string,
+  handleClick: () => void,
+  r: number
+): React.ReactElement {
+  const ctx = {
+    isHint: false,
+    inDanger: false,
+    justRotated: Boolean(justRotated),
+    compressionActive: false,
+    tileSize,
   };
+  const tile = {
+    id: id ?? `${type}-${x}-${y}`,
+    x,
+    y,
+    type: type as any as TileType,
+    connections,
+    canRotate,
+    isGoalNode,
+    justRotated,
+    displayData,
+  };
+  const customColors = tileRenderer.getColors?.(tile, ctx);
+  const symbol = tileRenderer.getSymbol?.(tile, ctx);
+  const rejectedStyle = isRejected
+    ? {
+        background: 'linear-gradient(145deg, #2d0808 0%, #1a0000 100%)',
+        border: '2px solid #ef4444',
+        boxShadow: '0 0 18px rgba(239,68,68,0.7)',
+      }
+    : null;
+  const appliedBg = rejectedStyle ?? customColors ?? bgStyle;
 
-  const r = tileSize > 50 ? 8 : 6;
-  const bgStyle = getTileBackgroundStyle(type, isHint, inDanger, isDecoy, canRotate);
+  const isNewTile = Boolean(displayData?.isNew);
+  const isOutbreak = tileRenderer.type === 'outbreak';
+  const obOwned = isOutbreak && Boolean(displayData?.owned);
+  const obFrontier = isOutbreak && !obOwned && Boolean(displayData?.isFrontier);
+  const obInterior = isOutbreak && !obOwned && !obFrontier;
 
+  const zpColor = (customColors as Record<string, string> | undefined)?.color ?? '#888';
+  const zpShadowLo = (appliedBg as Record<string, string>)?.boxShadow ?? 'none';
+  const zpShadowHi = obFrontier
+    ? `0 0 22px ${zpColor}cc, 0 0 8px ${zpColor}88, inset 0 0 10px ${zpColor}33`
+    : zpShadowLo;
+
+  const outbreakAnimation = getOutbreakAnimation(
+    isOutbreak,
+    animationsEnabled,
+    isNewTile,
+    obFrontier
+  );
+  const iconAnimation = getIconAnimation(isOutbreak, animationsEnabled, isNewTile, obOwned);
+  const symSize = getSymbolSize(isOutbreak, tileSize, obOwned, obFrontier);
+
+  const customTransform = isNewTile && isOutbreak ? undefined : tileTransform;
+  const customFontWeight = isOutbreak && obFrontier ? 700 : undefined;
+
+  return (
+    <button
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      style={{
+        borderRadius: r,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: canRotate ? 'pointer' : 'default',
+        transform: customTransform,
+        transition: getTileTransitionStyle(isNewTile, getTileTransition(animationsEnabled, false)),
+        animation: getTileAnimation(isOutbreak, animationsEnabled, isNewTile, outbreakAnimation),
+        fontSize: symSize,
+        fontWeight: customFontWeight,
+        ['--zp-shadow-lo' as string]: zpShadowLo,
+        ['--zp-shadow-hi' as string]: zpShadowHi,
+        ...appliedBg,
+        overflow: 'hidden',
+        border: 'none',
+        padding: 0,
+        minHeight: 'unset',
+        minWidth: 'unset',
+      }}
+      aria-label={`Tile at ${x}, ${y}`}
+    >
+      {symbol && (
+        <span
+          style={{
+            zIndex: 1,
+            userSelect: 'none',
+            display: 'block',
+            lineHeight: 1,
+            animation: iconAnimation,
+            opacity: isOutbreak && obInterior ? 0.55 : 1,
+            filter:
+              isOutbreak && obOwned && !isNewTile
+                ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
+                : undefined,
+          }}
+        >
+          {symbol}
+        </span>
+      )}
+      {!tileRenderer.hidePipes &&
+        connections.length > 0 &&
+        type !== 'wall' &&
+        type !== 'crushed' && (
+          <Pipes connections={connections} color={getConnColor({ type, isHint: false, inDanger: false, isDecoy: false, canRotate, tileSize })} glow={getConnGlow({ type, isHint: false, inDanger: false, isDecoy: false, canRotate, tileSize })} />
+        )}
+    </button>
+  );
+}
+
+// ─── Helper: Default pipe renderer ─────────────────────────────────────────
+function renderDefaultTile(
+  x: number,
+  y: number,
+  type: string,
+  connections: Direction[],
+  canRotate: boolean,
+  isGoalNode: boolean,
+  isHint: any,
+  inDanger: any,
+  isDecoy: any,
+  ripple: boolean,
+  tileSize: number,
+  editorMode: boolean,
+  bgStyle: React.CSSProperties,
+  tileTransform: string,
+  tileTransition: string,
+  displayData: Record<string, unknown> | undefined,
+  handleClick: () => void,
+  r: number
+): React.ReactElement {
   const connColor = getConnColor({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
   const connGlow = getConnGlow({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
-
-  const tileTransform = getTileTransform(animationsEnabled, pressed, justRotated);
-  const tileTransition = getTileTransition(animationsEnabled, pressed);
-
-  // ── Extracted computed variables (eliminate inline ternaries) ────────────────
-  const cursorValue = canRotate ? 'pointer' : 'default';
   const crushedFontSize = tileSize > 40 ? 14 : 10;
   const nodeBorderColor = inDanger ? 'rgba(252,165,165,0.5)' : 'rgba(134,239,172,0.5)';
 
-  // ── Custom mode renderer (slots, candy crush, match-3, outbreak, etc.) ────
-  if (tileRenderer && tileRenderer.type !== 'pipe') {
-    if (tileRenderer.type === 'candy' || tileRenderer.type === 'outbreak') ensureCandyStyles();
-
-    const ctx = {
-      isHint,
-      inDanger,
-      justRotated: Boolean(justRotated),
-      compressionActive: false,
-      tileSize,
-    };
-    const tile = {
-      id: id ?? `${type}-${x}-${y}`,
-      x,
-      y,
-      type: type as TileType,
-      connections,
-      canRotate,
-      isGoalNode,
-      justRotated,
-      displayData,
-    };
-    const customColors = tileRenderer.getColors?.(tile, ctx);
-    const symbol = tileRenderer.getSymbol?.(tile, ctx);
-    const rejectedStyle = isRejected
-      ? {
-          background: 'linear-gradient(145deg, #2d0808 0%, #1a0000 100%)',
-          border: '2px solid #ef4444',
-          boxShadow: '0 0 18px rgba(239,68,68,0.7)',
-        }
-      : null;
-    const appliedBg = rejectedStyle ?? customColors ?? bgStyle;
-
-    // isNew: tile just dropped in — play slide animation + glow border transition
-    const isNewTile = Boolean(displayData?.isNew);
-
-    // ── Outbreak-specific state flags ────────────────────────────────────────
-    const isOutbreak = tileRenderer.type === 'outbreak';
-    const obOwned = isOutbreak && Boolean(displayData?.owned);
-    const obFrontier = isOutbreak && !obOwned && Boolean(displayData?.isFrontier);
-    const obInterior = isOutbreak && !obOwned && !obFrontier;
-
-    // CSS custom properties for the zombiePulse animation (set per-tile color)
-    const zpColor = (customColors as Record<string, string> | undefined)?.color ?? '#888';
-    const zpShadowLo = (appliedBg as Record<string, string>)?.boxShadow ?? 'none';
-    const zpShadowHi = obFrontier
-      ? `0 0 22px ${zpColor}cc, 0 0 8px ${zpColor}88, inset 0 0 10px ${zpColor}33`
-      : zpShadowLo;
-
-    // Pick the right animation for each outbreak state
-    const outbreakAnimation = getOutbreakAnimation(
-      isOutbreak,
-      animationsEnabled,
-      isNewTile,
-      obFrontier
-    );
-
-    // Icon animation: newly absorbed tiles get a spin-in for the owned icon
-    const iconAnimation = getIconAnimation(isOutbreak, animationsEnabled, isNewTile, obOwned);
-
-    // Symbol font size: scale down on small tiles (10×10 grid)
-    const symSize = getSymbolSize(isOutbreak, tileSize, obOwned, obFrontier);
-
-    // ── Extracted computed variables for custom renderer ────────────────────────
-    const customTransform = isNewTile && isOutbreak ? undefined : tileTransform;
-    const customFontWeight = isOutbreak && obFrontier ? 700 : undefined;
-
-    return (
-      <button
-        onClick={handleClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
-        style={{
-          borderRadius: r,
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: cursorValue,
-          transform: customTransform,
-          transition: getTileTransitionStyle(isNewTile, tileTransition),
-          animation: getTileAnimation(isOutbreak, animationsEnabled, isNewTile, outbreakAnimation),
-          fontSize: symSize,
-          fontWeight: customFontWeight,
-          // CSS vars for zombiePulse keyframe
-          ['--zp-shadow-lo' as string]: zpShadowLo,
-          ['--zp-shadow-hi' as string]: zpShadowHi,
-          ...appliedBg,
-          overflow: 'hidden',
-          border: 'none',
-          padding: 0,
-          minHeight: 'unset',
-          minWidth: 'unset',
-        }}
-        aria-label={`Tile at ${x}, ${y}`}
-      >
-        {symbol && (
-          <span
-            style={{
-              zIndex: 1,
-              userSelect: 'none',
-              display: 'block',
-              lineHeight: 1,
-              animation: iconAnimation,
-              // Dim interior zombie icons slightly so they don't compete with frontier numbers
-              opacity: isOutbreak && obInterior ? 0.55 : 1,
-              filter:
-                isOutbreak && obOwned && !isNewTile
-                  ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
-                  : undefined,
-            }}
-          >
-            {symbol}
-          </span>
-        )}
-        {!tileRenderer.hidePipes &&
-          connections.length > 0 &&
-          type !== 'wall' &&
-          type !== 'crushed' && (
-            <Pipes connections={connections} color={connColor} glow={connGlow} />
-          )}
-      </button>
-    );
-  }
-
-  // ── Default pipe renderer ─────────────────────────────────────────────────
   return (
     <button
       data-testid={`tile-${x}-${y}`}
@@ -401,13 +360,12 @@ function GameTileComponent({
         />
       )}
 
-      {/* Check if this tile is a decoy */}
+      {/* Decoy/Rotatable indicator */}
       {(() => {
-        const isDecoy = displayData?.isDecoy === true;
+        const isDec = displayData?.isDecoy === true;
         return (
           <>
-            {/* Rotatable indicator dot - hidden for decoys */}
-            {canRotate && !isDecoy && (
+            {canRotate && !isDec && (
               <div
                 style={{
                   position: 'absolute',
@@ -421,9 +379,7 @@ function GameTileComponent({
                 }}
               />
             )}
-
-            {/* Decoy indicator - circle outline */}
-            {isDecoy && (
+            {isDec && (
               <div
                 style={{
                   position: 'absolute',
@@ -443,7 +399,7 @@ function GameTileComponent({
         );
       })()}
 
-      {/* Crushed tile X marker */}
+      {/* Crushed tile marker */}
       {type === 'crushed' && (
         <div
           style={{
@@ -458,6 +414,114 @@ function GameTileComponent({
         </div>
       )}
     </button>
+  );
+}
+
+/**
+ * GameTile - Individual tile component with visual states and click handling
+ * Memoized to prevent unnecessary re-renders
+ */
+function GameTileComponent({
+  id,
+  x = 0,
+  y = 0,
+  type,
+  connections,
+  canRotate,
+  isGoalNode,
+  isDecoy = false,
+  isHint,
+  inDanger,
+  justRotated,
+  onClick,
+  tileSize,
+  animationsEnabled = true,
+  tileRenderer,
+  displayData,
+  isRejected = false,
+  editorMode = false,
+}: GameTileProps) {
+  const [pressed, setPressed] = useState(false);
+  const [ripple, setRipple] = useState(false);
+  const pressedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rippleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Ensure danger pulse keyframes are injected (needed for default pipe renderer)
+  ensureCandyStyles();
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (pressedTimeoutRef.current) clearTimeout(pressedTimeoutRef.current);
+      if (rippleTimeoutRef.current) clearTimeout(rippleTimeoutRef.current);
+    };
+  }, []);
+
+  const handleClick = () => {
+    // In editor mode, always allow clicks. In game mode, only allow on rotatable tiles.
+    if (!editorMode && !canRotate) return;
+
+    if (animationsEnabled) {
+      setPressed(true);
+      setRipple(true);
+      if (pressedTimeoutRef.current) clearTimeout(pressedTimeoutRef.current);
+      if (rippleTimeoutRef.current) clearTimeout(rippleTimeoutRef.current);
+      pressedTimeoutRef.current = setTimeout(() => setPressed(false), 150);
+      rippleTimeoutRef.current = setTimeout(() => setRipple(false), 400);
+    }
+
+    onClick();
+  };
+
+  const r = tileSize > 50 ? 8 : 6;
+  const bgStyle = getTileBackgroundStyle(type, isHint, inDanger, isDecoy, canRotate);
+  const tileTransform = getTileTransform(animationsEnabled, pressed, justRotated);
+  const tileTransition = getTileTransition(animationsEnabled, pressed);
+
+  // ── Custom mode renderer (slots, candy crush, match-3, outbreak, etc.) ────
+  if (tileRenderer && tileRenderer.type !== 'pipe') {
+    if (tileRenderer.type === 'candy' || tileRenderer.type === 'outbreak') ensureCandyStyles();
+    return renderCustomTile(
+      id,
+      x,
+      y,
+      type,
+      connections,
+      canRotate,
+      isGoalNode,
+      isRejected,
+      tileSize,
+      animationsEnabled,
+      tileRenderer,
+      displayData,
+      justRotated,
+      bgStyle,
+      tileTransform,
+      handleClick,
+      r
+    );
+  }
+
+  // ── Default pipe renderer ─────────────────────────────────────────────────
+  return renderDefaultTile(
+    x,
+    y,
+    type,
+    connections,
+    canRotate,
+    isGoalNode,
+    isHint,
+    inDanger,
+    isDecoy,
+    ripple,
+    tileSize,
+    editorMode,
+    bgStyle,
+    tileTransform,
+    tileTransition,
+    displayData,
+    handleClick,
+    r
   );
 }
 
