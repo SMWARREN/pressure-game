@@ -23,50 +23,15 @@ import {
   type SymbolUnlockState,
 } from '../symbolUnlockAddon';
 import { findGroupWithWildcards, buildTileMap } from '../arcadeShared';
+import { findGroup } from '../shared/groupFinder';
 import { reshuffleTiles, hasAdjacentMatch } from '../arcadeUtils';
 import { WILDCARD_SYMBOL, isWildcard, makeWildcardTile, getWildcardColors } from '../wildcardAddon';
 import { BOMB_SYMBOL, isBomb, makeBombTile, applyBombExplosion, getBombColors } from '../bombAddon';
 import { updateCombo, resetCombo, comboNotification, type ComboState } from '../comboChainAddon';
 import { tickRain } from '../rainAddon';
 
-// ── Group flood-fill ──────────────────────────────────────────────────────────
-
-/** Find the full connected group of same-symbol tiles starting at (x, y). */
-function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
-  const map = buildTileMap(tiles);
-  const start = map.get(`${x},${y}`);
-  if (!start?.canRotate) return [];
-
-  const targetSym = start.displayData?.symbol as string;
-  const visited = new Set<string>();
-  const stack: Tile[] = [start];
-  const group: Tile[] = [];
-
-  while (stack.length) {
-    const cur = stack.pop()!;
-    const key = `${cur.x},${cur.y}`;
-    if (visited.has(key)) continue;
-    visited.add(key);
-    group.push(cur);
-
-    for (const [dx, dy] of [
-      [0, -1],
-      [0, 1],
-      [-1, 0],
-      [1, 0],
-    ] as [number, number][]) {
-      const nb = map.get(`${cur.x + dx},${cur.y + dy}`);
-      if (
-        nb?.canRotate &&
-        !visited.has(`${nb.x},${nb.y}`) &&
-        nb.displayData?.symbol === targetSym
-      ) {
-        stack.push(nb);
-      }
-    }
-  }
-  return group;
-}
+// ── Group finding ────────────────────────────────────────────────────────────
+// Uses shared groupFinder.ts for DFS-based connected group detection
 
 // ── Gravity + refill ──────────────────────────────────────────────────────────
 
@@ -274,9 +239,15 @@ export const CandyMode: GameModeConfig = {
     const gcols = (modeState?.gridCols as number) ?? gridSize;
     const grows = (modeState?.gridRows as number) ?? gridSize;
 
-    const group = features?.wildcards
-      ? findGroupWithWildcards(x, y, tiles)
-      : findGroup(x, y, tiles);
+    let group: Tile[];
+    if (features?.wildcards) {
+      group = findGroupWithWildcards(x, y, tiles);
+    } else {
+      const map = buildTileMap(tiles);
+      const startTile = map.get(`${x},${y}`);
+      const targetSym = startTile?.displayData?.symbol;
+      group = findGroup(x, y, tiles, (tile) => tile.displayData?.symbol === targetSym);
+    }
     if (group.length < 2) return null; // Need 2+ connected same-color tiles
 
     // ── Symbol unlock state (persisted across taps in modeState) ──────────────
