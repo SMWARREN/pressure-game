@@ -118,6 +118,17 @@ function hasValidMove(tiles: Tile[]): boolean {
   });
 }
 
+// ── Notification helpers ──────────────────────────────────────────────────────
+
+function getCascadeNotification(delta: number, cascade: number, modeState: any): string {
+  const mult = (modeState?.cascadeMult as number) ?? 1;
+  const multStr = mult.toFixed(0);
+  if (cascade >= 5) return `+${delta} 💎💥 MAX CASCADE ×${multStr}!`;
+  if (cascade >= 4) return `+${delta} 🔥 CASCADE ×${multStr}!`;
+  if (cascade >= 3) return `+${delta} ✨ CASCADE ×${multStr}!`;
+  return `+${delta} 🔗 CASCADE ×${multStr}!`;
+}
+
 // ── Reshuffle if no valid moves ───────────────────────────────────────────────
 
 function reshuffle(tiles: Tile[]): Tile[] {
@@ -337,13 +348,11 @@ export const GemBlastMode: GameModeConfig = {
 
   getNotification(_tiles, _moves, modeState) {
     const delta = (modeState?.scoreDelta as number) ?? 0;
-    const cascade = (modeState?.cascadeLevel as number) ?? 1;
-    const mult = (modeState?.cascadeMult as number) ?? 1;
     if (delta <= 0) return null;
-    if (cascade >= 5) return `+${delta} 💎💥 MAX CASCADE ×${mult.toFixed(0)}!`;
-    if (cascade >= 4) return `+${delta} 🔥 CASCADE ×${mult.toFixed(0)}!`;
-    if (cascade >= 3) return `+${delta} ✨ CASCADE ×${mult.toFixed(0)}!`;
-    if (cascade >= 2) return `+${delta} 🔗 CASCADE ×${mult.toFixed(0)}!`;
+
+    const cascade = (modeState?.cascadeLevel as number) ?? 1;
+    if (cascade >= 2) return getCascadeNotification(delta, cascade, modeState);
+
     const n = Math.round(Math.sqrt(delta / 3));
     if (n >= 8) return `+${delta} 🔥 MEGA CHAIN!`;
     if (n >= 5) return `+${delta} GREAT!`;
