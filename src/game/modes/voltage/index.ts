@@ -14,6 +14,7 @@
 
 import { GameModeConfig, TapResult, WinResult } from '../types';
 import { Tile } from '../../types';
+import { clamp } from '@/utils/conditionalStyles';
 import { VOLTAGE_LEVELS, VOLTAGE_WORLDS } from './levels';
 import { VOLTAGE_TUTORIAL_STEPS } from './tutorial';
 import { renderVoltageDemo } from './demo';
@@ -53,7 +54,7 @@ function chargeToColors(charge: number, kind: string) {
     { bg: '#2d0000', border: '#ff0000', glow: 'rgba(255,0,0,0.85)' },
   ];
 
-  const idx = Math.max(0, Math.min(7, Math.floor(charge)));
+  const idx = clamp(Math.floor(charge), 0, 7);
   const l = levels[idx];
   const hotExtra = kind === 'hot' ? ', 0 0 6px rgba(251,191,36,0.4)' : '';
   return {
@@ -69,7 +70,7 @@ function chargeToSymbol(charge: number, kind: string): string | null {
   if (charge === 0) return null;
   if (charge >= 7) return '⚡';
   const bars = ['', '▁', '▂', '▃', '▄', '▅', '▆', '▇'];
-  return bars[Math.min(7, Math.floor(charge))];
+  return bars[clamp(Math.floor(charge), 0, 7)];
 }
 
 // ── Mode config ───────────────────────────────────────────────────────────────

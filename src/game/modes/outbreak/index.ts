@@ -12,6 +12,7 @@
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
 import { Tile } from '../../types';
+import { clamp } from '@/utils/conditionalStyles';
 import { buildTileMap } from '../arcadeShared';
 import {
   OUTBREAK_LEVELS,
@@ -244,8 +245,8 @@ export const OutbreakMode: GameModeConfig = {
     // Percentage now owned (score counts absorbed tiles; corner start = +1)
     const totalCells = Math.round(target / 10) + 1;
     const ownedCells = Math.round(score / 10) + 1;
-    const pct = Math.min(100, Math.round((ownedCells / totalCells) * 100));
-    const prevPct = Math.min(100, Math.round(((ownedCells - cells) / totalCells) * 100));
+    const pct = clamp(Math.round((ownedCells / totalCells) * 100), 0, 100);
+    const prevPct = clamp(Math.round(((ownedCells - cells) / totalCells) * 100), 0, 100);
 
     // Milestone messages — take priority over generic ones
     if (prevPct < 90 && pct >= 90) return `🔥 90% infected! Almost there!`;

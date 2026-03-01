@@ -57,3 +57,19 @@ export function getStateColor(
 export function pickRandom<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
+
+/**
+ * Clamp a value between min and max boundaries
+ * Replaces: Math.max(min, Math.min(max, value))
+ */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Nullish coalescing with fallback function
+ * Useful when the fallback is expensive to compute
+ */
+export function coalesce<T>(value: T | null | undefined, fallback: T): T {
+  return value ?? fallback;
+}
