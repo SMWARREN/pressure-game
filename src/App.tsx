@@ -7,6 +7,7 @@ import { AchievementToastContainer } from './components/AchievementToast';
 import StateEditor from './components/StateEditor';
 
 function AppContent() {
+  console.log('[App] AppContent rendering');
   return (
     <>
       <GameBoard />

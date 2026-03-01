@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useGameStore, _setEngineInstance } from '@/game/store';
 import { createPressureEngine, type PressureEngine } from '@/game/engine/index';
 import { StatsEngine } from '@/game/stats/engine';
@@ -20,13 +20,10 @@ interface GameEngineProviderProps {
   statsBackend?: StatsBackend;
 }
 
-let engines: GameEngineContextType | null = null;
-
 export function GameEngineProvider({ children, statsBackend }: GameEngineProviderProps) {
-  // Initialize on first mount only
-  useEffect(() => {
-    if (engines) return; // Already initialized
+  const [engines, setEngines] = useState<GameEngineContextType | null>(null);
 
+  useEffect(() => {
     try {
       const pressureEngine = createPressureEngine();
       pressureEngine.init(
@@ -51,28 +48,34 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
 
       const achievementEngine = new AchievementEngine();
 
-      engines = { pressureEngine, statsEngine, achievementEngine };
-      console.log('[GameEngineProvider] Engines initialized');
+      setEngines({ pressureEngine, statsEngine, achievementEngine });
+      console.log('[GameEngineProvider] Engines initialized and state set');
     } catch (error) {
       console.error('[GameEngineProvider] Init error:', error);
     }
 
     return () => {
-      if (engines) {
-        try {
-          engines.pressureEngine.destroy();
-          engines.statsEngine.stop();
-          _setEngineInstance(null as any);
-          engines = null;
-        } catch (error) {
-          console.error('[GameEngineProvider] Cleanup error:', error);
+      setEngines((prev) => {
+        if (prev) {
+          try {
+            prev.pressureEngine.destroy();
+            prev.statsEngine.stop();
+            _setEngineInstance(null as any);
+          } catch (error) {
+            console.error('[GameEngineProvider] Cleanup error:', error);
+          }
         }
-      }
+        return null;
+      });
     };
   }, [statsBackend]);
 
-  if (!engines) return null;
+  if (!engines) {
+    console.log('[GameEngineProvider] Engines not ready, returning null');
+    return null;
+  }
 
+  console.log('[GameEngineProvider] Rendering with engines');
   return (
     <GameEngineContext.Provider value={engines}>
       {children}

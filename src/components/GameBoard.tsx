@@ -69,6 +69,7 @@ const iconBtn: React.CSSProperties = {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function GameBoard() {
+  console.log('[GameBoard] Rendering');
   // Destructure from store using useShallow to avoid unnecessary re-renders
   const {
     status,
