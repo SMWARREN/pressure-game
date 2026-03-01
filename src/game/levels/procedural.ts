@@ -602,17 +602,20 @@ function verifySolution(
 // ─── Main generator ────────────────────────────────────────────────────────
 // ── Procedural generation helper ────────────────────────────────────────────
 
-function tryGenerateAttempt(
-  attempt: number,
-  gridCols: number,
-  gridRows: number,
-  nodeCount: number,
-  dirConfig: any,
-  interiorWallCount: number,
-  branchCount: number,
-  opts: ProceduralOptions,
-  params: any
-): Level | null {
+interface GenerationAttemptConfig {
+  readonly attempt: number;
+  readonly gridCols: number;
+  readonly gridRows: number;
+  readonly nodeCount: number;
+  readonly dirConfig: any;
+  readonly interiorWallCount: number;
+  readonly branchCount: number;
+  readonly opts: ProceduralOptions;
+  readonly params: any;
+}
+
+function tryGenerateAttempt(config: GenerationAttemptConfig): Level | null {
+  const { attempt, gridCols, gridRows, nodeCount, dirConfig, interiorWallCount, branchCount, opts, params } = config;
   const { tiles: wallTiles, borderSet } = createBorderWalls(gridCols, gridRows);
   const goalPositions = placeGoalNodes(gridCols, gridRows, nodeCount, dirConfig);
   if (!goalPositions) return null;
@@ -699,7 +702,7 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
   const branchCount = opts.branches ?? rng(1, 2);
 
   for (let attempt = 0; attempt < 40; attempt++) {
-    const result = tryGenerateAttempt(
+    const result = tryGenerateAttempt({
       attempt,
       gridCols,
       gridRows,
@@ -708,8 +711,8 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
       interiorWallCount,
       branchCount,
       opts,
-      params
-    );
+      params,
+    });
     if (result) return result;
   }
 
