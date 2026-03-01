@@ -27,13 +27,6 @@ export function selectByCondition<T>(
 }
 
 /**
- * Select from two options based on condition (ternary replacement)
- */
-export function selectStyle<T>(condition: boolean, trueValue: T, falseValue: T): T {
-  return condition ? trueValue : falseValue;
-}
-
-/**
  * Select color based on state flags
  */
 export function getStateColor(

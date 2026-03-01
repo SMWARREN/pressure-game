@@ -156,13 +156,6 @@ const CANDY_BONUS_SYMBOLS = ['🍇', '🥝', '🍒', '🥭', '🍑', '🍍'];
 // ── Candy score calculation helpers ───────────────────────────────────────────
 
 /**
- * Calculate score multiplier for fresh symbols.
- */
-function getScoreMultiplier(isFreshClear: boolean): number {
-  return isFreshClear ? 2 : 1;
-}
-
-/**
  * Calculate total candy score from group size and multipliers.
  */
 function calculateCandyScore(
@@ -380,7 +373,7 @@ export const CandyMode: GameModeConfig = {
     // Calculate score multiplier and base score
     const clearedSymbol = group[0].displayData?.symbol as string;
     const isFreshClear = unlockState.freshSymbols.includes(clearedSymbol);
-    const scoreMultiplier = getScoreMultiplier(isFreshClear);
+    const scoreMultiplier = isFreshClear ? 2 : 1;
 
     // Apply bomb explosion if enabled
     const { extraClearedKeys, bonusScore } = features?.bombs
