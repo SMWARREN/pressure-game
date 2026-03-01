@@ -77,6 +77,36 @@ function touchesTerritory(group: Tile[], map: Map<string, Tile>): boolean {
   return false;
 }
 
+// ── Notification helpers ──────────────────────────────────────────────────────
+
+/**
+ * Milestone messages by infection percentage thresholds.
+ */
+function getMilestoneMessage(prevPct: number, pct: number): string | null {
+  const milestones = [
+    { threshold: 90, emoji: '🔥', text: '90% infected! Almost there!' },
+    { threshold: 75, emoji: '🦠', text: '75% infected!' },
+    { threshold: 50, emoji: '📈', text: `Halfway! ${pct}%` },
+    { threshold: 25, emoji: '🌱', text: '25% — keep spreading!' },
+  ];
+
+  for (const m of milestones) {
+    if (prevPct < m.threshold && pct >= m.threshold) {
+      return `${m.emoji} ${m.text}`;
+    }
+  }
+  return null;
+}
+
+/**
+ * Big burst messages by cell count.
+ */
+function getBurstMessage(cells: number, pct: number): string | null {
+  if (cells >= 10) return `🦠 PANDEMIC! +${cells} cells · ${pct}%`;
+  if (cells >= 6) return `🔥 OUTBREAK! +${cells} cells · ${pct}%`;
+  return null;
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 
 export const OutbreakMode: GameModeConfig = {
@@ -249,14 +279,12 @@ export const OutbreakMode: GameModeConfig = {
     const prevPct = clamp(Math.round(((ownedCells - cells) / totalCells) * 100), 0, 100);
 
     // Milestone messages — take priority over generic ones
-    if (prevPct < 90 && pct >= 90) return `🔥 90% infected! Almost there!`;
-    if (prevPct < 75 && pct >= 75) return `🦠 75% infected!`;
-    if (prevPct < 50 && pct >= 50) return `📈 Halfway! ${pct}%`;
-    if (prevPct < 25 && pct >= 25) return `🌱 25% — keep spreading!`;
+    const milestone = getMilestoneMessage(prevPct, pct);
+    if (milestone) return milestone;
 
     // Big burst messages
-    if (cells >= 10) return `🦠 PANDEMIC! +${cells} cells · ${pct}%`;
-    if (cells >= 6) return `🔥 OUTBREAK! +${cells} cells · ${pct}%`;
+    const burst = getBurstMessage(cells, pct);
+    if (burst) return burst;
 
     // Default: always show cells gained + running percentage
     return `+${cells} cell${cells !== 1 ? 's' : ''} · ${pct}%`;

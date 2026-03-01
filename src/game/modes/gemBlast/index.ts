@@ -20,12 +20,22 @@ import { reshuffleTiles, hasValidGroup } from '../arcadeUtils';
 // ── Helper functions ──────────────────────────────────────────────────────────
 
 /**
+ * Blast gem spawn chance by world tier.
+ */
+const BLAST_CHANCE_BY_WORLD: Array<{ minWorld: number; chance: number }> = [
+  { minWorld: 4, chance: 0.07 },
+  { minWorld: 3, chance: 0.05 },
+  { minWorld: 2, chance: 0.03 },
+  { minWorld: 0, chance: 0 },
+];
+
+/**
  * Get blast gem chance based on world (replaces nested ternary)
  */
 function getBlastChance(world: number): number {
-  if (world >= 4) return 0.07;
-  if (world >= 3) return 0.05;
-  if (world >= 2) return 0.03;
+  for (const tier of BLAST_CHANCE_BY_WORLD) {
+    if (world >= tier.minWorld) return tier.chance;
+  }
   return 0;
 }
 
@@ -151,12 +161,25 @@ function hasValidMove(tiles: Tile[]): boolean {
 
 // ── Notification helpers ──────────────────────────────────────────────────────
 
+/**
+ * Cascade notification templates by cascade level.
+ */
+const CASCADE_NOTIFICATIONS: Array<{ minLevel: number; emoji: string; text: string }> = [
+  { minLevel: 5, emoji: '💎💥', text: 'MAX CASCADE' },
+  { minLevel: 4, emoji: '🔥', text: 'CASCADE' },
+  { minLevel: 3, emoji: '✨', text: 'CASCADE' },
+  { minLevel: 0, emoji: '🔗', text: 'CASCADE' },
+];
+
 function getCascadeNotification(delta: number, cascade: number, modeState: any): string {
   const mult = (modeState?.cascadeMult as number) ?? 1;
   const multStr = mult.toFixed(0);
-  if (cascade >= 5) return `+${delta} 💎💥 MAX CASCADE ×${multStr}!`;
-  if (cascade >= 4) return `+${delta} 🔥 CASCADE ×${multStr}!`;
-  if (cascade >= 3) return `+${delta} ✨ CASCADE ×${multStr}!`;
+
+  for (const notif of CASCADE_NOTIFICATIONS) {
+    if (cascade >= notif.minLevel) {
+      return `+${delta} ${notif.emoji} ${notif.text} ×${multStr}!`;
+    }
+  }
   return `+${delta} 🔗 CASCADE ×${multStr}!`;
 }
 
@@ -172,15 +195,28 @@ function reshuffle(tiles: Tile[]): Tile[] {
 // ── Time bonus calculation for timed levels ───────────────────────────────────
 
 /**
+ * Time bonus tiers by cascade level and group size.
+ * Cascade bonuses override group size bonuses.
+ */
+const TIME_BONUS_TIERS: Array<{ minLevel: number; minSize?: number; bonus: number }> = [
+  { minLevel: 5, bonus: 12 },
+  { minLevel: 4, bonus: 8 },
+  { minLevel: 3, bonus: 5 },
+  { minLevel: 0, minSize: 7, bonus: 4 },
+  { minLevel: 0, minSize: 4, bonus: 2 },
+  { minLevel: 0, bonus: 1 },
+];
+
+/**
  * Calculate time bonus based on cascade level and group size.
  * Timed levels (Worlds 3+) award more time for bigger chains.
  */
 function calculateGemTimeBonus(cascadeLevel: number, groupSize: number): number {
-  if (cascadeLevel >= 5) return 12;
-  if (cascadeLevel >= 4) return 8;
-  if (cascadeLevel >= 3) return 5;
-  if (groupSize >= 7) return 4;
-  if (groupSize >= 4) return 2;
+  for (const tier of TIME_BONUS_TIERS) {
+    if (cascadeLevel >= tier.minLevel && (tier.minSize === undefined || groupSize >= tier.minSize)) {
+      return tier.bonus;
+    }
+  }
   return 1;
 }
 

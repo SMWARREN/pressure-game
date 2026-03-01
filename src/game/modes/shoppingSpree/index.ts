@@ -88,20 +88,30 @@ function maybeTriggerFlashSale(state: ShoppingModeState): ShoppingModeState {
 
 // ── Thief spawn helpers ───────────────────────────────────────────────────────
 
+/**
+ * Thief spawn chance lookup by intensity and time bracket.
+ * Replaces nested conditionals with table lookup.
+ */
+const THIEF_SPAWN_CHANCES: Record<number, Array<{ timeThreshold: number; chance: number }>> = {
+  1: [
+    { timeThreshold: 10, chance: 0.4 },
+    { timeThreshold: 20, chance: 0.25 },
+    { timeThreshold: 25, chance: 0.15 },
+  ],
+  2: [
+    { timeThreshold: 10, chance: 0.55 },
+    { timeThreshold: 20, chance: 0.4 },
+    { timeThreshold: 30, chance: 0.25 },
+    { timeThreshold: Infinity, chance: 0.15 },
+  ],
+};
+
 function getThiefSpawnChance(intensity: number, timeLeft: number): number {
-  if (intensity === 1) {
-    // Moderate: thieves in last 20s
-    if (timeLeft < 10) return 0.4;
-    if (timeLeft < 20) return 0.25;
-    if (timeLeft < 25) return 0.15;
-    return 0;
-  }
-  if (intensity === 2) {
-    // Aggressive: thieves throughout
-    if (timeLeft < 10) return 0.55;
-    if (timeLeft < 20) return 0.4;
-    if (timeLeft < 30) return 0.25;
-    return 0.15;
+  const rules = THIEF_SPAWN_CHANCES[intensity];
+  if (!rules) return 0;
+
+  for (const rule of rules) {
+    if (timeLeft < rule.timeThreshold) return rule.chance;
   }
   return 0;
 }
@@ -236,12 +246,22 @@ function calculateBaseValue(
 }
 
 /**
+ * Combo multiplier by group size tiers.
+ */
+const COMBO_MULTIPLIER_TIERS: Array<{ minSize: number; multiplier: number }> = [
+  { minSize: 10, multiplier: 4 },
+  { minSize: 7, multiplier: 3 },
+  { minSize: 5, multiplier: 2 },
+  { minSize: 0, multiplier: 1 },
+];
+
+/**
  * Get the combo multiplier based on group size.
  */
 function getComboMultiplier(groupSize: number): number {
-  if (groupSize >= 10) return 4;
-  if (groupSize >= 7) return 3;
-  if (groupSize >= 5) return 2;
+  for (const tier of COMBO_MULTIPLIER_TIERS) {
+    if (groupSize >= tier.minSize) return tier.multiplier;
+  }
   return 1;
 }
 
@@ -267,6 +287,16 @@ function calculateScoreDelta(
 }
 
 /**
+ * Time bonus by group size tiers.
+ */
+const TIME_BONUS_TIERS: Array<{ minSize: number; bonus: number }> = [
+  { minSize: 10, bonus: 8 },
+  { minSize: 7, bonus: 5 },
+  { minSize: 5, bonus: 3 },
+  { minSize: 0, bonus: 2 },
+];
+
+/**
  * Calculate time bonus for timed levels.
  */
 function calculateTimeBonus(
@@ -277,10 +307,11 @@ function calculateTimeBonus(
   if (timeLeft === undefined) return 0;
   const minGroupForTime = getMinGroupForTime(features);
   if (groupSize < minGroupForTime) return 0;
-  if (groupSize >= 10) return 8;
-  if (groupSize >= 7) return 5;
-  if (groupSize >= 5) return 3;
-  return 2;
+
+  for (const tier of TIME_BONUS_TIERS) {
+    if (groupSize >= tier.minSize) return tier.bonus;
+  }
+  return 0;
 }
 
 /**

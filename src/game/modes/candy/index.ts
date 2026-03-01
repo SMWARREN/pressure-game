@@ -115,9 +115,19 @@ function getExistingFrozenPositions(tiles: Tile[]): Set<string> {
   return new Set(tiles.filter((t) => t.displayData?.frozen).map((t) => `${t.x},${t.y}`));
 }
 
+/**
+ * Max frozen tile count by time bracket.
+ */
+const FROZEN_TILE_MAX_BY_TIME: Array<{ timeThreshold: number; maxCount: number }> = [
+  { timeThreshold: 8, maxCount: 2 },
+  { timeThreshold: 15, maxCount: 1 },
+  { timeThreshold: Infinity, maxCount: 0 },
+];
+
 function getFrozenTileMaxCount(timeLeft: number): number {
-  if (timeLeft <= 8) return 2;
-  if (timeLeft <= 15) return 1;
+  for (const tier of FROZEN_TILE_MAX_BY_TIME) {
+    if (timeLeft <= tier.timeThreshold) return tier.maxCount;
+  }
   return 0;
 }
 
@@ -165,6 +175,16 @@ function calculateCandyScore(
 }
 
 /**
+ * Time bonus tiers by group size.
+ */
+const CANDY_TIME_BONUS_TIERS: Array<{ minSize: number; bonus: number }> = [
+  { minSize: 7, bonus: 5 },
+  { minSize: 6, bonus: 4 },
+  { minSize: 5, bonus: 3 },
+  { minSize: 0, bonus: 2 },
+];
+
+/**
  * Calculate time bonus for Unlimited world (world 5).
  */
 function calculateCandyTimeBonus(
@@ -175,10 +195,11 @@ function calculateCandyTimeBonus(
   if (timeLeft === undefined) return 0;
   const minGroupForTime = getMinGroupForTime(features);
   if (groupSize < minGroupForTime) return 0;
-  if (groupSize >= 7) return 5;
-  if (groupSize >= 6) return 4;
-  if (groupSize >= 5) return 3;
-  return 2;
+
+  for (const tier of CANDY_TIME_BONUS_TIERS) {
+    if (groupSize >= tier.minSize) return tier.bonus;
+  }
+  return 0;
 }
 
 /**
@@ -219,6 +240,26 @@ function processCandyClear(
   result = applyFreshFlags(result, newUnlockState.freshSymbols);
 
   return { tiles: result, unlockState: newUnlockState, newSymbolUnlocked };
+}
+
+// ── Notification helpers ──────────────────────────────────────────────────────
+
+/**
+ * Get timed mode notification by group size and time bonus.
+ */
+function getTimedNotification(delta: number, groupSize: number, timeBonus: number): string {
+  if (groupSize >= 7) return `+${delta} ⏱️+${timeBonus}s 🔥 COMBO!`;
+  if (groupSize >= 5) return `+${delta} ⏱️+${timeBonus}s ✨`;
+  return `+${delta} ⏱️+${timeBonus}s`;
+}
+
+/**
+ * Get non-timed mode notification by group size.
+ */
+function getNonTimedNotification(delta: number, groupSize: number): string | null {
+  if (groupSize >= 9) return `+${delta} 💥 MEGA COMBO!`;
+  if (groupSize >= 6) return `+${delta} 🔥 GREAT!`;
+  return groupSize >= 4 ? `+${delta} ✨ NICE!` : null;
 }
 
 // ── Mode config ───────────────────────────────────────────────────────────────
@@ -525,15 +566,11 @@ export const CandyMode: GameModeConfig = {
 
     // Timed mode notifications include time bonus
     if (timeLeft !== undefined && timeBonus > 0) {
-      if (n >= 7) return `+${delta} ⏱️+${timeBonus}s 🔥 COMBO!`;
-      if (n >= 5) return `+${delta} ⏱️+${timeBonus}s ✨`;
-      return `+${delta} ⏱️+${timeBonus}s`;
+      return getTimedNotification(delta, n, timeBonus);
     }
 
     // Non-timed mode notifications
-    if (n >= 9) return `+${delta} 💥 MEGA COMBO!`;
-    if (n >= 6) return `+${delta} 🔥 GREAT!`;
-    return n >= 4 ? `+${delta} ✨ NICE!` : null;
+    return getNonTimedNotification(delta, n);
   },
 
   statsLabels: { moves: 'TAPS' },
