@@ -170,6 +170,69 @@ function getValidNextTiles(
   return [];
 }
 
+// ── Quantum Flux symbol mapping ──────────────────────────────────────────────
+
+const QUANTUM_FLUX_SYMBOLS: Record<QuantumFluxEffect, (value: number) => string> = {
+  double: () => '×2',
+  halve: () => '÷2',
+  add: (v) => `+${v}`,
+  subtract: (v) => `-${v}`,
+};
+
+/**
+ * Get symbol for quantum flux tile
+ */
+function getQuantumFluxSymbol(data: QuantumFluxTileData): string {
+  const fn = QUANTUM_FLUX_SYMBOLS[data.effect];
+  return fn ? fn(data.value ?? 0) : '?';
+}
+
+// ── Tile color constants ─────────────────────────────────────────────────────
+
+const TILE_COLORS_BY_TYPE: Record<string, TileColors> = {
+  number: {
+    background: 'linear-gradient(145deg, #1e3a5f 0%, #0d1f33 100%)',
+    border: '2px solid #3b82f6',
+    boxShadow: '0 0 10px rgba(59, 130, 246, 0.4)',
+    color: '#93c5fd',
+  },
+  operator: {
+    background: 'linear-gradient(145deg, #4c1d95 0%, #2e1065 100%)',
+    border: '2px solid #8b5cf6',
+    boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)',
+    color: '#c4b5fd',
+  },
+  quantumFlux: {
+    background: 'linear-gradient(145deg, #7f1d1d 0%, #450a0a 100%)',
+    border: '2px solid #ef4444',
+    boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)',
+    color: '#fca5a5',
+  },
+  targetFulfilled: {
+    background: 'linear-gradient(145deg, #14532d 0%, #052e16 100%)',
+    border: '2px solid #22c55e',
+    boxShadow: '0 0 12px rgba(34, 197, 94, 0.5)',
+    color: '#86efac',
+  },
+  targetPending: {
+    background: 'linear-gradient(145deg, #78350f 0%, #451a03 100%)',
+    border: '2px solid #f59e0b',
+    boxShadow: '0 0 12px rgba(245, 158, 11, 0.5)',
+    color: '#fcd34d',
+  },
+  empty: {
+    background: '#1a1a2e',
+    border: '1px solid #333',
+  },
+};
+
+/**
+ * Get colors for target tile based on fulfillment state
+ */
+function getTargetColors(data: TargetTileData): TileColors {
+  return data.isFulfilled ? TILE_COLORS_BY_TYPE.targetFulfilled : TILE_COLORS_BY_TYPE.targetPending;
+}
+
 // ── Tile Renderer ────────────────────────────────────────────────────────────
 
 const quantumChainTileRenderer: TileRenderer = {
@@ -189,13 +252,7 @@ const quantumChainTileRenderer: TileRenderer = {
     }
     if (tile.type === 'quantumFlux') {
       const data = tile.displayData as QuantumFluxTileData;
-      const symbols: Record<QuantumFluxEffect, string> = {
-        double: '×2',
-        halve: '÷2',
-        add: `+${data.value ?? 0}`,
-        subtract: `-${data.value ?? 0}`,
-      };
-      return symbols[data.effect] || '?';
+      return getQuantumFluxSymbol(data);
     }
     if (tile.type === 'target') {
       const data = tile.displayData as TargetTileData;
@@ -206,50 +263,19 @@ const quantumChainTileRenderer: TileRenderer = {
 
   getColors(tile: Tile, _ctx: TileRenderContext): TileColors {
     if (tile.type === 'number') {
-      return {
-        background: 'linear-gradient(145deg, #1e3a5f 0%, #0d1f33 100%)',
-        border: '2px solid #3b82f6',
-        boxShadow: '0 0 10px rgba(59, 130, 246, 0.4)',
-        color: '#93c5fd',
-      };
+      return TILE_COLORS_BY_TYPE.number;
     }
     if (tile.type === 'operator') {
-      return {
-        background: 'linear-gradient(145deg, #4c1d95 0%, #2e1065 100%)',
-        border: '2px solid #8b5cf6',
-        boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)',
-        color: '#c4b5fd',
-      };
+      return TILE_COLORS_BY_TYPE.operator;
     }
     if (tile.type === 'quantumFlux') {
-      return {
-        background: 'linear-gradient(145deg, #7f1d1d 0%, #450a0a 100%)',
-        border: '2px solid #ef4444',
-        boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)',
-        color: '#fca5a5',
-      };
+      return TILE_COLORS_BY_TYPE.quantumFlux;
     }
     if (tile.type === 'target') {
       const data = tile.displayData as TargetTileData;
-      if (data.isFulfilled) {
-        return {
-          background: 'linear-gradient(145deg, #14532d 0%, #052e16 100%)',
-          border: '2px solid #22c55e',
-          boxShadow: '0 0 12px rgba(34, 197, 94, 0.5)',
-          color: '#86efac',
-        };
-      }
-      return {
-        background: 'linear-gradient(145deg, #78350f 0%, #451a03 100%)',
-        border: '2px solid #f59e0b',
-        boxShadow: '0 0 12px rgba(245, 158, 11, 0.5)',
-        color: '#fcd34d',
-      };
+      return getTargetColors(data);
     }
-    return {
-      background: '#1a1a2e',
-      border: '1px solid #333',
-    };
+    return TILE_COLORS_BY_TYPE.empty;
   },
 };
 

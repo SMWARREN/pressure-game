@@ -143,6 +143,84 @@ const CANDY_COLORS: Record<string, { bg: string; border: string; glow: string }>
 // Every level starts without these; big combos introduce them as fresh (2× score) tiles.
 const CANDY_BONUS_SYMBOLS = ['🍇', '🥝', '🍒', '🥭', '🍑', '🍍'];
 
+// ── Candy score calculation helpers ───────────────────────────────────────────
+
+/**
+ * Calculate score multiplier for fresh symbols.
+ */
+function getScoreMultiplier(isFreshClear: boolean): number {
+  return isFreshClear ? 2 : 1;
+}
+
+/**
+ * Calculate total candy score from group size and multipliers.
+ */
+function calculateCandyScore(
+  groupSize: number,
+  scoreMultiplier: number,
+  comboMult: number,
+  bonusScore: number
+): number {
+  return Math.round(groupSize * groupSize * 5 * scoreMultiplier * comboMult) + bonusScore;
+}
+
+/**
+ * Calculate time bonus for Unlimited world (world 5).
+ */
+function calculateCandyTimeBonus(
+  groupSize: number,
+  timeLeft: number | undefined,
+  features: { rain?: boolean; ice?: boolean; blockerIntensity?: 0 | 1 | 2 } | undefined
+): number {
+  if (timeLeft === undefined) return 0;
+  const minGroupForTime = getMinGroupForTime(features);
+  if (groupSize < minGroupForTime) return 0;
+  if (groupSize >= 7) return 5;
+  if (groupSize >= 6) return 4;
+  if (groupSize >= 5) return 3;
+  return 2;
+}
+
+/**
+ * Process tile clearing, gravity, and reshuffle for candy mode.
+ */
+function processCandyClear(
+  group: Tile[],
+  tiles: Tile[],
+  extraClearedKeys: Set<string>,
+  features: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined,
+  gcols: number,
+  grows: number,
+  unlockState: SymbolUnlockState
+): { tiles: Tile[]; unlockState: SymbolUnlockState; newSymbolUnlocked: string | undefined } {
+  const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
+  let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
+
+  // Try to unlock new symbol on 5+ groups
+  let newUnlockState = unlockState;
+  let newSymbolUnlocked: string | undefined;
+  if (group.length >= 5) {
+    const unlock = tryUnlockSymbol(unlockState);
+    if (unlock) {
+      newSymbolUnlocked = unlock.symbol;
+      newUnlockState = unlock.state;
+      remaining = expandActiveSymbols(remaining, unlock.symbol);
+    }
+  }
+
+  // Apply gravity and reshuffle if needed
+  let result = applyGravity(remaining, gcols, grows, features);
+  if (!hasValidMove(result)) {
+    result = reshuffle(result);
+  }
+
+  // Update freshness flags
+  newUnlockState = updateFreshness(result, newUnlockState);
+  result = applyFreshFlags(result, newUnlockState.freshSymbols);
+
+  return { tiles: result, unlockState: newUnlockState, newSymbolUnlocked };
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 
 export const CandyMode: GameModeConfig = {
@@ -237,6 +315,7 @@ export const CandyMode: GameModeConfig = {
     const gcols = (modeState?.gridCols as number) ?? gridSize;
     const grows = (modeState?.gridRows as number) ?? gridSize;
 
+    // Find group with or without wildcards
     let group: Tile[];
     if (features?.wildcards) {
       group = findGroupWithWildcards(x, y, tiles);
@@ -246,11 +325,9 @@ export const CandyMode: GameModeConfig = {
       const targetSym = startTile?.displayData?.symbol;
       group = findGroup(x, y, tiles, (tile) => tile.displayData?.symbol === targetSym);
     }
-    if (group.length < 2) return null; // Need 2+ connected same-color tiles
+    if (group.length < 2) return null;
 
-    // ── Symbol unlock state (persisted across taps in modeState) ──────────────
-    // lockedSymbols comes from the bonus pool — never from the base CANDY_SYMBOLS.
-    // Every level starts with all 5 base symbols intact; bonuses are extras.
+    // Setup symbol unlock state
     const unlockState: SymbolUnlockState =
       modeState?.lockedSymbols != null
         ? {
@@ -259,76 +336,50 @@ export const CandyMode: GameModeConfig = {
           }
         : { lockedSymbols: [...CANDY_BONUS_SYMBOLS], freshSymbols: [] };
 
-    // ── Score — 2× for fresh (newly introduced) symbols ───────────────────────
+    // Calculate score multiplier and base score
     const clearedSymbol = group[0].displayData?.symbol as string;
     const isFreshClear = unlockState.freshSymbols.includes(clearedSymbol);
-    const scoreMultiplier = isFreshClear ? 2 : 1;
+    const scoreMultiplier = getScoreMultiplier(isFreshClear);
 
-    // ── Bomb explosion — clears 3×3 around each bomb in the group ─────────────
+    // Apply bomb explosion if enabled
     const { extraClearedKeys, bonusScore } = features?.bombs
       ? applyBombExplosion(group, tiles, gridSize)
       : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
 
-    // ── Combo chain multiplier ─────────────────────────────────────────────────
+    // Setup combo chain
     const prevCombo: ComboState =
       features?.comboChain && modeState?.combo ? (modeState.combo as ComboState) : resetCombo();
     const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
     const comboMult = features?.comboChain ? newCombo.multiplier : 1;
 
-    const scoreDelta =
-      Math.round(group.length * group.length * 5 * scoreMultiplier * comboMult) + bonusScore;
+    // Calculate score
+    const scoreDelta = calculateCandyScore(group.length, scoreMultiplier, comboMult, bonusScore);
 
-    const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
-    let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
+    // Process tile clearing, gravity, and freshness updates
+    const { tiles: nextTiles, unlockState: newUnlockState, newSymbolUnlocked } = processCandyClear(
+      group,
+      tiles,
+      extraClearedKeys,
+      features,
+      gcols,
+      grows,
+      unlockState
+    );
 
-    // ── 5+ combo → unlock the next unseen candy ───────────────────────────────
-    let newUnlockState = unlockState;
-    let newSymbolUnlocked: string | undefined;
-    if (group.length >= 5) {
-      const unlock = tryUnlockSymbol(unlockState);
-      if (unlock) {
-        newSymbolUnlocked = unlock.symbol;
-        newUnlockState = unlock.state;
-        // Expand activeSymbols on survivors so applyGravity refills with new symbol
-        remaining = expandActiveSymbols(remaining, unlock.symbol);
-      }
-    }
-
-    // Unfreeze nearby frozen tiles — threshold and radius scale with world difficulty
+    // Unfreeze nearby frozen tiles
     const { tiles: remainingWithUnfrozen } = unblockNearGroup(
       group,
-      remaining,
+      nextTiles,
       'frozen',
       minGroupSize
     );
 
-    let next = applyGravity(remainingWithUnfrozen, gcols, grows, features);
-
-    // If refill produces a deadlock, reshuffle so the player can always move
-    if (!hasValidMove(next)) {
-      next = reshuffle(next);
-    }
-
-    // Graduate fresh symbols that are now evenly spread, then stamp isFresh flags
-    newUnlockState = updateFreshness(next, newUnlockState);
-    next = applyFreshFlags(next, newUnlockState.freshSymbols);
-
-    // ── Time bonus for Unlimited world (world 5) ──────────────────────────────
+    // Calculate time bonus
     const timeLeft = modeState?.timeLeft as number | undefined;
-    let timeBonus = 0;
-    if (timeLeft !== undefined) {
-      const minGroupForTime = getMinGroupForTime(features);
-
-      if (group.length >= minGroupForTime) {
-        if (group.length >= 7) timeBonus = 5;
-        else if (group.length >= 6) timeBonus = 4;
-        else if (group.length >= 5) timeBonus = 3;
-        else timeBonus = 2; // groups of 3, 4 both get 2
-      }
-    }
+    const timeBonus = calculateCandyTimeBonus(group.length, timeLeft, features);
 
     return {
-      tiles: next,
+      tiles: remainingWithUnfrozen,
       valid: true,
       scoreDelta,
       timeBonus,

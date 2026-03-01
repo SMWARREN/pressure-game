@@ -29,6 +29,39 @@ function getBlastChance(world: number): number {
   return 0;
 }
 
+/**
+ * Get blast gem style
+ */
+function getBlastGemStyle(): TileColors {
+  return {
+    background: 'linear-gradient(145deg, #2d1400 0%, #1a0800 100%)',
+    border: '2px solid #f97316',
+    boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
+  };
+}
+
+/**
+ * Get new tile glow style
+ */
+function getNewGemStyle(baseColor: TileColors): TileColors {
+  return {
+    background: `linear-gradient(145deg, ${baseColor.background} 0%, ${baseColor.background}bb 100%)`,
+    border: '2px solid #e0f2fe',
+    boxShadow: '0 0 18px rgba(224,242,254,0.75), 0 0 6px rgba(224,242,254,0.4)',
+  };
+}
+
+/**
+ * Get regular gem style
+ */
+function getRegularGemStyle(baseColor: TileColors): TileColors {
+  return {
+    background: `linear-gradient(145deg, ${baseColor.background} 0%, ${baseColor.background}bb 100%)`,
+    border: baseColor.border,
+    boxShadow: baseColor.boxShadow,
+  };
+}
+
 // ── Gem color palette ─────────────────────────────────────────────────────────
 
 const GEM_COLORS: Record<string, TileColors> = {
@@ -166,32 +199,16 @@ export const GemBlastMode: GameModeConfig = {
 
       // Blast gem — orange glow
       if (sym === BLAST_GEM) {
-        return {
-          background: 'linear-gradient(145deg, #2d1400 0%, #1a0800 100%)',
-          border: '2px solid #f97316',
-          boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
-        };
+        return getBlastGemStyle();
       }
 
-      const c = GEM_COLORS[sym] ?? {
+      const baseColor = GEM_COLORS[sym] ?? {
         background: '#0a0a1e',
         border: '2px solid #6366f1',
         boxShadow: '0 0 10px rgba(99,102,241,0.5)',
       };
 
-      if (tile.displayData?.isNew) {
-        return {
-          background: `linear-gradient(145deg, ${c.background} 0%, ${c.background}bb 100%)`,
-          border: '2px solid #e0f2fe',
-          boxShadow: '0 0 18px rgba(224,242,254,0.75), 0 0 6px rgba(224,242,254,0.4)',
-        };
-      }
-
-      return {
-        background: `linear-gradient(145deg, ${c.background} 0%, ${c.background}bb 100%)`,
-        border: c.border,
-        boxShadow: c.boxShadow,
-      };
+      return tile.displayData?.isNew ? getNewGemStyle(baseColor) : getRegularGemStyle(baseColor);
     },
 
     getSymbol(tile) {

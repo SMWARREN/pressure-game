@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { GameState, GameActions, Level, Direction, Tile } from './types';
 import { getModeById } from './modes';
+import type { TapResult } from './modes/types';
 import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
 import type { PressureEngine, SoundEffect } from './engine';
 import { createPressureEngine } from './engine';
@@ -46,6 +47,93 @@ function getOrCreateEngine(): PressureEngine {
     throw new Error('Engine not initialized');
   }
   return engine;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STORE HELPERS
+   Extract complex logic to reduce cognitive complexity in store methods.
+═══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Build the mode state with timing and grid info for a tile tap.
+ */
+function buildModeStateForTap(
+  modeState: any,
+  currentLevel: Level | null,
+  elapsedSeconds: number
+): any {
+  const timeLimit = currentLevel?.timeLimit;
+  const timeLeft = timeLimit ? Math.max(0, timeLimit - elapsedSeconds) : undefined;
+  return {
+    ...modeState,
+    timeLeft,
+    levelId: currentLevel?.id,
+    world: currentLevel?.world,
+    features: currentLevel?.features,
+    gridCols: currentLevel?.gridCols ?? currentLevel?.gridSize,
+    gridRows: currentLevel?.gridRows ?? currentLevel?.gridSize,
+  };
+}
+
+/**
+ * Build the editor state for exiting editor mode.
+ */
+function buildEditorExitState(): any {
+  return {
+    enabled: false,
+    tool: null,
+    selectedTile: null,
+    moveSource: null,
+    gridSize: null,
+    savedState: null,
+  };
+}
+
+/**
+ * Handle restoring tiles and level after editor mode exit.
+ */
+function restoreEditorState(
+  savedState: any,
+  currentLevel: Level | null,
+  wasPlaying: boolean,
+  status: string
+): { tiles: any[]; currentLevel: Level | null; timerAction: 'start' | 'none' } {
+  const { tiles, goalNodes, gridSize } = savedState;
+  const restoredLevel = currentLevel
+    ? { ...currentLevel, gridSize, goalNodes }
+    : null;
+
+  const timerAction = wasPlaying && status === 'playing' ? 'start' : 'none';
+
+  return {
+    tiles: tiles.map((t: any) => ({ ...t, connections: [...t.connections] })),
+    currentLevel: restoredLevel,
+    timerAction,
+  };
+}
+
+/**
+ * Build the tile update state after a successful tap with new elapsed time.
+ */
+function buildTileUpdateState(
+  s: GameState,
+  result: TapResult,
+  newElapsedSeconds: number,
+  timeLimit: number | undefined
+): Partial<GameState> {
+  const updatedTimeLeft = timeLimit ? Math.max(0, timeLimit - newElapsedSeconds) : undefined;
+  return {
+    tiles: result.tiles,
+    moves: s.moves + 1,
+    score: s.score + (result.scoreDelta ?? 0),
+    elapsedSeconds: newElapsedSeconds,
+    modeState: {
+      ...(result.customState ?? s.modeState),
+      scoreDelta: result.scoreDelta,
+      timeBonus: result.timeBonus,
+      timeLeft: updatedTimeLeft,
+    },
+  };
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -206,32 +294,24 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
     tapTile: (x: number, y: number) => {
       const state = get();
-      const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState } = state;
+      const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState, elapsedSeconds } = state;
 
+      // Validate tap is allowed
       if (!get().isTapValid(status, showingWin)) return;
 
       const mode = getModeById(currentModeId);
-
       if (!get().hasMovesRemaining(mode, currentLevel, moves)) return;
 
-      // Calculate timeLeft for timed levels and pass to mode
-      const timeLimit = currentLevel?.timeLimit;
-      const timeLeft = timeLimit ? Math.max(0, timeLimit - state.elapsedSeconds) : undefined;
-      const modeStateWithTime = {
-        ...modeState,
-        timeLeft,
-        levelId: currentLevel?.id,
-        world: currentLevel?.world,
-        features: currentLevel?.features,
-        gridCols: currentLevel?.gridCols ?? currentLevel?.gridSize,
-        gridRows: currentLevel?.gridRows ?? currentLevel?.gridSize,
-      };
+      // Build mode state with timing info
+      const modeStateWithTime = buildModeStateForTap(modeState, currentLevel, elapsedSeconds);
 
+      // Call mode tap handler
       const result = mode.onTileTap(x, y, tiles, currentLevel?.gridSize ?? 5, modeStateWithTime);
       if (!result || !result.valid) return;
 
       getEngine().playSound('rotate');
 
+      // Store previous tiles for undo if supported
       const prevTiles =
         mode.supportsUndo !== false
           ? tiles.map((t) => ({ ...t, connections: [...t.connections] }))
@@ -239,27 +319,18 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       // Calculate new elapsed time with time bonus
       const newElapsedSeconds = result.timeBonus
-        ? Math.max(0, state.elapsedSeconds - result.timeBonus)
-        : state.elapsedSeconds;
+        ? Math.max(0, elapsedSeconds - result.timeBonus)
+        : elapsedSeconds;
 
-      // Calculate updated timeLeft for timed levels
-      const updatedTimeLeft = timeLimit ? Math.max(0, timeLimit - newElapsedSeconds) : undefined;
-
-      set((s) => ({
-        tiles: result.tiles,
-        moves: s.moves + 1,
-        score: s.score + (result.scoreDelta ?? 0),
-        // Time bonus: reduce elapsed time (adds time to countdown)
-        elapsedSeconds: newElapsedSeconds,
-        history: prevTiles ? [...s.history, prevTiles] : s.history,
-        lastRotatedPos: { x, y },
-        modeState: {
-          ...(result.customState ?? s.modeState),
-          scoreDelta: result.scoreDelta,
-          timeBonus: result.timeBonus,
-          timeLeft: updatedTimeLeft,
-        },
-      }));
+      // Update state
+      set((s) => {
+        const tileUpdateState = buildTileUpdateState(s, result, newElapsedSeconds, currentLevel?.timeLimit);
+        return {
+          ...tileUpdateState,
+          history: prevTiles ? [...s.history, prevTiles] : s.history,
+          lastRotatedPos: { x, y },
+        };
+      });
 
       // Clear justRotated flag after animation
       getEngine().setTimeout(() => {
@@ -480,27 +551,21 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const wasPlaying = state.editor.savedState?.wasPlaying ?? false;
 
       if (state.editor.savedState) {
-        const { tiles, goalNodes, gridSize } = state.editor.savedState;
-        const restoredLevel = state.currentLevel
-          ? { ...state.currentLevel, gridSize, goalNodes }
-          : null;
+        const { tiles, currentLevel, timerAction } = restoreEditorState(
+          state.editor.savedState,
+          state.currentLevel,
+          wasPlaying,
+          state.status
+        );
 
-        if (wasPlaying && state.status === 'playing') {
+        if (timerAction === 'start') {
           getEngine().startTimer();
         }
 
         set((s) => ({
-          tiles: tiles.map((t) => ({ ...t, connections: [...t.connections] })),
-          currentLevel: restoredLevel,
-          editor: {
-            ...s.editor,
-            enabled: false,
-            tool: null,
-            selectedTile: null,
-            moveSource: null,
-            gridSize: null,
-            savedState: null,
-          },
+          tiles,
+          currentLevel,
+          editor: { ...s.editor, ...buildEditorExitState() },
           isPaused: false,
         }));
       } else {
@@ -509,15 +574,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         }
 
         set((s) => ({
-          editor: {
-            ...s.editor,
-            enabled: false,
-            tool: null,
-            selectedTile: null,
-            moveSource: null,
-            gridSize: null,
-            savedState: null,
-          },
+          editor: { ...s.editor, ...buildEditorExitState() },
           isPaused: false,
         }));
       }
@@ -752,32 +809,19 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const existingIdx = tiles.findIndex((t) => t.x === x && t.y === y);
       const existing = existingIdx >= 0 ? tiles[existingIdx] : null;
 
-      switch (editor.tool) {
-        case 'eraser':
-          get().editorHandleEraserTool(x, y, existing, existingIdx, tiles, currentLevel);
-          break;
-        case 'select':
-          get().editorHandleSelectTool(x, y, existing);
-          break;
-        case 'move':
-          get().editorHandleMoveTool(x, y, existing);
-          break;
-        case 'rotate':
-          get().editorHandleRotateTool(x, y, existing, existingIdx, tiles);
-          break;
-        case 'node':
-          get().editorHandleNodeTool(x, y, existing, existingIdx, tiles, currentLevel);
-          break;
-        case 'wall':
-          get().editorHandleWallTool(x, y, existing, existingIdx, tiles);
-          break;
-        case 'path':
-          get().editorHandlePathTool(x, y, existing, existingIdx, tiles);
-          break;
-        case 'decoy':
-          get().editorHandleDecoyTool(x, y, existing, existingIdx, tiles);
-          break;
-      }
+      const toolHandlers: Record<string, () => void> = {
+        eraser: () => get().editorHandleEraserTool(x, y, existing, existingIdx, tiles, currentLevel),
+        select: () => get().editorHandleSelectTool(x, y, existing),
+        move: () => get().editorHandleMoveTool(x, y, existing),
+        rotate: () => get().editorHandleRotateTool(x, y, existing, existingIdx, tiles),
+        node: () => get().editorHandleNodeTool(x, y, existing, existingIdx, tiles, currentLevel),
+        wall: () => get().editorHandleWallTool(x, y, existing, existingIdx, tiles),
+        path: () => get().editorHandlePathTool(x, y, existing, existingIdx, tiles),
+        decoy: () => get().editorHandleDecoyTool(x, y, existing, existingIdx, tiles),
+      };
+
+      const handler = toolHandlers[editor.tool];
+      if (handler) handler();
     },
 
     editorMoveTile: (fromX, fromY, toX, toY) => {

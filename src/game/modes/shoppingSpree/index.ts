@@ -218,6 +218,148 @@ function reshuffle(tiles: Tile[]): Tile[] {
   return reshuffleTiles(tiles);
 }
 
+// ── Score calculation helpers ────────────────────────────────────────────────
+
+/**
+ * Calculate the base item value with any applicable bonuses.
+ */
+function calculateBaseValue(
+  symbol: string,
+  flashSaleItem: string | null,
+  flashSaleTapsLeft: number,
+  isFreshClear: boolean
+): number {
+  let value = ITEM_VALUES[symbol] ?? BONUS_ITEM_VALUES[symbol] ?? 10;
+  if (flashSaleItem === symbol && flashSaleTapsLeft > 0) value *= 3; // ⚡ Flash sale
+  if (isFreshClear) value *= 2; // 🌟 Fresh bonus
+  return value;
+}
+
+/**
+ * Get the combo multiplier based on group size.
+ */
+function getComboMultiplier(groupSize: number): number {
+  if (groupSize >= 10) return 4;
+  if (groupSize >= 7) return 3;
+  if (groupSize >= 5) return 2;
+  return 1;
+}
+
+/**
+ * Calculate cart bonus from item count milestone.
+ */
+function calculateCartBonus(currentCartItems: number, newCartItems: number): number {
+  return Math.floor(newCartItems / 10) > Math.floor(currentCartItems / 10) ? 50 : 0;
+}
+
+/**
+ * Calculate total score delta from all sources.
+ */
+function calculateScoreDelta(
+  baseValue: number,
+  groupSize: number,
+  comboMultiplier: number,
+  comboChainMult: number,
+  bonusScore: number,
+  cartBonus: number
+): number {
+  return Math.round(baseValue * groupSize * comboMultiplier * comboChainMult) + bonusScore + cartBonus;
+}
+
+/**
+ * Calculate time bonus for timed levels.
+ */
+function calculateTimeBonus(
+  groupSize: number,
+  timeLeft: number | undefined,
+  features: { rain?: boolean; thieves?: boolean; blockerIntensity?: 0 | 1 | 2 } | undefined
+): number {
+  if (timeLeft === undefined) return 0;
+  const minGroupForTime = getMinGroupForTime(features);
+  if (groupSize < minGroupForTime) return 0;
+  if (groupSize >= 10) return 8;
+  if (groupSize >= 7) return 5;
+  if (groupSize >= 5) return 3;
+  return 2;
+}
+
+/**
+ * Process tile clearing, gravity, and reshuffle.
+ */
+function processTileClearing(
+  group: Tile[],
+  tiles: Tile[],
+  extraClearedKeys: Set<string>,
+  features: { wildcards?: boolean; bombs?: boolean; comboChain?: boolean; rain?: boolean } | undefined,
+  gcols: number,
+  grows: number,
+  unlockState: SymbolUnlockState
+): { tiles: Tile[]; unlockState: SymbolUnlockState; newSymbolUnlocked: string | undefined } {
+  const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
+  let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
+
+  // Try to unlock new symbol on 5+ groups
+  let newUnlockState = unlockState;
+  let newSymbolUnlocked: string | undefined;
+  if (group.length >= 5) {
+    const unlock = tryUnlockSymbol(unlockState);
+    if (unlock) {
+      newSymbolUnlocked = unlock.symbol;
+      newUnlockState = unlock.state;
+      remaining = expandActiveSymbols(remaining, unlock.symbol);
+    }
+  }
+
+  // Apply gravity and reshuffle if needed
+  let result = applyGravity(remaining, gcols, grows, features);
+  if (!hasValidMove(result)) {
+    result = reshuffle(result);
+  }
+
+  // Update freshness flags
+  newUnlockState = updateFreshness(result, newUnlockState);
+  result = applyFreshFlags(result, newUnlockState.freshSymbols);
+
+  return { tiles: result, unlockState: newUnlockState, newSymbolUnlocked };
+}
+
+/**
+ * Build new mode state from all calculated values.
+ */
+function buildNewModeState(
+  state: ShoppingModeState,
+  groupSize: number,
+  scoreDelta: number,
+  newCartItems: number,
+  cartBonus: number,
+  newFlashSaleTapsLeft: number,
+  flashSaleItem: string | null,
+  newThiefPositions: string[],
+  thiefScared: boolean,
+  newUnlockState: SymbolUnlockState,
+  newSymbolUnlocked: string | undefined,
+  symbol: string,
+  isFreshClear: boolean,
+  newCombo: ComboState
+): ShoppingModeState {
+  return {
+    ...state,
+    cartItems: newCartItems,
+    cartBonus,
+    lastGroupSize: groupSize,
+    scoreDelta,
+    flashSaleTapsLeft: newFlashSaleTapsLeft,
+    flashSaleItem,
+    thiefPositions: newThiefPositions,
+    thiefWarning: thiefScared ? undefined : state.thiefWarning,
+    lockedSymbols: newUnlockState.lockedSymbols,
+    freshSymbols: newUnlockState.freshSymbols,
+    newSymbolUnlocked,
+    freshClear: isFreshClear ? symbol : undefined,
+    combo: newCombo,
+  };
+}
+
 // ── Per-item color palette ────────────────────────────────────────────────────
 
 const ITEM_COLORS: Record<string, { bg: string; border: string; glow: string }> = {
@@ -434,73 +576,50 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const group = features?.wildcards
       ? findGroupWithWildcards(x, y, tiles)
       : findGroup(x, y, tiles);
-    if (group.length < 2) return null; // Need 2+ connected same-item tiles
+    if (group.length < 2) return null;
 
-    // ── Symbol unlock state ────────────────────────────────────────────────────
+    // Setup symbol unlock state
     const unlockState: SymbolUnlockState =
       state.lockedSymbols != null
         ? { lockedSymbols: state.lockedSymbols, freshSymbols: state.freshSymbols ?? [] }
         : { lockedSymbols: [...SHOPPING_BONUS_ITEMS], freshSymbols: [] };
 
-    // Get the item type and its value (bonus items use BONUS_ITEM_VALUES)
+    // Get item and calculate scores
     const symbol = group[0].displayData?.symbol as string;
-    let baseValue = ITEM_VALUES[symbol] ?? BONUS_ITEM_VALUES[symbol] ?? 10;
-
-    // ⚡ FLASH SALE BONUS - 3× value if this item is on sale!
-    if (state.flashSaleItem === symbol && state.flashSaleTapsLeft > 0) {
-      baseValue *= 3;
-    }
-
-    // 🌟 FRESH BONUS - 2× value for newly unlocked items until evenly spread!
     const isFreshClear = unlockState.freshSymbols.includes(symbol);
-    if (isFreshClear) baseValue *= 2;
+    const baseValue = calculateBaseValue(symbol, state.flashSaleItem, state.flashSaleTapsLeft, isFreshClear);
+    const comboMultiplier = getComboMultiplier(group.length);
 
-    // Calculate score: base value × group size × combo multiplier
-    let comboMultiplier = 1;
-    if (group.length >= 5) comboMultiplier = 2;
-    if (group.length >= 7) comboMultiplier = 3;
-    if (group.length >= 10) comboMultiplier = 4;
-
-    // ── Bomb explosion ─────────────────────────────────────────────────────────
+    // Apply bomb explosion if enabled
     const { extraClearedKeys, bonusScore } = features?.bombs
       ? applyBombExplosion(group, tiles, gridSize)
       : { extraClearedKeys: new Set<string>(), bonusScore: 0 };
 
-    // ── Combo chain multiplier ─────────────────────────────────────────────────
+    // Setup combo chain
     const prevCombo: ComboState = features?.comboChain && state.combo ? state.combo : resetCombo();
     const newCombo = features?.comboChain ? updateCombo(prevCombo, group.length) : resetCombo();
     const comboChainMult = features?.comboChain ? newCombo.multiplier : 1;
 
-    let scoreDelta =
-      Math.round(baseValue * group.length * comboMultiplier * comboChainMult) + bonusScore;
-
-    // 🛒 SHOPPING CART BONUS - Every 10 items = bonus $50!
+    // Calculate bonuses
     const newCartItems = state.cartItems + group.length;
-    let cartBonus = 0;
-    if (Math.floor(newCartItems / 10) > Math.floor(state.cartItems / 10)) {
-      cartBonus = 50;
-      scoreDelta += cartBonus;
-    }
+    const cartBonus = calculateCartBonus(state.cartItems, newCartItems);
+    const scoreDelta = calculateScoreDelta(baseValue, group.length, comboMultiplier, comboChainMult, bonusScore, cartBonus);
 
-    const clearedKeys = new Set([...group.map((t) => `${t.x},${t.y}`), ...extraClearedKeys]);
-    let remaining = tiles.filter((t) => !clearedKeys.has(`${t.x},${t.y}`));
+    // Process tile clearing and gravity
+    const { tiles: nextTiles, unlockState: newUnlockState, newSymbolUnlocked } = processTileClearing(
+      group,
+      tiles,
+      extraClearedKeys,
+      features,
+      gcols,
+      grows,
+      unlockState
+    );
 
-    // 5+ combo → unlock the next bonus item!
-    let newUnlockState = unlockState;
-    let newSymbolUnlocked: string | undefined;
-    if (group.length >= 5) {
-      const unlock = tryUnlockSymbol(unlockState);
-      if (unlock) {
-        newSymbolUnlocked = unlock.symbol;
-        newUnlockState = unlock.state;
-        remaining = expandActiveSymbols(remaining, unlock.symbol);
-      }
-    }
-
-    // 🦹 THIEF SCARING — threshold and radius scale with world difficulty
+    // Handle thief scaring
     const { tiles: remainingWithThiefClear, unblocked: scaredThiefKeys } = unblockNearGroup(
       group,
-      remaining,
+      nextTiles,
       'hasThief',
       minGroupSize
     );
@@ -509,59 +628,38 @@ export const ShoppingSpreeMode: GameModeConfig = {
       (pos) => !scaredThiefKeys.has(pos)
     );
 
-    let next = applyGravity(remainingWithThiefClear, gcols, grows, features);
-
-    // If refill produces a deadlock, reshuffle
-    if (!hasValidMove(next)) {
-      next = reshuffle(next);
-    }
-
-    // Graduate fresh items that are now evenly distributed, then stamp flags
-    newUnlockState = updateFreshness(next, newUnlockState);
-    next = applyFreshFlags(next, newUnlockState.freshSymbols);
-
-    // Tick down flash sale on every tap (not just matching taps)
+    // Update flash sale state
     const newFlashSaleTapsLeft = state.flashSaleTapsLeft > 0 ? state.flashSaleTapsLeft - 1 : 0;
     const newFlashSaleItem = newFlashSaleTapsLeft <= 0 ? null : state.flashSaleItem;
 
-    // Update mode state
-    let newState: ShoppingModeState = {
-      ...state,
-      cartItems: newCartItems,
-      cartBonus: cartBonus,
-      lastGroupSize: group.length,
+    // Build new mode state
+    let newState = buildNewModeState(
+      state,
+      group.length,
       scoreDelta,
-      flashSaleTapsLeft: newFlashSaleTapsLeft,
-      flashSaleItem: newFlashSaleItem,
-      thiefPositions: newThiefPositions,
-      thiefWarning: thiefScared ? undefined : state.thiefWarning,
-      lockedSymbols: newUnlockState.lockedSymbols,
-      freshSymbols: newUnlockState.freshSymbols,
+      newCartItems,
+      cartBonus,
+      newFlashSaleTapsLeft,
+      newFlashSaleItem,
+      newThiefPositions,
+      thiefScared,
+      newUnlockState,
       newSymbolUnlocked,
-      freshClear: isFreshClear ? symbol : undefined,
-      combo: newCombo,
-    };
+      symbol,
+      isFreshClear,
+      newCombo
+    );
 
     // Maybe trigger a new flash sale
     if (!newState.flashSaleItem) {
       newState = maybeTriggerFlashSale(newState);
     }
 
-    // Time bonus for Unlimited world (world 4) — bigger groups = more time!
+    // Calculate time bonus
     const timeLeft = modeState?.timeLeft as number | undefined;
-    let timeBonus = 0;
-    if (timeLeft !== undefined) {
-      const minGroupForTime = getMinGroupForTime(features);
+    const timeBonus = calculateTimeBonus(group.length, timeLeft, features);
 
-      if (group.length >= minGroupForTime) {
-        if (group.length >= 10) timeBonus = 8;
-        else if (group.length >= 7) timeBonus = 5;
-        else if (group.length >= 5) timeBonus = 3;
-        else timeBonus = 2; // groups of 3, 4 both get 2
-      }
-    }
-
-    return { tiles: next, valid: true, scoreDelta, customState: newState, timeBonus };
+    return { tiles: remainingWithThiefClear, valid: true, scoreDelta, customState: newState, timeBonus };
   },
 
   checkWin(_tiles, _goalNodes, moves, maxMoves, modeState): WinResult {

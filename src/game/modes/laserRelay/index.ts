@@ -243,161 +243,186 @@ function withBeamApplied(
 
 // ── Tile colors ───────────────────────────────────────────────────────────────
 
-function getTileColors(tile: Tile) {
-  const kind = tile.displayData?.kind as string;
-  const beamOn = tile.displayData?.beamOn as boolean;
-
-  switch (kind) {
-    case 'source':
-      return {
-        background: 'linear-gradient(145deg,#052e16,#065f46)',
-        border: '2px solid #22c55e',
-        boxShadow: '0 0 14px rgba(34,197,94,0.7)',
-      };
-
-    case 'target':
-      return {
-        background: 'linear-gradient(145deg,#2d0808,#450a0a)',
-        border: '2px solid #ef4444',
-        boxShadow: beamOn
-          ? '0 0 24px rgba(239,68,68,1), 0 0 8px rgba(239,68,68,0.6)'
-          : '0 0 8px rgba(239,68,68,0.35)',
-      };
-
-    case 'wall':
-      return {
-        background: '#1a1a2e',
-        border: '2px solid #374151',
-        boxShadow: 'none',
-      };
-
-    case 'mirror':
-      if (beamOn) {
-        return {
-          background: 'linear-gradient(145deg,#1e3a5f,#0d2137)',
-          border: '2px solid #38bdf8',
-          boxShadow: '0 0 18px rgba(56,189,248,0.8)',
-        };
-      }
-      return {
-        background: 'linear-gradient(145deg,#0f172a,#1e293b)',
-        border: '2px solid #475569',
-        boxShadow: '0 0 4px rgba(71,85,105,0.3)',
-      };
-
-    case 'portal':
-      return {
-        background: beamOn
-          ? 'linear-gradient(145deg,#4c1d95,#7c3aed)'
-          : 'linear-gradient(145deg,#2e1065,#4c1d95)',
-        border: beamOn ? '2px solid #a78bfa' : '2px solid #7c3aed',
-        boxShadow: beamOn
-          ? '0 0 20px rgba(167,139,250,0.9), 0 0 8px rgba(139,92,246,0.6)'
-          : '0 0 10px rgba(139,92,246,0.4)',
-      };
-
-    case 'splitter':
-      if (beamOn) {
-        return {
-          background: 'linear-gradient(145deg,#0e4a2d,#059669)',
-          border: '2px solid #34d399',
-          boxShadow: '0 0 18px rgba(52,211,153,0.8)',
-        };
-      }
-      return {
-        background: 'linear-gradient(145deg,#064e3b,#065f46)',
-        border: '2px solid #10b981',
-        boxShadow: '0 0 6px rgba(16,185,129,0.4)',
-      };
-
-    case 'doubleMirror':
-      if (beamOn) {
-        return {
-          background: 'linear-gradient(145deg,#7c2d12,#ea580c)',
-          border: '2px solid #fb923c',
-          boxShadow: '0 0 18px rgba(251,146,60,0.8)',
-        };
-      }
-      return {
-        background: 'linear-gradient(145deg,#7c2d12,#9a3412)',
-        border: '2px solid #f97316',
-        boxShadow: '0 0 6px rgba(249,115,22,0.4)',
-      };
-
-    default: // empty
-      if (beamOn) {
-        return {
-          background: 'linear-gradient(145deg,#083344,#0a4254)',
-          border: '1px solid #22d3ee',
-          boxShadow: '0 0 10px rgba(34,211,238,0.45)',
-        };
-      }
-      return {
-        background: 'rgba(10,10,20,0.25)',
-        border: '1px solid #1e293b',
-        boxShadow: 'none',
-      };
+/** Color definitions for each tile kind */
+const TILE_COLOR_STYLES: Record<
+  string,
+  {
+    on: { background: string; border: string; boxShadow: string };
+    off: { background: string; border: string; boxShadow: string };
   }
+> = {
+  source: {
+    on: {
+      background: 'linear-gradient(145deg,#052e16,#065f46)',
+      border: '2px solid #22c55e',
+      boxShadow: '0 0 14px rgba(34,197,94,0.7)',
+    },
+    off: {
+      background: 'linear-gradient(145deg,#052e16,#065f46)',
+      border: '2px solid #22c55e',
+      boxShadow: '0 0 14px rgba(34,197,94,0.7)',
+    },
+  },
+  target: {
+    on: {
+      background: 'linear-gradient(145deg,#2d0808,#450a0a)',
+      border: '2px solid #ef4444',
+      boxShadow: '0 0 24px rgba(239,68,68,1), 0 0 8px rgba(239,68,68,0.6)',
+    },
+    off: {
+      background: 'linear-gradient(145deg,#2d0808,#450a0a)',
+      border: '2px solid #ef4444',
+      boxShadow: '0 0 8px rgba(239,68,68,0.35)',
+    },
+  },
+  wall: {
+    on: {
+      background: '#1a1a2e',
+      border: '2px solid #374151',
+      boxShadow: 'none',
+    },
+    off: {
+      background: '#1a1a2e',
+      border: '2px solid #374151',
+      boxShadow: 'none',
+    },
+  },
+  mirror: {
+    on: {
+      background: 'linear-gradient(145deg,#1e3a5f,#0d2137)',
+      border: '2px solid #38bdf8',
+      boxShadow: '0 0 18px rgba(56,189,248,0.8)',
+    },
+    off: {
+      background: 'linear-gradient(145deg,#0f172a,#1e293b)',
+      border: '2px solid #475569',
+      boxShadow: '0 0 4px rgba(71,85,105,0.3)',
+    },
+  },
+  portal: {
+    on: {
+      background: 'linear-gradient(145deg,#4c1d95,#7c3aed)',
+      border: '2px solid #a78bfa',
+      boxShadow: '0 0 20px rgba(167,139,250,0.9), 0 0 8px rgba(139,92,246,0.6)',
+    },
+    off: {
+      background: 'linear-gradient(145deg,#2e1065,#4c1d95)',
+      border: '2px solid #7c3aed',
+      boxShadow: '0 0 10px rgba(139,92,246,0.4)',
+    },
+  },
+  splitter: {
+    on: {
+      background: 'linear-gradient(145deg,#0e4a2d,#059669)',
+      border: '2px solid #34d399',
+      boxShadow: '0 0 18px rgba(52,211,153,0.8)',
+    },
+    off: {
+      background: 'linear-gradient(145deg,#064e3b,#065f46)',
+      border: '2px solid #10b981',
+      boxShadow: '0 0 6px rgba(16,185,129,0.4)',
+    },
+  },
+  doubleMirror: {
+    on: {
+      background: 'linear-gradient(145deg,#7c2d12,#ea580c)',
+      border: '2px solid #fb923c',
+      boxShadow: '0 0 18px rgba(251,146,60,0.8)',
+    },
+    off: {
+      background: 'linear-gradient(145deg,#7c2d12,#9a3412)',
+      border: '2px solid #f97316',
+      boxShadow: '0 0 6px rgba(249,115,22,0.4)',
+    },
+  },
+  empty: {
+    on: {
+      background: 'linear-gradient(145deg,#083344,#0a4254)',
+      border: '1px solid #22d3ee',
+      boxShadow: '0 0 10px rgba(34,211,238,0.45)',
+    },
+    off: {
+      background: 'rgba(10,10,20,0.25)',
+      border: '1px solid #1e293b',
+      boxShadow: 'none',
+    },
+  },
+};
+
+function getTileColors(tile: Tile) {
+  const kind = (tile.displayData?.kind as string) ?? 'empty';
+  const beamOn = tile.displayData?.beamOn as boolean;
+  const styles = TILE_COLOR_STYLES[kind] ?? TILE_COLOR_STYLES['empty'];
+  return beamOn ? styles.on : styles.off;
 }
 
+/** Direction to arrow symbol mapping */
+const DIRECTION_ARROWS: Record<string, string> = {
+  right: '▶',
+  down: '▼',
+  left: '◀',
+  up: '▲',
+};
+
+/** Portal ID to number symbol mapping */
+const PORTAL_SYMBOLS: Record<string, string> = {
+  '1': '①',
+  '2': '②',
+  '3': '③',
+};
+
 /**
- * Convert direction to arrow symbol (replaces nested ternary)
+ * Convert direction to arrow symbol
  */
 function directionToArrow(dir: string): string {
-  switch (dir) {
-    case 'right':
-      return '▶';
-    case 'down':
-      return '▼';
-    case 'left':
-      return '◀';
-    default:
-      return '▲';
-  }
+  return DIRECTION_ARROWS[dir] ?? '▲';
 }
 
 /**
- * Convert portal ID to number symbol (replaces nested ternary)
+ * Convert portal ID to number symbol
  */
 function portalIdToSymbol(portalId: string): string {
-  switch (portalId) {
-    case '1':
-      return '①';
-    case '2':
-      return '②';
-    default:
-      return '③';
-  }
+  return PORTAL_SYMBOLS[portalId] ?? '③';
+}
+
+/** Basic tile symbols (no parameters needed) */
+const TILE_SYMBOLS: Record<string, string> = {
+  target: '◎',
+  wall: '▪',
+  splitter: '✦',
+};
+
+/**
+ * Get mirror rotation symbol
+ */
+function getMirrorSymbol(rotation: number): string {
+  return rotation === 0 ? '╱' : '╲';
 }
 
 function getTileSymbol(tile: Tile): string | null {
-  const kind = tile.displayData?.kind as string;
-  switch (kind) {
-    case 'source': {
-      const dir = tile.displayData?.dir as string;
-      return directionToArrow(dir);
-    }
-    case 'target':
-      return '◎';
-    case 'wall':
-      return '▪';
-    case 'mirror': {
-      const rot = tile.displayData?.rotation as number;
-      return rot === 0 ? '╱' : '╲';
-    }
-    case 'portal': {
-      const portalId = tile.displayData?.portalId as string;
-      return portalIdToSymbol(portalId);
-    }
-    case 'splitter':
-      return '✦';
-    case 'doubleMirror': {
-      const rot = tile.displayData?.rotation as number;
-      return rot === 0 ? '╱' : '╲';
-    }
-    default:
-      return tile.displayData?.beamOn ? '·' : null;
+  const kind = (tile.displayData?.kind as string) ?? 'empty';
+
+  // Handle special cases that need parameters
+  if (kind === 'source') {
+    const dir = tile.displayData?.dir as string;
+    return directionToArrow(dir);
   }
+  if (kind === 'mirror' || kind === 'doubleMirror') {
+    const rot = (tile.displayData?.rotation as number) ?? 0;
+    return getMirrorSymbol(rot);
+  }
+  if (kind === 'portal') {
+    const portalId = tile.displayData?.portalId as string;
+    return portalIdToSymbol(portalId);
+  }
+
+  // Handle basic symbols from lookup
+  if (kind in TILE_SYMBOLS) {
+    return TILE_SYMBOLS[kind];
+  }
+
+  // Default: show dot if beam on, null otherwise
+  return tile.displayData?.beamOn ? '·' : null;
 }
 
 // ── Mode config ───────────────────────────────────────────────────────────────
