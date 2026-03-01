@@ -646,7 +646,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       });
 
       const newTiles = [...tiles];
-      newTiles[idx] = { ...tile, connections: newConnections as Direction[] };
+      newTiles[idx] = { ...tile, connections: newConnections };
       set({ tiles: newTiles });
     },
 
@@ -698,7 +698,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         return dirOrder[(i + 1) % 4];
       });
       const newTiles = [...tiles];
-      newTiles[existingIdx] = { ...existing, connections: newConnections as Direction[] };
+      newTiles[existingIdx] = { ...existing, connections: newConnections };
       set({ tiles: newTiles });
     },
 

@@ -177,7 +177,7 @@ function windingPath(
     if (curr.x === target.x && curr.y === target.y) return true;
     if (path.length > maxLen) return false;
 
-    for (const d of shuffle(DIRS as Direction[])) {
+    for (const d of shuffle(DIRS)) {
       const [dx, dy] = DXDY[d];
       const nx = curr.x + dx,
         ny = curr.y + dy;
@@ -226,7 +226,7 @@ function deadEndBranch(
   const visited = new Set<string>([`${start.x},${start.y}`]);
   for (let i = 0; i < maxLen; i++) {
     let moved = false;
-    for (const d of shuffle(DIRS as Direction[])) {
+    for (const d of shuffle(DIRS)) {
       const [dx, dy] = DXDY[d];
       const nx = curr.x + dx,
         ny = curr.y + dy;

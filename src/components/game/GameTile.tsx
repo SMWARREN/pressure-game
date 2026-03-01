@@ -223,7 +223,7 @@ function GameTileComponent({
       x,
       y,
       type: type as TileType,
-      connections: connections as Direction[],
+      connections,
       canRotate,
       isGoalNode,
       justRotated,

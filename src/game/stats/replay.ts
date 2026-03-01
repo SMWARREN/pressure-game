@@ -67,7 +67,7 @@ export class ReplayEngine {
       NonNullable<typeof mode.initialState>
     >[0];
     let modeState: Record<string, unknown> = mode.initialState
-      ? (mode.initialState(stateStub) as Record<string, unknown>)
+      ? mode.initialState(stateStub)
       : {};
 
     const snapshots: ReplaySnapshot[] = [
@@ -88,7 +88,7 @@ export class ReplayEngine {
       if (result?.valid) {
         tiles = result.tiles;
         score += result.scoreDelta ?? 0;
-        modeState = (result.customState ?? modeState) as Record<string, unknown>;
+        modeState = result.customState ?? modeState;
       }
 
       snapshots.push({
