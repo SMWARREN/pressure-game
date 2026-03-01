@@ -13,7 +13,8 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
   if (!feature) return null;
 
   return (
-    <div
+    <button
+      type="button"
       style={{
         position: 'fixed',
         inset: 0,
@@ -22,20 +23,19 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
         alignItems: 'flex-end',
         justifyContent: 'center',
         zIndex: 200,
+        border: 'none',
+        padding: 0,
+        cursor: 'default',
+        font: 'inherit',
       }}
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
           onClose();
         }
       }}
-      role="button"
-      tabIndex={0}
-      aria-label="Close info sheet"
+      aria-label="Close feature info"
     >
       <div
-        aria-label="Feature information"
         style={{
           background: '#0d0d1a',
           border: '1px solid #2a2a45',
@@ -45,8 +45,8 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
           maxWidth: 440,
           textAlign: 'center',
           cursor: 'auto',
+          pointerEvents: 'none',
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         <div style={{ fontSize: 40, marginBottom: 8 }}>{feature.icon}</div>
         <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 10 }}>
@@ -63,7 +63,11 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
           {feature.description}
         </div>
         <button
-          onClick={onClose}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           style={{
             background: '#1e1e35',
             border: '1px solid #3a3a60',
@@ -74,11 +78,12 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
             padding: '10px 32px',
             cursor: 'pointer',
             fontFamily: 'inherit',
+            pointerEvents: 'auto',
           }}
         >
           Got it
         </button>
       </div>
-    </div>
+    </button>
   );
 }
