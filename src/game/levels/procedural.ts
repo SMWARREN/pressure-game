@@ -161,6 +161,50 @@ function findShape(needed: Direction[]): [Direction[], number] {
   return [['up', 'down'], 0];
 }
 
+// Helper: Check if cell is in bounds
+function isInBounds(x: number, y: number, cols: number, rows: number): boolean {
+  return x >= 1 && x < cols - 1 && y >= 1 && y < rows - 1;
+}
+
+// Helper: Count adjacent visited cells (for corridor width constraint)
+function countAdjacentVisited(
+  x: number,
+  y: number,
+  curr: Position,
+  visited: Set<string>
+): number {
+  let count = 0;
+  for (const d of DIRS) {
+    const [dx, dy] = DXDY[d];
+    const key = `${x + dx},${y + dy}`;
+    if (visited.has(key) && key !== `${curr.x},${curr.y}`) {
+      count++;
+    }
+  }
+  return count;
+}
+
+// Helper: Check if cell is valid for winding path movement
+function isValidPathCell(
+  nx: number,
+  ny: number,
+  cols: number,
+  rows: number,
+  blocked: Set<string>,
+  visited: Set<string>,
+  target: Position,
+  curr: Position
+): boolean {
+  if (!isInBounds(nx, ny, cols, rows)) return false;
+  if (blocked.has(`${nx},${ny}`) || visited.has(`${nx},${ny}`)) return false;
+
+  const distToTarget = Math.abs(nx - target.x) + Math.abs(ny - target.y);
+  if (distToTarget <= 2) return true;
+
+  const adjCount = countAdjacentVisited(nx, ny, curr, visited);
+  return adjCount <= 1;
+}
+
 // ─── Winding path: recursive backtracker ─────────────────────────────────
 function windingPath(
   start: Position,
@@ -181,31 +225,14 @@ function windingPath(
       const [dx, dy] = DXDY[d];
       const nx = curr.x + dx,
         ny = curr.y + dy;
-      const key = `${nx},${ny}`;
 
-      if (nx < 1 || nx >= cols - 1 || ny < 1 || ny >= rows - 1) continue;
-      if (blocked.has(key) || visited.has(key)) continue;
+      if (!isValidPathCell(nx, ny, cols, rows, blocked, visited, target, curr)) continue;
 
-      // Allow tight corridors near the target, avoid elsewhere
-      const distToTarget = Math.abs(nx - target.x) + Math.abs(ny - target.y);
-      if (distToTarget > 2) {
-        let adj = 0;
-        for (const d2 of DIRS) {
-          const [dx2, dy2] = DXDY[d2];
-          if (
-            visited.has(`${nx + dx2},${ny + dy2}`) &&
-            `${nx + dx2},${ny + dy2}` !== `${curr.x},${curr.y}`
-          )
-            adj++;
-        }
-        if (adj > 1) continue;
-      }
-
-      visited.add(key);
+      visited.add(`${nx},${ny}`);
       path.push({ x: nx, y: ny });
       if (dfs({ x: nx, y: ny })) return true;
       path.pop();
-      visited.delete(key);
+      visited.delete(`${nx},${ny}`);
     }
     return false;
   }
@@ -455,6 +482,108 @@ function placeGoalNodes(
   return goalPositions.length >= nodeCount ? goalPositions : null;
 }
 
+// Helper: Generate winding main path between all goal positions
+function generateMainPaths(
+  goalPositions: Position[],
+  gridCols: number,
+  gridRows: number,
+  borderSet: Set<string>,
+  goalSet: Set<string>
+): { mainConnMap: ConnMap; occupied: Set<string>; success: boolean } {
+  const mainConnMap: ConnMap = new Map();
+  const occupied = new Set<string>([...borderSet, ...goalPositions.map((p) => `${p.x},${p.y}`)]);
+
+  for (let i = 0; i < goalPositions.length - 1; i++) {
+    const from = goalPositions[i];
+    const to = goalPositions[i + 1];
+    const pathBlocked = new Set(occupied);
+    pathBlocked.delete(`${to.x},${to.y}`);
+    for (const k of mainConnMap.keys()) pathBlocked.delete(k);
+
+    const path = windingPath(from, to, gridCols, gridRows, pathBlocked, gridCols * gridRows);
+    if (!path || path.length < 2) {
+      return { mainConnMap, occupied, success: false };
+    }
+
+    for (let j = 0; j < path.length - 1; j++) {
+      const a = path[j],
+        b = path[j + 1];
+      const dx = b.x - a.x,
+        dy = b.y - a.y;
+      const dAB: Direction = deltaToDir(dx, dy);
+      const dBA: Direction = OPP[dAB];
+      addConn(mainConnMap, a.x, a.y, dAB);
+      addConn(mainConnMap, b.x, b.y, dBA);
+      if (!goalSet.has(`${b.x},${b.y}`)) occupied.add(`${b.x},${b.y}`);
+    }
+  }
+
+  return { mainConnMap, occupied, success: true };
+}
+
+// Helper: Generate dead-end branch decoys
+function generateBranches(
+  mainConnMap: ConnMap,
+  branchCount: number,
+  gridCols: number,
+  gridRows: number,
+  occupied: Set<string>,
+  goalSet: Set<string>
+): ConnMap {
+  const branchConnMap: ConnMap = new Map();
+  const pathCells = shuffle([...mainConnMap.keys()].filter((k) => !goalSet.has(k)));
+  let branchesAdded = 0;
+
+  for (const key of pathCells) {
+    if (branchesAdded >= branchCount) break;
+    const [bx, by] = key.split(',').map(Number);
+    const branch = deadEndBranch(
+      { x: bx, y: by },
+      gridCols,
+      gridRows,
+      new Set(occupied),
+      rng(2, 3)
+    );
+    if (branch.length === 0) continue;
+
+    const root = { x: bx, y: by };
+    const first = branch[0];
+    const dx = first.x - root.x,
+      dy = first.y - root.y;
+    const dOut: Direction = deltaToDir(dx, dy);
+    addConn(branchConnMap, root.x, root.y, dOut);
+    addConn(branchConnMap, first.x, first.y, OPP[dOut]);
+
+    for (let j = 0; j < branch.length - 1; j++) {
+      const a = branch[j],
+        b = branch[j + 1];
+      const dxb = b.x - a.x,
+        dyb = b.y - a.y;
+      const dAB: Direction = deltaToDir(dxb, dyb);
+      addConn(branchConnMap, a.x, a.y, dAB);
+      addConn(branchConnMap, b.x, b.y, OPP[dAB]);
+      occupied.add(`${b.x},${b.y}`);
+    }
+    occupied.add(`${first.x},${first.y}`);
+    branchesAdded++;
+  }
+
+  return branchConnMap;
+}
+
+// Helper: Verify solution correctness
+function verifySolution(
+  allTiles: Tile[],
+  solution: { x: number; y: number; rotations: number }[],
+  goalPositions: Position[]
+): boolean {
+  const solvedTiles = allTiles.map((t) => {
+    const move = solution.find((m) => m.x === t.x && m.y === t.y);
+    return move ? { ...t, connections: rotate(t.connections, move.rotations) } : t;
+  });
+  return isConnected(solvedTiles, goalPositions);
+}
+
 // ─── Main generator ────────────────────────────────────────────────────────
 export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
   const { gridCols, gridRows, nodeCount, difficulty } = opts;
@@ -469,49 +598,20 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
   const branchCount = opts.branches ?? rng(1, 2);
 
   for (let attempt = 0; attempt < 40; attempt++) {
-    // ── 1. Border walls ─────────────────────────────────────────────────
     const { tiles: wallTiles, borderSet } = createBorderWalls(gridCols, gridRows);
-
-    // ── 2. Node placement in safe zone ──────────────────────────────────
     const goalPositions = placeGoalNodes(gridCols, gridRows, nodeCount, dirConfig);
     if (!goalPositions) continue;
 
     const goalSet = new Set(goalPositions.map((p) => `${p.x},${p.y}`));
-    const occupied = new Set<string>([...borderSet, ...goalPositions.map((p) => `${p.x},${p.y}`)]);
+    const { mainConnMap, occupied, success } = generateMainPaths(
+      goalPositions,
+      gridCols,
+      gridRows,
+      borderSet,
+      goalSet
+    );
+    if (!success) continue;
 
-    // ── 3. Winding paths between consecutive nodes ───────────────────────
-    const mainConnMap: ConnMap = new Map();
-    let pathFailed = false;
-
-    for (let i = 0; i < goalPositions.length - 1; i++) {
-      const from = goalPositions[i];
-      const to = goalPositions[i + 1];
-      const pathBlocked = new Set(occupied);
-      pathBlocked.delete(`${to.x},${to.y}`);
-      // Allow re-entering already-pathed cells (connections merge at T-junctions)
-      for (const k of mainConnMap.keys()) pathBlocked.delete(k);
-
-      const path = windingPath(from, to, gridCols, gridRows, pathBlocked, gridCols * gridRows);
-      if (!path || path.length < 2) {
-        pathFailed = true;
-        break;
-      }
-
-      for (let j = 0; j < path.length - 1; j++) {
-        const a = path[j],
-          b = path[j + 1];
-        const dx = b.x - a.x,
-          dy = b.y - a.y;
-        const dAB: Direction = deltaToDir(dx, dy);
-        const dBA: Direction = OPP[dAB];
-        addConn(mainConnMap, a.x, a.y, dAB);
-        addConn(mainConnMap, b.x, b.y, dBA);
-        if (!goalSet.has(`${b.x},${b.y}`)) occupied.add(`${b.x},${b.y}`);
-      }
-    }
-    if (pathFailed) continue;
-
-    // ── 4. Interior wall obstacles (room-style clusters) ─────────────────
     if (interiorWallCount > 0) {
       const roomWalls = placeRoomWalls(gridCols, gridRows, occupied, interiorWallCount);
       for (const t of roomWalls) {
@@ -520,47 +620,15 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
       }
     }
 
-    // ── 5. Dead-end branches (decoys) ────────────────────────────────────
-    const branchConnMap: ConnMap = new Map();
-    const pathCells = shuffle([...mainConnMap.keys()].filter((k) => !goalSet.has(k)));
-    let branchesAdded = 0;
+    const branchConnMap = generateBranches(
+      mainConnMap,
+      branchCount,
+      gridCols,
+      gridRows,
+      occupied,
+      goalSet
+    );
 
-    for (const key of pathCells) {
-      if (branchesAdded >= branchCount) break;
-      const [bx, by] = key.split(',').map(Number);
-      const branch = deadEndBranch(
-        { x: bx, y: by },
-        gridCols,
-        gridRows,
-        new Set(occupied),
-        rng(2, 3)
-      );
-      if (branch.length === 0) continue;
-
-      // Connect branch root to its first cell
-      const root = { x: bx, y: by };
-      const first = branch[0];
-      const dx = first.x - root.x,
-        dy = first.y - root.y;
-      const dOut: Direction = deltaToDir(dx, dy);
-      addConn(branchConnMap, root.x, root.y, dOut);
-      addConn(branchConnMap, first.x, first.y, OPP[dOut]);
-
-      for (let j = 0; j < branch.length - 1; j++) {
-        const a = branch[j],
-          b = branch[j + 1];
-        const dxb = b.x - a.x,
-          dyb = b.y - a.y;
-        const dAB: Direction = deltaToDir(dxb, dyb);
-        addConn(branchConnMap, a.x, a.y, dAB);
-        addConn(branchConnMap, b.x, b.y, OPP[dAB]);
-        occupied.add(`${b.x},${b.y}`);
-      }
-      occupied.add(`${first.x},${first.y}`);
-      branchesAdded++;
-    }
-
-    // ── 6. Goal node tiles ───────────────────────────────────────────────
     const nodeTiles: Tile[] = goalPositions.map((p) => ({
       id: `node-${p.x}-${p.y}`,
       type: 'node' as const,
@@ -571,7 +639,6 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
       canRotate: false,
     }));
 
-    // ── 7. Build scrambled path tiles with embedded solution ──────────────
     const { tiles: pathTiles, solution } = buildTilesFromSolution(
       mainConnMap,
       branchConnMap,
@@ -581,15 +648,8 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
 
     const allTiles = [...wallTiles, ...nodeTiles, ...pathTiles];
 
-    // ── 8. Verify scramble didn't accidentally solve the puzzle ───────────
     if (isConnected(allTiles, goalPositions)) continue;
-
-    // Verify solution restores connectivity (cheap sanity check)
-    const solvedTiles = allTiles.map((t) => {
-      const move = solution.find((m) => m.x === t.x && m.y === t.y);
-      return move ? { ...t, connections: rotate(t.connections, move.rotations) } : t;
-    });
-    if (!isConnected(solvedTiles, goalPositions)) continue;
+    if (!verifySolution(allTiles, solution, goalPositions)) continue;
 
     const minMoves = solution.reduce((s, p) => s + p.rotations, 0);
     if (minMoves === 0) continue;
