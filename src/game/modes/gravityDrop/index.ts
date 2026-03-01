@@ -192,19 +192,31 @@ export const GravityDropMode: GameModeConfig = {
       if (!d) return { background: '#0d0d1a', border: '1px solid #1a1a2e' };
 
       if (d.special === 'bomb') {
-        return {
-          background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
-          border: d.inChain ? '2px solid #ef4444' : '1px solid #ef444455',
-          boxShadow: d.inChain ? '0 0 18px #ef4444aa' : undefined,
-        };
+        return d.inChain
+          ? {
+              background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
+              border: '2px solid #ef4444',
+              boxShadow: '0 0 18px #ef4444aa',
+            }
+          : {
+              background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
+              border: '1px solid #ef444455',
+              boxShadow: undefined,
+            };
       }
 
       if (d.special === 'star') {
-        return {
-          background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
-          border: d.inChain ? '2px solid #fbbf24' : '1px solid #fbbf2455',
-          boxShadow: d.inChain ? '0 0 18px #fbbf24aa' : undefined,
-        };
+        return d.inChain
+          ? {
+              background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+              border: '2px solid #fbbf24',
+              boxShadow: '0 0 18px #fbbf24aa',
+            }
+          : {
+              background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+              border: '1px solid #fbbf2455',
+              boxShadow: undefined,
+            };
       }
 
       if (d.special === 'lock') {

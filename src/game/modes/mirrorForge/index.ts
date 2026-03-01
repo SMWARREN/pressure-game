@@ -72,44 +72,60 @@ export const MirrorForgeMode: GameModeConfig = {
 
       // Goal nodes get the accent pulse
       if (tile.isGoalNode) {
-        return {
-          background: ctx.inDanger
-            ? 'linear-gradient(145deg, #1a0505, #0d0010)'
-            : 'linear-gradient(145deg, #1a0a2e, #0d0618)',
-          border: ctx.inDanger ? '2px solid #ef4444' : '2px solid #a78bfa',
-          boxShadow: ctx.inDanger ? '0 0 16px #ef444488' : '0 0 12px #a78bfa66',
-        };
+        return ctx.inDanger
+          ? {
+              background: 'linear-gradient(145deg, #1a0505, #0d0010)',
+              border: '2px solid #ef4444',
+              boxShadow: '0 0 16px #ef444488',
+            }
+          : {
+              background: 'linear-gradient(145deg, #1a0a2e, #0d0618)',
+              border: '2px solid #a78bfa',
+              boxShadow: '0 0 12px #a78bfa66',
+            };
       }
 
       // Subtle side tinting
       if (side === 'left') {
-        return {
-          background: ctx.justRotated
-            ? 'linear-gradient(145deg, #2a1a4e, #0d0616)'
-            : 'linear-gradient(145deg, #0d0a1a, #08060f)',
-          border: ctx.justRotated ? '1px solid #a78bfa88' : '1px solid #a78bfa22',
-          boxShadow: ctx.justRotated ? '0 0 10px #a78bfa44' : undefined,
-        };
+        return ctx.justRotated
+          ? {
+              background: 'linear-gradient(145deg, #2a1a4e, #0d0616)',
+              border: '1px solid #a78bfa88',
+              boxShadow: '0 0 10px #a78bfa44',
+            }
+          : {
+              background: 'linear-gradient(145deg, #0d0a1a, #08060f)',
+              border: '1px solid #a78bfa22',
+              boxShadow: undefined,
+            };
       }
 
       if (side === 'right') {
-        return {
-          background: ctx.justRotated
-            ? 'linear-gradient(145deg, #1a2e1a, #060f08)'
-            : 'linear-gradient(145deg, #0a0d0a, #060f08)',
-          border: ctx.justRotated ? '1px solid #34d39988' : '1px solid #34d39922',
-          boxShadow: ctx.justRotated ? '0 0 10px #34d39944' : undefined,
-        };
+        return ctx.justRotated
+          ? {
+              background: 'linear-gradient(145deg, #1a2e1a, #060f08)',
+              border: '1px solid #34d39988',
+              boxShadow: '0 0 10px #34d39944',
+            }
+          : {
+              background: 'linear-gradient(145deg, #0a0d0a, #060f08)',
+              border: '1px solid #34d39922',
+              boxShadow: undefined,
+            };
       }
 
       // Center column — golden accent
-      return {
-        background: ctx.justRotated
-          ? 'linear-gradient(145deg, #2e2a00, #1a1600)'
-          : 'linear-gradient(145deg, #0f0e06, #080806)',
-        border: ctx.justRotated ? '1px solid #fbbf2488' : '1px solid #fbbf2433',
-        boxShadow: ctx.justRotated ? '0 0 10px #fbbf2444' : undefined,
-      };
+      return ctx.justRotated
+        ? {
+            background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+            border: '1px solid #fbbf2488',
+            boxShadow: '0 0 10px #fbbf2444',
+          }
+        : {
+            background: 'linear-gradient(145deg, #0f0e06, #080806)',
+            border: '1px solid #fbbf2433',
+            boxShadow: undefined,
+          };
     },
   },
 

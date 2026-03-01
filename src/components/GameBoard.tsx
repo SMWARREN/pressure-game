@@ -515,6 +515,11 @@ export default function GameBoard() {
     ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
     : undefined;
 
+  // Helper: find best-scoring game event from array
+  const findBestScoreEvent = (events: GameEndEvent[]): GameEndEvent => {
+    return events.reduce((best, e) => (e.score > best.score ? e : best), events[0]);
+  };
+
   // Compute the onReplay callback: win overlay uses latest, unlimited loss uses best-score game
   const onReplayForOverlay = (() => {
     const show = status === 'won' || (isUnlimited && status === 'lost');
@@ -529,11 +534,16 @@ export default function GameBoard() {
           (e.moveLog?.length ?? 0) > 0
       );
     if (!allEnds.length) return undefined;
-    const target = isUnlimited
-      ? allEnds.reduce((best, e) => (e.score > best.score ? e : best), allEnds[0])
-      : allEnds[allEnds.length - 1];
+    const target = isUnlimited ? findBestScoreEvent(allEnds) : allEnds[allEnds.length - 1];
     return () => setReplayEvent(target);
   })();
+
+  // Extract conditional editor button styles (S3358: reduce nested ternaries)
+  const editorButtonStyles = editor.enabled
+    ? { color: '#22c55e', border: '1px solid #22c55e40', background: 'rgba(34,197,94,0.1)' }
+    : { color: '#a855f7', border: '1px solid #a855f740', background: 'transparent' };
+  const editorButtonTitle = editor.enabled ? 'Exit Editor' : 'Level Editor';
+  const editorButtonIcon = editor.enabled ? '✓' : '🛠️';
 
   return (
     <>
@@ -749,7 +759,7 @@ export default function GameBoard() {
                     (e.moveLog?.length ?? 0) > 0
                 );
               if (!ends.length) return undefined;
-              const best = ends.reduce((b, e) => (e.score > b.score ? e : b), ends[0]);
+              const best = findBestScoreEvent(ends);
               return () => {
                 setShowUnlimitedRules(false);
                 setReplayEvent(best);
@@ -780,13 +790,11 @@ export default function GameBoard() {
             onClick={toggleEditor}
             style={{
               ...iconBtn,
-              color: editor.enabled ? '#22c55e' : '#a855f7',
-              border: editor.enabled ? '1px solid #22c55e40' : '1px solid #a855f740',
-              background: editor.enabled ? 'rgba(34,197,94,0.1)' : 'transparent',
+              ...editorButtonStyles,
             }}
-            title={editor.enabled ? 'Exit Editor' : 'Level Editor'}
+            title={editorButtonTitle}
           >
-            <span style={{ fontSize: 16 }}>{editor.enabled ? '✓' : '🛠️'}</span>
+            <span style={{ fontSize: 16 }}>{editorButtonIcon}</span>
           </button>
 
           {/* In editor mode, show simplified footer with grid controls */}
