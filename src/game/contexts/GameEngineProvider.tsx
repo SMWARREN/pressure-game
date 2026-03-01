@@ -49,7 +49,9 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
       const achievementEngine = new AchievementEngine();
 
       setEngines({ pressureEngine, statsEngine, achievementEngine });
-      console.log('[GameEngineProvider] Engines initialized and state set');
+      if (import.meta.env.DEV) {
+        console.log('[GameEngineProvider] Engines initialized');
+      }
     } catch (error) {
       console.error('[GameEngineProvider] Init error:', error);
     }
@@ -71,11 +73,9 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
   }, [statsBackend]);
 
   if (!engines) {
-    console.log('[GameEngineProvider] Engines not ready, returning null');
     return null;
   }
 
-  console.log('[GameEngineProvider] Rendering with engines');
   return (
     <GameEngineContext.Provider value={engines}>
       {children}

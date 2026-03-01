@@ -66,10 +66,10 @@ export function findGroupWithWildcards(x: number, y: number, tiles: Tile[]): Til
         !(t.x === x && t.y === y)
     );
     if (neighbors.length > 0) {
-      targetSymbol = neighbors[0].displayData!.symbol;
+      targetSymbol = (neighbors[0].displayData?.symbol as string) || null;
     }
   } else {
-    targetSymbol = tile.displayData?.symbol ?? null;
+    targetSymbol = (tile.displayData?.symbol as string | undefined) ?? null;
   }
 
   if (!targetSymbol) return [];

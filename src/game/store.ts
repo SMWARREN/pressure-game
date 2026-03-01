@@ -7,6 +7,8 @@ import { GameState, GameActions, Level, Direction, Tile } from './types';
 import { getModeById } from './modes';
 import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
 import type { PressureEngine, SoundEffect } from './engine';
+import { UNDO_DELAY_MS, HISTORY_TRIM_DELAY_MS, SCREEN_SHAKE_DURATION_MS } from './constants/timings';
+import { GRID_SIZE_MIN, GRID_SIZE_MAX } from './constants/grid';
 
 // Re-export utilities so existing imports don't break
 export { checkConnected, getConnectedTiles, createTileMap };
@@ -21,9 +23,6 @@ let engine: PressureEngine | null = null;
 
 export function _setEngineInstance(engineInstance: PressureEngine | null) {
   engine = engineInstance;
-  if (engine) {
-    console.log('[store] Engine instance set');
-  }
 }
 
 function getEngine(): PressureEngine {
@@ -229,7 +228,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         set((s) => ({
           tiles: s.tiles.map((t) => (t.justRotated ? { ...t, justRotated: false } : t)),
         }));
-      }, 300);
+      }, UNDO_DELAY_MS);
 
       // Clear "new tile" glow after it has had time to show
       getEngine().setTimeout(() => {
@@ -241,7 +240,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
             ),
           };
         });
-      }, 1500);
+      }, HISTORY_TRIM_DELAY_MS);
 
       get().checkWin();
 
@@ -326,7 +325,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
     triggerShake: () => {
       set({ screenShake: true });
-      getEngine().setTimeout(() => set({ screenShake: false }), 400);
+      getEngine().setTimeout(() => set({ screenShake: false }), SCREEN_SHAKE_DURATION_MS);
     },
 
     goToMenu: () => {
@@ -508,7 +507,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const { currentLevel, editor, tiles } = get();
       if (!currentLevel || !editor.enabled) return;
 
-      const newSize = Math.max(4, Math.min(10, (editor.gridSize ?? currentLevel.gridSize) + delta));
+      const newSize = Math.max(GRID_SIZE_MIN, Math.min(GRID_SIZE_MAX, (editor.gridSize ?? currentLevel.gridSize) + delta));
       if (newSize === (editor.gridSize ?? currentLevel.gridSize)) return;
 
       // Filter out tiles that would be outside the new grid

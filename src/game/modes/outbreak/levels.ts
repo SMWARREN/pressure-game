@@ -129,7 +129,7 @@ function dfsGroup(sx: number, sy: number, colorIndex: number, map: Map<string, T
     visited.add(key);
     const t = map.get(key);
     if (!t) continue;
-    const d = t.displayData as unknown as OBData;
+    const d = t.displayData as OBData;
     if (d.owned || d.colorIndex !== colorIndex) continue;
     result.push(key);
     for (const [dx, dy] of F_DIRS) {
@@ -154,7 +154,7 @@ export function computeFrontierData(tiles: Tile[]): Tile[] {
   // 1. Identify every frontier tile (unowned, adjacent to at least one owned tile)
   const frontierSet = new Set<string>();
   for (const t of tiles) {
-    const d = t.displayData as unknown as OBData;
+    const d = t.displayData as OBData;
     if (!d || d.owned) continue;
     for (const [dx, dy] of F_DIRS) {
       const nb = map.get(`${t.x + dx},${t.y + dy}`);
@@ -180,7 +180,7 @@ export function computeFrontierData(tiles: Tile[]): Tile[] {
 
   // 3. Patch tile displayData (skip tiles that are already correct to avoid churn)
   return tiles.map((t) => {
-    const d = t.displayData as unknown as OBData;
+    const d = t.displayData as OBData;
     if (!d) return t;
 
     // Clear stale frontier data from owned tiles

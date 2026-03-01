@@ -85,10 +85,10 @@ export interface Tile {
     | QuantumFluxTileData
     | TargetTileData
     | (Record<string, unknown> & {
-        symbol?: any;
-        frozen?: any;
-        isNew?: any;
-        activeSymbols?: any;
+        symbol?: string;
+        frozen?: boolean;
+        isNew?: boolean;
+        activeSymbols?: string[];
       });
 }
 

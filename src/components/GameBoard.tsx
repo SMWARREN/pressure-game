@@ -69,7 +69,6 @@ const iconBtn: React.CSSProperties = {
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function GameBoard() {
-  console.log('[GameBoard] Rendering');
   // Destructure from store using useShallow to avoid unnecessary re-renders
   const {
     status,
@@ -937,6 +936,8 @@ export default function GameBoard() {
 // HMR cleanup for GameBoard
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
-    console.log('[GameBoard] HMR dispose');
+    if (import.meta.env.DEV) {
+      console.log('[GameBoard] HMR dispose');
+    }
   });
 }
