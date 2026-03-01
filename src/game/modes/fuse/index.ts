@@ -203,23 +203,21 @@ export const FuseMode: GameModeConfig = {
     return null; // relay, blocker — not interactive
   },
 
+  // ── Frontier expansion helper ────────────────────────────────────────────
   onTick(state: GameState): Partial<GameState> | null {
     const ms = state.modeState as FuseState | undefined;
     if (!ms?.detonating) return null;
 
     const frontier = ms.frontier ?? [];
+    if (isEmpty(frontier)) return null;
+
     const explodedArr = ms.exploded ?? [];
     const exploded = new Set(explodedArr);
     const tiles = state.tiles;
     const gridSize = state.currentLevel?.gridSize ?? 5;
     const tick = (ms.tick ?? 0) + 1;
 
-    if (isEmpty(frontier)) {
-      // Chain already stopped — checkWin/onTick loss handles resolution
-      return null;
-    }
-
-    // Expand: find all adjacent conducting tiles not yet exploded
+    // Expand frontier to adjacent conducting tiles
     const nextFrontier: string[] = [];
     for (const key of frontier) {
       const [kx, ky] = key.split(',').map(Number);
@@ -236,7 +234,6 @@ export const FuseMode: GameModeConfig = {
       }
     }
 
-    // Mark newly reached tiles as exploded
     const nextFrontierSet = new Set(nextFrontier);
     const newTiles = tiles.map((t) => {
       if (nextFrontierSet.has(`${t.x},${t.y}`)) {
@@ -245,14 +242,8 @@ export const FuseMode: GameModeConfig = {
       return t;
     });
 
-    const newMs: FuseState = {
-      ...ms,
-      tick,
-      frontier: nextFrontier,
-      exploded: [...exploded],
-    };
+    const newMs: FuseState = { ...ms, tick, frontier: nextFrontier, exploded: [...exploded] };
 
-    // Chain fizzled without reaching all goals?
     if (isEmpty(nextFrontier)) {
       const goalNodes = state.currentLevel?.goalNodes ?? [];
       const allReached = goalNodes.every((g) => exploded.has(`${g.x},${g.y}`));
@@ -264,8 +255,6 @@ export const FuseMode: GameModeConfig = {
           lossReason: '💣 Chain fizzled!',
         };
       }
-      // All reached — checkWin after this tick will fire
-      return { tiles: newTiles, modeState: newMs };
     }
 
     return { tiles: newTiles, modeState: newMs };
