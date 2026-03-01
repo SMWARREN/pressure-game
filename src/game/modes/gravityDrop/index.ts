@@ -431,14 +431,25 @@ export const GravityDropMode: GameModeConfig = {
   },
 
   // ── Notifications ─────────────────────────────────────────────────────────
+
+  /**
+   * Chain notification tiers by score delta.
+   */
   getNotification(_tiles, _moves, modeState) {
     const delta = (modeState?.scoreDelta as number) ?? 0;
     if (delta <= 0) return null;
 
-    if (delta >= 1000) return `🌊 MASSIVE CHAIN! +${delta}`;
-    if (delta >= 500) return `💥 EPIC! +${delta}`;
-    if (delta >= 200) return `🔥 GREAT CHAIN! +${delta}`;
-    return delta >= 100 ? `⚡ Nice! +${delta}` : null;
+    const tiers = [
+      { minDelta: 1000, emoji: '🌊', text: 'MASSIVE CHAIN!' },
+      { minDelta: 500, emoji: '💥', text: 'EPIC!' },
+      { minDelta: 200, emoji: '🔥', text: 'GREAT CHAIN!' },
+      { minDelta: 100, emoji: '⚡', text: 'Nice!' },
+    ];
+
+    for (const tier of tiers) {
+      if (delta >= tier.minDelta) return `${tier.emoji} ${tier.text} +${delta}`;
+    }
+    return null;
   },
 
   tutorialSteps: GRAVITY_TUTORIAL_STEPS,

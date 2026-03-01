@@ -59,6 +59,28 @@ function updateTile(tile: Tile, patch: Partial<MemoryTileData>): Tile {
   return { ...tile, displayData: { ...tile.displayData, ...patch } };
 }
 
+// ── Notification helpers ──────────────────────────────────────────────────────
+
+/**
+ * Combo notification by multiplier.
+ * COMBO_EMOJIS is 0-based indexed, so add 1 to multiplier for emoji lookup.
+ */
+function getComboNotification(delta: number, multiplier: number): string {
+  const COMBO_EMOJIS = ['', '✨', '🔥', '💫', '⚡', '🌟'];
+  const emoji = COMBO_EMOJIS[multiplier] ?? '🌟';
+  const tiers = [
+    { minMult: 5, text: '5× COMBO!' },
+    { minMult: 4, text: '4× Combo!' },
+    { minMult: 3, text: '3× Combo!' },
+    { minMult: 2, text: '2× Streak!' },
+  ];
+
+  for (const tier of tiers) {
+    if (multiplier >= tier.minMult) return `${emoji} ${tier.text} +${delta} pts`;
+  }
+  return `🧠 Match! +${delta} pts`;
+}
+
 // ── Mode Config ───────────────────────────────────────────────────────────────
 export const MemoryMatchMode: GameModeConfig = {
   id: 'memoryMatch',
@@ -301,12 +323,8 @@ export const MemoryMatchMode: GameModeConfig = {
 
     const combo = ms?.combo ?? 1;
     const multiplier = Math.min(combo, 5);
-    const comboEmoji = ['', '✨', '🔥', '💫', '⚡', '🌟'][multiplier] ?? '🌟';
 
-    if (multiplier >= 5) return `${comboEmoji} 5× COMBO! +${delta} pts`;
-    if (multiplier >= 4) return `${comboEmoji} 4× Combo! +${delta} pts`;
-    if (multiplier >= 3) return `${comboEmoji} 3× Combo! +${delta} pts`;
-    return multiplier >= 2 ? `${comboEmoji} 2× Streak! +${delta} pts` : `🧠 Match! +${delta} pts`;
+    return getComboNotification(delta, multiplier);
   },
 
   // ── Tutorial ─────────────────────────────────────────────────────────────
