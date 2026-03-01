@@ -122,11 +122,10 @@ export function Overlay({
   const moveCount = solution?.length ?? 0;
   const moveSuffix = moveCount !== 1 ? 's' : '';
   const isSolved = solution && solution.length === 0;
-  const solutionMessage = !solution
-    ? ''
-    : isSolved
-      ? 'Already solved'
-      : `${moveCount} move${moveSuffix} to solve`;
+  let solutionMessage = '';
+  if (solution) {
+    solutionMessage = isSolved ? 'Already solved' : `${moveCount} move${moveSuffix} to solve`;
+  }
 
   if (status === 'idle')
     return <IdleOverlay levelName={levelName} onStart={onStart} solutionMessage={solutionMessage} />;
