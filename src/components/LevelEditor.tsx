@@ -137,11 +137,13 @@ export const LevelEditor: React.FC = () => {
       let newTiles = tiles.filter((t) => !(t.x === x && t.y === y));
 
       // Create new tile
-      const connections: Direction[] = selectedTool === 'node'
-        ? ['up', 'down', 'left', 'right']
-        : selectedTool === 'path'
-          ? (['left', 'right'] as Direction[])
-          : [];
+      // Extract default connections based on tool type to avoid nested ternary
+      const getDefaultConnections = (): Direction[] => {
+        if (selectedTool === 'node') return ['up', 'down', 'left', 'right'];
+        if (selectedTool === 'path') return ['left', 'right'];
+        return [];
+      };
+      const connections: Direction[] = getDefaultConnections();
       const newTile: Tile = {
         id: `${selectedTool}-${x}-${y}-${Date.now()}`,
         type: selectedTool as TileType,
