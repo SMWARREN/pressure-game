@@ -337,8 +337,12 @@ function advanceWalls(
     modeId,
     level,
     getState: () => ({ currentModeId: modeId }) as any,
-    setState: () => {},
-    sfx: () => {},
+    setState: () => {
+      // No-op in CLI context
+    },
+    sfx: () => {
+      // No-op in CLI context
+    },
   };
 
   const result = compressionSystem.advance(tiles, wallOffset, level, ctx);

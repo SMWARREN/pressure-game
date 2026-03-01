@@ -422,7 +422,9 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     },
 
     // Legacy alias — tickTimer now handles compression
-    tickCompressionTimer: () => {},
+    tickCompressionTimer: () => {
+      // No-op, replaced by tickTimer
+    },
 
     triggerShake: () => {
       set({ screenShake: true });

@@ -16,7 +16,9 @@ export class LocalStorageStatsBackend implements StatsBackend {
     this.cache = trimmed;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
-    } catch {}
+    } catch {
+      // Storage quota exceeded or localStorage unavailable
+    }
   }
 
   getAll(): StatEvent[] {
@@ -34,6 +36,8 @@ export class LocalStorageStatsBackend implements StatsBackend {
     this.cache = [];
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch {}
+    } catch {
+      // localStorage unavailable
+    }
   }
 }

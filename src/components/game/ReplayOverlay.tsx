@@ -273,7 +273,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
             compressionActive={false}
             hintPos={snapshot.tappedPos}
             status="idle"
-            onTileTap={() => {}}
+            onTileTap={() => {}} // read-only replay
             animationsEnabled={false}
             tileRenderer={mode.tileRenderer}
           />
