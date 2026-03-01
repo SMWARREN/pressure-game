@@ -17,7 +17,7 @@ import PressureHubScreen from './PressureHubScreen';
 import ParticleLayer, { type ParticleSystemHandle } from './game/ParticleLayer';
 import { useViewport } from './hooks/useViewport';
 import { usePauseOnCondition } from '@/hooks/usePauseOnCondition';
-import { useSolutionComputation, useLevelRecord, useReplayEngine } from './hooks/useGameBoardInitialization';
+import { useSolutionComputation, useLevelRecord, useReplayEngine, useNotificationSystem, useTapRejection, useAcceptedTapNotification } from './hooks/useGameBoardInitialization';
 import { StarField } from './game/StarField';
 import { Overlay } from './overlays/Overlay';
 import { ensureNotifStyles, ensureSpinnerStyles } from './utils/styles';
@@ -163,23 +163,8 @@ export default function GameBoard() {
   const particleRef = useRef<ParticleSystemHandle>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(false);
-  const [rejectedPos, setRejectedPos] = useState<{ x: number; y: number } | null>(null);
-  const [notification, setNotification] = useState<{
-    text: string;
-    key: number;
-    isScore: boolean;
-  } | null>(null);
-  const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [notifLog, setNotifLog] = useState<Array<{ id: number; text: string; isScore: boolean }>>(
-    []
-  );
-
-  // Clean up notification timeout on unmount to avoid state updates on unmounted component
-  useEffect(() => {
-    return () => {
-      if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
-    };
-  }, []);
+  const { notification, notifLog, showNotification, setNotifLog } = useNotificationSystem();
+  const { rejectedPos, handleRejectedTap } = useTapRejection();
   const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const [showUnlimitedRules, setShowUnlimitedRules] = useState(false);
@@ -202,14 +187,6 @@ export default function GameBoard() {
   useEffect(() => {
     ensureNotifStyles();
     ensureSpinnerStyles();
-  }, []);
-
-  const showNotification = useCallback((text: string, isScore = false) => {
-    if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
-    const id = Date.now();
-    setNotification({ text, key: id, isScore });
-    notifTimeoutRef.current = setTimeout(() => setNotification(null), 1400);
-    setNotifLog((prev) => [...prev.slice(-9), { id, text, isScore }]);
   }, []);
 
   // Get mode early for solution check
@@ -284,33 +261,7 @@ export default function GameBoard() {
   );
 
   // Helper to show notification for accepted tap
-  const handleAcceptedTap = useCallback(
-    (scoreDelta: number) => {
-      const tappedMode = getModeById(currentModeId);
-      let notifText: string | null = null;
-      if (tappedMode.getNotification) {
-        const freshState = useGameStore.getState();
-        const notifModeState = { ...(freshState.modeState ?? {}), scoreDelta };
-        notifText = tappedMode.getNotification(
-          freshState.tiles,
-          freshState.moves,
-          notifModeState
-        );
-      }
-      if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;
-      if (notifText) showNotification(notifText, scoreDelta > 0);
-    },
-    [currentModeId, showNotification]
-  );
-
-  // Helper to show rejection feedback
-  const handleRejectedTap = useCallback(
-    (x: number, y: number) => {
-      setRejectedPos({ x, y });
-      setTimeout(() => setRejectedPos(null), 380);
-    },
-    []
-  );
+  const handleAcceptedTap = useAcceptedTapNotification(currentModeId, showNotification);
 
   // Handle tile tap - routes to editor or game logic
   const handleTileTap = useCallback(

@@ -3,9 +3,9 @@
  * Extracted from StateEditor component to reduce cognitive complexity.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { useGameStore } from '@/game/store';
-import type { Tile, Direction } from '@/game/types';
+import type { Tile, Direction, Level, GameStatus } from '@/game/types';
 
 export interface HistorySnapshot {
   readonly tiles: Tile[];
@@ -74,5 +74,92 @@ export function useStateEditorLogic({
     updateTileConnections,
     toggleTileProperty,
     debugIntervalRef,
+  };
+}
+
+export interface StatePreset {
+  readonly name: string;
+  readonly timestamp: number;
+  readonly state: {
+    readonly tiles: Tile[];
+    readonly moves: number;
+    readonly score: number;
+    readonly elapsedSeconds: number;
+    readonly wallOffset: number;
+    timeUntilCompression: number;
+    modeState?: Record<string, unknown>;
+    currentLevel: Level | null;
+    status: GameStatus;
+  };
+}
+
+/**
+ * Custom hook to manage preset save/load functionality.
+ */
+export function usePresetManagement() {
+  const [presets, setPresets] = useState<StatePreset[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const setState = useGameStore.setState;
+
+  // Load presets from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('state-editor-presets');
+      if (saved) {
+        setPresets(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error('Failed to load presets:', e);
+    }
+  }, []);
+
+  // Save presets to localStorage
+  const savePresetsToStorage = useCallback((newPresets: StatePreset[]) => {
+    setPresets(newPresets);
+    localStorage.setItem('state-editor-presets', JSON.stringify(newPresets));
+  }, []);
+
+  // Show message temporarily
+  const showMessage = useCallback((msg: string) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(null), 2000);
+  }, []);
+
+  // Load preset
+  const loadPreset = useCallback(
+    (preset: StatePreset) => {
+      setState({
+        tiles: preset.state.tiles,
+        moves: preset.state.moves,
+        score: preset.state.score,
+        elapsedSeconds: preset.state.elapsedSeconds,
+        wallOffset: preset.state.wallOffset,
+        timeUntilCompression: preset.state.timeUntilCompression,
+        modeState: preset.state.modeState,
+        currentLevel: preset.state.currentLevel,
+        status: preset.state.status ?? 'idle',
+      });
+      showMessage(`Preset "${preset.name}" loaded!`);
+    },
+    [setState, showMessage]
+  );
+
+  // Delete preset
+  const deletePreset = useCallback(
+    (name: string) => {
+      const newPresets = presets.filter((p) => p.name !== name);
+      savePresetsToStorage(newPresets);
+      showMessage(`Preset "${name}" deleted`);
+    },
+    [presets, savePresetsToStorage, showMessage]
+  );
+
+  return {
+    presets,
+    message,
+    savePresetsToStorage,
+    showMessage,
+    loadPreset,
+    deletePreset,
   };
 }

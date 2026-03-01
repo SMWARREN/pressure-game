@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useGameStore } from '../game/store';
-import { Tile, Direction, Level, CompressionDirection, GameStatus } from '../game/types';
+import { Direction, CompressionDirection } from '../game/types';
 import { getModeById, GAME_MODES } from '../game/modes';
 import GameGrid from './game/GameGrid';
 import { getStatusColor } from '../utils/statusColors';
@@ -16,25 +16,7 @@ import {
   getStatusBorderColor,
   getStatusTextColor,
 } from './game/GameTileUtils';
-import { useStateEditorLogic, type HistorySnapshot } from './hooks/useStateEditorLogic';
-
-// ─── Types ────────────────────────────────────────────────────────────────
-
-interface StatePreset {
-  readonly name: string;
-  readonly timestamp: number;
-  readonly state: {
-    readonly tiles: Tile[];
-    readonly moves: number;
-    readonly score: number;
-    readonly elapsedSeconds: number;
-    readonly wallOffset: number;
-    timeUntilCompression: number;
-    modeState?: Record<string, unknown>;
-    currentLevel: Level | null;
-    status: GameStatus;
-  };
-}
+import { useStateEditorLogic, type HistorySnapshot, type StatePreset, usePresetManagement } from './hooks/useStateEditorLogic';
 
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];
@@ -164,29 +146,24 @@ export const StateEditor: React.FC = () => {
   // Get setters through store
   const setState = useGameStore.setState;
 
-  // Load presets from localStorage
+  // Use preset management hook (extracts state and logic for reduced complexity)
+  const {
+    presets: presetsFromHook,
+    message: messageFromHook,
+    savePresetsToStorage,
+    showMessage,
+    loadPreset: loadPresetFromHook,
+    deletePreset: deletePresetFromHook,
+  } = usePresetManagement();
+
+  // Override hook values with local state for backward compatibility
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('state-editor-presets');
-      if (saved) {
-        setPresets(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error('Failed to load presets:', e);
-    }
-  }, []);
+    setPresets(presetsFromHook);
+  }, [presetsFromHook]);
 
-  // Save presets to localStorage
-  const savePresetsToStorage = useCallback((newPresets: StatePreset[]) => {
-    setPresets(newPresets);
-    localStorage.setItem('state-editor-presets', JSON.stringify(newPresets));
-  }, []);
-
-  // Show message temporarily
-  const showMessage = useCallback((msg: string) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(null), 2000);
-  }, []);
+  useEffect(() => {
+    setMessage(messageFromHook);
+  }, [messageFromHook]);
 
   // Pause timer when editor opens, resume when it closes
   useEffect(() => {
@@ -264,34 +241,9 @@ export const StateEditor: React.FC = () => {
     showMessage,
   ]);
 
-  // Load preset
-  const loadPreset = useCallback(
-    (preset: StatePreset) => {
-      setState({
-        tiles: preset.state.tiles,
-        moves: preset.state.moves,
-        score: preset.state.score,
-        elapsedSeconds: preset.state.elapsedSeconds,
-        wallOffset: preset.state.wallOffset,
-        timeUntilCompression: preset.state.timeUntilCompression,
-        modeState: preset.state.modeState,
-        currentLevel: preset.state.currentLevel,
-        status: preset.state.status ?? 'idle',
-      });
-      showMessage(`Preset "${preset.name}" loaded!`);
-    },
-    [setState, showMessage]
-  );
-
-  // Delete preset
-  const deletePreset = useCallback(
-    (name: string) => {
-      const newPresets = presets.filter((p) => p.name !== name);
-      savePresetsToStorage(newPresets);
-      showMessage(`Preset "${name}" deleted`);
-    },
-    [presets, savePresetsToStorage, showMessage]
-  );
+  // Use hook-provided loadPreset and deletePreset (removes 20+ lines of duplicate logic)
+  const loadPreset = loadPresetFromHook;
+  const deletePreset = deletePresetFromHook;
 
   // Export state as JSON
   const exportState = useCallback(() => {

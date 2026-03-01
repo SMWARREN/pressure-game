@@ -118,18 +118,16 @@ function getCtrlButtonStyles() {
 
 // ── Playback Controls Component ────────────────────────────────────────────
 interface PlaybackControlsProps {
-  atStart: boolean;
-  atEnd: boolean;
-  playing: boolean;
-  step: number;
-  totalMoves: number;
-  speedIdx: number;
-  onGoToStart: () => void;
-  onStepBack: () => void;
-  onPlayPause: () => void;
-  onStepForward: () => void;
-  onGoToEnd: () => void;
-  onSpeedChange: () => void;
+  readonly atStart: boolean;
+  readonly atEnd: boolean;
+  readonly playing: boolean;
+  readonly speedIdx: number;
+  readonly onGoToStart: () => void;
+  readonly onStepBack: () => void;
+  readonly onPlayPause: () => void;
+  readonly onStepForward: () => void;
+  readonly onGoToEnd: () => void;
+  readonly onSpeedChange: () => void;
 }
 
 function PlaybackControls({
@@ -462,8 +460,6 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
         atStart={atStart}
         atEnd={atEnd}
         playing={playing}
-        step={step}
-        totalMoves={totalMoves}
         speedIdx={speedIdx}
         onGoToStart={() => goTo(0)}
         onStepBack={() => goTo(step - 1)}
