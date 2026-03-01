@@ -137,26 +137,73 @@ export interface GameTileProps {
   readonly editorMode?: boolean;
 }
 
+interface CustomTileRenderProps {
+  readonly id: string | undefined;
+  readonly x: number;
+  readonly y: number;
+  readonly type: string;
+  readonly connections: Direction[];
+  readonly canRotate: boolean;
+  readonly isGoalNode: boolean;
+  readonly isRejected: boolean;
+  readonly tileSize: number;
+  readonly animationsEnabled: boolean;
+  readonly tileRenderer: TileRenderer;
+  readonly displayData: Record<string, unknown> | undefined;
+  readonly justRotated: any;
+  readonly bgStyle: React.CSSProperties;
+  readonly tileTransform: string;
+  readonly handleClick: () => void;
+  readonly r: number;
+}
+
+// Helper to compute outbreak state flags
+function computeOutbreakState(
+  isOutbreak: boolean,
+  displayData: Record<string, unknown> | undefined
+) {
+  const isNewTile = Boolean(displayData?.isNew);
+  const obOwned = isOutbreak && Boolean(displayData?.owned);
+  const obFrontier = isOutbreak && !obOwned && Boolean(displayData?.isFrontier);
+  const obInterior = isOutbreak && !obOwned && !obFrontier;
+  return { isNewTile, obOwned, obFrontier, obInterior };
+}
+
+// Helper to compute shadow values
+function computeZpShadows(
+  customColors: Record<string, string> | undefined,
+  appliedBg: React.CSSProperties,
+  obFrontier: boolean
+) {
+  const zpColor = customColors?.color ?? '#888';
+  const zpShadowLo = (appliedBg as Record<string, string>)?.boxShadow ?? 'none';
+  const zpShadowHi = obFrontier
+    ? `0 0 22px ${zpColor}cc, 0 0 8px ${zpColor}88, inset 0 0 10px ${zpColor}33`
+    : zpShadowLo;
+  return { zpColor, zpShadowLo, zpShadowHi };
+}
+
 // ─── Helper: Custom renderer for special tile types ───────────────────────
-function renderCustomTile(
-  id: string | undefined,
-  x: number,
-  y: number,
-  type: string,
-  connections: Direction[],
-  canRotate: boolean,
-  isGoalNode: boolean,
-  isRejected: boolean,
-  tileSize: number,
-  animationsEnabled: boolean,
-  tileRenderer: TileRenderer,
-  displayData: Record<string, unknown> | undefined,
-  justRotated: any,
-  bgStyle: React.CSSProperties,
-  tileTransform: string,
-  handleClick: () => void,
-  r: number
-): React.ReactElement {
+function renderCustomTile(props: CustomTileRenderProps): React.ReactElement {
+  const {
+    id,
+    x,
+    y,
+    type,
+    connections,
+    canRotate,
+    isGoalNode,
+    isRejected,
+    tileSize,
+    animationsEnabled,
+    tileRenderer,
+    displayData,
+    justRotated,
+    bgStyle,
+    tileTransform,
+    handleClick,
+    r,
+  } = props;
   const ctx = {
     isHint: false,
     inDanger: false,
@@ -186,17 +233,14 @@ function renderCustomTile(
     : null;
   const appliedBg = rejectedStyle ?? customColors ?? bgStyle;
 
-  const isNewTile = Boolean(displayData?.isNew);
   const isOutbreak = tileRenderer.type === 'outbreak';
-  const obOwned = isOutbreak && Boolean(displayData?.owned);
-  const obFrontier = isOutbreak && !obOwned && Boolean(displayData?.isFrontier);
-  const obInterior = isOutbreak && !obOwned && !obFrontier;
+  const { isNewTile, obOwned, obFrontier, obInterior } = computeOutbreakState(isOutbreak, displayData);
 
-  const zpColor = (customColors as Record<string, string> | undefined)?.color ?? '#888';
-  const zpShadowLo = (appliedBg as Record<string, string>)?.boxShadow ?? 'none';
-  const zpShadowHi = obFrontier
-    ? `0 0 22px ${zpColor}cc, 0 0 8px ${zpColor}88, inset 0 0 10px ${zpColor}33`
-    : zpShadowLo;
+  const { zpColor: _, zpShadowLo, zpShadowHi } = computeZpShadows(
+    customColors as Record<string, string> | undefined,
+    appliedBg,
+    obFrontier
+  );
 
   const outbreakAnimation = getOutbreakAnimation(
     isOutbreak,
@@ -270,27 +314,49 @@ function renderCustomTile(
   );
 }
 
+interface DefaultTileRenderProps {
+  readonly x: number;
+  readonly y: number;
+  readonly type: string;
+  readonly connections: Direction[];
+  readonly canRotate: boolean;
+  readonly isGoalNode: boolean;
+  readonly isHint: any;
+  readonly inDanger: any;
+  readonly isDecoy: any;
+  readonly ripple: boolean;
+  readonly tileSize: number;
+  readonly editorMode: boolean;
+  readonly bgStyle: React.CSSProperties;
+  readonly tileTransform: string;
+  readonly tileTransition: string;
+  readonly displayData: Record<string, unknown> | undefined;
+  readonly handleClick: () => void;
+  readonly r: number;
+}
+
 // ─── Helper: Default pipe renderer ─────────────────────────────────────────
-function renderDefaultTile(
-  x: number,
-  y: number,
-  type: string,
-  connections: Direction[],
-  canRotate: boolean,
-  isGoalNode: boolean,
-  isHint: any,
-  inDanger: any,
-  isDecoy: any,
-  ripple: boolean,
-  tileSize: number,
-  editorMode: boolean,
-  bgStyle: React.CSSProperties,
-  tileTransform: string,
-  tileTransition: string,
-  displayData: Record<string, unknown> | undefined,
-  handleClick: () => void,
-  r: number
-): React.ReactElement {
+function renderDefaultTile(props: DefaultTileRenderProps): React.ReactElement {
+  const {
+    x,
+    y,
+    type,
+    connections,
+    canRotate,
+    isGoalNode,
+    isHint,
+    inDanger,
+    isDecoy,
+    ripple,
+    tileSize,
+    editorMode,
+    bgStyle,
+    tileTransform,
+    tileTransition,
+    displayData,
+    handleClick,
+    r,
+  } = props;
   const connColor = getConnColor({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
   const connGlow = getConnGlow({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
   const crushedFontSize = tileSize > 40 ? 14 : 10;
@@ -481,7 +547,7 @@ function GameTileComponent({
   // ── Custom mode renderer (slots, candy crush, match-3, outbreak, etc.) ────
   if (tileRenderer && tileRenderer.type !== 'pipe') {
     if (tileRenderer.type === 'candy' || tileRenderer.type === 'outbreak') ensureCandyStyles();
-    return renderCustomTile(
+    return renderCustomTile({
       id,
       x,
       y,
@@ -498,12 +564,12 @@ function GameTileComponent({
       bgStyle,
       tileTransform,
       handleClick,
-      r
-    );
+      r,
+    });
   }
 
   // ── Default pipe renderer ─────────────────────────────────────────────────
-  return renderDefaultTile(
+  return renderDefaultTile({
     x,
     y,
     type,
@@ -521,8 +587,8 @@ function GameTileComponent({
     tileTransition,
     displayData,
     handleClick,
-    r
-  );
+    r,
+  });
 }
 
 // Memoize to prevent unnecessary re-renders
