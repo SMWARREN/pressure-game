@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useGameStore, _setEngineInstance } from '@/game/store';
 import { createPressureEngine, type PressureEngine } from '@/game/engine/index';
 import { StatsEngine } from '@/game/stats/engine';
@@ -20,120 +20,61 @@ interface GameEngineProviderProps {
   statsBackend?: StatsBackend;
 }
 
-let globalContext: GameEngineContextType | null = null;
-let initAttempted = false;
-
-// HMR cleanup - reset globals on reload
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    console.log('[HMR] Disposing GameEngineProvider - cleaning up globals');
-    if (globalContext) {
-      try {
-        globalContext.pressureEngine.destroy();
-        globalContext.statsEngine.stop();
-      } catch (e) {
-        console.error('[HMR] Cleanup error:', e);
-      }
-    }
-    globalContext = null;
-    initAttempted = false;
-  });
-}
+let engines: GameEngineContextType | null = null;
 
 export function GameEngineProvider({ children, statsBackend }: GameEngineProviderProps) {
-  const contextRef = useRef<GameEngineContextType | null>(null);
+  // Initialize on first mount only
+  useEffect(() => {
+    if (engines) return; // Already initialized
 
-  // Initialize engines on first render
-  if (!contextRef.current && !initAttempted) {
-    initAttempted = true;
     try {
-      console.time('[perf] GameEngineProvider init');
-
-      // Create pressure engine
-      console.time('[perf] createPressureEngine');
       const pressureEngine = createPressureEngine();
-      console.timeEnd('[perf] createPressureEngine');
-
-      console.time('[perf] engine.init');
       pressureEngine.init(
         () => useGameStore.getState(),
         (partial) => useGameStore.setState(partial)
       );
-      console.timeEnd('[perf] engine.init');
 
-      // Hydrate store with engine's initial state
-      console.time('[perf] getInitialState');
       const initialState = pressureEngine.getInitialState();
-      console.timeEnd('[perf] getInitialState');
-
-      // Set selectedWorld to the first world of the current mode
-      console.time('[perf] getModeById');
       const currentMode = getModeById(initialState.currentModeId);
-      console.timeEnd('[perf] getModeById');
       const defaultWorld = currentMode.worlds?.[0]?.id ?? 1;
 
-      console.time('[perf] store.setState');
       useGameStore.setState({
         ...initialState,
         selectedWorld: defaultWorld,
       });
-      console.timeEnd('[perf] store.setState');
 
-      // Make pressure engine available to store actions
       _setEngineInstance(pressureEngine);
 
-      // Create stats engine and start it immediately
-      console.time('[perf] StatsEngine');
       const backend = statsBackend ?? new LocalStorageStatsBackend();
       const statsEngine = new StatsEngine(backend);
       statsEngine.start();
-      console.timeEnd('[perf] StatsEngine');
 
-      // Create achievement engine
-      console.time('[perf] AchievementEngine');
       const achievementEngine = new AchievementEngine();
-      console.timeEnd('[perf] AchievementEngine');
 
-      // Store context both locally and globally
-      contextRef.current = {
-        pressureEngine,
-        statsEngine,
-        achievementEngine,
-      };
-      globalContext = contextRef.current;
-      console.timeEnd('[perf] GameEngineProvider init');
-      console.log('[perf] All engines initialized successfully');
+      engines = { pressureEngine, statsEngine, achievementEngine };
+      console.log('[GameEngineProvider] Engines initialized');
     } catch (error) {
-      console.error('[GameEngineProvider] Initialization error:', error);
-      // Don't throw - just render null and let the error propagate through context access
+      console.error('[GameEngineProvider] Init error:', error);
     }
-  } else if (globalContext && !contextRef.current) {
-    contextRef.current = globalContext;
-  }
 
-  useEffect(() => {
-    // Cleanup on unmount
     return () => {
-      if (contextRef.current) {
+      if (engines) {
         try {
-          contextRef.current.pressureEngine.destroy();
+          engines.pressureEngine.destroy();
+          engines.statsEngine.stop();
           _setEngineInstance(null as any);
-          contextRef.current.statsEngine.stop();
+          engines = null;
         } catch (error) {
           console.error('[GameEngineProvider] Cleanup error:', error);
         }
-        globalContext = null;
-        contextRef.current = null;
       }
     };
-  }, []);
+  }, [statsBackend]);
 
-  if (!contextRef.current) {
-    return null;
-  }
+  if (!engines) return null;
 
   return (
-    <GameEngineContext.Provider value={contextRef.current}>
+    <GameEngineContext.Provider value={engines}>
       {children}
     </GameEngineContext.Provider>
   );

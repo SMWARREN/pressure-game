@@ -21,11 +21,16 @@ let engine: PressureEngine | null = null;
 
 export function _setEngineInstance(engineInstance: PressureEngine | null) {
   engine = engineInstance;
+  if (engine) {
+    console.log('[store] Engine instance set');
+  }
 }
 
 function getEngine(): PressureEngine {
   if (!engine) {
-    throw new Error('Engine not initialized. Make sure EngineProvider is mounted.');
+    console.error('[store] Engine is null! Attempting to use before initialization.');
+    console.error('[store] Check: Is GameEngineProvider mounted? Did initialization complete?');
+    throw new Error('Engine not initialized. Make sure GameEngineProvider is mounted.');
   }
   return engine;
 }
