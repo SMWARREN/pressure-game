@@ -600,6 +600,92 @@ function verifySolution(
 }
 
 // ─── Main generator ────────────────────────────────────────────────────────
+// ── Procedural generation helper ────────────────────────────────────────────
+
+function tryGenerateAttempt(
+  attempt: number,
+  gridCols: number,
+  gridRows: number,
+  nodeCount: number,
+  dirConfig: any,
+  interiorWallCount: number,
+  branchCount: number,
+  opts: ProceduralOptions,
+  params: any
+): Level | null {
+  const { tiles: wallTiles, borderSet } = createBorderWalls(gridCols, gridRows);
+  const goalPositions = placeGoalNodes(gridCols, gridRows, nodeCount, dirConfig);
+  if (!goalPositions) return null;
+
+  const goalSet = new Set(goalPositions.map((p) => `${p.x},${p.y}`));
+  const { mainConnMap, occupied, success } = generateMainPaths(
+    goalPositions,
+    gridCols,
+    gridRows,
+    borderSet,
+    goalSet
+  );
+  if (!success) return null;
+
+  if (interiorWallCount > 0) {
+    const roomWalls = placeRoomWalls(gridCols, gridRows, occupied, interiorWallCount);
+    for (const t of roomWalls) {
+      wallTiles.push(t);
+      occupied.add(`${t.x},${t.y}`);
+    }
+  }
+
+  const branchConnMap = generateBranches(
+    mainConnMap,
+    branchCount,
+    gridCols,
+    gridRows,
+    occupied,
+    goalSet
+  );
+
+  const nodeTiles: Tile[] = goalPositions.map((p) => ({
+    id: `node-${p.x}-${p.y}`,
+    type: 'node' as const,
+    x: p.x,
+    y: p.y,
+    connections: ['up', 'down', 'left', 'right'] as Direction[],
+    isGoalNode: true,
+    canRotate: false,
+  }));
+
+  const { tiles: pathTiles, solution } = buildTilesFromSolution(
+    mainConnMap,
+    branchConnMap,
+    goalSet,
+    opts.lockedFraction ?? 0
+  );
+
+  const allTiles = [...wallTiles, ...nodeTiles, ...pathTiles];
+
+  if (isConnected(allTiles, goalPositions)) return null;
+  if (!verifySolution(allTiles, solution, goalPositions)) return null;
+
+  const minMoves = solution.reduce((s, p) => s + p.rotations, 0);
+  if (minMoves === 0) return null;
+
+  return {
+    id: opts.id ?? Date.now() + attempt,
+    name: opts.name ?? generateName(opts.difficulty),
+    world: opts.world ?? 1,
+    gridSize: gridCols,
+    gridCols,
+    gridRows,
+    maxMoves: minMoves + params.movePadding,
+    compressionDelay: params.compressionDelay,
+    compressionDirection: dirConfig.dir,
+    tiles: allTiles,
+    goalNodes: goalPositions,
+    isGenerated: true,
+    solution,
+  };
+}
+
 export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
   const { gridCols, gridRows, nodeCount, difficulty } = opts;
   const params = DIFF_PARAMS[difficulty];
@@ -613,77 +699,18 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
   const branchCount = opts.branches ?? rng(1, 2);
 
   for (let attempt = 0; attempt < 40; attempt++) {
-    const { tiles: wallTiles, borderSet } = createBorderWalls(gridCols, gridRows);
-    const goalPositions = placeGoalNodes(gridCols, gridRows, nodeCount, dirConfig);
-    if (!goalPositions) continue;
-
-    const goalSet = new Set(goalPositions.map((p) => `${p.x},${p.y}`));
-    const { mainConnMap, occupied, success } = generateMainPaths(
-      goalPositions,
+    const result = tryGenerateAttempt(
+      attempt,
       gridCols,
       gridRows,
-      borderSet,
-      goalSet
-    );
-    if (!success) continue;
-
-    if (interiorWallCount > 0) {
-      const roomWalls = placeRoomWalls(gridCols, gridRows, occupied, interiorWallCount);
-      for (const t of roomWalls) {
-        wallTiles.push(t);
-        occupied.add(`${t.x},${t.y}`);
-      }
-    }
-
-    const branchConnMap = generateBranches(
-      mainConnMap,
+      nodeCount,
+      dirConfig,
+      interiorWallCount,
       branchCount,
-      gridCols,
-      gridRows,
-      occupied,
-      goalSet
+      opts,
+      params
     );
-
-    const nodeTiles: Tile[] = goalPositions.map((p) => ({
-      id: `node-${p.x}-${p.y}`,
-      type: 'node' as const,
-      x: p.x,
-      y: p.y,
-      connections: ['up', 'down', 'left', 'right'] as Direction[],
-      isGoalNode: true,
-      canRotate: false,
-    }));
-
-    const { tiles: pathTiles, solution } = buildTilesFromSolution(
-      mainConnMap,
-      branchConnMap,
-      goalSet,
-      opts.lockedFraction ?? 0
-    );
-
-    const allTiles = [...wallTiles, ...nodeTiles, ...pathTiles];
-
-    if (isConnected(allTiles, goalPositions)) continue;
-    if (!verifySolution(allTiles, solution, goalPositions)) continue;
-
-    const minMoves = solution.reduce((s, p) => s + p.rotations, 0);
-    if (minMoves === 0) continue;
-
-    return {
-      id: opts.id ?? Date.now() + attempt,
-      name: opts.name ?? generateName(difficulty),
-      world: opts.world ?? 1,
-      gridSize: gridCols,
-      gridCols,
-      gridRows,
-      maxMoves: minMoves + params.movePadding,
-      compressionDelay: params.compressionDelay,
-      compressionDirection: dirConfig.dir,
-      tiles: allTiles,
-      goalNodes: goalPositions,
-      isGenerated: true,
-      solution,
-    };
+    if (result) return result;
   }
 
   return null;
