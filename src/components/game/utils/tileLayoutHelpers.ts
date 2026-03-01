@@ -46,4 +46,37 @@ function getPaddingValue(gridSize: number): number {
   return 10;
 }
 
-export { getSymbolSize, getGapValue, getPaddingValue };
+/**
+ * Calculate tile size for a given viewport and grid
+ * Used by ReplayOverlay, LevelEditor, etc. for responsive grids
+ */
+function calculateTileSize(
+  viewportWidth: number,
+  gridSize: number,
+  maxWidth: number = 460,
+  margin: number = 0
+): number {
+  const gap = getGapValue(gridSize);
+  const available = Math.min(viewportWidth * 0.9, maxWidth) - gap * (gridSize - 1) - margin;
+  return Math.floor(available / gridSize);
+}
+
+/**
+ * Calculate total board width (tiles + gaps + padding)
+ */
+function calculateBoardWidth(
+  tileSize: number,
+  gridSize: number,
+  padding: number = 0
+): number {
+  const gap = getGapValue(gridSize);
+  return tileSize * gridSize + gap * (gridSize - 1) + padding * 2;
+}
+
+export {
+  getSymbolSize,
+  getGapValue,
+  getPaddingValue,
+  calculateTileSize,
+  calculateBoardWidth,
+};

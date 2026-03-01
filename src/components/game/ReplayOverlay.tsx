@@ -7,7 +7,7 @@ import GameGrid from '@/components/game/GameGrid';
 import { getModeById } from '@/game/modes';
 import type { ReplayEngine, ReplaySnapshot } from '@/game/stats/replay';
 import type { GameEndEvent } from '@/game/stats/types';
-import { getGapValue } from './GameTileUtils';
+import { getGapValue, calculateTileSize, calculateBoardWidth } from './GameTileUtils';
 import { getStatusColor } from '@/utils/statusColors';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -60,9 +60,9 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   const gridSize = engine.level.gridSize;
   const mode = getModeById(event.modeId);
   const gap = getGapValue(gridSize);
-  const tileSize = Math.floor((Math.min(vw * 0.9, 380) - gap * (gridSize - 1) - 16) / gridSize);
+  const tileSize = calculateTileSize(vw, gridSize, 380, 16);
   const totalMoves = engine.totalMoves;
-  const boardW = tileSize * gridSize + gap * (gridSize - 1);
+  const boardW = calculateBoardWidth(tileSize, gridSize);
 
   // Auto-play effect
   useEffect(() => {

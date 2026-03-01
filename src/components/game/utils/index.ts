@@ -26,7 +26,13 @@ export {
   getTileTransitionStyle,
 } from './tileAnimationHelpers';
 
-export { getSymbolSize, getGapValue, getPaddingValue } from './tileLayoutHelpers';
+export {
+  getSymbolSize,
+  getGapValue,
+  getPaddingValue,
+  calculateTileSize,
+  calculateBoardWidth,
+} from './tileLayoutHelpers';
 
 export {
   getStatusBackgroundColor,
