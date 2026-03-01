@@ -9,13 +9,13 @@
 
 interface BaseEvent {
   /** Unix milliseconds */
-  ts: number;
+  readonly ts: number;
   /** Mode that was active when the event fired */
-  modeId: string;
+  readonly modeId: string;
   /** Level that was loaded when the event fired */
-  levelId: number;
+  readonly levelId: number;
   /** Random ID shared across all events in one browser tab session */
-  sessionId: string;
+  readonly sessionId: string;
 }
 
 /** Fired when status transitions from anything → 'playing' */
@@ -25,22 +25,22 @@ export interface GameStartEvent extends BaseEvent {
 
 /** A single tap recorded during gameplay for move-by-move replay */
 export interface MoveRecord {
-  x: number;
-  y: number;
+  readonly x: number;
+  readonly y: number;
   /** Milliseconds elapsed from game start at the time of the tap */
-  t: number;
+  readonly t: number;
 }
 
 /** Fired when status transitions from 'playing' → 'won' or 'lost' */
 export interface GameEndEvent extends BaseEvent {
-  type: 'game_end';
-  outcome: 'won' | 'lost';
-  moves: number;
-  elapsedSeconds: number;
-  score: number;
-  lossReason: string | null;
+  readonly type: 'game_end';
+  readonly outcome: 'won' | 'lost';
+  readonly moves: number;
+  readonly elapsedSeconds: number;
+  readonly score: number;
+  readonly lossReason: string | null;
   /** Full move log for replay. Empty array on legacy events recorded before this field existed. */
-  moveLog: MoveRecord[];
+  readonly moveLog: MoveRecord[];
 }
 
 export type StatEvent = GameStartEvent | GameEndEvent;

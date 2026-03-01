@@ -8,15 +8,15 @@ import type { GameEndEvent, MoveRecord } from './types';
 import type { Tile, Level } from '@/game/types';
 
 export interface ReplaySnapshot {
-  tiles: Tile[];
-  score: number;
-  modeState: Record<string, unknown>;
+  readonly tiles: Tile[];
+  readonly score: number;
+  readonly modeState: Record<string, unknown>;
   /** Which tile was tapped to reach this snapshot (null = initial state) */
-  tappedPos: { x: number; y: number } | null;
+  readonly tappedPos: { x: number; y: number } | null;
   /** Index into moveLog (-1 = initial state before any moves) */
-  moveIndex: number;
+  readonly moveIndex: number;
   /** Elapsed ms from game start at the time of this move */
-  elapsed: number;
+  readonly elapsed: number;
 }
 
 export class ReplayEngine {
