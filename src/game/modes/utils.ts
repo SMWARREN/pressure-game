@@ -110,22 +110,10 @@ class UnionFind {
  * Time complexity: O(n * α(n)) ≈ O(n) where n is number of tiles.
  * Much faster than DFS for repeated connectivity checks.
  */
-export function checkConnectedFast(tiles: Tile[], goals: Position[]): boolean {
-  if (goals.length < 2) return true;
-
-  const tileMap = createTileMap(tiles);
-  const uf = new UnionFind();
-
-  // Initialize all tiles in union-find
-  for (const tile of tiles) {
-    const key = `${tile.x},${tile.y}`;
-    uf.makeSet(key);
-  }
-
-  // Union connected tiles
+// ── Union-find connection helper ─────────────────────────────────────────────
+function unionConnectedTiles(tiles: Tile[], tileMap: Map<string, Tile>, uf: UnionFind): void {
   for (const tile of tiles) {
     if (tile.type === 'wall' || tile.type === 'crushed') continue;
-
     const key = `${tile.x},${tile.y}`;
 
     for (const d of tile.connections) {
@@ -141,6 +129,22 @@ export function checkConnectedFast(tiles: Tile[], goals: Position[]): boolean {
       }
     }
   }
+}
+
+export function checkConnectedFast(tiles: Tile[], goals: Position[]): boolean {
+  if (goals.length < 2) return true;
+
+  const tileMap = createTileMap(tiles);
+  const uf = new UnionFind();
+
+  // Initialize all tiles in union-find
+  for (const tile of tiles) {
+    const key = `${tile.x},${tile.y}`;
+    uf.makeSet(key);
+  }
+
+  // Union connected tiles
+  unionConnectedTiles(tiles, tileMap, uf);
 
   // Check if all goals are in the same set
   const firstGoalKey = `${goals[0].x},${goals[0].y}`;
@@ -175,20 +179,7 @@ export function getConnectedTilesFast(tiles: Tile[], goals: Position[]): Set<str
     const tile = tileMap.get(key);
     if (!tile || tile.type === 'wall' || tile.type === 'crushed') continue;
 
-    for (const d of tile.connections) {
-      const [dx, dy] = directionToOffset(d);
-      const nx = tile.x + dx;
-      const ny = tile.y + dy;
-      const nkey = `${nx},${ny}`;
-
-      if (visited.has(nkey)) continue;
-
-      const neighbor = tileMap.get(nkey);
-      if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
-      if (neighbor.connections.includes(OPP[d])) {
-        queue.push(nkey);
-      }
-    }
+    exploreNeighbors(tile, tileMap, visited, queue);
   }
 
   return visited;
@@ -218,6 +209,26 @@ export function getConnectedTiles(tiles: Tile[], goals: Position[]): Set<string>
  * ORIGINAL DFS implementation - kept for reference and fallback
  * Get all tile positions reachable from goals[0] via valid bidirectional pipe connections.
  */
+// ── DFS neighbor exploration helper ──────────────────────────────────────────
+function exploreNeighbors(
+  tile: Tile,
+  tileMap: Map<string, Tile>,
+  visited: Set<string>,
+  stack: string[]
+): void {
+  for (const d of tile.connections) {
+    const [dx, dy] = directionToOffset(d);
+    const nx = tile.x + dx;
+    const ny = tile.y + dy;
+    const nkey = `${nx},${ny}`;
+    if (visited.has(nkey)) continue;
+
+    const neighbor = tileMap.get(nkey);
+    if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
+    if (neighbor.connections.includes(OPP[d])) stack.push(nkey);
+  }
+}
+
 export function getConnectedTilesDFS(tiles: Tile[], goals: Position[]): Set<string> {
   if (goals.length < 2) return new Set();
 
@@ -233,17 +244,7 @@ export function getConnectedTilesDFS(tiles: Tile[], goals: Position[]): Set<stri
     const tile = tileMap.get(key);
     if (!tile || tile.type === 'wall' || tile.type === 'crushed') continue;
 
-    for (const d of tile.connections) {
-      const [dx, dy] = directionToOffset(d);
-      const nx = tile.x + dx;
-      const ny = tile.y + dy;
-      const nkey = `${nx},${ny}`;
-      if (visited.has(nkey)) continue;
-
-      const neighbor = tileMap.get(nkey);
-      if (!neighbor || neighbor.type === 'wall' || neighbor.type === 'crushed') continue;
-      if (neighbor.connections.includes(OPP[d])) stack.push(nkey);
-    }
+    exploreNeighbors(tile, tileMap, visited, stack);
   }
 
   return visited;
