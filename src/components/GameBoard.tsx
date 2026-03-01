@@ -430,10 +430,11 @@ export default function GameBoard() {
 
   // Check if we're in test/harness mode (skip tutorial for E2E tests)
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
+  // Guard clauses for special screens (reduces nesting depth)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
   if (showArcadeHub) return <ArcadeHubScreen />;
   if (showPressureHub) return <PressureHubScreen />;
-  if (status === 'menu' || !currentLevel) return <MenuScreen />;
+  if (!currentLevel || status === 'menu') return <MenuScreen />;
 
   const gs = currentLevel.gridSize;
   const comprPct = computeCompressionPercent(wallOffset, gs);
@@ -479,19 +480,22 @@ export default function GameBoard() {
     elapsedSeconds,
     currentLevel.timeLimit
   );
-  const timeStr = status === 'playing' ? computedTimeStr : '';
+  const shouldShowTimeStr = status === 'playing';
+  const timeStr = shouldShowTimeStr ? computedTimeStr : '';
   const countdownSecs = Math.ceil(timeUntilCompression / 1000);
   // Override statsDisplay when the level has a time limit
-  const levelStatsDisplay = currentLevel.timeLimit
+  const hasTimeLimit = currentLevel.timeLimit != null;
+  const levelStatsDisplay = hasTimeLimit
     ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
     : undefined;
 
   // Extract conditional editor button styles (S3358: reduce nested ternaries)
-  const editorButtonStyles = editor.enabled
+  const isEditorActive = editor.enabled;
+  const editorButtonStyles = isEditorActive
     ? { color: '#22c55e', border: '1px solid #22c55e40', background: 'rgba(34,197,94,0.1)' }
     : { color: '#a855f7', border: '1px solid #a855f740', background: 'transparent' };
-  const editorButtonTitle = editor.enabled ? 'Exit Editor' : 'Level Editor';
-  const editorButtonIcon = editor.enabled ? '✓' : '🛠️';
+  const editorButtonTitle = isEditorActive ? 'Exit Editor' : 'Level Editor';
+  const editorButtonIcon = isEditorActive ? '✓' : '🛠️';
 
   return (
     <>
