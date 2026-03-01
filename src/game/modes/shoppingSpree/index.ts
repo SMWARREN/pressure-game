@@ -162,6 +162,63 @@ function findGroup(x: number, y: number, tiles: Tile[]): Tile[] {
  * After clearing tiles, pack survivors to the bottom of each column
  * and fill the top with fresh random items.
  */
+// ── Tile creation helpers ───────────────────────────────────────────────────
+
+function createRandomShoppingItem(
+  col: number,
+  row: number,
+  activeSymbols: string[]
+): Tile {
+  const symbol = Math.random() < 0.1 ? '💎' : pickRandom(activeSymbols.filter((s) => s !== '💎'));
+  return {
+    id: `sn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
+    type: 'path' as const,
+    x: col,
+    y: row,
+    connections: [],
+    canRotate: true,
+    isGoalNode: false,
+    justRotated: true,
+    displayData: { symbol, activeSymbols, isNew: true },
+  };
+}
+
+function fillColumn(
+  col: number,
+  colTiles: Tile[],
+  gridRows: number,
+  activeSymbols: string[],
+  features?: { wildcards?: boolean; bombs?: boolean }
+): Tile[] {
+  const filled: Tile[] = [];
+
+  // Pack existing tiles to the bottom
+  for (let i = 0; i < colTiles.length; i++) {
+    const d = colTiles[i].displayData ?? {};
+    filled.push({
+      ...colTiles[i],
+      y: gridRows - 1 - i,
+      justRotated: false,
+      displayData: { ...d, isNew: false },
+    });
+  }
+
+  // Fill remaining slots with new random items
+  const fillCount = gridRows - colTiles.length;
+  for (let row = 0; row < fillCount; row++) {
+    const roll = Math.random();
+    if (features?.bombs && roll < 0.03) {
+      filled.push(makeBombTile(col, row, activeSymbols));
+    } else if (features?.wildcards && roll < 0.08) {
+      filled.push(makeWildcardTile(col, row, activeSymbols));
+    } else {
+      filled.push(createRandomShoppingItem(col, row, activeSymbols));
+    }
+  }
+
+  return filled;
+}
+
 function applyGravity(
   tiles: Tile[],
   gridCols: number,
@@ -173,44 +230,10 @@ function applyGravity(
     ?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
 
   const result: Tile[] = [];
-
   for (let col = 0; col < gridCols; col++) {
     const colTiles = survivors.filter((t) => t.x === col).sort((a, b) => b.y - a.y);
-
-    // Pack existing tiles to the bottom
-    for (let i = 0; i < colTiles.length; i++) {
-      const d = colTiles[i].displayData ?? {};
-      result.push({
-        ...colTiles[i],
-        y: gridRows - 1 - i,
-        justRotated: false,
-        displayData: { ...d, isNew: false },
-      });
-    }
-
-    // Fill remaining slots from the top with new random items
-    const fillCount = gridRows - colTiles.length;
-    for (let row = 0; row < fillCount; row++) {
-      const roll = Math.random();
-      if (features?.bombs && roll < 0.03) {
-        result.push(makeBombTile(col, row, activeSymbols));
-      } else if (features?.wildcards && roll < 0.08) {
-        result.push(makeWildcardTile(col, row, activeSymbols));
-      } else {
-        const symbol = Math.random() < 0.1 ? '💎' : pickRandom(activeSymbols.filter((s) => s !== '💎'));
-        result.push({
-          id: `sn-${col}-${row}-${Math.random().toString(36).slice(2, 7)}`,
-          type: 'path' as const,
-          x: col,
-          y: row,
-          connections: [],
-          canRotate: true,
-          isGoalNode: false,
-          justRotated: true,
-          displayData: { symbol, activeSymbols: activeSymbols, isNew: true },
-        });
-      }
-    }
+    const filledCol = fillColumn(col, colTiles, gridRows, activeSymbols, features);
+    result.push(...filledCol);
   }
 
   return result;
