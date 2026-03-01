@@ -69,13 +69,13 @@ function useAutoPlay(playing: boolean, speedIdx: number, onStepForward: () => vo
 const REPLAY_SPEEDS = [800, 400, 200];
 const REPLAY_SPEED_LABELS = ['1×', '2×', '4×'];
 
-export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayProps) {
-  const [step, setStep] = useState(0); // index into engine.snapshots
+// Extract replay state into custom hook for reduced complexity
+function useReplayState(engine: ReplayEngine) {
+  const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [speedIdx, setSpeedIdx] = useState(0); // 0=800ms, 1=400ms, 2=200ms
+  const [speedIdx, setSpeedIdx] = useState(0);
   const [vw, setVw] = useState(globalThis.innerWidth);
 
-  // Keep board size in sync with window resizes / orientation changes
   useEffect(() => {
     const update = () => setVw(globalThis.innerWidth);
     globalThis.addEventListener('resize', update);
@@ -85,6 +85,40 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
       globalThis.removeEventListener('orientationchange', update);
     };
   }, []);
+
+  const goTo = (s: number) => {
+    setStep(Math.max(0, Math.min(s, engine.snapshots.length - 1)));
+    setPlaying(false);
+  };
+
+  return { step, setStep, playing, setPlaying, speedIdx, setSpeedIdx, vw, goTo };
+}
+
+// Helper to compute button styles
+function getCtrlButtonStyles() {
+  const ctrlBtn: React.CSSProperties = {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    border: '1px solid #1e1e35',
+    background: 'rgba(255,255,255,0.04)',
+    color: '#a5b4fc',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 18,
+    flexShrink: 0,
+  };
+  return {
+    ctrlBtn,
+    ctrlBtnDisabled: { ...ctrlBtn, opacity: 0.3, cursor: 'default' },
+  };
+}
+
+export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayProps) {
+  const { step, setStep, playing, setPlaying, speedIdx, setSpeedIdx, vw, goTo } = useReplayState(engine);
+  const { ctrlBtn, ctrlBtnDisabled } = getCtrlButtonStyles();
 
   const snapshot: ReplaySnapshot = engine.snapshots[step];
   const { mode, gridSize, gap, tileSize, totalMoves, boardW, won } = computeReplayMetadata(
@@ -105,34 +139,6 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
   };
 
   useAutoPlay(playing, speedIdx, handleStepForward);
-
-  const goTo = (s: number) => {
-    setStep(Math.max(0, Math.min(s, engine.snapshots.length - 1)));
-    setPlaying(false);
-  };
-
-  /* ── Styles ─────────────────────────────────────────────────────────────── */
-
-  const ctrlBtn: React.CSSProperties = {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    border: '1px solid #1e1e35',
-    background: 'rgba(255,255,255,0.04)',
-    color: '#a5b4fc',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 18,
-    flexShrink: 0,
-  };
-
-  const ctrlBtnDisabled: React.CSSProperties = {
-    ...ctrlBtn,
-    opacity: 0.3,
-    cursor: 'default',
-  };
 
   const atStart = step === 0;
   const atEnd = step === engine.snapshots.length - 1;
