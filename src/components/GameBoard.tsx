@@ -29,14 +29,22 @@ import { LevelHeader } from './game/LevelHeader';
 import { FeatureIndicators } from './game/FeatureIndicators';
 import { GameFooter } from './game/GameFooter';
 import { NotificationLog } from './game/NotificationLog';
+import {
+  getParticleBurstColor,
+  getParticleBurstShape,
+  computeBoardDimensions,
+  computeTimeStrings,
+  computeLevelNavigation,
+  computeLevelDisplayNum,
+  computeOverlayProps,
+  computeCompressionPercent,
+} from './game/GameBoardUtils';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NOTIFICATION & ANIMATION SETUP
    Isolated in its own component + imperative ref so 60fps RAF updates
    never cause the full GameBoard to re-render.
 ═══════════════════════════════════════════════════════════════════════════ */
-
-import React from 'react';
 
 /* (CompressionBar, Pipes, and GameTile are provided by src/components/game/
    — GameBoard uses GameGrid which threads tileRenderer through to each tile) */
@@ -289,9 +297,9 @@ export default function GameBoard() {
           particleRef.current?.burst(
             cx + (Math.random() - 0.5) * 120,
             cy + (Math.random() - 0.5) * 100,
-            i % 3 === 0 ? '#22c55e' : i % 3 === 1 ? '#a5b4fc' : '#fbbf24',
+            getParticleBurstColor(i),
             14,
-            i % 2 === 0 ? 'star' : 'circle'
+            getParticleBurstShape(i)
           );
         }, i * 80);
       }
@@ -472,27 +480,25 @@ export default function GameBoard() {
   if (status === 'menu' || !currentLevel) return <MenuScreen />;
 
   const gs = currentLevel.gridSize;
-  const maxOff = Math.floor(gs / 2);
-  const comprPct = Math.round((wallOffset / maxOff) * 100);
+  const comprPct = computeCompressionPercent(wallOffset, gs);
   const hintPos = showHint && solution?.length ? solution[0] : null;
 
   // Use the active mode's level list so NEXT works in every mode (Candy, Blitz, etc.)
-  // Check if this level is part of the mode's defined levels (even if procedurally generated)
   const modeLevels = mode.getLevels();
-  const isInModeLevels = modeLevels.some((l) => l.id === currentLevel.id);
-  // For workshop levels (not in mode's level list), navigate within generatedLevels
-  const allLevels = isInModeLevels ? [...modeLevels, ...generatedLevels] : generatedLevels;
-  const currentIndex = allLevels.findIndex((l) => l.id === currentLevel.id);
-  const nextLevel =
-    currentIndex >= 0 && currentIndex < allLevels.length - 1 ? allLevels[currentIndex + 1] : null;
+  const { nextLevel } = computeLevelNavigation(modeLevels, generatedLevels, currentLevel.id);
+  const levelDisplayNum = computeLevelDisplayNum(modeLevels, currentLevel.id);
 
-  // Compute display level number (1-based position in mode's level list)
-  const levelDisplayNum = modeLevels.findIndex((l) => l.id === currentLevel.id) + 1;
-
-  const reachedTarget = score >= (currentLevel.targetScore ?? Infinity);
-  const outOfTaps = !isUnlimited && moves >= currentLevel.maxMoves && !reachedTarget;
-  const winTitle = outOfTaps ? 'OUT OF TAPS' : (mode.overlayText?.win ?? 'CONNECTED');
-  const lossTitle = lossReason ?? mode.overlayText?.loss ?? 'CRUSHED';
+  const { reachedTarget, outOfTaps, winTitle, lossTitle } = computeOverlayProps({
+    status,
+    score,
+    targetScore: currentLevel.targetScore,
+    moves,
+    maxMoves: currentLevel.maxMoves,
+    isUnlimited,
+    lossReason,
+    mode,
+    elapsedSeconds,
+  });
 
   // Footer visibility — only show controls that make sense for the active mode
   const showUndoBtn = mode.supportsUndo !== false;
@@ -507,27 +513,17 @@ export default function GameBoard() {
   const hasFeatures = Boolean(
     currentLevel.features && Object.values(currentLevel.features).some(Boolean)
   );
-  const reserved = hasFeatures ? 224 : 200;
-  const maxAvailW = Math.min(vw * 0.97, 460);
-  const maxAvailH = Math.max(vh - reserved, 160);
-  const gap = maxDim >= 9 ? 2 : maxDim > 5 ? 3 : 4;
-  const padding = maxDim >= 9 ? 4 : maxDim > 5 ? 8 : 10;
-  const tileSizeByW = Math.floor((maxAvailW - padding * 2 - gap * (gridCols - 1)) / gridCols);
-  const tileSizeByH = Math.floor((maxAvailH - padding * 2 - gap * (gridRows - 1)) / gridRows);
-  const tileSize = Math.max(1, Math.min(tileSizeByW, tileSizeByH));
-  const boardWidth = tileSize * gridCols + padding * 2 + gap * (gridCols - 1);
-  const boardHeight = tileSize * gridRows + padding * 2 + gap * (gridRows - 1);
+  const { tileSize, boardWidth, boardHeight, gap, padding } = computeBoardDimensions(
+    vw,
+    vh,
+    gridCols,
+    gridRows,
+    hasFeatures
+  );
 
-  const mins = Math.floor(elapsedSeconds / 60);
-  const secs = elapsedSeconds % 60;
-  const timeStr =
-    status === 'playing' ? `${mins > 0 ? mins + ':' : ''}${String(secs).padStart(2, '0')}` : '';
+  const { timeStr: computedTimeStr, timeLeft } = computeTimeStrings(elapsedSeconds, currentLevel.timeLimit);
+  const timeStr = status === 'playing' ? computedTimeStr : '';
   const countdownSecs = Math.ceil(timeUntilCompression / 1000);
-
-  // For timed levels (e.g. Frozen world): countdown to game-over
-  const timeLeft = currentLevel.timeLimit
-    ? Math.max(0, currentLevel.timeLimit - elapsedSeconds)
-    : undefined;
   // Override statsDisplay when the level has a time limit
   const levelStatsDisplay = currentLevel.timeLimit
     ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
