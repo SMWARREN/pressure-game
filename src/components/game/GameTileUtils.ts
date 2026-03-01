@@ -20,6 +20,7 @@ export {
   getDecoyBoxShadow,
   getNodeBorderColor,
   getPathBorderColor,
+  getTileBackgroundStyle,
   type TileStyleContext,
 } from './utils/tileColorHelpers';
 

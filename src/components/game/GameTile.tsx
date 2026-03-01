@@ -15,7 +15,7 @@ import {
   getNormalIndicatorGlow,
   getDecoyBorderColor,
   getDecoyBoxShadow,
-  getNodeBorderColor,
+  getTileBackgroundStyle,
   getPipeSegmentStyle,
 } from './GameTileUtils';
 
@@ -194,66 +194,7 @@ function GameTileComponent({
   };
 
   const r = tileSize > 50 ? 8 : 6;
-
-  const bgStyle = (() => {
-    if (type === 'wall')
-      return {
-        background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)',
-        border: '1px solid #131325',
-      };
-    if (type === 'crushed')
-      return {
-        background: 'linear-gradient(145deg, #450a0a 0%, #2d0606 100%)',
-        border: '2px solid #ef4444',
-        boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.2)',
-      };
-    if (type === 'node')
-      return {
-        background: inDanger
-          ? 'linear-gradient(145deg, #3d0808 0%, #2d0606 100%)'
-          : 'linear-gradient(145deg, #14532d 0%, #0f3d21 100%)',
-        border: `2px solid ${getNodeBorderColor(isHint, inDanger, false)}`,
-        boxShadow: inDanger
-          ? '0 0 20px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
-          : '0 0 14px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
-      };
-    // Decoy tiles - blue color like non-rotatable path tiles
-    if (type === 'path' && isDecoy)
-      return {
-        background: isHint
-          ? 'linear-gradient(145deg, #1e4060 0%, #153049 100%)'
-          : inDanger
-            ? 'linear-gradient(145deg, #3d1a1a 0%, #2d1010 100%)'
-            : 'linear-gradient(145deg, #1e3060 0%, #172349 100%)',
-        border: `2px solid ${isHint ? '#60a5fa' : inDanger ? '#ef4444' : '#3b82f6'}`,
-        boxShadow: isHint
-          ? '0 0 18px rgba(96,165,250,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'
-          : inDanger
-            ? '0 0 14px rgba(239,68,68,0.4)'
-            : '0 0 10px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
-      };
-    if (type === 'path' && canRotate)
-      return {
-        background: isHint
-          ? 'linear-gradient(145deg, #7c5c00 0%, #5c4400 100%)'
-          : inDanger
-            ? 'linear-gradient(145deg, #5c1a1a 0%, #3d1010 100%)'
-            : 'linear-gradient(145deg, #78350f 0%, #5c2a0a 100%)',
-        border: `2px solid ${isHint ? '#fde68a' : inDanger ? '#ef4444' : '#f59e0b'}`,
-        boxShadow: isHint
-          ? '0 0 18px rgba(253,230,138,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'
-          : inDanger
-            ? '0 0 14px rgba(239,68,68,0.4)'
-            : '0 0 8px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.06)',
-      };
-    if (type === 'path')
-      return {
-        background: 'linear-gradient(145deg, #1e3060 0%, #172349 100%)',
-        border: '1.5px solid #2a4080',
-        boxShadow: '0 0 6px rgba(59,130,246,0.12)',
-      };
-    return { background: 'rgba(10,10,20,0.3)' };
-  })();
+  const bgStyle = getTileBackgroundStyle(type, isHint, inDanger, isDecoy, canRotate);
 
   const connColor = getConnColor({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
   const connGlow = getConnGlow({ type, isHint, inDanger, isDecoy, canRotate, tileSize });
