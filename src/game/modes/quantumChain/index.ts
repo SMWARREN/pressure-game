@@ -227,6 +227,89 @@ const TILE_COLORS_BY_TYPE: Record<string, TileColors> = {
 /**
  * Get colors for target tile based on fulfillment state
  */
+// ── onTileTap helpers (reduce cognitive complexity) ──────────────────────
+
+function handleFirstNumber(tappedTile: Tile, tiles: Tile[]): TapResult | null {
+  if (tappedTile.type !== 'number') return null;
+  const value = applyQuantumFlux(tappedTile, tiles);
+  const newCalculation = String(value);
+  return {
+    tiles,
+    valid: true,
+    customState: {
+      activeChain: [
+        { ...tappedTile, displayData: { ...tappedTile.displayData, currentValue: value } },
+      ],
+      currentCalculation: newCalculation,
+      currentValue: value,
+      lastTilePosition: { x: tappedTile.x, y: tappedTile.y },
+    },
+  };
+}
+
+function handleNumberTile(
+  tappedTile: Tile,
+  activeChain: Tile[],
+  currentCalculation: string,
+  tiles: Tile[]
+): TapResult {
+  const value = applyQuantumFlux(tappedTile, tiles);
+  const newCalculation = currentCalculation + String(value);
+  return {
+    tiles,
+    valid: true,
+    customState: {
+      activeChain: [
+        ...activeChain,
+        { ...tappedTile, displayData: { ...tappedTile.displayData, currentValue: value } },
+      ],
+      currentCalculation: newCalculation,
+      currentValue: evaluateExpression(newCalculation),
+      lastTilePosition: { x: tappedTile.x, y: tappedTile.y },
+    },
+  };
+}
+
+function handleOperatorTile(
+  tappedTile: Tile,
+  activeChain: Tile[],
+  currentCalculation: string,
+  currentValue: number,
+  tiles: Tile[]
+): TapResult {
+  const opData = tappedTile.displayData as OperatorTileData;
+  const newCalculation = currentCalculation + opData.symbol;
+  return {
+    tiles,
+    valid: true,
+    customState: {
+      activeChain: [...activeChain, tappedTile],
+      currentCalculation: newCalculation,
+      currentValue,
+      lastTilePosition: { x: tappedTile.x, y: tappedTile.y },
+    },
+  };
+}
+
+function handleTargetTile(
+  tappedTile: Tile,
+  currentCalculation: string,
+  tiles: Tile[]
+): TapResult {
+  const targetData = tappedTile.displayData as TargetTileData;
+  const calculatedResult = evaluateExpression(currentCalculation);
+
+  if (calculatedResult === targetData.targetSum) {
+    const newTiles = tiles.map((t) =>
+      t.id === tappedTile.id
+        ? { ...t, displayData: { ...(t.displayData as TargetTileData), isFulfilled: true } }
+        : t
+    );
+    return { tiles: newTiles, valid: true, customState: getInitialState() };
+  }
+  return { tiles, valid: true, customState: getInitialState() };
+}
+
 function getTargetColors(data: TargetTileData): TileColors {
   return data.isFulfilled ? TILE_COLORS_BY_TYPE.targetFulfilled : TILE_COLORS_BY_TYPE.targetPending;
 }
@@ -321,134 +404,49 @@ export const QuantumChainMode: GameModeConfig = {
     if (!tappedTile) return null;
 
     const state: QuantumChainModeState = (modeState as QuantumChainModeState) || getInitialState();
-    const { activeChain, lastTilePosition: _lastTilePosition, currentCalculation } = state;
+    const { activeChain, currentCalculation } = state;
 
-    // If tapping a tile already in chain, reset the chain
     if (activeChain.some((t) => t.id === tappedTile.id)) {
-      return {
-        tiles,
-        valid: true,
-        customState: getInitialState(),
-      };
+      return { tiles, valid: true, customState: getInitialState() };
     }
 
-    // First tile must be a number
     if (isEmpty(activeChain)) {
-      if (tappedTile.type !== 'number') return null;
-
-      const value = applyQuantumFlux(tappedTile, tiles);
-      const newCalculation = String(value);
-
-      return {
-        tiles,
-        valid: true,
-        customState: {
-          activeChain: [
-            { ...tappedTile, displayData: { ...tappedTile.displayData, currentValue: value } },
-          ],
-          currentCalculation: newCalculation,
-          currentValue: value,
-          lastTilePosition: { x: tappedTile.x, y: tappedTile.y },
-        },
-      };
+      return handleFirstNumber(tappedTile, tiles);
     }
 
-    // Subsequent tiles must be adjacent to the last tile in the chain
     const lastChainTile = activeChain[activeChain.length - 1];
     if (!isAdjacent(tappedTile, lastChainTile)) {
-      return {
-        tiles,
-        valid: true,
-        customState: getInitialState(),
-      };
+      return { tiles, valid: true, customState: getInitialState() };
     }
 
     const lastTile = activeChain[activeChain.length - 1];
     const lastIsNumber = lastTile.type === 'number';
     const lastIsOperator = lastTile.type === 'operator';
 
-    // Validate tile type alternation
     if (lastIsNumber && tappedTile.type !== 'operator' && tappedTile.type !== 'target') {
-      // After number, must be operator or target
-      return {
-        tiles,
-        valid: true,
-        customState: getInitialState(),
-      };
+      return { tiles, valid: true, customState: getInitialState() };
     }
 
     if (lastIsOperator && tappedTile.type !== 'number') {
-      // After operator, must be number
-      return {
-        tiles,
-        valid: true,
-        customState: getInitialState(),
-      };
+      return { tiles, valid: true, customState: getInitialState() };
     }
 
-    // Handle number tile
     if (tappedTile.type === 'number') {
-      const value = applyQuantumFlux(tappedTile, tiles);
-      const newCalculation = currentCalculation + String(value);
-
-      return {
-        tiles,
-        valid: true,
-        customState: {
-          activeChain: [
-            ...activeChain,
-            { ...tappedTile, displayData: { ...tappedTile.displayData, currentValue: value } },
-          ],
-          currentCalculation: newCalculation,
-          currentValue: evaluateExpression(newCalculation),
-          lastTilePosition: { x: tappedTile.x, y: tappedTile.y },
-        },
-      };
+      return handleNumberTile(tappedTile, activeChain, currentCalculation, tiles);
     }
 
-    // Handle operator tile
     if (tappedTile.type === 'operator') {
-      const opData = tappedTile.displayData as OperatorTileData;
-      const newCalculation = currentCalculation + opData.symbol;
-
-      return {
-        tiles,
-        valid: true,
-        customState: {
-          activeChain: [...activeChain, tappedTile],
-          currentCalculation: newCalculation,
-          currentValue: state.currentValue,
-          lastTilePosition: { x: tappedTile.x, y: tappedTile.y },
-        },
-      };
+      return handleOperatorTile(
+        tappedTile,
+        activeChain,
+        currentCalculation,
+        state.currentValue,
+        tiles
+      );
     }
 
-    // Handle target tile
     if (tappedTile.type === 'target') {
-      const targetData = tappedTile.displayData as TargetTileData;
-      const calculatedResult = evaluateExpression(currentCalculation);
-
-      if (calculatedResult === targetData.targetSum) {
-        // Success! Mark target as fulfilled
-        const newTiles = tiles.map((t) =>
-          t.id === tappedTile.id
-            ? { ...t, displayData: { ...(t.displayData as TargetTileData), isFulfilled: true } }
-            : t
-        );
-
-        return {
-          tiles: newTiles,
-          valid: true,
-          customState: getInitialState(),
-        };
-      } else {
-        // Wrong sum - reset chain
-        return {
-          tiles,
-          valid: true,
-          customState: getInitialState(),
-        };
-      }
+      return handleTargetTile(tappedTile, currentCalculation, tiles);
     }
 
     return null;
