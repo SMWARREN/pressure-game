@@ -13,9 +13,7 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
   if (!feature) return null;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
       style={{
         position: 'fixed',
         inset: 0,
@@ -24,6 +22,9 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
         alignItems: 'flex-end',
         justifyContent: 'center',
         zIndex: 200,
+        border: 'none',
+        padding: 0,
+        cursor: 'auto',
       }}
       onClick={onClose}
       onKeyDown={(e) => {
@@ -32,10 +33,9 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
           onClose();
         }
       }}
+      aria-label="Close info sheet"
     >
       <div
-        role="button"
-        tabIndex={0}
         style={{
           background: '#0d0d1a',
           border: '1px solid #2a2a45',
@@ -79,6 +79,6 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
           Got it
         </button>
       </div>
-    </div>
+    </button>
   );
 }

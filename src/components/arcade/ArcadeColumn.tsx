@@ -40,10 +40,10 @@ export function ArcadeColumn({
   const infoBtnLabel = showInfo ? 'Close info' : 'Show info';
 
   return (
-    <div
+    <button
       style={{
         flex: 1,
-        minWidth: 0,
+        minWidth: 'unset',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -57,17 +57,15 @@ export function ArcadeColumn({
         transition: 'background 0.15s',
         overflowY: 'auto',
         boxSizing: 'border-box',
+        border: 'none',
+        minHeight: 'unset',
       }}
       onClick={onPlay}
-      role="button"
-      aria-pressed={false}
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onPlay()}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.background = `${def.accentColor}10`;
+        (e.currentTarget as HTMLButtonElement).style.background = `${def.accentColor}10`;
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.background = `${def.accentColor}04`;
+        (e.currentTarget as HTMLButtonElement).style.background = `${def.accentColor}04`;
       }}
     >
       {/* ℹ button */}
@@ -165,6 +163,6 @@ export function ArcadeColumn({
           PLAY
         </button>
       )}
-    </div>
+    </button>
   );
 }

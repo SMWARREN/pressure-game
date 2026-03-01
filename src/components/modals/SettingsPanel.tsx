@@ -25,9 +25,7 @@ export function SettingsPanel({
   return (
     <>
       {/* backdrop */}
-      <div
-        role="button"
-        tabIndex={0}
+      <button
         onClick={onClose}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
@@ -40,7 +38,11 @@ export function SettingsPanel({
           inset: 0,
           background: 'rgba(0,0,0,0.55)',
           zIndex: 50,
+          border: 'none',
+          padding: 0,
+          cursor: 'auto',
         }}
+        aria-label="Close settings"
       />
       {/* sheet */}
       <div

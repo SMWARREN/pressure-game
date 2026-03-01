@@ -60,9 +60,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
   return (
     <>
       {/* Backdrop */}
-      <div
-        role="button"
-        tabIndex={0}
+      <button
         onClick={onClose}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
@@ -77,7 +75,11 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           background: 'rgba(0,0,0,0.75)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
+          border: 'none',
+          padding: 0,
+          cursor: 'auto',
         }}
+        aria-label="Close modal"
       />
 
       {/* Modal panel */}

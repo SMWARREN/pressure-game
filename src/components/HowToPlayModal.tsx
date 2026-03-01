@@ -104,9 +104,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        role="button"
-        tabIndex={0}
+      <button
         onClick={onClose}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
@@ -120,7 +118,11 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
           background: 'rgba(0,0,0,0.7)',
           backdropFilter: 'blur(4px)',
           zIndex: 100,
+          border: 'none',
+          padding: 0,
+          cursor: 'auto',
         }}
+        aria-label="Close modal"
       />
 
       {/* Modal */}

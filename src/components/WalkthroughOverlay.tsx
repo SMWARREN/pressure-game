@@ -158,14 +158,15 @@ export function WalkthroughOverlay({
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 100 }}>
       {/* Full-screen dark overlay for center-positioned steps */}
       {!highlightRect && (
-        <div
-          role="button"
-          tabIndex={0}
+        <button
           style={{
             position: 'absolute',
             inset: 0,
             background: 'rgba(0,0,0,0.6)',
             pointerEvents: 'auto',
+            border: 'none',
+            padding: 0,
+            cursor: 'auto',
           }}
           onClick={onSkip}
           onKeyDown={(e) => {
@@ -174,15 +175,14 @@ export function WalkthroughOverlay({
               onSkip();
             }
           }}
+          aria-label="Skip walkthrough"
         />
       )}
       {/* Darkened overlay with cutout for highlight */}
       {highlightRect && (
         <>
           {/* Top */}
-          <div
-            role="button"
-            tabIndex={0}
+          <button
             style={{
               position: 'absolute',
               top: 0,
@@ -191,6 +191,9 @@ export function WalkthroughOverlay({
               height: highlightRect.top,
               background: 'rgba(0,0,0,0.6)',
               pointerEvents: 'auto',
+              border: 'none',
+              padding: 0,
+              cursor: 'auto',
             }}
             onClick={onSkip}
             onKeyDown={(e) => {
@@ -199,11 +202,10 @@ export function WalkthroughOverlay({
                 onSkip();
               }
             }}
+            aria-label="Skip walkthrough"
           />
           {/* Bottom */}
-          <div
-            role="button"
-            tabIndex={0}
+          <button
             style={{
               position: 'absolute',
               top: highlightRect.bottom,
@@ -212,6 +214,9 @@ export function WalkthroughOverlay({
               bottom: 0,
               background: 'rgba(0,0,0,0.6)',
               pointerEvents: 'auto',
+              border: 'none',
+              padding: 0,
+              cursor: 'auto',
             }}
             onClick={onSkip}
             onKeyDown={(e) => {
@@ -220,11 +225,10 @@ export function WalkthroughOverlay({
                 onSkip();
               }
             }}
+            aria-label="Skip walkthrough"
           />
           {/* Left */}
-          <div
-            role="button"
-            tabIndex={0}
+          <button
             style={{
               position: 'absolute',
               top: highlightRect.top,
@@ -233,6 +237,9 @@ export function WalkthroughOverlay({
               height: highlightRect.height,
               background: 'rgba(0,0,0,0.6)',
               pointerEvents: 'auto',
+              border: 'none',
+              padding: 0,
+              cursor: 'auto',
             }}
             onClick={onSkip}
             onKeyDown={(e) => {
@@ -241,11 +248,10 @@ export function WalkthroughOverlay({
                 onSkip();
               }
             }}
+            aria-label="Skip walkthrough"
           />
           {/* Right */}
-          <div
-            role="button"
-            tabIndex={0}
+          <button
             style={{
               position: 'absolute',
               top: highlightRect.top,
@@ -254,6 +260,9 @@ export function WalkthroughOverlay({
               height: highlightRect.height,
               background: 'rgba(0,0,0,0.6)',
               pointerEvents: 'auto',
+              border: 'none',
+              padding: 0,
+              cursor: 'auto',
             }}
             onClick={onSkip}
             onKeyDown={(e) => {
@@ -262,6 +271,7 @@ export function WalkthroughOverlay({
                 onSkip();
               }
             }}
+            aria-label="Skip walkthrough"
           />
           {/* Highlight ring */}
           <div

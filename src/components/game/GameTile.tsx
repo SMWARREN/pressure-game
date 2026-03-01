@@ -275,9 +275,7 @@ function GameTileComponent({
     const customFontWeight = isOutbreak && obFrontier ? 700 : undefined;
 
     return (
-      <div
-        role="button"
-        tabIndex={0}
+      <button
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -302,7 +300,12 @@ function GameTileComponent({
           ['--zp-shadow-hi' as string]: zpShadowHi,
           ...appliedBg,
           overflow: 'hidden',
+          border: 'none',
+          padding: 0,
+          minHeight: 'unset',
+          minWidth: 'unset',
         }}
+        aria-label={`Tile at ${x}, ${y}`}
       >
         {symbol && (
           <span
@@ -328,15 +331,13 @@ function GameTileComponent({
           type !== 'crushed' && (
             <Pipes connections={connections} color={connColor} glow={connGlow} />
           )}
-      </div>
+      </button>
     );
   }
 
   // ── Default pipe renderer ─────────────────────────────────────────────────
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
       data-testid={`tile-${x}-${y}`}
       onClick={handleClick}
       onKeyDown={(e) => {
@@ -356,7 +357,12 @@ function GameTileComponent({
         transition: tileTransition,
         ...bgStyle,
         overflow: 'hidden',
+        border: 'none',
+        padding: 0,
+        minHeight: 'unset',
+        minWidth: 'unset',
       }}
+      aria-label={`Tile at ${x}, ${y}`}
     >
       {/* Ripple effect */}
       {ripple && canRotate && (
@@ -450,7 +456,7 @@ function GameTileComponent({
           ✕
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
