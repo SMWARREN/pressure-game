@@ -49,6 +49,17 @@ interface BeamResult {
   hitTarget: boolean;
 }
 
+interface BeamTraceConfig {
+  cols: number;
+  rows: number;
+  map: Map<string, Tile>;
+  x: number;
+  y: number;
+  dir: string;
+  portalPairs: Map<string, Tile[]>;
+  beamKeys: Set<string>;
+}
+
 // Get grid dimensions from tiles - handles sparse levels
 function getGridDimensions(tiles: Tile[]): {
   gridSize: number;
@@ -196,34 +207,25 @@ function updateLaserState(
 }
 
 // Helper to trace laser beam through tiles
-function traceBeamPath(
-  cols: number,
-  rows: number,
-  map: Map<string, Tile>,
-  x: number,
-  y: number,
-  dir: string,
-  portalPairs: Map<string, Tile[]>,
-  beamKeys: Set<string>
-): { hitTarget: boolean; finalDir: string } {
+function traceBeamPath(config: BeamTraceConfig): { hitTarget: boolean; finalDir: string } {
   let hitTarget = false;
-  const maxSteps = cols * rows * 8;
+  const maxSteps = config.cols * config.rows * 8;
   let steps = 0;
   const visitedPortals = new Set<string>();
-  const state = { x, y, dir, hitTarget };
+  const state = { x: config.x, y: config.y, dir: config.dir, hitTarget };
 
   while (steps++ < maxSteps) {
     const { dx, dy } = STEP[state.dir];
     state.x += dx;
     state.y += dy;
-    if (state.x < 0 || state.y < 0 || state.x >= cols || state.y >= rows) break;
+    if (state.x < 0 || state.y < 0 || state.x >= config.cols || state.y >= config.rows) break;
 
     const key = `${state.x},${state.y}`;
-    beamKeys.add(key);
+    config.beamKeys.add(key);
 
-    const tile = map.get(key);
-    const result = processBeamStep(state.x, state.y, state.dir, tile, portalPairs, visitedPortals);
-    updateLaserState(result, beamKeys, state);
+    const tile = config.map.get(key);
+    const result = processBeamStep(state.x, state.y, state.dir, tile, config.portalPairs, visitedPortals);
+    updateLaserState(result, config.beamKeys, state);
 
     if (result.shouldBreak) break;
   }
@@ -246,16 +248,16 @@ export function traceLaser(
   const portalPairs = buildPortalPairs(tiles);
   const beamKeys = new Set<string>();
 
-  const { hitTarget } = traceBeamPath(
+  const { hitTarget } = traceBeamPath({
     cols,
     rows,
     map,
-    source.x,
-    source.y,
-    source.displayData!.dir as string,
+    x: source.x,
+    y: source.y,
+    dir: source.displayData!.dir as string,
     portalPairs,
-    beamKeys
-  );
+    beamKeys,
+  });
 
   return { beamKeys, hitTarget };
 }
