@@ -109,10 +109,10 @@ function ensureStyles() {
  */
 export function AchievementToastContainer() {
   const [toasts, setToasts] = useState<string[]>([]);
+  const engine = useAchievements();
 
   useEffect(() => {
     ensureStyles();
-    const engine = useAchievements();
 
     const checkRecent = () => {
       const recent = engine.getRecentlyEarned();
