@@ -1009,9 +1009,8 @@ function printBoard(level: Level, mirrorRotations?: number[]): void {
     console.log(row);
   }
   console.log(`  └${'──'.repeat(cols)}┘`);
-  console.log(
-    `  Beam ${hitsTarget ? `${colors.green}HITS${colors.reset}` : `${colors.red}MISSES${colors.reset}`}`
-  );
+  const beamStatus = hitsTarget ? `${colors.green}HITS${colors.reset}` : `${colors.red}MISSES${colors.reset}`;
+  console.log(`  Beam ${beamStatus}`);
 }
 
 async function main() {

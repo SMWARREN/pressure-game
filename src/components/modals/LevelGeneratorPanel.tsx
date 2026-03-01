@@ -58,10 +58,14 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
         return;
       }
       addGeneratedLevel(level);
+      const movesText = verification.minMoves
+        ? `Solvable in ${verification.minMoves} move${verification.minMoves !== 1 ? 's' : ''}`
+        : 'Solvable!';
+      const message = `Level created! ${movesText}`;
       setResult({
         success: true,
         moves: verification.minMoves ?? undefined,
-        message: `Level created! ${verification.minMoves ? `Solvable in ${verification.minMoves} move${verification.minMoves !== 1 ? 's' : ''}` : 'Solvable!'}`,
+        message,
       });
       onLoad(level);
     } catch (e) {
