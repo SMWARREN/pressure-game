@@ -127,6 +127,35 @@ function conducts(tile: Tile): boolean {
   );
 }
 
+// ── onTick helper (frontier expansion logic) ──────────────────────────────────
+
+function expandFrontier(
+  frontier: string[],
+  exploded: Set<string>,
+  tiles: Tile[],
+  gridSize: number
+): { nextFrontier: string[]; newExploded: Set<string> } {
+  const nextFrontier: string[] = [];
+  const newExploded = new Set(exploded);
+
+  for (const key of frontier) {
+    const [kx, ky] = key.split(',').map(Number);
+    for (const [dx, dy] of DIRS4) {
+      const nx = kx + dx;
+      const ny = ky + dy;
+      if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize) continue;
+      const nk = `${nx},${ny}`;
+      if (newExploded.has(nk)) continue;
+      const neighbor = tiles.find((t) => t.x === nx && t.y === ny);
+      if (!neighbor || !conducts(neighbor)) continue;
+      nextFrontier.push(nk);
+      newExploded.add(nk);
+    }
+  }
+
+  return { nextFrontier, newExploded };
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 
 export const FuseMode: GameModeConfig = {
@@ -212,27 +241,17 @@ export const FuseMode: GameModeConfig = {
     if (isEmpty(frontier)) return null;
 
     const explodedArr = ms.exploded ?? [];
-    const exploded = new Set(explodedArr);
     const tiles = state.tiles;
     const gridSize = state.currentLevel?.gridSize ?? 5;
     const tick = (ms.tick ?? 0) + 1;
 
-    // Expand frontier to adjacent conducting tiles
-    const nextFrontier: string[] = [];
-    for (const key of frontier) {
-      const [kx, ky] = key.split(',').map(Number);
-      for (const [dx, dy] of DIRS4) {
-        const nx = kx + dx;
-        const ny = ky + dy;
-        if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize) continue;
-        const nk = `${nx},${ny}`;
-        if (exploded.has(nk)) continue;
-        const neighbor = tiles.find((t) => t.x === nx && t.y === ny);
-        if (!neighbor || !conducts(neighbor)) continue;
-        nextFrontier.push(nk);
-        exploded.add(nk);
-      }
-    }
+    // Expand frontier
+    const { nextFrontier, newExploded } = expandFrontier(
+      frontier,
+      new Set(explodedArr),
+      tiles,
+      gridSize
+    );
 
     const nextFrontierSet = new Set(nextFrontier);
     const newTiles = tiles.map((t) => {
@@ -242,11 +261,11 @@ export const FuseMode: GameModeConfig = {
       return t;
     });
 
-    const newMs: FuseState = { ...ms, tick, frontier: nextFrontier, exploded: [...exploded] };
+    const newMs: FuseState = { ...ms, tick, frontier: nextFrontier, exploded: [...newExploded] };
 
     if (isEmpty(nextFrontier)) {
       const goalNodes = state.currentLevel?.goalNodes ?? [];
-      const allReached = goalNodes.every((g) => exploded.has(`${g.x},${g.y}`));
+      const allReached = goalNodes.every((g) => newExploded.has(`${g.x},${g.y}`));
       if (!allReached) {
         return {
           tiles: newTiles,
