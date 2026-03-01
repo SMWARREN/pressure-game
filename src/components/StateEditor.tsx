@@ -245,9 +245,9 @@ export const StateEditor: React.FC = () => {
   const loadPreset = loadPresetFromHook;
   const deletePreset = deletePresetFromHook;
 
-  // Export state as JSON
-  const exportState = useCallback(() => {
-    const stateData = {
+  // Helper: Build serializable state data
+  const buildExportData = useCallback(() => {
+    return {
       tiles: tiles.map((t) => ({
         id: t.id,
         type: t.type,
@@ -279,23 +279,15 @@ export const StateEditor: React.FC = () => {
       currentModeId,
       status,
     };
+  }, [tiles, moves, score, elapsedSeconds, wallOffset, timeUntilCompression, modeState, currentLevel, currentModeId, status]);
 
+  // Export state as JSON
+  const exportState = useCallback(() => {
+    const stateData = buildExportData();
     const json = JSON.stringify(stateData, null, 2);
     navigator.clipboard.writeText(json);
     showMessage('State copied to clipboard!');
-  }, [
-    tiles,
-    moves,
-    score,
-    elapsedSeconds,
-    wallOffset,
-    timeUntilCompression,
-    modeState,
-    currentLevel,
-    currentModeId,
-    status,
-    showMessage,
-  ]);
+  }, [buildExportData, showMessage]);
 
   // ── Debug/Replay Controls ───────────────────────────────────────────────
 
@@ -400,15 +392,19 @@ export const StateEditor: React.FC = () => {
   const gridSize = currentLevel?.gridSize ?? 5;
   const gridCols = currentLevel?.gridCols ?? gridSize;
   const gridRows = currentLevel?.gridRows ?? gridSize;
-  const maxDim = Math.max(gridCols, gridRows);
 
-  // Match GameBoard's responsive sizing
-  const boardPx = Math.min(250, globalThis.innerWidth - 400);
-  const gap = getGapValue(maxDim);
-  const padding = getPaddingValue(maxDim);
-  const tileSizeByW = Math.floor((boardPx - padding * 2 - gap * (gridCols - 1)) / gridCols);
-  const tileSizeByH = Math.floor((boardPx - padding * 2 - gap * (gridRows - 1)) / gridRows);
-  const tileSize = Math.max(1, Math.min(tileSizeByW, tileSizeByH));
+  // Extract board dimension calculations to isolate complexity
+  const { boardPx, gap, padding, tileSize } = (() => {
+    const cols = gridCols;
+    const rows = gridRows;
+    const maxDim = Math.max(cols, rows);
+    const px = Math.min(250, globalThis.innerWidth - 400);
+    const g = getGapValue(maxDim);
+    const p = getPaddingValue(maxDim);
+    const sizeW = Math.floor((px - p * 2 - g * (cols - 1)) / cols);
+    const sizeH = Math.floor((px - p * 2 - g * (rows - 1)) / rows);
+    return { boardPx: px, gap: g, padding: p, tileSize: Math.max(1, Math.min(sizeW, sizeH)) };
+  })();
 
   // Handle tile click in grid
   const handleTileClick = useCallback((x: number, y: number) => {
