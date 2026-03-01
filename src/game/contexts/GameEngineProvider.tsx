@@ -42,8 +42,7 @@ export function GameEngineProvider({
 
   useEffect(() => {
     try {
-      if (import.meta.env.DEV) {
-      }
+      // Dev-only initialization hook
       const pressureEngine = initialEngine ?? createPressureEngine();
       pressureEngine.init(
         () => useGameStore.getState(),
@@ -68,8 +67,6 @@ export function GameEngineProvider({
       const achievementEngine = new AchievementEngine();
 
       setEngines({ pressureEngine, statsEngine, achievementEngine });
-      if (import.meta.env.DEV) {
-      }
       // Signal that initialization is complete
       onReady?.();
     } catch (error) {

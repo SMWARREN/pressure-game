@@ -903,7 +903,6 @@ export default function GameBoard() {
 // HMR cleanup for GameBoard
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
-    if (import.meta.env.DEV) {
-    }
+    // Intentional placeholder for HMR cleanup debugging
   });
 }
