@@ -257,6 +257,67 @@ function getNonTimedNotification(delta: number, groupSize: number): string | nul
   return groupSize >= 4 ? `+${delta} ✨ NICE!` : null;
 }
 
+// ── onTick helpers (reduce complexity) ────────────────────────────────────────
+
+function processCandyRain(
+  updatedTiles: Tile[],
+  state: any
+): {
+  updatedTiles: Tile[];
+  updatedState: Record<string, unknown> | null;
+} {
+  const activeSymbols =
+    (updatedTiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ??
+    CANDY_SYMBOLS;
+  const lastRainAt = (state.modeState?.lastRainAt as number) ?? 0;
+  const rainResult = tickRain(updatedTiles, state.elapsedSeconds, lastRainAt, activeSymbols, state.currentLevel?.gridSize ?? 8);
+
+  if (rainResult) {
+    return {
+      updatedTiles: rainResult.tiles,
+      updatedState: {
+        ...(state.modeState as Record<string, unknown>),
+        lastRainAt: rainResult.lastRainAt,
+      },
+    };
+  }
+
+  return { updatedTiles, updatedState: null };
+}
+
+function processCandyIce(
+  updatedTiles: Tile[],
+  state: any,
+  updatedState: Record<string, unknown> | null
+): {
+  updatedTiles: Tile[];
+  updatedState: Record<string, unknown> | null;
+} {
+  const lastIceAt = (state.modeState?.lastIceAt as number) ?? 0;
+  if (state.elapsedSeconds < 15 || state.elapsedSeconds - lastIceAt < 15) {
+    return { updatedTiles, updatedState };
+  }
+
+  const existingFrozen = getExistingFrozenPositions(updatedTiles);
+  const iceResult = spawnBlockers(updatedTiles, 'frozen', existingFrozen, {
+    spawnChance: 1,
+    maxCount: 1,
+  });
+
+  if (iceResult) {
+    return {
+      updatedTiles: iceResult.tiles,
+      updatedState: {
+        ...(updatedState ?? (state.modeState as Record<string, unknown>)),
+        lastIceAt: state.elapsedSeconds,
+        iceWarning: `🧊 Ice! Match 4+ to unfreeze!`,
+      },
+    };
+  }
+
+  return { updatedTiles, updatedState };
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 
 export const CandyMode: GameModeConfig = {
@@ -433,53 +494,23 @@ export const CandyMode: GameModeConfig = {
   onTick(state, modeState) {
     const timeLeft = modeState?.timeLeft as number | undefined;
     const world = (modeState?.world as number) ?? 0;
-    const features = modeState?.features as
-      | { rain?: boolean; ice?: boolean; blockerIntensity?: 0 | 1 | 2 }
-      | undefined;
+    const features = modeState?.features as any;
 
     let updatedState: Record<string, unknown> | null = null;
     let updatedTiles = state.tiles;
 
     // Apply rain feature if enabled
     if (features?.rain) {
-      const activeSymbols =
-        (updatedTiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ??
-        CANDY_SYMBOLS;
-      const lastRainAt = (state.modeState?.lastRainAt as number) ?? 0;
-      const rainResult = tickRain(
-        updatedTiles,
-        state.elapsedSeconds,
-        lastRainAt,
-        activeSymbols,
-        state.currentLevel?.gridSize ?? 8
-      );
-      if (rainResult) {
-        updatedTiles = rainResult.tiles;
-        updatedState = {
-          ...(state.modeState as Record<string, unknown>),
-          lastRainAt: rainResult.lastRainAt,
-        };
-      }
+      const rainResult = processCandyRain(updatedTiles, state);
+      updatedTiles = rainResult.updatedTiles;
+      updatedState = rainResult.updatedState;
     }
 
     // Apply tropical ice feature if enabled
     if (features?.ice) {
-      const lastIceAt = (state.modeState?.lastIceAt as number) ?? 0;
-      if (state.elapsedSeconds >= 15 && state.elapsedSeconds - lastIceAt >= 15) {
-        const existingFrozen = getExistingFrozenPositions(updatedTiles);
-        const iceResult = spawnBlockers(updatedTiles, 'frozen', existingFrozen, {
-          spawnChance: 1,
-          maxCount: 1,
-        });
-        if (iceResult) {
-          updatedTiles = iceResult.tiles;
-          updatedState = {
-            ...(updatedState ?? (state.modeState as Record<string, unknown>)),
-            lastIceAt: state.elapsedSeconds,
-            iceWarning: `🧊 Ice! Match 4+ to unfreeze!`,
-          };
-        }
-      }
+      const iceResult = processCandyIce(updatedTiles, state, updatedState);
+      updatedTiles = iceResult.updatedTiles;
+      updatedState = iceResult.updatedState;
     }
 
     if (updatedState !== null) return { tiles: updatedTiles, modeState: updatedState };
