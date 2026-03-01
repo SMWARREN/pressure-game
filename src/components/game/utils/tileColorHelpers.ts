@@ -57,9 +57,11 @@ function getConnGlow(ctx: TileStyleContext): string {
  * Get indicator color for hint/danger states
  */
 function getIndicatorColor(isHint: boolean, inDanger: boolean): string {
-  if (isHint) return '#fde68a';
-  if (inDanger) return '#fca5a5';
-  return '#fcd34d';
+  return selectByCondition(
+    [isHint, '#fde68a'],
+    [inDanger, '#fca5a5'],
+    [true, '#fcd34d']
+  );
 }
 
 /**
@@ -80,18 +82,22 @@ function getNormalIndicatorGlow(): string {
  * Get decoy border color
  */
 function getDecoyBorderColor(isHint: boolean, inDanger: boolean): string {
-  if (isHint) return 'rgba(253,230,138,0.6)';
-  if (inDanger) return 'rgba(252,165,165,0.5)';
-  return 'rgba(252,211,77,0.4)';
+  return selectByCondition(
+    [isHint, 'rgba(253,230,138,0.6)'],
+    [inDanger, 'rgba(252,165,165,0.5)'],
+    [true, 'rgba(252,211,77,0.4)']
+  );
 }
 
 /**
  * Get decoy box shadow
  */
 function getDecoyBoxShadow(isHint: boolean, inDanger: boolean): string {
-  if (isHint) return '0 0 6px rgba(253,230,138,0.3)';
-  if (inDanger) return '0 0 6px rgba(239,68,68,0.3)';
-  return '0 0 6px rgba(252,211,77,0.2)';
+  return selectByCondition(
+    [isHint, '0 0 6px rgba(253,230,138,0.3)'],
+    [inDanger, '0 0 6px rgba(239,68,68,0.3)'],
+    [true, '0 0 6px rgba(252,211,77,0.2)']
+  );
 }
 
 /**
@@ -99,23 +105,29 @@ function getDecoyBoxShadow(isHint: boolean, inDanger: boolean): string {
  */
 function getNodeBorderColor(isHint: boolean, inDanger: boolean, isDecoy: boolean): string {
   if (isDecoy) {
-    if (isHint) return '#60a5fa';
-    if (inDanger) return '#ef4444';
-    return '#3b82f6';
+    return selectByCondition(
+      [isHint, '#60a5fa'],
+      [inDanger, '#ef4444'],
+      [true, '#3b82f6']
+    );
   }
-  if (inDanger) return '#ef4444';
-  if (isHint) return '#86efac';
-  return '#22c55e';
+  return selectByCondition(
+    [inDanger, '#ef4444'],
+    [isHint, '#86efac'],
+    [true, '#22c55e']
+  );
 }
 
 /**
  * Get path border color based on state
  */
 function getPathBorderColor(isHint: boolean, inDanger: boolean, canRotate: boolean): string {
-  if (isHint) return '#fde68a';
-  if (inDanger) return '#ef4444';
-  if (canRotate) return '#f59e0b';
-  return 'rgba(255,255,255,0)';
+  return selectByCondition(
+    [isHint, '#fde68a'],
+    [inDanger, '#ef4444'],
+    [canRotate, '#f59e0b'],
+    [true, 'rgba(255,255,255,0)']
+  );
 }
 
 /**
