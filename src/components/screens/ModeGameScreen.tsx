@@ -36,10 +36,6 @@ export function ModeGameScreen({
   gameState: _gameState,
   children,
 }: ModeGameScreenProps) {
-  // TODO: Route based on currentMode.id
-  // const ScreenComponent = MODE_SCREENS[currentMode.id] ?? DefaultGameScreen;
-  // return <ScreenComponent {...props} />;
-
-  // For now, return the default game rendering
+  // Returns the default game rendering via children prop
   return <>{children}</>;
 }

@@ -525,9 +525,9 @@ export class PressureEngine implements IPressureEngine {
       levelsCompleted,
       movesUnderPar,
       speedruns,
-      currentStreak: 0, // TODO: track daily streaks
-      noHintsLevels: 0, // TODO: track hint usage
-      perfectWorlds: 0, // TODO: track perfect worlds
+      currentStreak: 0, // Not yet implemented
+      noHintsLevels: 0, // Not yet implemented
+      perfectWorlds: 0, // Not yet implemented
       wallsSurvived: 0, // Tracked separately via advanceWalls
       currentModeId,
       currentLevelId: level.id,
