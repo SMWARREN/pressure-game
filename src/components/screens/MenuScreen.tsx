@@ -234,6 +234,10 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
             ] as const
           ).map(({ id, label, icon, color }) => {
             const active = currentModeId === id;
+            // Extract conditional mode button styles (S3358: reduce nested ternaries)
+            const modeButtonStyles = active
+              ? { border: `1.5px solid ${color}55`, background: `${color}18`, color, cursor: 'default' }
+              : { border: '1.5px solid #12122a', background: 'transparent', color: '#2e2e48', cursor: 'pointer' };
             return (
               <button
                 key={id}
@@ -244,13 +248,10 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                   flex: 1,
                   padding: '8px 4px',
                   borderRadius: 10,
-                  border: `1.5px solid ${active ? color + '55' : '#12122a'}`,
-                  background: active ? `${color}18` : 'transparent',
-                  color: active ? color : '#2e2e48',
+                  ...modeButtonStyles,
                   fontSize: 12,
                   fontWeight: 700,
                   letterSpacing: '0.06em',
-                  cursor: active ? 'default' : 'pointer',
                   transition: 'all 0.15s',
                   display: 'flex',
                   alignItems: 'center',
@@ -373,6 +374,12 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                   const lvls = levels.filter((l) => l.world === wDef.id);
                   const done = lvls.filter((l) => isLevelDone(l)).length;
                   const active = world === wDef.id;
+                  // Extract conditional world button styles (S3358: reduce nested ternaries)
+                  const worldButtonStyles = active
+                    ? { border: `1.5px solid ${wDef.color}60`, background: `${wDef.color}12` }
+                    : { border: '1.5px solid #12122a', background: '#07070e' };
+                  const worldIconFilter = active ? `drop-shadow(0 0 8px ${wDef.color}80)` : 'none';
+                  const worldNameColor = active ? wDef.color : '#3a3a55';
                   return (
                     <button
                       key={wDef.id}
@@ -381,8 +388,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                         padding: '14px 8px',
                         borderRadius: 14,
                         cursor: 'pointer',
-                        border: `1.5px solid ${active ? wDef.color + '60' : '#12122a'}`,
-                        background: active ? `${wDef.color}12` : '#07070e',
+                        ...worldButtonStyles,
                         transition: 'all 0.2s',
                         minHeight: 80,
                         display: 'flex',
@@ -395,7 +401,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                       <div
                         style={{
                           fontSize: 20,
-                          filter: active ? `drop-shadow(0 0 8px ${wDef.color}80)` : 'none',
+                          filter: worldIconFilter,
                         }}
                       >
                         {wDef.icon}
@@ -404,7 +410,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                         style={{
                           fontSize: 12,
                           fontWeight: 800,
-                          color: active ? wDef.color : '#3a3a55',
+                          color: worldNameColor,
                         }}
                       >
                         {wDef.name}
