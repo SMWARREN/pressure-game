@@ -628,20 +628,23 @@ const BONUS_ITEM_VALUES: Record<string, number> = {
 
 // ── Helper functions for onTileTap (reduce complexity) ──────────────────────
 
-function processShoppingTap(
-  x: number,
-  y: number,
-  tiles: Tile[],
-  gridSize: number,
-  state: ShoppingModeState,
-  _world: number, // not used but available for context
-  features: any,
-  gcols: number,
-  grows: number,
-  unlockState: SymbolUnlockState,
-  minGroupSize: number,
-  timeLeft: number | undefined
-): TapResult | null {
+interface ShoppingTapConfig {
+  readonly x: number;
+  readonly y: number;
+  readonly tiles: Tile[];
+  readonly gridSize: number;
+  readonly state: ShoppingModeState;
+  readonly world: number;
+  readonly features: any;
+  readonly gcols: number;
+  readonly grows: number;
+  readonly unlockState: SymbolUnlockState;
+  readonly minGroupSize: number;
+  readonly timeLeft: number | undefined;
+}
+
+function processShoppingTap(config: ShoppingTapConfig): TapResult | null {
+  const { x, y, tiles, gridSize, state, world: _world, features, gcols, grows, unlockState, minGroupSize, timeLeft } = config;
   // Validate tap and find group
   const tileKey = `${x},${y}`;
   if (state.thiefPositions?.includes(tileKey)) {
@@ -862,7 +865,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
         ? { lockedSymbols: state.lockedSymbols, freshSymbols: state.freshSymbols ?? [] }
         : { lockedSymbols: [...SHOPPING_BONUS_ITEMS], freshSymbols: [] };
 
-    return processShoppingTap(
+    return processShoppingTap({
       x,
       y,
       tiles,
@@ -874,8 +877,8 @@ export const ShoppingSpreeMode: GameModeConfig = {
       grows,
       unlockState,
       minGroupSize,
-      modeState?.timeLeft as number | undefined
-    );
+      timeLeft: modeState?.timeLeft as number | undefined,
+    });
   },
 
   checkWin(_tiles, _goalNodes, moves, maxMoves, modeState): WinResult {
