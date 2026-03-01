@@ -18,6 +18,7 @@ import ArcadeHubScreen from './ArcadeHubScreen';
 import PressureHubScreen from './PressureHubScreen';
 import ParticleLayer, { type ParticleSystemHandle } from './game/ParticleLayer';
 import { useViewport } from './hooks/useViewport';
+import { usePauseOnCondition } from '@/hooks/usePauseOnCondition';
 import { StarField } from './game/StarField';
 import { Overlay } from './overlays/Overlay';
 import { ensureNotifStyles, ensureSpinnerStyles } from './utils/styles';
@@ -187,28 +188,10 @@ export default function GameBoard() {
   const { w: vw, h: vh } = useViewport();
 
   // Pause game when How to Play modal is open
-  useEffect(() => {
-    if (showHowToPlay && status === 'playing') {
-      pauseGame();
-    }
-    return () => {
-      if (showHowToPlay && status === 'playing') {
-        resumeGame();
-      }
-    };
-  }, [showHowToPlay, status, pauseGame, resumeGame]);
+  usePauseOnCondition(showHowToPlay, status, pauseGame, resumeGame);
 
   // Pause game when feature info sheet is open
-  useEffect(() => {
-    if (showFeatureInfo && status === 'playing') {
-      pauseGame();
-    }
-    return () => {
-      if (showFeatureInfo && status === 'playing') {
-        resumeGame();
-      }
-    };
-  }, [showFeatureInfo, status, pauseGame, resumeGame]);
+  usePauseOnCondition(showFeatureInfo, status, pauseGame, resumeGame);
 
   // Inject notification CSS and spinner CSS once on mount
   useEffect(() => {
@@ -921,7 +904,6 @@ export default function GameBoard() {
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     if (import.meta.env.DEV) {
-      console.log('[GameBoard] HMR dispose');
     }
   });
 }

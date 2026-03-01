@@ -2,6 +2,8 @@
 // Single source of truth for all types used across the game.
 // Re-exports mode-specific types so consumers only need one import.
 
+import type { GameModeConfig } from './modes/types';
+
 /* ═══════════════════════════════════════════════════════════════════════════
    PRIMITIVES
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -239,6 +241,9 @@ export interface GameActions {
   loadLevel: (level: Level) => void;
   restartLevel: () => void;
   startGame: () => void;
+  isTapValid: (status: GameStatus, showingWin: boolean) => boolean;
+  hasMovesRemaining: (mode: GameModeConfig, currentLevel: Level | null, moves: number) => boolean;
+  shouldCheckMoveLimitLoss: (afterWin: GameState, mode: GameModeConfig) => boolean;
   tapTile: (x: number, y: number) => void;
   checkWin: () => boolean;
   undoMove: () => void;
@@ -263,11 +268,21 @@ export interface GameActions {
   closePressureHub: () => void;
   setSelectedWorld: (world: number) => void;
   toggleEditor: () => void;
+  editorEnterMode: () => void;
+  editorExitMode: () => void;
   setEditorTool: (
     tool: 'select' | 'move' | 'node' | 'path' | 'wall' | 'eraser' | 'rotate' | 'decoy' | null
   ) => void;
   setEditorSelectedTile: (pos: { x: number; y: number } | null) => void;
   editorUpdateTile: (x: number, y: number) => void;
+  editorHandleEraserTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[], currentLevel: Level) => void;
+  editorHandleSelectTool: (x: number, y: number, existing: Tile | null) => void;
+  editorHandleMoveTool: (x: number, y: number, existing: Tile | null) => void;
+  editorHandleRotateTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
+  editorHandleNodeTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[], currentLevel: Level) => void;
+  editorHandleWallTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
+  editorHandlePathTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
+  editorHandleDecoyTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => void;
   editorRotateTile: (clockwise?: boolean) => void;
   editorMoveTile: (fromX: number, fromY: number, toX: number, toY: number) => void;
   editorToggleGoalNode: (x: number, y: number) => void;

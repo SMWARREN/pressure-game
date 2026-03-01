@@ -184,15 +184,35 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       }
     },
 
+    isTapValid: (status, showingWin) => {
+      return status === 'playing' && !showingWin;
+    },
+
+    hasMovesRemaining: (mode, currentLevel, moves) => {
+      return mode.useMoveLimit === false || !currentLevel || moves < currentLevel.maxMoves;
+    },
+
+    shouldCheckMoveLimitLoss: (afterWin, mode) => {
+      return !!(
+        afterWin.status === 'playing' &&
+        !afterWin.showingWin &&
+        !afterWin._winCheckPending &&
+        mode.checkLoss &&
+        afterWin.currentLevel &&
+        mode.useMoveLimit !== false &&
+        afterWin.moves >= afterWin.currentLevel.maxMoves
+      );
+    },
+
     tapTile: (x: number, y: number) => {
       const state = get();
       const { tiles, status, moves, currentLevel, showingWin, currentModeId, modeState } = state;
 
-      if (status !== 'playing' || showingWin) return;
+      if (!get().isTapValid(status, showingWin)) return;
 
       const mode = getModeById(currentModeId);
 
-      if (mode.useMoveLimit !== false && currentLevel && moves >= currentLevel.maxMoves) return;
+      if (!get().hasMovesRemaining(mode, currentLevel, moves)) return;
 
       // Calculate timeLeft for timed levels and pass to mode
       const timeLimit = currentLevel?.timeLimit;
@@ -264,21 +284,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       // Check for move-limit loss (only if not already winning)
       const afterWin = get();
-      if (
-        afterWin.status === 'playing' &&
-        !afterWin.showingWin &&
-        !afterWin._winCheckPending &&
-        mode.checkLoss &&
-        afterWin.currentLevel &&
-        mode.useMoveLimit !== false &&
-        afterWin.moves >= afterWin.currentLevel.maxMoves
-      ) {
-        const { lost, reason } = mode.checkLoss(
+      if (get().shouldCheckMoveLimitLoss(afterWin, mode)) {
+        const { lost, reason } = mode.checkLoss!(
           afterWin.tiles,
           afterWin.wallOffset,
           afterWin.moves,
-          afterWin.currentLevel.maxMoves,
-          { score: afterWin.score, targetScore: afterWin.currentLevel.targetScore }
+          afterWin.currentLevel!.maxMoves,
+          { score: afterWin.score, targetScore: afterWin.currentLevel!.targetScore }
         );
         if (lost) {
           set({ status: 'lost', lossReason: reason ?? null });
@@ -439,86 +451,85 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       });
     },
 
-    toggleEditor: () => {
-      set((s) => {
-        const next = !s.editor.enabled;
+    editorEnterMode: () => {
+      const state = get();
+      const wasPlaying = state.status === 'playing';
+      getEngine().stopTimer();
+      const savedState = {
+        tiles: state.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
+        goalNodes: state.currentLevel ? [...state.currentLevel.goalNodes] : [],
+        gridSize: state.currentLevel?.gridSize ?? 5,
+        wasPlaying,
+      };
+      set((s) => ({
+        editor: {
+          ...s.editor,
+          enabled: true,
+          tool: 'select' as const,
+          selectedTile: null,
+          moveSource: null,
+          gridSize: savedState.gridSize,
+          savedState,
+        },
+        isPaused: true,
+      }));
+    },
 
-        if (next) {
-          // Entering editor mode - save current state and pause
-          const wasPlaying = s.status === 'playing';
-          getEngine().stopTimer();
-          const savedState = {
-            tiles: s.tiles.map((t) => ({ ...t, connections: [...t.connections] })),
-            goalNodes: s.currentLevel ? [...s.currentLevel.goalNodes] : [],
-            gridSize: s.currentLevel?.gridSize ?? 5,
-            wasPlaying, // Track if game was actively playing
-          };
-          return {
-            editor: {
-              ...s.editor,
-              enabled: true,
-              tool: 'select',
-              selectedTile: null,
-              moveSource: null,
-              gridSize: savedState.gridSize,
-              savedState,
-            },
-            isPaused: true,
-          };
-        } else {
-          // Exiting editor mode - restore saved state if available
-          const wasPlaying = s.editor.savedState?.wasPlaying ?? false;
+    editorExitMode: () => {
+      const state = get();
+      const wasPlaying = state.editor.savedState?.wasPlaying ?? false;
 
-          if (s.editor.savedState) {
-            const { tiles, goalNodes, gridSize } = s.editor.savedState;
-            const restoredLevel = s.currentLevel
-              ? {
-                  ...s.currentLevel,
-                  gridSize,
-                  goalNodes,
-                }
-              : null;
+      if (state.editor.savedState) {
+        const { tiles, goalNodes, gridSize } = state.editor.savedState;
+        const restoredLevel = state.currentLevel
+          ? { ...state.currentLevel, gridSize, goalNodes }
+          : null;
 
-            // Restart timer if game was playing before editor
-            if (wasPlaying && s.status === 'playing') {
-              getEngine().startTimer();
-            }
-
-            return {
-              tiles: tiles.map((t) => ({ ...t, connections: [...t.connections] })),
-              currentLevel: restoredLevel,
-              editor: {
-                ...s.editor,
-                enabled: false,
-                tool: null,
-                selectedTile: null,
-                moveSource: null,
-                gridSize: null,
-                savedState: null,
-              },
-              isPaused: false,
-            };
-          }
-
-          // Restart timer if game was playing before editor
-          if (wasPlaying && s.status === 'playing') {
-            getEngine().startTimer();
-          }
-
-          return {
-            editor: {
-              ...s.editor,
-              enabled: false,
-              tool: null,
-              selectedTile: null,
-              moveSource: null,
-              gridSize: null,
-              savedState: null,
-            },
-            isPaused: false,
-          };
+        if (wasPlaying && state.status === 'playing') {
+          getEngine().startTimer();
         }
-      });
+
+        set((s) => ({
+          tiles: tiles.map((t) => ({ ...t, connections: [...t.connections] })),
+          currentLevel: restoredLevel,
+          editor: {
+            ...s.editor,
+            enabled: false,
+            tool: null,
+            selectedTile: null,
+            moveSource: null,
+            gridSize: null,
+            savedState: null,
+          },
+          isPaused: false,
+        }));
+      } else {
+        if (wasPlaying && state.status === 'playing') {
+          getEngine().startTimer();
+        }
+
+        set((s) => ({
+          editor: {
+            ...s.editor,
+            enabled: false,
+            tool: null,
+            selectedTile: null,
+            moveSource: null,
+            gridSize: null,
+            savedState: null,
+          },
+          isPaused: false,
+        }));
+      }
+    },
+
+    toggleEditor: () => {
+      const state = get();
+      if (state.editor.enabled) {
+        get().editorExitMode();
+      } else {
+        get().editorEnterMode();
+      }
     },
 
     editorResizeGrid: (delta: number) => {
@@ -576,207 +587,196 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       set((s) => ({ editor: { ...s.editor, selectedTile: pos } }));
     },
 
+    editorHandleEraserTool: (x: number, y: number, existing: Tile | null, _existingIdx: number, tiles: Tile[], currentLevel: Level) => {
+      if (!existing) return;
+      const newTiles = tiles.filter((t) => t.id !== existing.id);
+      let newGoalNodes = currentLevel.goalNodes;
+      if (existing.isGoalNode) {
+        newGoalNodes = newGoalNodes.filter((g) => !(g.x === x && g.y === y));
+      }
+      set((s) => ({
+        tiles: newTiles,
+        currentLevel: { ...currentLevel, goalNodes: newGoalNodes },
+        editor: { ...s.editor, selectedTile: null },
+      }));
+    },
+
+    editorHandleSelectTool: (x: number, y: number, existing: Tile | null) => {
+      if (existing) {
+        set((s) => ({ editor: { ...s.editor, selectedTile: { x, y } } }));
+      }
+    },
+
+    editorHandleMoveTool: (x: number, y: number, existing: Tile | null) => {
+      const editor = get().editor;
+      const moveSource = editor.moveSource;
+      if (!moveSource) {
+        if (existing) {
+          set((s) => ({ editor: { ...s.editor, moveSource: { x, y }, selectedTile: { x, y } } }));
+        }
+      } else if (moveSource.x === x && moveSource.y === y) {
+        set((s) => ({ editor: { ...s.editor, moveSource: null, selectedTile: null } }));
+      } else {
+        get().editorMoveTile(moveSource.x, moveSource.y, x, y);
+        set((s) => ({ editor: { ...s.editor, moveSource: null, selectedTile: null } }));
+      }
+    },
+
+    editorHandleRotateTool: (_x: number, _y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+      if (!existing?.canRotate) return;
+      const dirOrder: Direction[] = ['up', 'right', 'down', 'left'];
+      const newConnections = existing.connections.map((conn) => {
+        const i = dirOrder.indexOf(conn);
+        if (i < 0) return conn;
+        return dirOrder[(i + 1) % 4];
+      });
+      const newTiles = [...tiles];
+      newTiles[existingIdx] = { ...existing, connections: newConnections as Direction[] };
+      set({ tiles: newTiles });
+    },
+
+    editorHandleNodeTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[], currentLevel: Level) => {
+      const goalNodes = currentLevel.goalNodes;
+      if (existing && existing.type === 'node') {
+        const newTiles = [...tiles];
+        const isGoal = !existing.isGoalNode;
+        newTiles[existingIdx] = { ...existing, isGoalNode: isGoal };
+        let newGoalNodes = [...goalNodes];
+        if (isGoal) {
+          if (!newGoalNodes.some((g) => g.x === x && g.y === y)) {
+            newGoalNodes.push({ x, y });
+          }
+        } else {
+          newGoalNodes = newGoalNodes.filter((g) => !(g.x === x && g.y === y));
+        }
+        set((s) => ({
+          tiles: newTiles,
+          currentLevel: { ...currentLevel, goalNodes: newGoalNodes },
+          editor: { ...s.editor, selectedTile: { x, y } },
+        }));
+      } else {
+        const newTile: Tile = {
+          id: `node-${x}-${y}-${Date.now()}`,
+          type: 'node',
+          x,
+          y,
+          connections: ['up', 'down', 'left', 'right'] as Direction[],
+          isGoalNode: true,
+          canRotate: false,
+        };
+        let newTiles: Tile[];
+        if (existing) {
+          newTiles = [...tiles];
+          newTiles[existingIdx] = newTile;
+        } else {
+          newTiles = [...tiles, newTile];
+        }
+        const newGoalNodes = [...goalNodes, { x, y }];
+        set((s) => ({
+          tiles: newTiles,
+          currentLevel: { ...currentLevel, goalNodes: newGoalNodes },
+          editor: { ...s.editor, selectedTile: { x, y } },
+        }));
+      }
+    },
+
+    editorHandleWallTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+      if (existing && (existing.type === 'wall' || existing.type === 'node')) {
+        return;
+      }
+      const newTile: Tile = {
+        id: `wall-${x}-${y}-${Date.now()}`,
+        type: 'wall',
+        x,
+        y,
+        connections: [],
+        isGoalNode: false,
+        canRotate: false,
+      };
+      let newTiles: Tile[];
+      if (existing) {
+        newTiles = [...tiles];
+        newTiles[existingIdx] = newTile;
+      } else {
+        newTiles = [...tiles, newTile];
+      }
+      set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
+    },
+
+    editorHandlePathTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+      const newTile: Tile = {
+        id: `path-${x}-${y}-${Date.now()}`,
+        type: 'path',
+        x,
+        y,
+        connections: ['left', 'right'] as Direction[],
+        isGoalNode: false,
+        canRotate: true,
+        isDecoy: false,
+      };
+      let newTiles: Tile[];
+      if (existing) {
+        newTiles = [...tiles];
+        newTiles[existingIdx] = newTile;
+      } else {
+        newTiles = [...tiles, newTile];
+      }
+      set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
+    },
+
+    editorHandleDecoyTool: (x: number, y: number, existing: Tile | null, existingIdx: number, tiles: Tile[]) => {
+      const newTile: Tile = {
+        id: `decoy-${x}-${y}-${Date.now()}`,
+        type: 'path',
+        x,
+        y,
+        connections: ['left', 'right'] as Direction[],
+        isGoalNode: false,
+        canRotate: true,
+        isDecoy: true,
+      };
+      let newTiles: Tile[];
+      if (existing) {
+        newTiles = [...tiles];
+        newTiles[existingIdx] = newTile;
+      } else {
+        newTiles = [...tiles, newTile];
+      }
+      set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
+    },
+
     editorUpdateTile: (x, y) => {
       const { tiles, editor, currentLevel } = get();
       if (!editor.tool || !currentLevel) return;
 
-      // Find existing tile at position
       const existingIdx = tiles.findIndex((t) => t.x === x && t.y === y);
       const existing = existingIdx >= 0 ? tiles[existingIdx] : null;
 
-      // Eraser mode - remove any tile (including walls, nodes, paths)
-      if (editor.tool === 'eraser') {
-        if (existing) {
-          const newTiles = tiles.filter((t) => t.id !== existing.id);
-          // Also remove from goalNodes if it was a goal node
-          let newGoalNodes = currentLevel.goalNodes;
-          if (existing.isGoalNode) {
-            newGoalNodes = newGoalNodes.filter((g) => !(g.x === x && g.y === y));
-          }
-          set((s) => ({
-            tiles: newTiles,
-            currentLevel: { ...currentLevel, goalNodes: newGoalNodes },
-            editor: { ...s.editor, selectedTile: null },
-          }));
-        }
-        return;
-      }
-
-      // Select mode - just select
-      if (editor.tool === 'select') {
-        if (existing) {
-          set((s) => ({ editor: { ...s.editor, selectedTile: { x, y } } }));
-        }
-        return;
-      }
-
-      // Move mode - select source or move to destination
-      if (editor.tool === 'move') {
-        const moveSource = editor.moveSource;
-        if (!moveSource) {
-          // First click - select source tile
-          if (existing) {
-            set((s) => ({ editor: { ...s.editor, moveSource: { x, y }, selectedTile: { x, y } } }));
-          }
-        } else if (moveSource.x === x && moveSource.y === y) {
-          // Clicking same tile - deselect
-          set((s) => ({ editor: { ...s.editor, moveSource: null, selectedTile: null } }));
-        } else {
-          // Second click - move tile to new position
-          get().editorMoveTile(moveSource.x, moveSource.y, x, y);
-          set((s) => ({ editor: { ...s.editor, moveSource: null, selectedTile: null } }));
-        }
-        return;
-      }
-
-      // Rotate mode - rotate the tile
-      if (editor.tool === 'rotate') {
-        if (existing?.canRotate) {
-          const dirOrder: Direction[] = ['up', 'right', 'down', 'left'];
-          const newConnections = existing.connections.map((conn) => {
-            const i = dirOrder.indexOf(conn);
-            if (i < 0) return conn;
-            return dirOrder[(i + 1) % 4];
-          });
-          const newTiles = [...tiles];
-          newTiles[existingIdx] = { ...existing, connections: newConnections as Direction[] };
-          set({ tiles: newTiles });
-        }
-        return;
-      }
-
-      // Node tool - toggle goal node status or create new node
-      if (editor.tool === 'node') {
-        // If clicking on an existing node, toggle its goal status
-        if (existing && existing.type === 'node') {
-          const newTiles = [...tiles];
-          const isGoal = !existing.isGoalNode;
-          newTiles[existingIdx] = { ...existing, isGoalNode: isGoal };
-
-          // Update goalNodes list
-          let newGoalNodes = [...currentLevel.goalNodes];
-          if (isGoal) {
-            if (!newGoalNodes.some((g) => g.x === x && g.y === y)) {
-              newGoalNodes.push({ x, y });
-            }
-          } else {
-            newGoalNodes = newGoalNodes.filter((g) => !(g.x === x && g.y === y));
-          }
-
-          set((s) => ({
-            tiles: newTiles,
-            currentLevel: { ...currentLevel, goalNodes: newGoalNodes },
-            editor: { ...s.editor, selectedTile: { x, y } },
-          }));
-        } else {
-          // Create a new goal node
-          const newTile: Tile = {
-            id: `node-${x}-${y}-${Date.now()}`,
-            type: 'node',
-            x,
-            y,
-            connections: ['up', 'down', 'left', 'right'] as Direction[],
-            isGoalNode: true,
-            canRotate: false,
-          };
-
-          let newTiles: Tile[];
-          if (existing) {
-            newTiles = [...tiles];
-            newTiles[existingIdx] = newTile;
-          } else {
-            newTiles = [...tiles, newTile];
-          }
-
-          // Add to goalNodes
-          const newGoalNodes = [...currentLevel.goalNodes, { x, y }];
-
-          set((s) => ({
-            tiles: newTiles,
-            currentLevel: { ...currentLevel, goalNodes: newGoalNodes },
-            editor: { ...s.editor, selectedTile: { x, y } },
-          }));
-        }
-        return;
-      }
-
-      // Wall tool - create wall tile
-      if (editor.tool === 'wall') {
-        // Don't replace existing walls or nodes
-        if (existing && (existing.type === 'wall' || existing.type === 'node')) {
-          return;
-        }
-
-        const newTile: Tile = {
-          id: `wall-${x}-${y}-${Date.now()}`,
-          type: 'wall',
-          x,
-          y,
-          connections: [],
-          isGoalNode: false,
-          canRotate: false,
-        };
-
-        let newTiles: Tile[];
-        if (existing) {
-          newTiles = [...tiles];
-          newTiles[existingIdx] = newTile;
-        } else {
-          newTiles = [...tiles, newTile];
-        }
-
-        set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
-        return;
-      }
-
-      // Path tool - create path tile
-      if (editor.tool === 'path') {
-        const newTile: Tile = {
-          id: `path-${x}-${y}-${Date.now()}`,
-          type: 'path',
-          x,
-          y,
-          connections: ['left', 'right'] as Direction[],
-          isGoalNode: false,
-          canRotate: true,
-          isDecoy: false,
-        };
-
-        let newTiles: Tile[];
-        if (existing) {
-          newTiles = [...tiles];
-          newTiles[existingIdx] = newTile;
-        } else {
-          newTiles = [...tiles, newTile];
-        }
-
-        set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
-        return;
-      }
-
-      // Decoy tool - create decoy path tile (looks like path but isn't part of solution)
-      if (editor.tool === 'decoy') {
-        const newTile: Tile = {
-          id: `decoy-${x}-${y}-${Date.now()}`,
-          type: 'path',
-          x,
-          y,
-          connections: ['left', 'right'] as Direction[],
-          isGoalNode: false,
-          canRotate: true,
-          isDecoy: true,
-        };
-
-        let newTiles: Tile[];
-        if (existing) {
-          newTiles = [...tiles];
-          newTiles[existingIdx] = newTile;
-        } else {
-          newTiles = [...tiles, newTile];
-        }
-
-        set((s) => ({ tiles: newTiles, editor: { ...s.editor, selectedTile: { x, y } } }));
-        return;
+      switch (editor.tool) {
+        case 'eraser':
+          get().editorHandleEraserTool(x, y, existing, existingIdx, tiles, currentLevel);
+          break;
+        case 'select':
+          get().editorHandleSelectTool(x, y, existing);
+          break;
+        case 'move':
+          get().editorHandleMoveTool(x, y, existing);
+          break;
+        case 'rotate':
+          get().editorHandleRotateTool(x, y, existing, existingIdx, tiles);
+          break;
+        case 'node':
+          get().editorHandleNodeTool(x, y, existing, existingIdx, tiles, currentLevel);
+          break;
+        case 'wall':
+          get().editorHandleWallTool(x, y, existing, existingIdx, tiles);
+          break;
+        case 'path':
+          get().editorHandlePathTool(x, y, existing, existingIdx, tiles);
+          break;
+        case 'decoy':
+          get().editorHandleDecoyTool(x, y, existing, existingIdx, tiles);
+          break;
       }
     },
 

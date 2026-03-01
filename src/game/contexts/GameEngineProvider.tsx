@@ -43,7 +43,6 @@ export function GameEngineProvider({
   useEffect(() => {
     try {
       if (import.meta.env.DEV) {
-        console.log('[GameEngineProvider] Starting engine initialization...');
       }
       const pressureEngine = initialEngine ?? createPressureEngine();
       pressureEngine.init(
@@ -70,7 +69,6 @@ export function GameEngineProvider({
 
       setEngines({ pressureEngine, statsEngine, achievementEngine });
       if (import.meta.env.DEV) {
-        console.log('[GameEngineProvider] ✅ Engines initialized and ready');
       }
       // Signal that initialization is complete
       onReady?.();

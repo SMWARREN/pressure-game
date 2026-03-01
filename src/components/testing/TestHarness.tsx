@@ -37,8 +37,6 @@ function TestHarnessContent() {
       return;
     }
 
-    console.log(`[TestHarness] Initializing ${modeId} level ${levelId}`);
-
     // Get the mode
     const mode = getModeById(modeId);
     if (!mode) {
@@ -68,7 +66,6 @@ function TestHarnessContent() {
 
         setTimeout(() => {
           startGame();
-          console.log(`[TestHarness] ✅ Game initialized and started`);
         }, 100);
       }, 100);
     }, 0);

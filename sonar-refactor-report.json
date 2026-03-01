@@ -1,0 +1,884 @@
+[
+  {
+    "file": "App.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "cli/game-tester.ts",
+    "pattern": "duplicate-function (18x)",
+    "linesRemoved": 0,
+    "linesSaved": 850,
+    "complexity": "S1128"
+  },
+  {
+    "file": "cli/game-tester.ts",
+    "pattern": "anonymous(10 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "duplicate-function (16x)",
+    "linesRemoved": 0,
+    "linesSaved": 750,
+    "complexity": "S1128"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "anonymous(8 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "anonymous(10 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "anonymous(10 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/laser-level-generator.ts",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/level-enhancer.ts",
+    "pattern": "duplicate-function (14x)",
+    "linesRemoved": 0,
+    "linesSaved": 650,
+    "complexity": "S1128"
+  },
+  {
+    "file": "cli/level-solver.ts",
+    "pattern": "duplicate-function (20x)",
+    "linesRemoved": 0,
+    "linesSaved": 950,
+    "complexity": "S1128"
+  },
+  {
+    "file": "cli/solver.ts",
+    "pattern": "duplicate-function (7x)",
+    "linesRemoved": 0,
+    "linesSaved": 300,
+    "complexity": "S1128"
+  },
+  {
+    "file": "cli/solver.ts",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/solver.ts",
+    "pattern": "anonymous(8 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "cli/sonar-refactor.ts",
+    "pattern": "duplicate-function (10x)",
+    "linesRemoved": 0,
+    "linesSaved": 450,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/AchievementToast.tsx",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/ArcadeHubScreen.tsx",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/GameBoard.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/HowToPlayModal.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/InstallPrompt.tsx",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/ModeSelectorModal.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/PressureHubScreen.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/StatsScreen.tsx",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/TutorialScreen.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/UnlimitedRulesDialog.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/UnlimitedRulesDialog.tsx",
+    "pattern": "anonymous(8 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "/Users/saint/Downloads/pressure-game/src/components/WalkthroughOverlay.tsx",
+    "pattern": "switch→lookup",
+    "linesRemoved": 4,
+    "linesSaved": 8,
+    "complexity": "S3776"
+  },
+  {
+    "file": "components/WalkthroughOverlay.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/WalkthroughOverlay.tsx",
+    "pattern": "anonymous(9 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/arcade/ArcadeColumn.tsx",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/editor/EditorToolbar.tsx",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/GameBoardState.ts",
+    "pattern": "duplicate-function (7x)",
+    "linesRemoved": 0,
+    "linesSaved": 300,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/GameControls.tsx",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/game/GameFooter.tsx",
+    "pattern": "anonymous(17 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "/Users/saint/Downloads/pressure-game/src/components/game/GameGrid.tsx",
+    "pattern": "switch→lookup",
+    "linesRemoved": 10,
+    "linesSaved": 20,
+    "complexity": "S3776"
+  },
+  {
+    "file": "components/game/GameGrid.tsx",
+    "pattern": "anonymous(19 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/game/GameStats.tsx",
+    "pattern": "anonymous(14 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/game/GameStatsUtils.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "/Users/saint/Downloads/pressure-game/src/components/game/GameTile.tsx",
+    "pattern": "ternary-chain→lookup",
+    "linesRemoved": 6,
+    "linesSaved": 12,
+    "complexity": "S3776/S6759"
+  },
+  {
+    "file": "components/game/GameTile.tsx",
+    "pattern": "duplicate-function (5x)",
+    "linesRemoved": 0,
+    "linesSaved": 200,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/GameTile.tsx",
+    "pattern": "anonymous(19 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/game/LevelHeader.tsx",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/game/ReplayOverlay.tsx",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/WallOverlay.tsx",
+    "pattern": "anonymous(8 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/game/utils/boardDimensions.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/levelNavigation.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/particleEffects.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/pipeSegmentHelpers.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/statusColorHelpers.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/tileAnimationHelpers.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/tileColorHelpers.ts",
+    "pattern": "duplicate-function (10x)",
+    "linesRemoved": 0,
+    "linesSaved": 450,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/tileLayoutHelpers.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/game/utils/wallCompression.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/modals/SettingsPanel.tsx",
+    "pattern": "anonymous(10 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/overlays/Overlay.tsx",
+    "pattern": "anonymous(18 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "components/overlays/OverlayUtils.ts",
+    "pattern": "duplicate-function (5x)",
+    "linesRemoved": 0,
+    "linesSaved": 200,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/pressure/PressureGameboardDemo.tsx",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/pressure/PressureGridHero.tsx",
+    "pattern": "duplicate-function (5x)",
+    "linesRemoved": 0,
+    "linesSaved": 200,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/screens/MenuScreenUtils.ts",
+    "pattern": "duplicate-function (7x)",
+    "linesRemoved": 0,
+    "linesSaved": 300,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/utils/gameConditions.ts",
+    "pattern": "duplicate-function (5x)",
+    "linesRemoved": 0,
+    "linesSaved": 200,
+    "complexity": "S1128"
+  },
+  {
+    "file": "components/utils/styles.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/achievements/types.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/contexts/GameEngineProvider.tsx",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/contexts/StatsProvider.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/engine/compression.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/engine/compression.ts",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/levels/compact.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/levels/procedural.ts",
+    "pattern": "duplicate-function (16x)",
+    "linesRemoved": 0,
+    "linesSaved": 750,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/levels/procedural.ts",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/levels.ts",
+    "pattern": "duplicate-function (8x)",
+    "linesRemoved": 0,
+    "linesSaved": 350,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/ModeSelector.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/arcade/groupFinding.ts",
+    "pattern": "duplicate-function (5x)",
+    "linesRemoved": 0,
+    "linesSaved": 200,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/arcadeShared.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/arcadeUtils.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/arcadeUtils.ts",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/bombAddon.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/candy/index.ts",
+    "pattern": "duplicate-function (11x)",
+    "linesRemoved": 0,
+    "linesSaved": 500,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/candy/levels.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/classic/levels.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/comboChainAddon.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/fuse/index.ts",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/gemBlast/demo.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/gemBlast/index.ts",
+    "pattern": "duplicate-function (8x)",
+    "linesRemoved": 0,
+    "linesSaved": 350,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/gravityDrop/demo.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/gravityDrop/demo.tsx",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/gravityDrop/index.ts",
+    "pattern": "duplicate-function (7x)",
+    "linesRemoved": 0,
+    "linesSaved": 300,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/gravityDrop/levels.ts",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/gravityDrop/levels.ts",
+    "pattern": "anonymous(8 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/laserRelay/index.ts",
+    "pattern": "duplicate-function (8x)",
+    "linesRemoved": 0,
+    "linesSaved": 350,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/laserRelay/levels.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/memoryMatch/demo.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/memoryMatch/index.ts",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/memoryMatch/levels.ts",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/memoryMatch/levels.ts",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/mirrorForge/demo.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/mirrorForge/demo.tsx",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/mirrorForge/levels.ts",
+    "pattern": "duplicate-function (7x)",
+    "linesRemoved": 0,
+    "linesSaved": 300,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/mirrorForge/levels.ts",
+    "pattern": "anonymous(8 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/mirrorForge/levels.ts",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/mirrorForge/levels.ts",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/outbreak/demo.tsx",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/outbreak/demo.tsx",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/outbreak/index.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/outbreak/levels.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/outbreak/levels.ts",
+    "pattern": "anonymous(7 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/quantumChain/demo.tsx",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/quantumChain/demo.tsx",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "/Users/saint/Downloads/pressure-game/src/game/modes/quantumChain/index.ts",
+    "pattern": "switch→lookup",
+    "linesRemoved": 8,
+    "linesSaved": 16,
+    "complexity": "S3776"
+  },
+  {
+    "file": "game/modes/quantumChain/index.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "/Users/saint/Downloads/pressure-game/src/game/modes/shared/arcadeTile.tsx",
+    "pattern": "ternary-chain→lookup",
+    "linesRemoved": 2,
+    "linesSaved": 4,
+    "complexity": "S3776/S6759"
+  },
+  {
+    "file": "game/modes/shared/arcadeTile.tsx",
+    "pattern": "anonymous(6 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/shared/demoUtils.tsx",
+    "pattern": "rotateDot(9 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/shoppingSpree/index.ts",
+    "pattern": "duplicate-function (12x)",
+    "linesRemoved": 0,
+    "linesSaved": 550,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/symbolUnlockAddon.ts",
+    "pattern": "duplicate-function (6x)",
+    "linesRemoved": 0,
+    "linesSaved": 250,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/unlimitedBlockerAddon.ts",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/utils.ts",
+    "pattern": "duplicate-function (11x)",
+    "linesRemoved": 0,
+    "linesSaved": 500,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/voltage/index.ts",
+    "pattern": "duplicate-function (9x)",
+    "linesRemoved": 0,
+    "linesSaved": 400,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/voltage/levels.ts",
+    "pattern": "duplicate-function (4x)",
+    "linesRemoved": 0,
+    "linesSaved": 150,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/modes/voltage/levels.ts",
+    "pattern": "anonymous(9 params)",
+    "linesRemoved": 0,
+    "linesSaved": 10,
+    "complexity": "S107"
+  },
+  {
+    "file": "game/modes/wildcardAddon.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "/Users/saint/Downloads/pressure-game/src/game/store.ts",
+    "pattern": "ternary-chain→lookup",
+    "linesRemoved": 1,
+    "linesSaved": 2,
+    "complexity": "S3776/S6759"
+  },
+  {
+    "file": "game/store.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/unlimited.ts",
+    "pattern": "duplicate-function (3x)",
+    "linesRemoved": 0,
+    "linesSaved": 100,
+    "complexity": "S1128"
+  },
+  {
+    "file": "game/walkthroughs.ts",
+    "pattern": "duplicate-function (2x)",
+    "linesRemoved": 0,
+    "linesSaved": 50,
+    "complexity": "S1128"
+  }
+]
