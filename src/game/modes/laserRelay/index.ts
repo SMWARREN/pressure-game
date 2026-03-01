@@ -77,6 +77,34 @@ function getGridDimensions(tiles: Tile[]): {
   return { gridSize, gridCols: gridSize, gridRows: gridSize };
 }
 
+// Helper: Process mirror reflection based on rotation
+function processMirrorReflection(
+  dir: string,
+  rotation: number | undefined
+): string | null {
+  const rot = rotation ?? 0;
+  const newDir = rot === 0 ? SLASH[dir] : BACK[dir];
+  return newDir ?? null;
+}
+
+// Helper: Process portal teleportation
+function processPortalTeleport(
+  tile: Tile,
+  x: number,
+  y: number,
+  portalPairs: Map<string, Tile[]>,
+  visitedPortals: Set<string>
+): { x: number; y: number } | null {
+  const portalId = tile.displayData?.portalId as string;
+  const portalKey = `${portalId}-${x}-${y}`;
+  if (!portalId || visitedPortals.has(portalKey)) return null;
+  visitedPortals.add(portalKey);
+  const pair = portalPairs.get(portalId);
+  if (!pair) return null;
+  const otherPortal = pair.find((p) => p.x !== x || p.y !== y);
+  return otherPortal ? { x: otherPortal.x, y: otherPortal.y } : null;
+}
+
 export function traceLaser(
   tiles: Tile[],
   gridSize: number,
@@ -117,62 +145,40 @@ export function traceLaser(
     if (x < 0 || y < 0 || x >= cols || y >= rows) break;
 
     const key = `${x},${y}`;
-    const tile = map.get(key);
-
-    // Track beam position even for empty cells (no tile)
-    // This allows the beam to be visualized passing through empty space
     beamKeys.add(key);
 
-    // No tile at this position = empty space, beam continues
-    if (!tile) continue;
+    const tile = map.get(key);
+    if (!tile) continue; // Empty space: beam continues
 
     const kind = tile.displayData?.kind as string;
 
+    // Handle terminal tiles (stop beam)
     if (kind === 'wall' || kind === 'source') break;
-
-    beamKeys.add(key);
-
     if (kind === 'target') {
       hitTarget = true;
       break;
     }
 
-    if (kind === 'mirror') {
-      const rot = tile.displayData?.rotation as number;
-      const newDir = rot === 0 ? SLASH[dir] : BACK[dir];
+    // Handle redirecting tiles
+    if (kind === 'mirror' || kind === 'doubleMirror') {
+      const newDir = processMirrorReflection(dir, tile.displayData?.rotation as number | undefined);
       if (!newDir) break;
       dir = newDir;
+      continue;
     }
 
+    // Handle portal teleportation
     if (kind === 'portal') {
-      const portalId = tile.displayData?.portalId as string;
-      const portalKey = `${portalId}-${x}-${y}`;
-      if (portalId && !visitedPortals.has(portalKey)) {
-        visitedPortals.add(portalKey);
-        const pair = portalPairs.get(portalId);
-        if (pair) {
-          const otherPortal = pair.find((p) => p.x !== x || p.y !== y);
-          if (otherPortal) {
-            x = otherPortal.x;
-            y = otherPortal.y;
-            beamKeys.add(`${x},${y}`);
-          }
-        }
+      const teleport = processPortalTeleport(tile, x, y, portalPairs, visitedPortals);
+      if (teleport) {
+        x = teleport.x;
+        y = teleport.y;
+        beamKeys.add(`${x},${y}`);
       }
+      continue;
     }
 
-    if (kind === 'splitter') {
-      // Splitter continues beam in same direction (could add perpendicular beam in future)
-      // For now, acts as a pass-through with visual effect
-    }
-
-    if (kind === 'doubleMirror') {
-      const rot = tile.displayData?.rotation as number;
-      const newDir = rot === 0 ? SLASH[dir] : BACK[dir];
-      if (!newDir) break;
-      dir = newDir;
-    }
-    // 'empty' — beam continues same direction
+    // Splitters and empty tiles: beam continues same direction
   }
 
   return { beamKeys, hitTarget };

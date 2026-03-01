@@ -379,6 +379,82 @@ function buildTilesFromSolution(
   return { tiles, solution };
 }
 
+// Helper: Create border walls
+function createBorderWalls(
+  gridCols: number,
+  gridRows: number
+): { tiles: Tile[]; borderSet: Set<string> } {
+  const wallTiles: Tile[] = [];
+  const borderSet = new Set<string>();
+
+  // Top and bottom walls
+  for (let x = 0; x < gridCols; x++) {
+    for (const y of [0, gridRows - 1]) {
+      wallTiles.push({
+        id: `wall-${x}-${y}`,
+        type: 'wall',
+        x,
+        y,
+        connections: [],
+        isGoalNode: false,
+        canRotate: false,
+      });
+      borderSet.add(`${x},${y}`);
+    }
+  }
+
+  // Left and right walls
+  for (let y = 1; y < gridRows - 1; y++) {
+    for (const x of [0, gridCols - 1]) {
+      wallTiles.push({
+        id: `wall-${x}-${y}`,
+        type: 'wall',
+        x,
+        y,
+        connections: [],
+        isGoalNode: false,
+        canRotate: false,
+      });
+      borderSet.add(`${x},${y}`);
+    }
+  }
+
+  return { tiles: wallTiles, borderSet };
+}
+
+// Helper: Place goal nodes
+function placeGoalNodes(
+  gridCols: number,
+  gridRows: number,
+  nodeCount: number,
+  dirConfig: DirConfig
+): Position[] | null {
+  const zx = dirConfig.zoneX;
+  const zy = dirConfig.zoneY;
+  const nodeMinX = Math.max(1, Math.round(zx[0] * (gridCols - 2)));
+  const nodeMaxX = Math.min(gridCols - 2, Math.round(zx[1] * (gridCols - 2)));
+  const nodeMinY = Math.max(1, Math.round(zy[0] * (gridRows - 2)));
+  const nodeMaxY = Math.min(gridRows - 2, Math.round(zy[1] * (gridRows - 2)));
+
+  const candidates: Position[] = [];
+  for (let y = nodeMinY; y <= nodeMaxY; y++) {
+    for (let x = nodeMinX; x <= nodeMaxX; x++) {
+      candidates.push({ x, y });
+    }
+  }
+
+  const minDist = Math.max(3, Math.floor(Math.min(gridCols, gridRows) / 3));
+  const goalPositions: Position[] = [];
+  for (const pos of shuffle(candidates)) {
+    if (goalPositions.length >= nodeCount) break;
+    if (!goalPositions.some((g) => Math.abs(g.x - pos.x) + Math.abs(g.y - pos.y) < minDist)) {
+      goalPositions.push(pos);
+    }
+  }
+
+  return goalPositions.length >= nodeCount ? goalPositions : null;
+}
+
 // ─── Main generator ────────────────────────────────────────────────────────
 export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
   const { gridCols, gridRows, nodeCount, difficulty } = opts;
@@ -394,57 +470,11 @@ export function generateProceduralLevel(opts: ProceduralOptions): Level | null {
 
   for (let attempt = 0; attempt < 40; attempt++) {
     // ── 1. Border walls ─────────────────────────────────────────────────
-    const wallTiles: Tile[] = [];
-    const borderSet = new Set<string>();
-    for (let x = 0; x < gridCols; x++) {
-      for (const y of [0, gridRows - 1]) {
-        wallTiles.push({
-          id: `wall-${x}-${y}`,
-          type: 'wall',
-          x,
-          y,
-          connections: [],
-          isGoalNode: false,
-          canRotate: false,
-        });
-        borderSet.add(`${x},${y}`);
-      }
-    }
-    for (let y = 1; y < gridRows - 1; y++) {
-      for (const x of [0, gridCols - 1]) {
-        wallTiles.push({
-          id: `wall-${x}-${y}`,
-          type: 'wall',
-          x,
-          y,
-          connections: [],
-          isGoalNode: false,
-          canRotate: false,
-        });
-        borderSet.add(`${x},${y}`);
-      }
-    }
+    const { tiles: wallTiles, borderSet } = createBorderWalls(gridCols, gridRows);
 
     // ── 2. Node placement in safe zone ──────────────────────────────────
-    const zx = dirConfig.zoneX,
-      zy = dirConfig.zoneY;
-    const nodeMinX = Math.max(1, Math.round(zx[0] * (gridCols - 2)));
-    const nodeMaxX = Math.min(gridCols - 2, Math.round(zx[1] * (gridCols - 2)));
-    const nodeMinY = Math.max(1, Math.round(zy[0] * (gridRows - 2)));
-    const nodeMaxY = Math.min(gridRows - 2, Math.round(zy[1] * (gridRows - 2)));
-
-    const candidates: Position[] = [];
-    for (let y = nodeMinY; y <= nodeMaxY; y++)
-      for (let x = nodeMinX; x <= nodeMaxX; x++) candidates.push({ x, y });
-
-    const minDist = Math.max(3, Math.floor(Math.min(gridCols, gridRows) / 3));
-    const goalPositions: Position[] = [];
-    for (const pos of shuffle(candidates)) {
-      if (goalPositions.length >= nodeCount) break;
-      if (!goalPositions.some((g) => Math.abs(g.x - pos.x) + Math.abs(g.y - pos.y) < minDist))
-        goalPositions.push(pos);
-    }
-    if (goalPositions.length < nodeCount) continue;
+    const goalPositions = placeGoalNodes(gridCols, gridRows, nodeCount, dirConfig);
+    if (!goalPositions) continue;
 
     const goalSet = new Set(goalPositions.map((p) => `${p.x},${p.y}`));
     const occupied = new Set<string>([...borderSet, ...goalPositions.map((p) => `${p.x},${p.y}`)]);

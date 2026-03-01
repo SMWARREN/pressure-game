@@ -287,6 +287,94 @@ function calculateScoreDelta(
 }
 
 /**
+ * Process rain effects on tick
+ */
+function processRainTick(
+  updatedTiles: Tile[],
+  state: any,
+  storedState: ShoppingModeState
+): { tiles: Tile[]; newState: ShoppingModeState | null } {
+  const activeSymbols = (updatedTiles.find((t) => t.canRotate)?.displayData
+    ?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
+  const lastRainAt = storedState.lastRainAt ?? 0;
+  const rainResult = tickRain(
+    updatedTiles,
+    state.elapsedSeconds,
+    lastRainAt,
+    activeSymbols,
+    state.currentLevel?.gridSize ?? 9
+  );
+  if (!rainResult) return { tiles: updatedTiles, newState: null };
+  return {
+    tiles: rainResult.tiles,
+    newState: { ...storedState, lastRainAt: rainResult.lastRainAt },
+  };
+}
+
+/**
+ * Process thief spawning on tick (Black Friday elapsed time)
+ */
+function processThiefTick(
+  updatedTiles: Tile[],
+  state: any,
+  storedState: ShoppingModeState
+): { tiles: Tile[]; newState: ShoppingModeState | null } {
+  const lastThiefAt = storedState.lastThiefAt ?? 0;
+  if (state.elapsedSeconds < 10 || state.elapsedSeconds - lastThiefAt < 18) {
+    return { tiles: updatedTiles, newState: null };
+  }
+  const existingThieves = new Set(storedState.thiefPositions || []);
+  const thiefResult = spawnBlockers(updatedTiles, 'hasThief', existingThieves, {
+    spawnChance: 0.7,
+    maxCount: 1,
+  });
+  if (!thiefResult) return { tiles: updatedTiles, newState: null };
+  return {
+    tiles: thiefResult.tiles,
+    newState: {
+      ...storedState,
+      lastThiefAt: state.elapsedSeconds,
+      thiefPositions: [...existingThieves, ...thiefResult.newPositions],
+      thiefWarning: `🦹 THIEF! Match 4+ to scare away!`,
+    },
+  };
+}
+
+/**
+ * Process time-based thief spawning (Unlimited world)
+ */
+function processUnlimitedThiefTick(
+  state: any,
+  modeState: any,
+  storedState: ShoppingModeState,
+  features: any
+): any {
+  const timeLeft = modeState?.timeLeft as number | undefined;
+  if (timeLeft === undefined) return null;
+  const count = getBlockerCount(features, timeLeft);
+  if (count === 0) return null;
+  const intensity = features.blockerIntensity ?? 0;
+  const spawnChance = getThiefSpawnChance(intensity, timeLeft);
+  if (spawnChance === 0) return null;
+  const existingThieves = new Set(storedState.thiefPositions || []);
+  const result = spawnBlockers(state.tiles, 'hasThief', existingThieves, {
+    spawnChance,
+    maxCount: count,
+  });
+  if (!result) return null;
+  const world = (modeState?.world as number) ?? 4;
+  const minGroupSize = getMinGroupSizeForWorld(world);
+  return {
+    tiles: result.tiles,
+    modeState: {
+      ...storedState,
+      thiefPositions: [...existingThieves, ...result.newPositions],
+      thiefWarning: `🦹 THIEF! Match ${minGroupSize}+ to scare away!`,
+    },
+  };
+}
+
+/**
  * Time bonus by group size tiers.
  */
 const TIME_BONUS_TIERS: Array<{ minSize: number; bonus: number }> = [
@@ -295,6 +383,71 @@ const TIME_BONUS_TIERS: Array<{ minSize: number; bonus: number }> = [
   { minSize: 5, bonus: 3 },
   { minSize: 0, bonus: 2 },
 ];
+
+/**
+ * Get notification for special events (combo, unlock, thief, etc.)
+ */
+function getEventNotification(state: ShoppingModeState, modeState: any, delta: number): string | null {
+  // Combo chain notification (Black Friday levels)
+  if (state.combo) {
+    const cn = comboNotification(state.combo);
+    if (cn) return cn;
+  }
+
+  // New bonus item unlocked
+  if (state.newSymbolUnlocked) {
+    const val = BONUS_ITEM_VALUES[state.newSymbolUnlocked] ?? '?';
+    return `✨ NEW! ${state.newSymbolUnlocked} $${val} — worth 2× until even!`;
+  }
+
+  // Cleared a fresh item
+  if (state.freshClear && delta > 0) {
+    return `+$${delta} 🌟 ${state.freshClear} FRESH BONUS!`;
+  }
+
+  // Thief warning announcement
+  if (state.thiefWarning) {
+    return state.thiefWarning;
+  }
+
+  // Thief scared away notification
+  if (modeState?.thiefScared) {
+    return '🦹 Thief scared away!';
+  }
+
+  // Flash sale announcement
+  if (state.flashSaleItem && state.flashSaleTapsLeft === 3) {
+    return `⚡ FLASH SALE! ${state.flashSaleItem} = 3× VALUE!`;
+  }
+
+  // Cart bonus notification
+  if (state.cartBonus > 0) {
+    return `🛒 CART FULL! +$${state.cartBonus} BONUS!`;
+  }
+
+  return null;
+}
+
+/**
+ * Get score notification for score changes
+ */
+function getScoreNotification(delta: number, timeBonus: number, timeLeft: number | undefined): string | null {
+  if (delta <= 0) return null;
+
+  // In timed/Unlimited mode, show time bonus
+  if (timeLeft !== undefined && timeBonus > 0) {
+    if (delta >= 300) return `+$${delta} ⏱️+${timeBonus}s 💎 JACKPOT!`;
+    if (delta >= 150) return `+$${delta} ⏱️+${timeBonus}s 🔥 SUPER!`;
+    if (delta >= 75) return `+$${delta} ⏱️+${timeBonus}s ✨`;
+    return `+$${delta} ⏱️+${timeBonus}s`;
+  }
+
+  // Non-timed mode notifications
+  if (delta >= 300) return `+$${delta} 💎 JACKPOT!`;
+  if (delta >= 150) return `+$${delta} 🔥 SUPER DEAL!`;
+  if (delta >= 75) return `+$${delta} ✨ GREAT BUY!`;
+  return delta >= 50 ? `+$${delta} 💰 NICE!` : null;
+}
 
 /**
  * Calculate time bonus for timed levels.
@@ -524,88 +677,36 @@ export const ShoppingSpreeMode: GameModeConfig = {
   initialState: () => getInitialState(),
 
   onTick(state, modeState) {
-    const timeLeft = modeState?.timeLeft as number | undefined;
-    const world = (modeState?.world as number) ?? 4;
     const features = modeState?.features as
       | { rain?: boolean; thieves?: boolean; blockerIntensity?: 0 | 1 | 2 }
       | undefined;
 
     const storedState = (state.modeState as ShoppingModeState) || getInitialState();
-
-    // Accumulate tile/state changes so rain + thieves can both fire in the same tick
     let updatedState: ShoppingModeState | null = null;
     let updatedTiles = state.tiles;
 
     // ── Rain — scramble 2-3 tiles every 10s on Black Friday levels ───────────
     if (features?.rain) {
-      const activeSymbols = (updatedTiles.find((t) => t.canRotate)?.displayData
-        ?.activeSymbols as string[]) ?? [...SHOPPING_ITEMS];
-      const lastRainAt = storedState.lastRainAt ?? 0;
-      const rainResult = tickRain(
-        updatedTiles,
-        state.elapsedSeconds,
-        lastRainAt,
-        activeSymbols,
-        state.currentLevel?.gridSize ?? 9
-      );
-      if (rainResult) {
-        updatedTiles = rainResult.tiles;
-        updatedState = { ...(updatedState ?? storedState), lastRainAt: rainResult.lastRainAt };
-      }
+      const rainResult = processRainTick(updatedTiles, state, storedState);
+      updatedTiles = rainResult.tiles;
+      if (rainResult.newState) updatedState = rainResult.newState;
     }
 
     // ── Thieves (Black Friday) — spawn 1 thief every 18s ─────────────────────
-    // Uses elapsed time so it works on move-limited levels (no timeLeft needed)
     if (features?.thieves) {
       const base = updatedState ?? storedState;
-      const lastThiefAt = base.lastThiefAt ?? 0;
-      if (state.elapsedSeconds >= 10 && state.elapsedSeconds - lastThiefAt >= 18) {
-        const existingThieves = new Set(base.thiefPositions || []);
-        const thiefResult = spawnBlockers(updatedTiles, 'hasThief', existingThieves, {
-          spawnChance: 0.7,
-          maxCount: 1,
-        });
-        if (thiefResult) {
-          updatedTiles = thiefResult.tiles;
-          updatedState = {
-            ...(updatedState ?? storedState),
-            lastThiefAt: state.elapsedSeconds,
-            thiefPositions: [...existingThieves, ...thiefResult.newPositions],
-            thiefWarning: `🦹 THIEF! Match 4+ to scare away!`,
-          };
-        }
-      }
+      const thiefResult = processThiefTick(updatedTiles, state, base);
+      updatedTiles = thiefResult.tiles;
+      if (thiefResult.newState) updatedState = thiefResult.newState;
     }
 
+    // Early exit if any effect triggered
     if (updatedState !== null) return { tiles: updatedTiles, modeState: updatedState };
 
     // Only run time-based thief spawning on Unlimited world with config-driven thieves
-    if (!features?.thieves || timeLeft === undefined) return null;
+    if (!features?.thieves) return null;
 
-    // Use config-driven approach: blockerIntensity determines spawn behavior
-    const count = getBlockerCount(features, timeLeft);
-    if (count === 0) return null;
-
-    const intensity = features.blockerIntensity ?? 0;
-    const spawnChance = getThiefSpawnChance(intensity, timeLeft);
-    if (spawnChance === 0) return null;
-
-    const existingThieves = new Set(storedState.thiefPositions || []);
-    const result = spawnBlockers(state.tiles, 'hasThief', existingThieves, {
-      spawnChance,
-      maxCount: count,
-    });
-    if (!result) return null;
-
-    const minGroupSize = getMinGroupSizeForWorld(world);
-    return {
-      tiles: result.tiles,
-      modeState: {
-        ...storedState,
-        thiefPositions: [...existingThieves, ...result.newPositions],
-        thiefWarning: `🦹 THIEF! Match ${minGroupSize}+ to scare away!`,
-      },
-    };
+    return processUnlimitedThiefTick(state, modeState, storedState, features);
   },
 
   onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
@@ -740,58 +841,12 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const timeBonus = (modeState?.timeBonus as number) ?? 0;
     const timeLeft = modeState?.timeLeft as number | undefined;
 
-    // Combo chain notification (Black Friday levels)
-    if (state.combo) {
-      const cn = comboNotification(state.combo);
-      if (cn) return cn;
-    }
+    // Try event-based notifications first (highest priority)
+    const eventNotif = getEventNotification(state, modeState, delta);
+    if (eventNotif) return eventNotif;
 
-    // New bonus item unlocked
-    if (state.newSymbolUnlocked) {
-      const val = BONUS_ITEM_VALUES[state.newSymbolUnlocked] ?? '?';
-      return `✨ NEW! ${state.newSymbolUnlocked} $${val} — worth 2× until even!`;
-    }
-
-    // Cleared a fresh item
-    if (state.freshClear && delta > 0) {
-      return `+$${delta} 🌟 ${state.freshClear} FRESH BONUS!`;
-    }
-
-    // Thief warning announcement
-    if (state.thiefWarning) {
-      return state.thiefWarning;
-    }
-
-    // Thief scared away notification
-    if (modeState?.thiefScared) {
-      return '🦹 Thief scared away!';
-    }
-
-    // Flash sale announcement
-    if (state.flashSaleItem && state.flashSaleTapsLeft === 3) {
-      return `⚡ FLASH SALE! ${state.flashSaleItem} = 3× VALUE!`;
-    }
-
-    // Cart bonus notification
-    if (state.cartBonus > 0) {
-      return `🛒 CART FULL! +$${state.cartBonus} BONUS!`;
-    }
-
-    if (delta <= 0) return null;
-
-    // In timed/Unlimited mode, show time bonus
-    if (timeLeft !== undefined && timeBonus > 0) {
-      if (delta >= 300) return `+$${delta} ⏱️+${timeBonus}s 💎 JACKPOT!`;
-      if (delta >= 150) return `+$${delta} ⏱️+${timeBonus}s 🔥 SUPER!`;
-      if (delta >= 75) return `+$${delta} ⏱️+${timeBonus}s ✨`;
-      return `+$${delta} ⏱️+${timeBonus}s`;
-    }
-
-    // Non-timed mode notifications
-    if (delta >= 300) return `+$${delta} 💎 JACKPOT!`;
-    if (delta >= 150) return `+$${delta} 🔥 SUPER DEAL!`;
-    if (delta >= 75) return `+$${delta} ✨ GREAT BUY!`;
-    return delta >= 50 ? `+$${delta} 💰 NICE!` : null;
+    // Fall back to score notifications
+    return getScoreNotification(delta, timeBonus, timeLeft);
   },
 
   statsLabels: { moves: 'TAPS' },
