@@ -14,6 +14,14 @@ import AchievementsScreen from '../AchievementsScreen';
 import ReplayOverlay from '../game/ReplayOverlay';
 import { SettingsPanel } from '../modals/SettingsPanel';
 import { LevelGeneratorPanel } from '../modals/LevelGeneratorPanel';
+import {
+  getLevelButtonBorder,
+  getLevelButtonBackground,
+  getLevelButtonColor,
+  getLevelButtonBoxShadow,
+  formatLevelBadge,
+  shouldShowLevelBadge,
+} from './MenuScreenUtils';
 
 export interface MenuScreenProps {
   readonly onLevelSelected?: () => void;
@@ -443,6 +451,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                       const worldLevels = levels.filter((l) => l.world === world);
                       const displayNum = worldLevels.findIndex((l) => l.id === level.id) + 1;
                       const isLastPlayed = lastPlayedLevelId[currentModeId] === level.id;
+                      const styleProps = { isLastPlayed, done, worldColor: wm.color };
                       return (
                         <button
                           key={level.id}
@@ -454,21 +463,13 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                             aspectRatio: '1',
                             borderRadius: 14,
                             cursor: 'pointer',
-                            border: `1.5px solid ${isLastPlayed ? '#6366f1' : done ? wm.color + '50' : '#12122a'}`,
-                            background: isLastPlayed
-                              ? `linear-gradient(145deg, #6366f120 0%, #6366f108 100%)`
-                              : done
-                                ? `linear-gradient(145deg, ${wm.color}18 0%, ${wm.color}0a 100%)`
-                                : 'linear-gradient(145deg, #0a0a16 0%, #07070e 100%)',
-                            color: isLastPlayed ? '#a5b4fc' : done ? wm.color : '#2a2a3e',
+                            border: getLevelButtonBorder(styleProps),
+                            background: getLevelButtonBackground(styleProps),
+                            color: getLevelButtonColor(styleProps),
                             fontSize: 'clamp(15px, 4vw, 18px)',
                             fontWeight: 900,
                             position: 'relative',
-                            boxShadow: isLastPlayed
-                              ? `0 0 16px #6366f130`
-                              : done
-                                ? `0 0 16px ${wm.color}15`
-                                : 'none',
+                            boxShadow: getLevelButtonBoxShadow(styleProps),
                             transition: 'all 0.15s',
                             minWidth: 48,
                             minHeight: 48,
@@ -497,9 +498,12 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                               ▶
                             </div>
                           )}
-                          {(level.isUnlimited && unlimitedBest > 0) ||
-                          scoreBest !== undefined ||
-                          best !== undefined ? (
+                          {shouldShowLevelBadge({
+                            isUnlimited: level.isUnlimited,
+                            unlimitedBest,
+                            scoreBest,
+                            best,
+                          }) && (
                             <div
                               style={{
                                 position: 'absolute',
@@ -517,13 +521,9 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {level.isUnlimited && unlimitedBest > 0
-                                ? `🏆 ${unlimitedBest >= 1000 ? `${Math.floor(unlimitedBest / 1000)}k` : unlimitedBest}`
-                                : scoreBest !== undefined
-                                  ? `★ ${scoreBest >= 1000 ? `${Math.floor(scoreBest / 1000)}k` : scoreBest}`
-                                  : `★ ${best}`}
+                              {formatLevelBadge({ isUnlimited: level.isUnlimited, unlimitedBest, scoreBest, best })}
                             </div>
-                          ) : null}
+                          )}
                         </button>
                       );
                     })}

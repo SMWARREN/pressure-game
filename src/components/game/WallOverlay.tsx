@@ -9,13 +9,13 @@
 import { CompressionDirection } from '@/game/types';
 
 interface WallOverlayProps {
-  wallOffset: number;
-  gridCols: number;
-  gridRows: number;
-  wallsJustAdvanced: boolean;
-  isPlaying: boolean;
-  animationsEnabled?: boolean;
-  compressionDirection?: CompressionDirection;
+  readonly wallOffset: number;
+  readonly gridCols: number;
+  readonly gridRows: number;
+  readonly wallsJustAdvanced: boolean;
+  readonly isPlaying: boolean;
+  readonly animationsEnabled?: boolean;
+  readonly compressionDirection?: CompressionDirection;
 }
 
 export default function WallOverlay({

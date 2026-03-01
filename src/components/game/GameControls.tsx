@@ -16,11 +16,11 @@ const iconBtn: React.CSSProperties = {
 };
 
 interface GameControlsProps {
-  onUndo: () => void;
-  undoDisabled: boolean;
-  timeStr: string;
-  showHint: boolean;
-  onToggleHint: () => void;
+  readonly onUndo: () => void;
+  readonly undoDisabled: boolean;
+  readonly timeStr: string;
+  readonly showHint: boolean;
+  readonly onToggleHint: () => void;
 }
 
 /**

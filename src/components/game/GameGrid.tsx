@@ -4,29 +4,29 @@ import GameTile from './GameTile';
 import WallOverlay from './WallOverlay';
 
 interface GameGridProps {
-  tiles: Tile[];
-  gridSize: number;
-  gridCols?: number;
-  gridRows?: number;
-  gap: number;
-  tileSize: number;
-  wallOffset: number;
-  wallsJustAdvanced: boolean;
-  compressionActive: boolean;
-  hintPos: { x: number; y: number } | null;
+  readonly tiles: Tile[];
+  readonly gridSize: number;
+  readonly gridCols?: number;
+  readonly gridRows?: number;
+  readonly gap: number;
+  readonly tileSize: number;
+  readonly wallOffset: number;
+  readonly wallsJustAdvanced: boolean;
+  readonly compressionActive: boolean;
+  readonly hintPos: { x: number; y: number } | null;
   /** Set of hint tile keys ("x,y") from mode's getHintTiles */
-  hintTiles?: Set<string>;
-  status: string;
-  onTileTap: (x: number, y: number) => void;
-  animationsEnabled?: boolean;
+  readonly hintTiles?: Set<string>;
+  readonly status: string;
+  readonly onTileTap: (x: number, y: number) => void;
+  readonly animationsEnabled?: boolean;
   /** Pass the active mode's tileRenderer to enable non-pipe visuals (candy crush, slots, etc.) */
-  tileRenderer?: TileRenderer;
+  readonly tileRenderer?: TileRenderer;
   /** Position of last rejected (invalid) tap — shows red flash on that tile */
-  rejectedPos?: { x: number; y: number } | null;
+  readonly rejectedPos?: { x: number; y: number } | null;
   /** Editor mode - allows clicking on any cell including empty ones */
-  editorMode?: boolean;
+  readonly editorMode?: boolean;
   /** Compression direction - which sides walls compress from */
-  compressionDirection?: CompressionDirection;
+  readonly compressionDirection?: CompressionDirection;
 }
 
 /**

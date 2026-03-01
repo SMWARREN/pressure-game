@@ -17,7 +17,7 @@ import GameBoard from '../GameBoard';
 import type { PressureEngine } from '@/game/engine';
 
 interface TestHarnessProps {
-  pressureEngine?: PressureEngine;
+  readonly pressureEngine?: PressureEngine;
 }
 
 function TestHarnessContent() {

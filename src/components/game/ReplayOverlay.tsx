@@ -13,9 +13,9 @@ import type { GameEndEvent } from '@/game/stats/types';
 ═══════════════════════════════════════════════════════════════════════════ */
 
 interface ReplayOverlayProps {
-  event: GameEndEvent;
-  engine: ReplayEngine;
-  onClose: () => void;
+  readonly event: GameEndEvent;
+  readonly engine: ReplayEngine;
+  readonly onClose: () => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

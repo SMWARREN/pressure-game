@@ -3,7 +3,7 @@
  * Reduces cognitive complexity and improves testability
  */
 
-import type { Level, GameState } from '@/game/types';
+import type { Level } from '@/game/types';
 import type { GameModeConfig } from '@/game/modes/types';
 
 /**
@@ -133,15 +133,14 @@ export function computeLevelDisplayNum(modeLevels: Level[], currentLevelId: numb
 }
 
 interface OverlayPropsContext {
-  status: GameState['status'];
-  score: number;
-  targetScore: number | undefined;
-  moves: number;
-  maxMoves: number;
-  isUnlimited: boolean;
-  lossReason: string | null;
-  mode: GameModeConfig;
-  elapsedSeconds: number;
+  readonly score: number;
+  readonly targetScore: number | undefined;
+  readonly moves: number;
+  readonly maxMoves: number;
+  readonly isUnlimited: boolean;
+  readonly lossReason: string | null;
+  readonly mode: GameModeConfig;
+  readonly elapsedSeconds: number;
 }
 
 /**
@@ -154,7 +153,7 @@ export function computeOverlayProps(context: OverlayPropsContext): {
   lossTitle: string;
   statsText: string;
 } {
-  const { status, score, targetScore, moves, maxMoves, isUnlimited, lossReason, mode, elapsedSeconds } = context;
+  const { score, targetScore, moves, maxMoves, isUnlimited, lossReason, mode, elapsedSeconds } = context;
   const reachedTarget = score >= (targetScore ?? Infinity);
   const outOfTaps = !isUnlimited && moves >= maxMoves && !reachedTarget;
   const winTitle = outOfTaps ? 'OUT OF TAPS' : mode.overlayText?.win ?? 'CONNECTED';

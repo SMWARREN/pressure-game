@@ -16,10 +16,10 @@ interface GameEngineContextType {
 export const GameEngineContext = createContext<GameEngineContextType | null>(null);
 
 interface GameEngineProviderProps {
-  children: ReactNode;
-  statsBackend?: StatsBackend;
-  pressureEngine?: PressureEngine;
-  onReady?: () => void;
+  readonly children: ReactNode;
+  readonly statsBackend?: StatsBackend;
+  readonly pressureEngine?: PressureEngine;
+  readonly onReady?: () => void;
 }
 
 export function GameEngineProvider({ children, statsBackend, pressureEngine: initialEngine, onReady }: GameEngineProviderProps) {

@@ -1,4 +1,10 @@
 import React from 'react';
+import {
+  formatElapsedTime,
+  formatWinStats,
+  formatLevelRecord,
+  formatLossStats,
+} from './OverlayUtils';
 
 export const overlayStyle: React.CSSProperties = {
   position: 'absolute',
@@ -83,11 +89,7 @@ export function Overlay({
   onReplay,
   newHighScore,
 }: OverlayProps) {
-  const mins = Math.floor(elapsedSeconds / 60);
-  const secs = elapsedSeconds % 60;
-  const timeStr =
-    elapsedSeconds > 0 ? `${mins > 0 ? mins + ':' : ''}${String(secs).padStart(2, '0')}s` : '';
-
+  const timeStr = formatElapsedTime(elapsedSeconds);
   const isScoreMode = targetScore !== undefined;
 
   if (status === 'idle')
@@ -117,14 +119,11 @@ export function Overlay({
           {winTitle.toUpperCase()}
         </div>
         <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
-          {isScoreMode
-            ? `${finalScore ?? 0} pts · ${moves} tap${moves !== 1 ? 's' : ''}`
-            : `${moves} move${moves !== 1 ? 's' : ''}${timeStr ? ` · ${timeStr}` : ''}`}
+          {formatWinStats(isScoreMode, finalScore, moves, timeStr)}
         </div>
         {levelRecord && levelRecord.attempts > 0 && (
           <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
-            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts}{' '}
-            attempt{levelRecord.attempts !== 1 ? 's' : ''}
+            {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
           </div>
         )}
         <div
@@ -188,14 +187,11 @@ export function Overlay({
           </div>
         )}
         <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
-          {isScoreMode
-            ? `${moves} tap${moves !== 1 ? 's' : ''}`
-            : `${moves} move${moves !== 1 ? 's' : ''}`}
+          {formatLossStats(isScoreMode, moves)}
         </div>
         {levelRecord && levelRecord.attempts > 0 && (
           <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
-            {levelRecord.wins} win{levelRecord.wins !== 1 ? 's' : ''} · {levelRecord.attempts}{' '}
-            attempt{levelRecord.attempts !== 1 ? 's' : ''}
+            {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
           </div>
         )}
         <div

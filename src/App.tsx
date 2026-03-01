@@ -59,7 +59,7 @@ function AppContent() {
 }
 
 interface AppProps {
-  pressureEngine?: PressureEngine;
+  readonly pressureEngine?: PressureEngine;
 }
 
 function App({ pressureEngine }: AppProps) {

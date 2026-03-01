@@ -9,8 +9,8 @@ import GameGrid from '../game/GameGrid';
 import { getSolution } from '@/game/levels';
 
 interface PressureGamePreviewProps {
-  level: Level | null;
-  modeId: string;
+  readonly level: Level | null;
+  readonly modeId: string;
 }
 
 // Inject rotation animation CSS

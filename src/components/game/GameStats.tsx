@@ -1,23 +1,20 @@
 import { getModeById } from '@/game/modes';
 import { StatComponentConfig } from '@/game/modes/types'; // Import the new type
+import {
+  getCompressionColor,
+  getCompressionGlow,
+  getCompressionLabel,
+  getScoreColor,
+  getTimeleftGlow,
+} from './GameStatsUtils';
+
 /**
  * CompressionBar - Visual indicator showing wall compression progress
  */
 function CompressionBar({ percent, active }: { percent: number; active: boolean }) {
-  const color = percent > 66 ? '#ef4444' : percent > 33 ? '#f59e0b' : '#22c55e';
-  const glow =
-    percent > 66
-      ? 'rgba(239,68,68,0.5)'
-      : percent > 33
-        ? 'rgba(245,158,11,0.4)'
-        : 'rgba(34,197,94,0.3)';
-  const label = !active
-    ? 'WAITING'
-    : percent > 66
-      ? '⚠ CRITICAL'
-      : percent > 33
-        ? 'WARNING'
-        : 'ACTIVE';
+  const color = getCompressionColor(percent);
+  const glow = getCompressionGlow(percent);
+  const label = getCompressionLabel(percent, active);
 
   return (
     <div style={{ flex: 1 }}>
@@ -187,7 +184,7 @@ function CountdownTimer({ seconds, active }: { seconds: number; active: boolean 
  */
 function ScoreDisplay({ score, targetScore }: { score: number; targetScore?: number }) {
   const pct = targetScore ? Math.min((score / targetScore) * 100, 100) : 0;
-  const color = pct >= 100 ? '#22c55e' : pct > 40 ? '#f472b6' : '#f59e0b';
+  const color = getScoreColor(pct);
   return (
     <div style={{ flex: 1 }}>
       <div
@@ -308,10 +305,7 @@ function TimeleftDisplay({ timeLeft, timeLimit }: { timeLeft: number; timeLimit?
                   ? 'linear-gradient(90deg, #ef444480, #ef4444)'
                   : 'linear-gradient(90deg, #3b82f680, #60a5fa)',
                 transition: 'width 1s linear, background 0.4s',
-                boxShadow:
-                  pct > 10
-                    ? `0 0 10px ${urgent ? 'rgba(239,68,68,0.5)' : 'rgba(96,165,250,0.4)'}`
-                    : 'none',
+                boxShadow: getTimeleftGlow(timeLeft, pct),
               }}
             />
           </div>

@@ -204,8 +204,8 @@ export default function UnlimitedRulesDialog({
             RULES
           </div>
 
-          {rules.map((rule, index) => (
-            <RuleItem key={index} icon={rule.icon} text={rule.text} />
+          {rules.map((rule) => (
+            <RuleItem key={`${rule.icon}-${rule.text}`} icon={rule.icon} text={rule.text} />
           ))}
         </div>
 

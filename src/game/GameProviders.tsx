@@ -4,10 +4,10 @@ import type { StatsBackend } from '@/game/stats/types';
 import type { PressureEngine } from '@/game/engine';
 
 interface GameProvidersProps {
-  children: ReactNode;
-  statsBackend?: StatsBackend;
-  pressureEngine?: PressureEngine;
-  onEngineReady?: () => void;
+  readonly children: ReactNode;
+  readonly statsBackend?: StatsBackend;
+  readonly pressureEngine?: PressureEngine;
+  readonly onEngineReady?: () => void;
 }
 
 export function GameProviders({ children, statsBackend, pressureEngine, onEngineReady }: GameProvidersProps) {

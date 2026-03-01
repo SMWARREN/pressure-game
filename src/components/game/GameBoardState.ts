@@ -3,12 +3,9 @@
  * Extracted to reduce cognitive complexity of the main component
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useGameStore } from '@/game/store';
 import { getSolution } from '@/game/levels';
-import { useStats } from '@/game/contexts';
-import type { GameEndEvent } from '@/game/stats/types';
-import { ReplayEngine } from '@/game/stats/replay';
 import { getUnlimitedHighScore, setUnlimitedHighScore } from '@/game/unlimited';
 import type { Level } from '@/game/types';
 
@@ -144,16 +141,14 @@ export function useNotificationSystem(): {
   return { notifLog, rejectedPos, setRejectedPos, setNotifLog, showNotification };
 }
 
-/**
- * Manage replay system
- */
-export function useReplaySystem(currentLevel: Level | null, generatedLevels: Level[]): {
+/* Unused replay system hooks - kept for future use
+
+export function useReplaySystem(generatedLevels: Level[]): {
   replayEvent: GameEndEvent | null;
   setReplayEvent: (event: GameEndEvent | null) => void;
   replayEngine: ReplayEngine | null;
 } {
   const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
-  const stats = useStats();
 
   const replayEngine = useMemo(() => {
     if (!replayEvent) return null;
@@ -168,9 +163,6 @@ export function useReplaySystem(currentLevel: Level | null, generatedLevels: Lev
   return { replayEvent, setReplayEvent, replayEngine };
 }
 
-/**
- * Manage level-specific high score tracking
- */
 export function useLevelRecord(currentLevel: Level | null): {
   levelRecord:
     | {
@@ -193,24 +185,18 @@ export function useLevelRecord(currentLevel: Level | null): {
   return { levelRecord };
 }
 
-/**
- * Filter game end events for replay
- */
 function getReplayableEvents(stats: any, levelId: number): GameEndEvent[] {
   return stats
     .getBackend()
     .getAll()
     .filter(
-      (e): e is GameEndEvent =>
+      (e: any): e is GameEndEvent =>
         e.type === 'game_end' &&
         e.levelId === levelId &&
         (e.moveLog?.length ?? 0) > 0
     );
 }
 
-/**
- * Compute replay callback for overlay
- */
 export function useReplayCallback(
   status: string,
   isUnlimited: boolean,
@@ -237,3 +223,4 @@ export function useReplayCallback(
 
   return { onReplayForOverlay };
 }
+*/

@@ -488,8 +488,7 @@ export default function GameBoard() {
   const { nextLevel } = computeLevelNavigation(modeLevels, generatedLevels, currentLevel.id);
   const levelDisplayNum = computeLevelDisplayNum(modeLevels, currentLevel.id);
 
-  const { reachedTarget, outOfTaps, winTitle, lossTitle } = computeOverlayProps({
-    status,
+  const { winTitle, lossTitle } = computeOverlayProps({
     score,
     targetScore: currentLevel.targetScore,
     moves,
@@ -507,7 +506,6 @@ export default function GameBoard() {
   // Non-square grid support
   const gridCols = currentLevel.gridCols ?? gs;
   const gridRows = currentLevel.gridRows ?? gs;
-  const maxDim = Math.max(gridCols, gridRows);
 
   // Responsive board: header ~62px + stats ~52px + plugin strip ~24px + footer ~62px + gaps ~24px = ~224px
   const hasFeatures = Boolean(
