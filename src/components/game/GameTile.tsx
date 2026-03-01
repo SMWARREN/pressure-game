@@ -202,6 +202,11 @@ function GameTileComponent({
   const tileTransform = getTileTransform(animationsEnabled, pressed, justRotated);
   const tileTransition = getTileTransition(animationsEnabled, pressed);
 
+  // ── Extracted computed variables (eliminate inline ternaries) ────────────────
+  const cursorValue = canRotate ? 'pointer' : 'default';
+  const crushedFontSize = tileSize > 40 ? 14 : 10;
+  const nodeBorderColor = inDanger ? 'rgba(252,165,165,0.5)' : 'rgba(134,239,172,0.5)';
+
   // ── Custom mode renderer (slots, candy crush, match-3, outbreak, etc.) ────
   if (tileRenderer && tileRenderer.type !== 'pipe') {
     if (tileRenderer.type === 'candy' || tileRenderer.type === 'outbreak') ensureCandyStyles();
@@ -265,6 +270,10 @@ function GameTileComponent({
     // Symbol font size: scale down on small tiles (10×10 grid)
     const symSize = getSymbolSize(isOutbreak, tileSize, obOwned, obFrontier);
 
+    // ── Extracted computed variables for custom renderer ────────────────────────
+    const customTransform = isNewTile && isOutbreak ? undefined : tileTransform;
+    const customFontWeight = isOutbreak && obFrontier ? 700 : undefined;
+
     return (
       <div
         onClick={handleClick}
@@ -274,12 +283,12 @@ function GameTileComponent({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          cursor: canRotate ? 'pointer' : 'default',
-          transform: isNewTile && isOutbreak ? undefined : tileTransform,
+          cursor: cursorValue,
+          transform: customTransform,
           transition: getTileTransitionStyle(isNewTile, tileTransition),
           animation: getTileAnimation(isOutbreak, animationsEnabled, isNewTile, outbreakAnimation),
           fontSize: symSize,
-          fontWeight: isOutbreak && obFrontier ? 700 : undefined,
+          fontWeight: customFontWeight,
           // CSS vars for zombiePulse keyframe
           ['--zp-shadow-lo' as string]: zpShadowLo,
           ['--zp-shadow-hi' as string]: zpShadowHi,
@@ -297,10 +306,9 @@ function GameTileComponent({
               animation: iconAnimation,
               // Dim interior zombie icons slightly so they don't compete with frontier numbers
               opacity: isOutbreak && obInterior ? 0.55 : 1,
-              filter:
-                isOutbreak && obOwned && !isNewTile
-                  ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
-                  : undefined,
+              filter: isOutbreak && obOwned && !isNewTile
+                ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
+                : undefined,
             }}
           >
             {symbol}
@@ -363,7 +371,7 @@ function GameTileComponent({
             transform: 'translate(-50%,-50%)',
             width: '40%',
             height: '40%',
-            border: `2px solid ${inDanger ? 'rgba(252,165,165,0.5)' : 'rgba(134,239,172,0.5)'}`,
+            border: `2px solid ${nodeBorderColor}`,
             borderRadius: '50%',
             zIndex: 1,
           }}
@@ -416,7 +424,7 @@ function GameTileComponent({
       {type === 'crushed' && (
         <div
           style={{
-            fontSize: tileSize > 40 ? 14 : 10,
+            fontSize: crushedFontSize,
             color: '#ef4444',
             fontWeight: 900,
             zIndex: 1,
