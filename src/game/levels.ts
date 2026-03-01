@@ -7,8 +7,9 @@ import { Level, Tile, Position, Direction } from './types';
 // Re-export CLASSIC_LEVELS for backward compatibility
 export { CLASSIC_LEVELS } from './modes/classic/levels';
 
-// Type alias for solution path
+// Type aliases
 type SolutionPath = { x: number; y: number; rotations: number }[];
+type DifficultyLevel = 'easy' | 'medium' | 'hard';
 
 // null  = computed, no solution found
 // entry missing = not yet computed
@@ -181,7 +182,7 @@ export function verifyLevel(level: Level): { solvable: boolean; minMoves: number
 export interface GenerateOptions {
   gridSize: number;
   nodeCount: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: DifficultyLevel;
   decoys?: boolean | number;
 }
 
@@ -199,7 +200,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 }
 
 // Helper: Get difficulty parameters based on difficulty level
-function getDifficultyParams(difficulty: 'easy' | 'medium' | 'hard') {
+function getDifficultyParams(difficulty: DifficultyLevel) {
   return {
     easy: { compressionDelay: 10000, movePadding: 4, decoyCount: 0 },
     medium: { compressionDelay: 6000, movePadding: 2, decoyCount: 2 },
@@ -533,7 +534,7 @@ function generateSimpleFallback(gridSize: number, difficulty: string): Level {
     easy: { compressionDelay: 10000, movePadding: 4 },
     medium: { compressionDelay: 6000, movePadding: 2 },
     hard: { compressionDelay: 4000, movePadding: 1 },
-  }[difficulty as 'easy' | 'medium' | 'hard'] ?? { compressionDelay: 6000, movePadding: 2 };
+  }[difficulty as DifficultyLevel] ?? { compressionDelay: 6000, movePadding: 2 };
 
   const wallTiles: Tile[] = [];
   for (let i = 0; i < gridSize; i++) {
