@@ -1004,8 +1004,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <span style={{ fontSize: 12, color: '#fff' }}>Moves</span>
+                  <label htmlFor="moves-input" style={{ fontSize: 12, color: '#fff' }}>Moves</label>
                   <input
+                    id="moves-input"
                     type="number"
                     value={moves}
                     onChange={(e) => setGameState('moves', Number.parseInt(e.target.value) || 0)}
@@ -1023,8 +1024,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <span style={{ fontSize: 12, color: '#fff' }}>Score</span>
+                  <label htmlFor="score-input" style={{ fontSize: 12, color: '#fff' }}>Score</label>
                   <input
+                    id="score-input"
                     type="number"
                     value={score}
                     onChange={(e) => setGameState('score', Number.parseInt(e.target.value) || 0)}
@@ -1067,8 +1069,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <span style={{ fontSize: 12, color: '#fff' }}>Elapsed (s)</span>
+                  <label htmlFor="elapsed-input" style={{ fontSize: 12, color: '#fff' }}>Elapsed (s)</label>
                   <input
+                    id="elapsed-input"
                     type="number"
                     value={elapsedSeconds}
                     onChange={(e) =>
@@ -1088,8 +1091,9 @@ export const StateEditor: React.FC = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <span style={{ fontSize: 12, color: '#fff' }}>Compression in (s)</span>
+                  <label htmlFor="compression-input" style={{ fontSize: 12, color: '#fff' }}>Compression in (s)</label>
                   <input
+                    id="compression-input"
                     type="number"
                     value={timeUntilCompression}
                     onChange={(e) =>
