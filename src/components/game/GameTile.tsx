@@ -11,7 +11,8 @@ import {
   getTileTransitionStyle,
   getCursorStyle,
   getIndicatorColor,
-  getIndicatorGlow,
+  getHintIndicatorGlow,
+  getNormalIndicatorGlow,
   getDecoyBorderColor,
   getDecoyBoxShadow,
   getNodeBorderColor,
@@ -439,7 +440,7 @@ function GameTileComponent({
                   height: 4,
                   borderRadius: '50%',
                   background: getIndicatorColor(isHint, inDanger),
-                  boxShadow: `0 0 4px ${getIndicatorGlow(isHint)}`,
+                  boxShadow: `0 0 4px ${isHint ? getHintIndicatorGlow() : getNormalIndicatorGlow()}`,
                 }}
               />
             )}

@@ -226,10 +226,6 @@ export function getNormalIndicatorGlow(): string {
   return 'rgba(252,211,77,0.6)';
 }
 
-export function getIndicatorGlow(isHint: boolean): string {
-  return isHint ? getHintIndicatorGlow() : getNormalIndicatorGlow();
-}
-
 export function getDecoyBorderColor(isHint: boolean, inDanger: boolean): string {
   if (isHint) return 'rgba(253,230,138,0.6)';
   if (inDanger) return 'rgba(252,165,165,0.5)';
