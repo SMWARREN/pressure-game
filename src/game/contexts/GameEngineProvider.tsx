@@ -21,12 +21,14 @@ interface GameEngineProviderProps {
 }
 
 let globalContext: GameEngineContextType | null = null;
+let initAttempted = false;
 
 export function GameEngineProvider({ children, statsBackend }: GameEngineProviderProps) {
   const contextRef = useRef<GameEngineContextType | null>(null);
 
   // Initialize engines on first render
-  if (!contextRef.current && !globalContext) {
+  if (!contextRef.current && !initAttempted) {
+    initAttempted = true;
     try {
       // Create pressure engine
       const pressureEngine = createPressureEngine();
@@ -65,11 +67,9 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
         achievementEngine,
       };
       globalContext = contextRef.current;
-
-      console.log('[GameEngineProvider] Initialized successfully');
     } catch (error) {
       console.error('[GameEngineProvider] Initialization error:', error);
-      throw error;
+      // Don't throw - just render null and let the error propagate through context access
     }
   } else if (globalContext && !contextRef.current) {
     contextRef.current = globalContext;
@@ -83,17 +83,16 @@ export function GameEngineProvider({ children, statsBackend }: GameEngineProvide
           contextRef.current.pressureEngine.destroy();
           _setEngineInstance(null as any);
           contextRef.current.statsEngine.stop();
-          globalContext = null;
-          contextRef.current = null;
         } catch (error) {
           console.error('[GameEngineProvider] Cleanup error:', error);
         }
+        globalContext = null;
+        contextRef.current = null;
       }
     };
   }, []);
 
   if (!contextRef.current) {
-    console.warn('[GameEngineProvider] No context available, returning null');
     return null;
   }
 
