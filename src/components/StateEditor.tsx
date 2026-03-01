@@ -8,7 +8,13 @@ import { useGameStore } from '../game/store';
 import { Tile, Direction, Level, CompressionDirection, GameStatus } from '../game/types';
 import { getModeById, GAME_MODES } from '../game/modes';
 import GameGrid from './game/GameGrid';
-import { getGapValue, getPaddingValue } from './game/GameTileUtils';
+import {
+  getGapValue,
+  getPaddingValue,
+  getStatusBackgroundColor,
+  getStatusBorderColor,
+  getStatusTextColor,
+} from './game/GameTileUtils';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -37,16 +43,6 @@ interface HistorySnapshot {
 }
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];
-
-/**
- * Get status border color (replaces nested ternary)
- */
-function getStatusBorderColor(status: string): string {
-  if (status === 'playing') return '#10b98140';
-  if (status === 'won') return '#22c55e40';
-  if (status === 'lost') return '#ef444440';
-  return '#f59e0b40';
-}
 
 /**
  * Get compression override select value (replaces nested ternary)
@@ -544,14 +540,7 @@ export const StateEditor: React.FC = () => {
             style={{
               padding: '3px 8px',
               borderRadius: 10,
-              background:
-                status === 'playing'
-                  ? '#10b98120'
-                  : status === 'won'
-                    ? '#22c55e20'
-                    : status === 'lost'
-                      ? '#ef444420'
-                      : '#f59e0b20',
+              background: getStatusBackgroundColor(status),
               border: `1px solid ${getStatusBorderColor(status)}`,
             }}
           >
@@ -560,14 +549,7 @@ export const StateEditor: React.FC = () => {
                 fontSize: 9,
                 fontWeight: 800,
                 letterSpacing: '0.05em',
-                color:
-                  status === 'playing'
-                    ? '#10b981'
-                    : status === 'won'
-                      ? '#22c55e'
-                      : status === 'lost'
-                        ? '#ef4444'
-                        : '#f59e0b',
+                color: getStatusTextColor(status),
               }}
             >
               {status.toUpperCase()}

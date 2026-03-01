@@ -154,6 +154,45 @@ export function getStepBackground(
   return '#1a1a2e';
 }
 
+export function getStatusBackgroundColor(status: string): string {
+  switch (status) {
+    case 'playing':
+      return '#10b98120';
+    case 'won':
+      return '#22c55e20';
+    case 'lost':
+      return '#ef444420';
+    default:
+      return '#f59e0b20';
+  }
+}
+
+export function getStatusBorderColor(status: string): string {
+  switch (status) {
+    case 'playing':
+      return '#10b98140';
+    case 'won':
+      return '#22c55e40';
+    case 'lost':
+      return '#ef444440';
+    default:
+      return '#f59e0b40';
+  }
+}
+
+export function getStatusTextColor(status: string): string {
+  switch (status) {
+    case 'playing':
+      return '#10b981';
+    case 'won':
+      return '#22c55e';
+    case 'lost':
+      return '#ef4444';
+    default:
+      return '#f59e0b';
+  }
+}
+
 export function getChargeIndicator(
   charge: number,
   overloadThreshold: number = 8
