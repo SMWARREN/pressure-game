@@ -15,6 +15,7 @@ const DEFAULT_PERSISTED: PersistedState = {
   currentModeId: 'classic',
   seenTutorials: ['classic'],
   animationsEnabled: true,
+  theme: 'dark',
   lastPlayedLevelId: {},
   editorEnabled: false,
 };
@@ -47,6 +48,7 @@ export class PersistenceSystem {
         seenTutorials:
           p.seenTutorials || (p.showTutorial === false ? [DEFAULT_PERSISTED.currentModeId] : []),
         animationsEnabled: p.animationsEnabled !== false,
+        theme: (p.theme === 'light' ? 'light' : 'dark') as 'light' | 'dark',
         lastPlayedLevelId: p.lastPlayedLevelId ?? {},
         editorEnabled: p.editorEnabled ?? false,
       };
@@ -81,6 +83,7 @@ export class PersistenceSystem {
       currentModeId: state.currentModeId,
       seenTutorials: state.seenTutorials,
       animationsEnabled: state.animationsEnabled,
+      theme: state.theme,
       lastPlayedLevelId: state.lastPlayedLevelId,
       editorEnabled: state.editor?.enabled ?? false,
     };

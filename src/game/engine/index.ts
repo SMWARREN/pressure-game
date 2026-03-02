@@ -464,6 +464,7 @@ export class PressureEngine implements IPressureEngine {
       currentModeId: saved.currentModeId,
       compressionOverride: null,
       animationsEnabled: saved.animationsEnabled,
+      theme: saved.theme,
       score: 0,
       lossReason: null,
       modeState: {},

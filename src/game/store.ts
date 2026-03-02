@@ -165,6 +165,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     currentModeId: 'classic',
     compressionOverride: null,
     animationsEnabled: true,
+    theme: 'dark',
     score: 0,
     lossReason: null,
     modeState: {},
@@ -211,6 +212,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
         const next = !s.animationsEnabled;
         getEngine().persist({ ...s, animationsEnabled: next });
         return { animationsEnabled: next };
+      });
+    },
+
+    toggleTheme: () => {
+      set((s) => {
+        const next = s.theme === 'dark' ? 'light' : 'dark';
+        getEngine().persist({ ...s, theme: next });
+        return { theme: next };
       });
     },
 

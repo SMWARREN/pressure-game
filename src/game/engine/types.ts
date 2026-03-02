@@ -45,6 +45,7 @@ export interface PersistedState {
   currentModeId: string;
   seenTutorials: string[];
   animationsEnabled: boolean;
+  theme: 'dark' | 'light';
   lastPlayedLevelId: Record<string, number>;
   editorEnabled: boolean;
 }

@@ -184,6 +184,8 @@ export interface GameState {
   currentModeId: string;
   compressionOverride: boolean | null;
   animationsEnabled: boolean;
+  /** Theme mode - 'dark' or 'light' */
+  theme: 'dark' | 'light';
   /** Running score — used by score-based modes like Candy */
   score: number;
   /** Guards against re-entrant win checks */
@@ -262,6 +264,7 @@ export interface GameActions {
   addGeneratedLevel: (level: Level) => void;
   deleteGeneratedLevel: (id: number) => void;
   toggleAnimations: () => void;
+  toggleTheme: () => void;
   pauseGame: () => void;
   resumeGame: () => void;
   openArcadeHub: () => void;
