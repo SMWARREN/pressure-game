@@ -390,17 +390,19 @@ export const CandyMode: GameModeConfig = {
 
       // Frozen tile — icy blue styling
       if (tile.displayData?.frozen) {
-        return ctx.theme === 'light'
-          ? {
-              background: 'linear-gradient(145deg, #cffafe 0%, #e0f2fe 100%)',
-              border: '2px solid #0369a1',
-              boxShadow: '0 0 14px rgba(3,105,161,0.45)',
-            }
-          : {
-              background: 'linear-gradient(145deg, #0f1f3d 0%, #091529 100%)',
-              border: '2px solid #60a5fa',
-              boxShadow: '0 0 14px rgba(96,165,250,0.45)',
-            };
+        const frozenStyles = {
+          light: {
+            background: 'linear-gradient(145deg, #cffafe 0%, #e0f2fe 100%)',
+            border: '2px solid #0369a1',
+            boxShadow: '0 0 14px rgba(3,105,161,0.45)',
+          },
+          dark: {
+            background: 'linear-gradient(145deg, #0f1f3d 0%, #091529 100%)',
+            border: '2px solid #60a5fa',
+            boxShadow: '0 0 14px rgba(96,165,250,0.45)',
+          },
+        };
+        return frozenStyles[ctx.theme];
       }
 
       if (!tile.canRotate) {
