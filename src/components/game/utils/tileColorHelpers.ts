@@ -159,13 +159,11 @@ function getTileBackgroundStyle(
   canRotate: boolean,
   theme: 'light' | 'dark' = 'dark'
 ): React.CSSProperties {
-  const themeKey = theme as keyof typeof WALL_STYLES;
-
   // Wall tiles
-  if (type === 'wall') return WALL_STYLES[themeKey];
+  if (type === 'wall') return WALL_STYLES[theme];
 
   // Crushed tiles
-  if (type === 'crushed') return CRUSHED_STYLES[themeKey];
+  if (type === 'crushed') return CRUSHED_STYLES[theme];
 
   // Node tiles
   if (type === 'node') {
