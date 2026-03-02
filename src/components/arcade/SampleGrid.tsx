@@ -40,6 +40,7 @@ export function SampleGrid({ symbols, mode, tileSize }: SampleGridProps) {
     justRotated: false,
     compressionActive: false,
     tileSize,
+    theme: 'dark' as const,
   };
 
   return (

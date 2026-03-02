@@ -207,6 +207,7 @@ export function PressureGamePreview({ level }: PressureGamePreviewProps) {
           animationsEnabled={false}
           rejectedPos={null}
           editorMode={false}
+          theme="dark"
         />
       </div>
     </div>

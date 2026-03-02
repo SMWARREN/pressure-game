@@ -145,9 +145,13 @@ export const OutbreakMode: GameModeConfig = {
     hidePipes: true,
     symbolSize: '0.82rem',
 
-    getColors(tile) {
+    getColors(tile, ctx) {
       const d = tile.displayData as OutbreakData;
-      if (!d) return { background: '#080810', border: '1px solid #1a1a2a' };
+      if (!d) {
+        return ctx.theme === 'light'
+          ? { background: '#f3f4f6', border: '1px solid #d1d5db' }
+          : { background: '#080810', border: '1px solid #1a1a2a' };
+      }
 
       const lit = OUTBREAK_COLORS[d.colorIndex] ?? '#888';
       const dark = OUTBREAK_DARK[d.colorIndex] ?? '#111';
@@ -172,19 +176,31 @@ export const OutbreakMode: GameModeConfig = {
 
       // ── FRONTIER (tappable) — pulsing border to signal "tap me!" ──────────
       if (d.isFrontier) {
-        return {
-          background: `linear-gradient(160deg, #0d0d1a 0%, ${dark}cc 100%)`,
-          border: `2px solid ${lit}`,
-          boxShadow: `0 0 14px ${lit}66, inset 0 0 6px ${dark}88`,
-          color: lit, // number label in the tile's own color
-        };
+        return ctx.theme === 'light'
+          ? {
+              background: `linear-gradient(160deg, #f3f4f6 0%, #e5e7eb 100%)`,
+              border: `2px solid ${lit}`,
+              boxShadow: `0 0 14px ${lit}66, inset 0 0 6px rgba(0,0,0,0.05)`,
+              color: lit,
+            }
+          : {
+              background: `linear-gradient(160deg, #0d0d1a 0%, ${dark}cc 100%)`,
+              border: `2px solid ${lit}`,
+              boxShadow: `0 0 14px ${lit}66, inset 0 0 6px ${dark}88`,
+              color: lit,
+            };
       }
 
       // ── INTERIOR (not yet reachable) — dim with subtle tint ───────────────
-      return {
-        background: `linear-gradient(160deg, #080810 0%, ${dark}33 100%)`,
-        border: `1px solid ${lit}22`,
-      };
+      return ctx.theme === 'light'
+        ? {
+            background: `linear-gradient(160deg, #e5e7eb 0%, #f3f4f699 100%)`,
+            border: `1px solid ${lit}44`,
+          }
+        : {
+            background: `linear-gradient(160deg, #080810 0%, ${dark}33 100%)`,
+            border: `1px solid ${lit}22`,
+          };
     },
 
     getSymbol(tile) {

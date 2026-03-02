@@ -485,6 +485,7 @@ ${tilesStr}
               onTileTap={handleCellClick}
               animationsEnabled={false}
               editorMode={true}
+              theme="dark"
             />
           </div>
         </div>

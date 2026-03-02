@@ -135,6 +135,8 @@ export interface GameTileProps {
   readonly isRejected?: boolean;
   /** Editor mode - allows clicking on any cell including empty ones */
   readonly editorMode?: boolean;
+  /** Current theme - light or dark */
+  readonly theme: 'light' | 'dark';
 }
 
 interface CustomTileRenderProps {
@@ -155,6 +157,7 @@ interface CustomTileRenderProps {
   readonly tileTransform: string;
   readonly handleClick: () => void;
   readonly r: number;
+  readonly theme: 'light' | 'dark';
 }
 
 // Helper to compute outbreak state flags
@@ -203,6 +206,7 @@ function renderCustomTile(props: CustomTileRenderProps): React.ReactElement {
     tileTransform,
     handleClick,
     r,
+    theme,
   } = props;
   const ctx = {
     isHint: false,
@@ -210,6 +214,7 @@ function renderCustomTile(props: CustomTileRenderProps): React.ReactElement {
     justRotated: Boolean(justRotated),
     compressionActive: false,
     tileSize,
+    theme,
   };
   const tile = {
     id: id ?? `${type}-${x}-${y}`,
@@ -506,6 +511,7 @@ function GameTileComponent({
   displayData,
   isRejected = false,
   editorMode = false,
+  theme,
 }: GameTileProps) {
   const [pressed, setPressed] = useState(false);
   const [ripple, setRipple] = useState(false);
@@ -565,6 +571,7 @@ function GameTileComponent({
       tileTransform,
       handleClick,
       r,
+      theme,
     });
   }
 

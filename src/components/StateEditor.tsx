@@ -752,6 +752,7 @@ export const StateEditor: React.FC = () => {
                     onTileTap={handleTileClick}
                     animationsEnabled={false}
                     editorMode={true}
+                    theme="dark"
                   />
                 </div>
               </div>

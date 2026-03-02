@@ -31,8 +31,8 @@ import { GRAVITY_TUTORIAL_STEPS } from './tutorial';
 import { renderGravityDropDemo } from './demo';
 import { GRAVITY_DROP_WALKTHROUGH } from './walkthrough';
 
-// ── Colours per number value ──────────────────────────────────────────────────
-const VAL_COLORS: Record<number, { bg: string; border: string; glow: string }> = {
+// ── Colours per number value (theme-aware) ───────────────────────────────────
+const VAL_COLORS_DARK: Record<number, { bg: string; border: string; glow: string }> = {
   1: { bg: '#0c1a2e', border: '#38bdf8', glow: '#38bdf888' },
   2: { bg: '#1a0c2e', border: '#818cf8', glow: '#818cf888' },
   3: { bg: '#2e0c1a', border: '#f472b6', glow: '#f472b688' },
@@ -40,6 +40,19 @@ const VAL_COLORS: Record<number, { bg: string; border: string; glow: string }> =
   5: { bg: '#2e1a0c', border: '#fb923c', glow: '#fb923c88' },
   6: { bg: '#2e2e0c', border: '#fbbf24', glow: '#fbbf2488' },
 };
+
+const VAL_COLORS_LIGHT: Record<number, { bg: string; border: string; glow: string }> = {
+  1: { bg: '#dbeafe', border: '#0284c7', glow: '#0284c744' },
+  2: { bg: '#ede9fe', border: '#6366f1', glow: '#6366f144' },
+  3: { bg: '#fbcfe8', border: '#be185d', glow: '#be185d44' },
+  4: { bg: '#dcfce7', border: '#16a34a', glow: '#16a34a44' },
+  5: { bg: '#fed7aa', border: '#d97706', glow: '#d97706 44' },
+  6: { bg: '#fef3c7', border: '#ca8a04', glow: '#ca8a0444' },
+};
+
+function getValColors(theme: 'light' | 'dark'): Record<number, { bg: string; border: string; glow: string }> {
+  return theme === 'light' ? VAL_COLORS_LIGHT : VAL_COLORS_DARK;
+}
 
 const NUM_SYMBOLS = ['①', '②', '③', '④', '⑤', '⑥'];
 
@@ -293,45 +306,81 @@ export const GravityDropMode: GameModeConfig = {
 
     getColors(tile, ctx) {
       const d = getData(tile);
-      if (!d) return { background: '#0d0d1a', border: '1px solid #1a1a2e' };
+      if (!d) {
+        return ctx.theme === 'light'
+          ? { background: '#f3f4f6', border: '1px solid #d1d5db' }
+          : { background: '#0d0d1a', border: '1px solid #1a1a2e' };
+      }
+
+      const colors = getValColors(ctx.theme);
 
       if (d.special === 'bomb') {
         return d.inChain
-          ? {
-              background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
-              border: '2px solid #ef4444',
-              boxShadow: '0 0 18px #ef4444aa',
-            }
-          : {
-              background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
-              border: '1px solid #ef444455',
-              boxShadow: undefined,
-            };
+          ? ctx.theme === 'light'
+            ? {
+                background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
+                border: '2px solid #dc2626',
+                boxShadow: '0 0 18px rgba(220,38,38,0.5)',
+              }
+            : {
+                background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
+                border: '2px solid #ef4444',
+                boxShadow: '0 0 18px #ef4444aa',
+              }
+          : ctx.theme === 'light'
+            ? {
+                background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
+                border: '1px solid rgba(220,38,38,0.3)',
+                boxShadow: undefined,
+              }
+            : {
+                background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
+                border: '1px solid #ef444455',
+                boxShadow: undefined,
+              };
       }
 
       if (d.special === 'star') {
         return d.inChain
+          ? ctx.theme === 'light'
+            ? {
+                background: 'linear-gradient(145deg, #fef3c7, #fde047)',
+                border: '2px solid #ca8a04',
+                boxShadow: '0 0 18px rgba(202,138,4,0.5)',
+              }
+            : {
+                background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+                border: '2px solid #fbbf24',
+                boxShadow: '0 0 18px #fbbf24aa',
+              }
+          : ctx.theme === 'light'
+            ? {
+                background: 'linear-gradient(145deg, #fef3c7, #fde047)',
+                border: '1px solid rgba(202,138,4,0.3)',
+                boxShadow: undefined,
+              }
+            : {
+                background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+                border: '1px solid #fbbf2455',
+                boxShadow: undefined,
+              };
+      }
+
+      if (d.special === 'lock') {
+        return ctx.theme === 'light'
           ? {
-              background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
-              border: '2px solid #fbbf24',
-              boxShadow: '0 0 18px #fbbf24aa',
+              background: 'linear-gradient(145deg, #e5e7eb, #d1d5db)',
+              border: '2px solid #6b7280',
+              boxShadow: undefined,
             }
           : {
-              background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
-              border: '1px solid #fbbf2455',
+              background: 'linear-gradient(145deg, #1a1a1a, #0d0d0d)',
+              border: '2px solid #4b5563',
               boxShadow: undefined,
             };
       }
 
-      if (d.special === 'lock') {
-        return {
-          background: 'linear-gradient(145deg, #1a1a1a, #0d0d0d)',
-          border: '2px solid #4b5563',
-          boxShadow: undefined,
-        };
-      }
-
-      const c = VAL_COLORS[d.value] ?? VAL_COLORS[1];
+      const c = colors[d.value] ?? colors[1];
 
       if (d.inChain) {
         return {
@@ -343,14 +392,14 @@ export const GravityDropMode: GameModeConfig = {
 
       if (ctx.isHint) {
         return {
-          background: `linear-gradient(145deg, ${c.bg}, #080812)`,
+          background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
           border: `2px solid ${c.border}88`,
           boxShadow: `0 0 10px ${c.glow}44`,
         };
       }
 
       return {
-        background: `linear-gradient(145deg, ${c.bg}, #080812)`,
+        background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
         border: `1px solid ${c.border}55`,
       };
     },

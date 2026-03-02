@@ -131,9 +131,9 @@ function getFrozenTileMaxCount(timeLeft: number): number {
   return 0;
 }
 
-// ── Per-symbol color palette ──────────────────────────────────────────────────
+// ── Per-symbol color palette (theme-aware) ────────────────────────────────────
 
-const CANDY_COLORS: Record<string, { bg: string; border: string; glow: string }> = {
+const CANDY_COLORS_DARK: Record<string, { bg: string; border: string; glow: string }> = {
   // Base symbols
   '🍎': { bg: '#2d0808', border: '#ef4444', glow: 'rgba(239,68,68,0.5)' },
   '🍊': { bg: '#2d1800', border: '#f97316', glow: 'rgba(249,115,22,0.5)' },
@@ -148,6 +148,26 @@ const CANDY_COLORS: Record<string, { bg: string; border: string; glow: string }>
   '🍑': { bg: '#2d1408', border: '#fb923c', glow: 'rgba(251,146,60,0.5)' },
   '🍍': { bg: '#2d2800', border: '#fde047', glow: 'rgba(253,224,71,0.5)' },
 };
+
+const CANDY_COLORS_LIGHT: Record<string, { bg: string; border: string; glow: string }> = {
+  // Base symbols — adjusted for light background
+  '🍎': { bg: '#fce4e4', border: '#dc2626', glow: 'rgba(220,38,38,0.3)' },
+  '🍊': { bg: '#fed8b1', border: '#d97706', glow: 'rgba(217,119,6,0.3)' },
+  '🍋': { bg: '#fef08a', border: '#ca8a04', glow: 'rgba(202,138,4,0.3)' },
+  '🫐': { bg: '#e0e7ff', border: '#4f46e5', glow: 'rgba(79,70,229,0.3)' },
+  '🍓': { bg: '#fbced5', border: '#be185d', glow: 'rgba(190,24,93,0.3)' },
+  // Bonus symbols
+  '🍇': { bg: '#ede9fe', border: '#7c3aed', glow: 'rgba(124,58,237,0.3)' },
+  '🥝': { bg: '#dcfce7', border: '#16a34a', glow: 'rgba(22,163,74,0.3)' },
+  '🍒': { bg: '#fee2e2', border: '#b91c1c', glow: 'rgba(185,28,28,0.3)' },
+  '🥭': { bg: '#fef3c7', border: '#92400e', glow: 'rgba(146,64,14,0.3)' },
+  '🍑': { bg: '#fed7aa', border: '#c2410c', glow: 'rgba(194,65,12,0.3)' },
+  '🍍': { bg: '#fef9e7', border: '#b45309', glow: 'rgba(180,83,9,0.3)' },
+};
+
+function getCandyColors(theme: 'light' | 'dark'): Record<string, { bg: string; border: string; glow: string }> {
+  return theme === 'light' ? CANDY_COLORS_LIGHT : CANDY_COLORS_DARK;
+}
 
 // Bonus symbols that don't exist in the base pool — unlocked one at a time via 5+ combos.
 // Every level starts without these; big combos introduce them as fresh (2× score) tiles.
@@ -339,15 +359,17 @@ export const CandyMode: GameModeConfig = {
     hidePipes: true,
     symbolSize: '1.5rem',
 
-    getColors(tile, _ctx) {
+    getColors(tile, ctx) {
       if (isWildcard(tile)) return getWildcardColors(tile);
       if (isBomb(tile)) return getBombColors(tile);
+
+      const colors = getCandyColors(ctx.theme);
 
       // Fresh (newly unlocked) tile — golden glow, worth 2×
       if (tile.displayData?.isFresh && tile.canRotate) {
         const sym = tile.displayData?.symbol as string;
-        const c = CANDY_COLORS[sym] ?? {
-          bg: '#1a1a2e',
+        const c = colors[sym] ?? {
+          bg: ctx.theme === 'light' ? '#fef3c7' : '#1a1a2e',
           border: '#fbbf24',
           glow: 'rgba(251,191,36,0.5)',
         };
@@ -360,11 +382,17 @@ export const CandyMode: GameModeConfig = {
 
       // Frozen tile — icy blue styling
       if (tile.displayData?.frozen) {
-        return {
-          background: 'linear-gradient(145deg, #0f1f3d 0%, #091529 100%)',
-          border: '2px solid #60a5fa',
-          boxShadow: '0 0 14px rgba(96,165,250,0.45)',
-        };
+        return ctx.theme === 'light'
+          ? {
+              background: 'linear-gradient(145deg, #cffafe 0%, #e0f2fe 100%)',
+              border: '2px solid #0369a1',
+              boxShadow: '0 0 14px rgba(3,105,161,0.45)',
+            }
+          : {
+              background: 'linear-gradient(145deg, #0f1f3d 0%, #091529 100%)',
+              border: '2px solid #60a5fa',
+              boxShadow: '0 0 14px rgba(96,165,250,0.45)',
+            };
       }
 
       if (!tile.canRotate) {
@@ -372,19 +400,25 @@ export const CandyMode: GameModeConfig = {
       }
 
       const sym = tile.displayData?.symbol as string;
-      const c = CANDY_COLORS[sym] ?? {
-        bg: '#1a1a2e',
-        border: '#6366f1',
-        glow: 'rgba(99,102,241,0.4)',
+      const c = colors[sym] ?? {
+        bg: ctx.theme === 'light' ? '#f3f4f6' : '#1a1a2e',
+        border: ctx.theme === 'light' ? '#6b7280' : '#6366f1',
+        glow: ctx.theme === 'light' ? 'rgba(107,114,128,0.3)' : 'rgba(99,102,241,0.4)',
       };
 
       // New tiles (just dropped in) get a bright indigo glow that fades out after ~1.5s
       if (tile.displayData?.isNew) {
-        return {
-          background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
-          border: '2px solid #a5b4fc',
-          boxShadow: '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
-        };
+        return ctx.theme === 'light'
+          ? {
+              background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
+              border: '2px solid #4f46e5',
+              boxShadow: '0 0 18px rgba(79,70,229,0.5), 0 0 6px rgba(79,70,229,0.3)',
+            }
+          : {
+              background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
+              border: '2px solid #a5b4fc',
+              boxShadow: '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
+            };
       }
 
       return {

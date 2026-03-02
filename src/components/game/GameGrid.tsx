@@ -27,6 +27,8 @@ interface GameGridProps {
   readonly editorMode?: boolean;
   /** Compression direction - which sides walls compress from */
   readonly compressionDirection?: CompressionDirection;
+  /** Current theme - light or dark */
+  readonly theme: 'light' | 'dark';
 }
 
 /**
@@ -53,6 +55,7 @@ function GameGridComponent({
   rejectedPos,
   editorMode = false,
   compressionDirection = 'all',
+  theme,
 }: GameGridProps) {
   const gridCols = gridColsProp ?? gridSize;
   const gridRows = gridRowsProp ?? gridSize;
@@ -186,6 +189,7 @@ function GameGridComponent({
               displayData={tile?.displayData}
               isRejected={isRejected}
               editorMode={editorMode}
+              theme={theme}
             />
           );
         })}

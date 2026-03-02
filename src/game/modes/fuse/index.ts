@@ -84,7 +84,7 @@ const FUSE_KIND_SYMBOLS = {
   blocker: '◼',
 } satisfies Record<string, string>;
 
-function fuseColors(tile: Tile): any {
+function fuseColors(tile: Tile, _ctx?: any): any {
   const kind = tile.displayData?.kind as string;
   const armed = tile.displayData?.armed as boolean;
   const exploded = tile.displayData?.exploded as boolean;

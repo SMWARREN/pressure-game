@@ -426,6 +426,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
             onTileTap={() => {}} // read-only replay
             animationsEnabled={false}
             tileRenderer={mode.tileRenderer}
+            theme="dark"
           />
         </div>
       </div>

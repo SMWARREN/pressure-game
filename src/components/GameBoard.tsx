@@ -102,6 +102,7 @@ function useGameBoardState() {
       generatedLevels: s.generatedLevels,
       showArcadeHub: s.showArcadeHub,
       showPressureHub: s.showPressureHub,
+      theme: s.theme,
       tapTile: s.tapTile,
       loadLevel: s.loadLevel,
       startGame: s.startGame,
@@ -143,6 +144,7 @@ export default function GameBoard() {
     generatedLevels,
     showArcadeHub,
     showPressureHub,
+    theme,
     tapTile,
     loadLevel,
     startGame,
@@ -611,6 +613,7 @@ export default function GameBoard() {
               tileRenderer={mode.tileRenderer}
               rejectedPos={rejectedPos}
               editorMode={editor.enabled}
+              theme={theme}
             />
 
             {/* Pause overlay - hide when editor is enabled */}

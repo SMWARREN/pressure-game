@@ -183,6 +183,7 @@ export interface TileRenderContext {
   readonly justRotated: boolean;
   readonly compressionActive: boolean;
   readonly tileSize: number;
+  readonly theme: 'light' | 'dark';
 }
 
 // ─── Game Mode Config ─────────────────────────────────────────────────────────

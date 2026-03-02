@@ -40,25 +40,37 @@ function getBlastChance(world: number): number {
 }
 
 /**
- * Get blast gem style
+ * Get blast gem style (theme-aware)
  */
-function getBlastGemStyle(): TileColors {
-  return {
-    background: 'linear-gradient(145deg, #2d1400 0%, #1a0800 100%)',
-    border: '2px solid #f97316',
-    boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
-  };
+function getBlastGemStyle(theme: 'light' | 'dark' = 'dark'): TileColors {
+  return theme === 'light'
+    ? {
+        background: 'linear-gradient(145deg, #fed7aa 0%, #fdbf5e 100%)',
+        border: '2px solid #d97706',
+        boxShadow: '0 0 22px rgba(217,119,6,0.6), 0 0 8px rgba(217,119,6,0.3)',
+      }
+    : {
+        background: 'linear-gradient(145deg, #2d1400 0%, #1a0800 100%)',
+        border: '2px solid #f97316',
+        boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
+      };
 }
 
 /**
- * Get new tile glow style
+ * Get new tile glow style (theme-aware)
  */
-function getNewGemStyle(baseColor: TileColors): TileColors {
-  return {
-    background: `linear-gradient(145deg, ${baseColor.background} 0%, ${baseColor.background}bb 100%)`,
-    border: '2px solid #e0f2fe',
-    boxShadow: '0 0 18px rgba(224,242,254,0.75), 0 0 6px rgba(224,242,254,0.4)',
-  };
+function getNewGemStyle(baseColor: TileColors, theme: 'light' | 'dark' = 'dark'): TileColors {
+  return theme === 'light'
+    ? {
+        background: `linear-gradient(145deg, ${baseColor.background} 0%, ${baseColor.background}dd 100%)`,
+        border: '2px solid #3b82f6',
+        boxShadow: '0 0 18px rgba(59,130,246,0.5), 0 0 6px rgba(59,130,246,0.3)',
+      }
+    : {
+        background: `linear-gradient(145deg, ${baseColor.background} 0%, ${baseColor.background}bb 100%)`,
+        border: '2px solid #e0f2fe',
+        boxShadow: '0 0 18px rgba(224,242,254,0.75), 0 0 6px rgba(224,242,254,0.4)',
+      };
 }
 
 /**
@@ -132,9 +144,9 @@ function processCascades(
   return { tiles: remaining, totalScore, cascadeLevel };
 }
 
-// ── Gem color palette ─────────────────────────────────────────────────────────
+// ── Gem color palette (theme-aware) ───────────────────────────────────────────
 
-const GEM_COLORS: Record<string, TileColors> = {
+const GEM_COLORS_DARK: Record<string, TileColors> = {
   '💎': {
     background: '#062d35',
     border: '2px solid #06b6d4',
@@ -166,6 +178,43 @@ const GEM_COLORS: Record<string, TileColors> = {
     boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
   },
 };
+
+const GEM_COLORS_LIGHT: Record<string, TileColors> = {
+  '💎': {
+    background: '#cffafe',
+    border: '2px solid #0369a1',
+    boxShadow: '0 0 10px rgba(3,105,161,0.4)',
+  },
+  '💍': {
+    background: '#fef3c7',
+    border: '2px solid #b45309',
+    boxShadow: '0 0 10px rgba(180,83,9,0.4)',
+  },
+  '🔮': {
+    background: '#f3e8ff',
+    border: '2px solid #7c3aed',
+    boxShadow: '0 0 10px rgba(124,58,237,0.4)',
+  },
+  '🟣': {
+    background: '#f3e8ff',
+    border: '2px solid #9333ea',
+    boxShadow: '0 0 10px rgba(147,51,234,0.4)',
+  },
+  '🔵': {
+    background: '#dbeafe',
+    border: '2px solid #1e40af',
+    boxShadow: '0 0 10px rgba(30,64,175,0.4)',
+  },
+  '💥': {
+    background: '#fed7aa',
+    border: '2px solid #d97706',
+    boxShadow: '0 0 22px rgba(217,119,6,0.6), 0 0 8px rgba(217,119,6,0.3)',
+  },
+};
+
+function getGemColors(theme: 'light' | 'dark'): Record<string, TileColors> {
+  return theme === 'light' ? GEM_COLORS_LIGHT : GEM_COLORS_DARK;
+}
 
 // ── Gravity + refill ──────────────────────────────────────────────────────────
 
@@ -304,25 +353,26 @@ export const GemBlastMode: GameModeConfig = {
     hidePipes: true,
     symbolSize: '1.5rem',
 
-    getColors(tile, _ctx) {
+    getColors(tile, ctx) {
       if (!tile.canRotate) {
         return { background: 'rgba(10,10,20,0)', border: '1px solid transparent' };
       }
 
       const sym = tile.displayData?.symbol as string;
+      const colors = getGemColors(ctx.theme);
 
       // Blast gem — orange glow
       if (sym === BLAST_GEM) {
-        return getBlastGemStyle();
+        return getBlastGemStyle(ctx.theme);
       }
 
-      const baseColor = GEM_COLORS[sym] ?? {
-        background: '#0a0a1e',
-        border: '2px solid #6366f1',
-        boxShadow: '0 0 10px rgba(99,102,241,0.5)',
+      const baseColor = colors[sym] ?? {
+        background: ctx.theme === 'light' ? '#f3f4f6' : '#0a0a1e',
+        border: ctx.theme === 'light' ? '2px solid #6b7280' : '2px solid #6366f1',
+        boxShadow: ctx.theme === 'light' ? '0 0 10px rgba(107,114,128,0.3)' : '0 0 10px rgba(99,102,241,0.5)',
       };
 
-      return tile.displayData?.isNew ? getNewGemStyle(baseColor) : getRegularGemStyle(baseColor);
+      return tile.displayData?.isNew ? getNewGemStyle(baseColor, ctx.theme) : getRegularGemStyle(baseColor);
     },
 
     getSymbol(tile) {

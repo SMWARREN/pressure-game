@@ -428,7 +428,7 @@ const TILE_COLOR_STYLES: Record<
   },
 };
 
-function getTileColors(tile: Tile) {
+function getTileColors(tile: Tile, _ctx?: any) {
   const kind = (tile.displayData?.kind as string) ?? 'empty';
   const beamOn = tile.displayData?.beamOn as boolean;
   const styles = TILE_COLOR_STYLES[kind] ?? TILE_COLOR_STYLES['empty'];

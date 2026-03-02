@@ -113,35 +113,59 @@ export const MemoryMatchMode: GameModeConfig = {
 
     getColors(tile, ctx) {
       const d = getData(tile);
-      if (!d) return { background: '#0d0d1a', border: '1px solid #1a1a2e' };
+      if (!d) {
+        return ctx.theme === 'light'
+          ? { background: '#f3f4f6', border: '1px solid #d1d5db' }
+          : { background: '#0d0d1a', border: '1px solid #1a1a2e' };
+      }
 
       // ── MATCHED pair — emerald locked glow ─────────────────────────────
       if (d.matched) {
-        return {
-          background: 'linear-gradient(145deg, #064e3b, #022c22)',
-          border: `2px solid ${MATCH_COLOR}`,
-          boxShadow: `0 0 12px ${MATCH_COLOR}55`,
-        };
+        return ctx.theme === 'light'
+          ? {
+              background: 'linear-gradient(145deg, #d1fae5, #a7f3d0)',
+              border: `2px solid #059669`,
+              boxShadow: `0 0 12px rgba(5,150,105,0.3)`,
+            }
+          : {
+              background: 'linear-gradient(145deg, #064e3b, #022c22)',
+              border: `2px solid ${MATCH_COLOR}`,
+              boxShadow: `0 0 12px ${MATCH_COLOR}55`,
+            };
       }
 
       // ── FLIPPED (currently revealed, not yet matched) ──────────────────
       if (d.flipped) {
-        return {
-          background: 'linear-gradient(145deg, #422006, #1c0f03)',
-          border: `2px solid ${FLIPPED_COLOR}`,
-          boxShadow: `0 0 20px ${FLIPPED_COLOR}88, inset 0 0 8px ${FLIPPED_COLOR}33`,
-        };
+        return ctx.theme === 'light'
+          ? {
+              background: 'linear-gradient(145deg, #fed7aa, #fdba74)',
+              border: `2px solid #d97706`,
+              boxShadow: `0 0 20px rgba(217,119,6,0.4), inset 0 0 8px rgba(217,119,6,0.2)`,
+            }
+          : {
+              background: 'linear-gradient(145deg, #422006, #1c0f03)',
+              border: `2px solid ${FLIPPED_COLOR}`,
+              boxShadow: `0 0 20px ${FLIPPED_COLOR}88, inset 0 0 8px ${FLIPPED_COLOR}33`,
+            };
       }
 
       // ── FACE-DOWN — dark mystery tile ─────────────────────────────────
       const inDanger = ctx.inDanger;
-      return {
-        background: inDanger
-          ? 'linear-gradient(145deg, #1a0a0a, #0d0010)'
-          : 'linear-gradient(145deg, #0f0e1a, #080812)',
-        border: inDanger ? '1px solid #7f1d1d44' : `1px solid ${ACCENT}22`,
-        boxShadow: ctx.isHint ? `0 0 16px ${ACCENT}88` : undefined,
-      };
+      return ctx.theme === 'light'
+        ? {
+            background: inDanger
+              ? 'linear-gradient(145deg, #fee2e2, #fecaca)'
+              : 'linear-gradient(145deg, #f0f9ff, #e0f2fe)',
+            border: inDanger ? '1px solid #dc262644' : `1px solid #0284c744`,
+            boxShadow: ctx.isHint ? `0 0 16px rgba(2,132,199,0.6)` : undefined,
+          }
+        : {
+            background: inDanger
+              ? 'linear-gradient(145deg, #1a0a0a, #0d0010)'
+              : 'linear-gradient(145deg, #0f0e1a, #080812)',
+            border: inDanger ? '1px solid #7f1d1d44' : `1px solid ${ACCENT}22`,
+            boxShadow: ctx.isHint ? `0 0 16px ${ACCENT}88` : undefined,
+          };
     },
 
     getSymbol(tile) {

@@ -107,7 +107,7 @@ export const VoltageMode: GameModeConfig = {
     type: 'voltage',
     hidePipes: true,
     symbolSize: '1.1rem',
-    getColors(tile) {
+    getColors(tile, _ctx) {
       const charge = (tile.displayData?.charge as number) ?? 0;
       const kind = (tile.displayData?.kind as string) ?? 'cell';
       return chargeToColors(charge, kind);
