@@ -12,6 +12,7 @@ interface TileStyleContext {
   readonly isDecoy: boolean;
   readonly canRotate: boolean;
   readonly tileSize: number;
+  readonly theme?: 'light' | 'dark';
 }
 
 /**
@@ -127,20 +128,32 @@ function getTileBackgroundStyle(
   isHint: boolean,
   inDanger: boolean,
   isDecoy: boolean,
-  canRotate: boolean
+  canRotate: boolean,
+  theme: 'light' | 'dark' = 'dark'
 ): React.CSSProperties {
   if (type === 'wall') {
-    return {
-      background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)',
-      border: '1px solid #131325',
-    };
+    return theme === 'light'
+      ? {
+          background: 'linear-gradient(145deg, #e5e7eb 0%, #d1d5db 100%)',
+          border: '1px solid #9ca3af',
+        }
+      : {
+          background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)',
+          border: '1px solid #131325',
+        };
   }
   if (type === 'crushed') {
-    return {
-      background: 'linear-gradient(145deg, #450a0a 0%, #2d0606 100%)',
-      border: '2px solid #ef4444',
-      boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.2)',
-    };
+    return theme === 'light'
+      ? {
+          background: 'linear-gradient(145deg, #fee2e2 0%, #fecaca 100%)',
+          border: '2px solid #ef4444',
+          boxShadow: '0 0 12px rgba(239,68,68,0.3), inset 0 0 8px rgba(239,68,68,0.1)',
+        }
+      : {
+          background: 'linear-gradient(145deg, #450a0a 0%, #2d0606 100%)',
+          border: '2px solid #ef4444',
+          boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.2)',
+        };
   }
   if (type === 'node') {
     return {

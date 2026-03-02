@@ -546,7 +546,7 @@ function GameTileComponent({
   };
 
   const r = tileSize > 50 ? 8 : 6;
-  const bgStyle = getTileBackgroundStyle(type, isHint, inDanger, isDecoy, canRotate);
+  const bgStyle = getTileBackgroundStyle(type, isHint, inDanger, isDecoy, canRotate, theme);
   const tileTransform = getTileTransform(animationsEnabled, pressed, justRotated);
   const tileTransition = getTileTransition(animationsEnabled, pressed);
 
