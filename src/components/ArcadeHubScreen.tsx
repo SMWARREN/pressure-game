@@ -3,6 +3,7 @@
 // All visible modes shown at once. Tap ℹ on each panel to flip to info.
 
 import { useState, useMemo } from 'react';
+import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '../game/store';
 import { MODE_GROUPS } from '../game/modes/index';
 import { CandyMode } from '../game/modes/candy/index';
@@ -90,6 +91,7 @@ const MODE_DEFS: Record<
 
 export default function ArcadeHubScreen() {
   ensureHubStyles();
+  const { colors } = useTheme();
   const setGameMode = useGameStore((s) => s.setGameMode);
   const closeArcadeHub = useGameStore((s) => s.closeArcadeHub);
   const [openInfoId, setOpenInfoId] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export default function ArcadeHubScreen() {
         position: 'fixed',
         inset: 0,
         zIndex: 60,
-        background: 'linear-gradient(180deg, #06060f 0%, #0a0a1a 100%)',
+        background: colors.game.header,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -156,9 +158,9 @@ export default function ArcadeHubScreen() {
             width: 36,
             height: 36,
             borderRadius: '50%',
-            border: '1.5px solid #1e1e35',
-            background: '#0d0d1e',
-            color: '#6366f1',
+            border: `1.5px solid ${colors.border.secondary}`,
+            background: colors.bg.tertiary,
+            color: colors.status.info,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -187,7 +189,7 @@ export default function ArcadeHubScreen() {
           >
             ARCADE
           </div>
-          <div style={{ fontSize: 10, color: '#3a3a55', marginTop: 2 }}>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 2 }}>
             Tap ℹ to learn · tap to play
           </div>
         </div>
@@ -196,7 +198,7 @@ export default function ArcadeHubScreen() {
       </div>
 
       {/* ── Divider ── */}
-      <div style={{ height: 1, background: '#12122a', flexShrink: 0 }} />
+      <div style={{ height: 1, background: colors.border.primary, flexShrink: 0 }} />
 
       {/* ── Dynamic N-column split ── */}
       <div

@@ -2,6 +2,7 @@
 // Mode selector for Classic | Blitz | Zen with live game preview
 
 import { useEffect } from 'react';
+import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '../game/store';
 import { ensureHubStyles } from './hubs/HubStyles';
 import { PressureModeInfo } from './hubs/HubTypes';
@@ -81,6 +82,7 @@ const PRESSURE_MODES: PressureModeDef[] = [
 
 export default function PressureHubScreen() {
   ensureHubStyles();
+  const { colors } = useTheme();
   const setGameMode = useGameStore((s) => s.setGameMode);
   const closePressureHub = useGameStore((s) => s.closePressureHub);
   const featuredLevel = useGameStore((s) => s.featuredLevel);
@@ -108,7 +110,7 @@ export default function PressureHubScreen() {
         position: 'fixed',
         inset: 0,
         zIndex: 60,
-        background: 'linear-gradient(180deg, #06060f 0%, #0a0a1a 100%)',
+        background: colors.game.header,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -130,9 +132,9 @@ export default function PressureHubScreen() {
             width: 36,
             height: 36,
             borderRadius: '50%',
-            border: '1.5px solid #1e1e35',
-            background: '#0d0d1e',
-            color: '#6366f1',
+            border: `1.5px solid ${colors.border.secondary}`,
+            background: colors.bg.tertiary,
+            color: colors.status.info,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -161,21 +163,21 @@ export default function PressureHubScreen() {
           >
             PRESSURE
           </div>
-          <div style={{ fontSize: 10, color: '#3a3a55', marginTop: 2 }}>Classic · Blitz · Zen</div>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 2 }}>Classic · Blitz · Zen</div>
         </div>
 
         <div style={{ width: 36, flexShrink: 0 }} />
       </div>
 
       {/* ── Divider ── */}
-      <div style={{ height: 1, background: '#12122a', flexShrink: 0 }} />
+      <div style={{ height: 1, background: colors.border.primary, flexShrink: 0 }} />
 
       {/* ── Game Preview (Featured Level) ── */}
       <div
         style={{
           padding: '12px 16px',
-          background: 'rgba(10,10,20,0.5)',
-          border: '1px solid #12122a',
+          background: colors.game.overlay,
+          border: `1px solid ${colors.border.primary}`,
           borderRadius: 12,
           margin: '12px',
           flex: 1,
@@ -190,7 +192,7 @@ export default function PressureHubScreen() {
       </div>
 
       {/* ── Divider ── */}
-      <div style={{ height: 1, background: '#12122a', flexShrink: 0 }} />
+      <div style={{ height: 1, background: colors.border.primary, flexShrink: 0 }} />
 
       {/* ── Content ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -200,7 +202,7 @@ export default function PressureHubScreen() {
             padding: '12px 16px 8px',
             fontSize: 10,
             fontWeight: 800,
-            color: '#4a4a6a',
+            color: colors.text.tertiary,
             letterSpacing: '0.1em',
           }}
         >

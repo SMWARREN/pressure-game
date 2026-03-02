@@ -1,3 +1,4 @@
+import { useTheme } from '@/hooks/useTheme';
 import { Level } from '@/game/types';
 
 export interface LevelHeaderProps {
@@ -15,6 +16,7 @@ export function LevelHeader({
   onRestart,
   iconBtn,
 }: LevelHeaderProps) {
+  const { colors } = useTheme();
   return (
     <header
       style={{
@@ -22,8 +24,8 @@ export function LevelHeader({
         flexShrink: 0,
         zIndex: 2,
         position: 'relative',
-        borderBottom: '1px solid #12122a',
-        background: 'rgba(6,6,15,0.85)',
+        borderBottom: `1px solid ${colors.border.primary}`,
+        background: colors.game.footer,
         backdropFilter: 'blur(12px)',
         display: 'flex',
         alignItems: 'center',
@@ -51,7 +53,7 @@ export function LevelHeader({
         <div
           style={{
             fontSize: 'clamp(9px, 2.5vw, 10px)',
-            color: '#25253a',
+            color: colors.text.tertiary,
             letterSpacing: '0.15em',
             marginTop: 2,
           }}

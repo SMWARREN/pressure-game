@@ -7,6 +7,7 @@ import { useStats } from '@/game/contexts';
 import type { GameEndEvent } from '@/game/stats/types';
 import { GAME_MODES } from '@/game/modes';
 import { getStatusColor } from '@/utils/statusColors';
+import { useTheme } from '@/hooks/useTheme';
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
@@ -25,19 +26,7 @@ function fmtDate(ts: number): string {
 
 /* ── styles ───────────────────────────────────────────────────────────────── */
 
-const card: React.CSSProperties = {
-  background: '#07070e',
-  border: '1px solid #12122a',
-  borderRadius: 14,
-  padding: '14px 16px',
-};
-
-const label: React.CSSProperties = {
-  fontSize: 10,
-  color: '#25253a',
-  letterSpacing: '0.2em',
-  marginBottom: 4,
-};
+// card and label styles now created dynamically in component
 
 const big: React.CSSProperties = {
   fontSize: 26,
@@ -55,7 +44,24 @@ export default function StatsScreen({
   readonly onBack: () => void;
   readonly onReplay?: (event: GameEndEvent) => void;
 }) {
+  const { colors } = useTheme();
   const statsEngine = useStats();
+
+  // Dynamic styles based on theme
+  const card: React.CSSProperties = {
+    background: colors.bg.secondary,
+    border: `1px solid ${colors.border.primary}`,
+    borderRadius: 14,
+    padding: '14px 16px',
+  };
+
+  const label: React.CSSProperties = {
+    fontSize: 10,
+    color: colors.text.tertiary,
+    letterSpacing: '0.2em',
+    marginBottom: 4,
+  };
+
   const stats = useMemo(() => {
     const all = statsEngine.getBackend().getAll();
     const ends = all.filter((e): e is GameEndEvent => e.type === 'game_end');
@@ -91,8 +97,8 @@ export default function StatsScreen({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        background: 'radial-gradient(ellipse 80% 60% at 50% -10%, #0f0f28 0%, #06060f 70%)',
-        color: '#fff',
+        background: colors.game.header,
+        color: colors.text.primary,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
       }}
@@ -102,8 +108,8 @@ export default function StatsScreen({
         style={{
           width: '100%',
           flexShrink: 0,
-          borderBottom: '1px solid #12122a',
-          background: 'rgba(6,6,15,0.75)',
+          borderBottom: `1px solid ${colors.border.primary}`,
+          background: colors.game.footer,
           backdropFilter: 'blur(12px)',
           display: 'flex',
           alignItems: 'center',
@@ -117,9 +123,9 @@ export default function StatsScreen({
             width: 40,
             height: 40,
             borderRadius: 10,
-            border: '1px solid #12122a',
+            border: `1px solid ${colors.border.primary}`,
             background: 'rgba(255,255,255,0.02)',
-            color: '#a5b4fc',
+            color: colors.status.info,
             cursor: 'pointer',
             fontSize: 18,
             display: 'flex',
@@ -132,7 +138,7 @@ export default function StatsScreen({
         </button>
         <div>
           <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.02em' }}>STATS</div>
-          <div style={{ fontSize: 10, color: '#3a3a55', letterSpacing: '0.15em', marginTop: 1 }}>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.15em', marginTop: 1 }}>
             ALL TIME
           </div>
         </div>
@@ -161,7 +167,7 @@ export default function StatsScreen({
               style={{
                 textAlign: 'center',
                 padding: '60px 0',
-                color: '#25253a',
+                color: colors.text.tertiary,
                 fontSize: 14,
               }}
             >
@@ -178,7 +184,7 @@ export default function StatsScreen({
                 </div>
                 <div style={{ ...card, textAlign: 'center' }}>
                   <div style={label}>WIN RATE</div>
-                  <div style={{ ...big, color: stats.winRate >= 50 ? '#22c55e' : '#ef4444' }}>
+                  <div style={{ ...big, color: stats.winRate >= 50 ? colors.status.success : colors.status.error }}>
                     {stats.winRate}%
                   </div>
                 </div>
@@ -194,7 +200,7 @@ export default function StatsScreen({
                   <div style={{ fontSize: 20 }}>✦</div>
                   <div>
                     <div style={label}>WINS</div>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e' }}>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: colors.status.success }}>
                       {stats.totalWins}
                     </div>
                   </div>
@@ -203,7 +209,7 @@ export default function StatsScreen({
                   <div style={{ fontSize: 20 }}>✕</div>
                   <div>
                     <div style={label}>LOSSES</div>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: '#ef4444' }}>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: colors.status.error }}>
                       {stats.totalGames - stats.totalWins}
                     </div>
                   </div>
@@ -234,7 +240,7 @@ export default function StatsScreen({
                           <div
                             style={{
                               height: 4,
-                              background: '#0d0d1f',
+                              background: colors.bg.tertiary,
                               borderRadius: 2,
                               overflow: 'hidden',
                             }}
@@ -254,7 +260,7 @@ export default function StatsScreen({
                           <div style={{ fontSize: 13, fontWeight: 900, color: mode.color }}>
                             {winRate}%
                           </div>
-                          <div style={{ fontSize: 10, color: '#3a3a55' }}>
+                          <div style={{ fontSize: 10, color: colors.text.tertiary }}>
                             {wins}/{games}
                           </div>
                         </div>
@@ -281,7 +287,7 @@ export default function StatsScreen({
                             alignItems: 'center',
                             gap: 10,
                             padding: '10px 14px',
-                            background: '#07070e',
+                            background: colors.bg.secondary,
                             borderRadius: 10,
                             border: `1px solid ${getStatusColor(won ? 'won' : 'lost', 'bg')}`,
                           }}
@@ -301,13 +307,13 @@ export default function StatsScreen({
                             <div style={{ fontSize: 12, fontWeight: 700 }}>
                               {mode?.icon} {mode?.name ?? e.modeId} · Lv {e.levelId}
                             </div>
-                            <div style={{ fontSize: 10, color: '#3a3a55', marginTop: 1 }}>
+                            <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 1 }}>
                               {e.moves} {e.moves === 1 ? 'move' : 'moves'} ·{' '}
                               {fmtTime(e.elapsedSeconds)}
                               {e.score > 0 ? ` · ${e.score} pts` : ''}
                             </div>
                           </div>
-                          <div style={{ fontSize: 10, color: '#25253a', flexShrink: 0 }}>
+                          <div style={{ fontSize: 10, color: colors.text.tertiary, flexShrink: 0 }}>
                             {fmtDate(e.ts)}
                           </div>
                           {hasReplay && (
@@ -318,9 +324,9 @@ export default function StatsScreen({
                                 width: 32,
                                 height: 28,
                                 borderRadius: 8,
-                                border: '1px solid #1e1e3580',
-                                background: 'rgba(165,180,252,0.07)',
-                                color: '#a5b4fc',
+                                border: `1px solid ${colors.border.secondary}80`,
+                                background: `${colors.status.info}12`,
+                                color: colors.status.info,
                                 cursor: 'pointer',
                                 fontSize: 12,
                                 display: 'flex',
@@ -352,9 +358,9 @@ export default function StatsScreen({
                   width: '100%',
                   padding: '12px',
                   borderRadius: 12,
-                  border: '1.5px solid #ef444430',
-                  background: 'rgba(239,68,68,0.04)',
-                  color: '#ef444460',
+                  border: `1.5px solid ${colors.status.error}30`,
+                  background: `${colors.status.error}04`,
+                  color: `${colors.status.error}60`,
                   fontSize: 12,
                   fontWeight: 700,
                   letterSpacing: '0.06em',

@@ -1,3 +1,4 @@
+import { useTheme } from '@/hooks/useTheme';
 import { GameStatus } from '@/game/types';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -27,10 +28,10 @@ function getUndoButtonState(history: unknown[], status: GameStatus) {
 }
 
 // Helper: compute hint button state
-function getHintButtonState(showHint: boolean, isComputingSolution: boolean, status: GameStatus) {
+function getHintButtonState(showHint: boolean, isComputingSolution: boolean, status: GameStatus, colors: ReturnType<typeof useTheme>['colors']) {
   const buttonStyles = showHint
-    ? { color: '#fbbf24', border: '1px solid #fbbf2440' }
-    : { color: '#3a3a55', border: '1px solid #12122a' };
+    ? { color: colors.status.warning, border: `1px solid ${colors.status.warning}40` }
+    : { color: colors.text.tertiary, border: `1px solid ${colors.border.primary}` };
   const disabled = isComputingSolution || status !== 'playing';
   return {
     buttonStyles,
@@ -41,10 +42,10 @@ function getHintButtonState(showHint: boolean, isComputingSolution: boolean, sta
 }
 
 // Helper: compute pause button state
-function getPauseButtonState(isPaused: boolean, status: GameStatus) {
+function getPauseButtonState(isPaused: boolean, status: GameStatus, colors: ReturnType<typeof useTheme>['colors']) {
   const buttonStyles = isPaused
-    ? { color: '#22c55e', border: '1px solid #22c55e40' }
-    : { color: '#3a3a55', border: '1px solid #12122a' };
+    ? { color: colors.status.success, border: `1px solid ${colors.status.success}40` }
+    : { color: colors.text.tertiary, border: `1px solid ${colors.border.primary}` };
   const disabled = status !== 'playing' && !isPaused;
   return {
     buttonStyles,
@@ -56,10 +57,10 @@ function getPauseButtonState(isPaused: boolean, status: GameStatus) {
 }
 
 // Helper: compute animations button state
-function getAnimButtonState(animationsEnabled: boolean) {
+function getAnimButtonState(animationsEnabled: boolean, colors: ReturnType<typeof useTheme>['colors']) {
   const buttonStyles = animationsEnabled
-    ? { color: '#a5b4fc', border: '1px solid #6366f140' }
-    : { color: '#3a3a55', border: '1px solid #12122a' };
+    ? { color: colors.status.info, border: `1px solid ${colors.status.info}40` }
+    : { color: colors.text.tertiary, border: `1px solid ${colors.border.primary}` };
   return {
     buttonStyles,
     title: animationsEnabled ? 'Disable effects' : 'Enable effects',
@@ -85,10 +86,11 @@ export function GameFooter({
   onToggleAnimations,
   computeSolution,
 }: GameFooterProps) {
+  const { colors } = useTheme();
   const undoState = getUndoButtonState(history, status);
-  const hintState = getHintButtonState(showHint, isComputingSolution, status);
-  const pauseState = getPauseButtonState(isPaused, status);
-  const animState = getAnimButtonState(animationsEnabled);
+  const hintState = getHintButtonState(showHint, isComputingSolution, status, colors);
+  const pauseState = getPauseButtonState(isPaused, status, colors);
+  const animState = getAnimButtonState(animationsEnabled, colors);
 
   return (
     <>
@@ -126,7 +128,7 @@ export function GameFooter({
         >
           {timeStr || '—'}
         </div>
-        <div style={{ fontSize: 9, color: '#25253a', letterSpacing: '0.12em' }}>TIME</div>
+        <div style={{ fontSize: 9, color: colors.text.tertiary, letterSpacing: '0.12em' }}>TIME</div>
       </div>
 
       {/* Hint — only shown for pipe modes that have a BFS solution */}

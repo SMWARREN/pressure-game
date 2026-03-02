@@ -1,3 +1,4 @@
+import { useTheme } from '@/hooks/useTheme';
 import { getModeById } from '@/game/modes';
 import { StatComponentConfig } from '@/game/modes/types'; // Import the new type
 import {
@@ -14,9 +15,11 @@ import {
 function CompressionBar({
   percent,
   active,
+  colors,
 }: {
   readonly percent: number;
   readonly active: boolean;
+  readonly colors: ReturnType<typeof useTheme>['colors'];
 }) {
   const color = getCompressionColor(percent);
   const glow = getCompressionGlow(percent);
@@ -33,9 +36,9 @@ function CompressionBar({
           marginBottom: 4,
         }}
       >
-        <span style={{ color: '#3a3a55' }}>WALLS</span>
+        <span style={{ color: colors.text.tertiary }}>WALLS</span>
         <span
-          style={{ color: active ? color : '#3a3a55', fontWeight: 800, transition: 'color 0.3s' }}
+          style={{ color: active ? color : colors.text.tertiary, fontWeight: 800, transition: 'color 0.3s' }}
         >
           {label}
         </span>
@@ -43,10 +46,10 @@ function CompressionBar({
       <div
         style={{
           height: 6,
-          background: '#080814',
+          background: colors.bg.tertiary,
           borderRadius: 4,
           overflow: 'hidden',
-          border: '1px solid #131325',
+          border: `1px solid ${colors.border.primary}`,
         }}
       >
         <div
@@ -68,12 +71,12 @@ function CompressionBar({
  * MovesCounter - Shows current moves vs max moves
  * If maxMoves is 0 or undefined, shows just the move count (for modes without move limits)
  */
-function MovesCounter({ moves, maxMoves }: { readonly moves: number; readonly maxMoves: number }) {
+function MovesCounter({ moves, maxMoves, colors }: { readonly moves: number; readonly maxMoves: number; readonly colors: ReturnType<typeof useTheme>['colors']; }) {
   const hasLimit = maxMoves && maxMoves > 0;
   const outOfMoves = hasLimit && moves >= maxMoves;
-  const color = outOfMoves ? '#ef4444' : '#fff';
-  const bgColor = outOfMoves ? 'rgba(239,68,68,0.1)' : '#07070e';
-  const borderColor = outOfMoves ? '#ef444460' : '#12122a';
+  const color = outOfMoves ? colors.status.error : colors.text.primary;
+  const bgColor = outOfMoves ? `${colors.status.error}10` : colors.bg.secondary;
+  const borderColor = outOfMoves ? `${colors.status.error}60` : colors.border.primary;
 
   return (
     <div
@@ -109,7 +112,7 @@ function MovesCounter({ moves, maxMoves }: { readonly moves: number; readonly ma
           <div
             style={{
               fontSize: 8,
-              color: outOfMoves ? '#ef4444' : '#3a3a55',
+              color: outOfMoves ? colors.status.error : colors.text.tertiary,
               letterSpacing: '0.12em',
               marginTop: 2,
               transition: 'color 0.3s',
@@ -121,7 +124,7 @@ function MovesCounter({ moves, maxMoves }: { readonly moves: number; readonly ma
             <div
               style={{
                 fontSize: 7,
-                color: '#ef4444',
+                color: colors.status.error,
                 letterSpacing: '0.08em',
                 marginTop: 2,
                 fontWeight: 700,
@@ -136,7 +139,7 @@ function MovesCounter({ moves, maxMoves }: { readonly moves: number; readonly ma
         <div
           style={{
             fontSize: 8,
-            color: '#3a3a55',
+            color: colors.text.tertiary,
             letterSpacing: '0.12em',
             marginTop: 2,
           }}
@@ -154,9 +157,11 @@ function MovesCounter({ moves, maxMoves }: { readonly moves: number; readonly ma
 function CountdownTimer({
   seconds,
   active,
+  colors,
 }: {
   readonly seconds: number;
   readonly active: boolean;
+  readonly colors: ReturnType<typeof useTheme>['colors'];
 }) {
   return (
     <div
@@ -164,8 +169,8 @@ function CountdownTimer({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        background: '#07070e',
-        border: '1px solid #12122a',
+        background: colors.bg.secondary,
+        border: `1px solid ${colors.border.primary}`,
         borderRadius: 10,
         padding: '6px 12px',
         flexShrink: 0,
@@ -178,13 +183,13 @@ function CountdownTimer({
           fontWeight: 900,
           lineHeight: 1,
           fontVariantNumeric: 'tabular-nums',
-          color: seconds <= 3 && active ? '#ef4444' : '#fff',
+          color: seconds <= 3 && active ? colors.status.error : colors.text.primary,
           transition: 'color 0.2s',
         }}
       >
         {seconds}
       </div>
-      <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.12em', marginTop: 2 }}>
+      <div style={{ fontSize: 8, color: colors.text.tertiary, letterSpacing: '0.12em', marginTop: 2 }}>
         SEC
       </div>
     </div>
@@ -197,9 +202,11 @@ function CountdownTimer({
 function ScoreDisplay({
   score,
   targetScore,
+  colors,
 }: {
   readonly score: number;
   readonly targetScore?: number;
+  readonly colors: ReturnType<typeof useTheme>['colors'];
 }) {
   const pct = targetScore ? Math.min((score / targetScore) * 100, 100) : 0;
   const color = getScoreColor(pct);
@@ -216,7 +223,7 @@ function ScoreDisplay({
       >
         <span style={{ color: '#f472b6', fontWeight: 800 }}>SCORE</span>
         {targetScore !== undefined && (
-          <span style={{ color: '#3a3a55' }}>TARGET {targetScore}</span>
+          <span style={{ color: colors.text.tertiary }}>TARGET {targetScore}</span>
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -238,10 +245,10 @@ function ScoreDisplay({
             style={{
               flex: 1,
               height: 6,
-              background: '#080814',
+              background: colors.bg.tertiary,
               borderRadius: 4,
               overflow: 'hidden',
-              border: '1px solid #131325',
+              border: `1px solid ${colors.border.primary}`,
             }}
           >
             <div
@@ -267,9 +274,11 @@ function ScoreDisplay({
 function TimeleftDisplay({
   timeLeft,
   timeLimit,
+  colors,
 }: {
   readonly timeLeft: number;
   readonly timeLimit?: number;
+  readonly colors: ReturnType<typeof useTheme>['colors'];
 }) {
   const urgent = timeLeft <= 10;
   const pct = timeLimit ? Math.min((timeLeft / timeLimit) * 100, 100) : 100;
@@ -286,14 +295,14 @@ function TimeleftDisplay({
       >
         <span
           style={{
-            color: urgent ? '#ef4444' : '#60a5fa',
+            color: urgent ? colors.status.error : colors.game.hint,
             fontWeight: 800,
             transition: 'color 0.3s',
           }}
         >
           TIME LEFT
         </span>
-        {timeLimit !== undefined && <span style={{ color: '#3a3a55' }}>{timeLimit}s</span>}
+        {timeLimit !== undefined && <span style={{ color: colors.text.tertiary }}>{timeLimit}s</span>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div
@@ -302,7 +311,7 @@ function TimeleftDisplay({
             fontWeight: 900,
             lineHeight: 1,
             fontVariantNumeric: 'tabular-nums',
-            color: urgent ? '#ef4444' : '#60a5fa',
+            color: urgent ? colors.status.error : colors.game.hint,
             minWidth: 48,
             transition: 'color 0.3s',
           }}
@@ -314,10 +323,10 @@ function TimeleftDisplay({
             style={{
               flex: 1,
               height: 6,
-              background: '#080814',
+              background: colors.bg.tertiary,
               borderRadius: 4,
               overflow: 'hidden',
-              border: '1px solid #131325',
+              border: `1px solid ${colors.border.primary}`,
             }}
           >
             <div
@@ -326,8 +335,8 @@ function TimeleftDisplay({
                 width: `${pct}%`,
                 borderRadius: 4,
                 background: urgent
-                  ? 'linear-gradient(90deg, #ef444480, #ef4444)'
-                  : 'linear-gradient(90deg, #3b82f680, #60a5fa)',
+                  ? `linear-gradient(90deg, ${colors.status.error}80, ${colors.status.error})`
+                  : `linear-gradient(90deg, ${colors.game.hint}80, ${colors.game.hint})`,
                 transition: 'width 1s linear, background 0.4s',
                 boxShadow: getTimeleftGlow(timeLeft, pct),
               }}
@@ -373,6 +382,7 @@ export default function GameStats({
   isPaused = false,
   isEditor = false,
 }: GameStatsProps) {
+  const { colors } = useTheme();
   // Ensure score is always a valid number (guard against NaN/undefined)
   const safeScore = Number.isFinite(score) ? score : 0;
   const safeTimeLeft = Number.isFinite(timeLeft) ? timeLeft : 0;
@@ -399,8 +409,8 @@ export default function GameStats({
           position: 'relative',
           zIndex: 1,
           padding: '8px 16px',
-          background: 'rgba(168,85,247,0.08)',
-          border: '1px solid rgba(168,85,247,0.3)',
+          background: '#a855f708',
+          border: '1px solid #a855f730',
           borderRadius: 12,
         }}
       >
@@ -413,7 +423,7 @@ export default function GameStats({
           Grid: {maxMoves}×{maxMoves}
         </span>
         <span style={{ fontSize: 10, color: '#6b21a8' }}>|</span>
-        <span style={{ fontSize: 10, color: '#3a3a55' }}>Tap tiles to edit</span>
+        <span style={{ fontSize: 10, color: colors.text.tertiary }}>Tap tiles to edit</span>
       </div>
     );
   }
@@ -439,14 +449,14 @@ export default function GameStats({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            background: 'rgba(251,191,36,0.15)',
-            border: '1px solid rgba(251,191,36,0.5)',
+            background: `${colors.status.warning}15`,
+            border: `1px solid ${colors.status.warning}50`,
             borderRadius: 8,
             padding: '4px 12px',
             fontSize: 10,
             fontWeight: 800,
             letterSpacing: '0.15em',
-            color: '#fbbf24',
+            color: colors.status.warning,
             zIndex: 10,
             animation: 'pulse 1s ease-in-out infinite',
           }}
@@ -457,13 +467,14 @@ export default function GameStats({
       {statsDisplay.map((stat: StatComponentConfig) => {
         switch (stat.type) {
           case 'moves':
-            return <MovesCounter key="moves" moves={moves} maxMoves={maxMoves} />;
+            return <MovesCounter key="moves" moves={moves} maxMoves={maxMoves} colors={colors} />;
           case 'compressionBar':
             return (
               <CompressionBar
                 key="compressionBar"
                 percent={compressionPercent}
                 active={compressionActive}
+                colors={colors}
               />
             );
           case 'countdown':
@@ -472,12 +483,13 @@ export default function GameStats({
                 key="countdown"
                 seconds={countdownSeconds}
                 active={compressionActive}
+                colors={colors}
               />
             );
           case 'score':
-            return <ScoreDisplay key="score" score={safeScore} targetScore={targetScore} />;
+            return <ScoreDisplay key="score" score={safeScore} targetScore={targetScore} colors={colors} />;
           case 'timeleft':
-            return <TimeleftDisplay key="timeleft" timeLeft={safeTimeLeft} timeLimit={timeLimit} />;
+            return <TimeleftDisplay key="timeleft" timeLeft={safeTimeLeft} timeLimit={timeLimit} colors={colors} />;
           default:
             return null;
         }

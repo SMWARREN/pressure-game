@@ -5,22 +5,11 @@
 
 import { useMemo } from 'react';
 import { useAchievements } from '@/game/contexts';
+import { useTheme } from '@/hooks/useTheme';
 import { Achievement, AchievementCategory, AchievementRarity } from '@/game/achievements/types';
 
 /* ── styles ───────────────────────────────────────────────────────────────── */
-
-const card: React.CSSProperties = {
-  background: '#07070e',
-  borderRadius: 14,
-  padding: '14px 16px',
-};
-
-const label: React.CSSProperties = {
-  fontSize: 10,
-  color: '#25253a',
-  letterSpacing: '0.2em',
-  marginBottom: 8,
-};
+// Styles now created dynamically in component
 
 const rarityColors: Record<AchievementRarity, string> = {
   common: '#22c55e',
@@ -50,9 +39,11 @@ interface AchievementCardProps {
   readonly progress:
     | { current: number; target: number; earned: boolean; earnedAt?: number }
     | undefined;
+  readonly colors: ReturnType<typeof useTheme>['colors'];
+  readonly card: React.CSSProperties;
 }
 
-function AchievementCard({ achievement, progress }: AchievementCardProps) {
+function AchievementCard({ achievement, progress, colors, card }: AchievementCardProps) {
   const isEarned = progress?.earned ?? false;
   const isHidden = achievement.hidden && !isEarned;
   const color = rarityColors[achievement.rarity];
@@ -80,7 +71,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
       <div
         style={{
           ...card,
-          border: '1px solid #12122a',
+          border: `1px solid ${colors.border.primary}`,
           opacity: 0.6,
           display: 'flex',
           alignItems: 'center',
@@ -92,7 +83,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
             width: 48,
             height: 48,
             borderRadius: 12,
-            background: '#12122a',
+            background: colors.border.primary,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -102,17 +93,17 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
           ❓
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#3a3a55' }}>???</div>
-          <div style={{ fontSize: 11, color: '#25253a', marginTop: 4 }}>Hidden achievement</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: colors.text.tertiary }}>???</div>
+          <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4 }}>Hidden achievement</div>
         </div>
         <div
           style={{
             padding: '4px 10px',
             borderRadius: 8,
-            background: '#12122a',
+            background: colors.border.primary,
             fontSize: 10,
             fontWeight: 700,
-            color: '#3a3a55',
+            color: colors.text.tertiary,
           }}
         >
           ???
@@ -163,7 +154,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
             style={{
               fontSize: 14,
               fontWeight: 800,
-              color: isEarned ? '#fff' : '#6b7280',
+              color: isEarned ? colors.text.primary : colors.text.secondary,
             }}
           >
             {achievement.name}
@@ -184,7 +175,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
         <div
           style={{
             fontSize: 11,
-            color: isEarned ? '#9ca3af' : '#4b5563',
+            color: isEarned ? colors.text.secondary : colors.text.tertiary,
             marginBottom: 8,
           }}
         >
@@ -197,7 +188,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
             <div
               style={{
                 height: 4,
-                background: '#0d0d1f',
+                background: colors.bg.tertiary,
                 borderRadius: 2,
                 overflow: 'hidden',
               }}
@@ -215,7 +206,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
             <div
               style={{
                 fontSize: 10,
-                color: '#3a3a55',
+                color: colors.text.tertiary,
                 marginTop: 4,
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -229,7 +220,7 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
 
         {/* Earned date */}
         {isEarned && progress?.earnedAt && (
-          <div style={{ fontSize: 10, color: '#4b5563', marginTop: 4 }}>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 4 }}>
             Earned {new Date(progress.earnedAt).toLocaleDateString()}
           </div>
         )}
@@ -269,7 +260,22 @@ function AchievementCard({ achievement, progress }: AchievementCardProps) {
 type AchievementsScreenProps = { readonly onBack: () => void };
 
 export default function AchievementsScreen({ onBack }: AchievementsScreenProps) {
+  const { colors } = useTheme();
   const engine = useAchievements();
+
+  // Dynamic styles based on theme
+  const cardStyle: React.CSSProperties = {
+    background: colors.bg.secondary,
+    borderRadius: 14,
+    padding: '14px 16px',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 10,
+    color: colors.text.tertiary,
+    letterSpacing: '0.2em',
+    marginBottom: 8,
+  };
 
   const { achievements, earnedCount, totalPoints, maxPoints, byCategory } = useMemo(() => {
     const all = engine.getAllAchievements();
@@ -310,8 +316,8 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        background: 'radial-gradient(ellipse 80% 60% at 50% -10%, #0f0f28 0%, #06060f 70%)',
-        color: '#fff',
+        background: colors.game.header,
+        color: colors.text.primary,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
       }}
@@ -321,8 +327,8 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
         style={{
           width: '100%',
           flexShrink: 0,
-          borderBottom: '1px solid #12122a',
-          background: 'rgba(6,6,15,0.75)',
+          borderBottom: `1px solid ${colors.border.primary}`,
+          background: colors.game.footer,
           backdropFilter: 'blur(12px)',
           display: 'flex',
           alignItems: 'center',
@@ -336,9 +342,9 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
             width: 40,
             height: 40,
             borderRadius: 10,
-            border: '1px solid #12122a',
+            border: `1px solid ${colors.border.primary}`,
             background: 'rgba(255,255,255,0.02)',
-            color: '#a5b4fc',
+            color: colors.status.info,
             cursor: 'pointer',
             fontSize: 18,
             display: 'flex',
@@ -353,7 +359,7 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
           <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.02em' }}>
             ACHIEVEMENTS
           </div>
-          <div style={{ fontSize: 10, color: '#3a3a55', letterSpacing: '0.15em', marginTop: 1 }}>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.15em', marginTop: 1 }}>
             {earnedCount}/{achievements.length} EARNED
           </div>
         </div>
@@ -366,8 +372,8 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 16, fontWeight: 900, color: '#fbbf24' }}>{totalPoints}</div>
-          <div style={{ fontSize: 8, color: '#fbbf2480', letterSpacing: '0.1em' }}>POINTS</div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: colors.status.warning }}>{totalPoints}</div>
+          <div style={{ fontSize: 8, color: `${colors.status.warning}80`, letterSpacing: '0.1em' }}>POINTS</div>
         </div>
       </header>
 
@@ -385,19 +391,19 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
             display: 'flex',
             justifyContent: 'space-between',
             fontSize: 10,
-            color: '#25253a',
+            color: colors.text.tertiary,
             marginBottom: 6,
           }}
         >
           <span>OVERALL PROGRESS</span>
           <span>{overallPct}%</span>
         </div>
-        <div style={{ height: 6, background: '#0d0d1f', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ height: 6, background: colors.bg.tertiary, borderRadius: 3, overflow: 'hidden' }}>
           <div
             style={{
               height: '100%',
               width: `${overallPct}%`,
-              background: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
+              background: `linear-gradient(90deg, ${colors.status.warning}, ${colors.status.warning}80)`,
               borderRadius: 3,
               transition: 'width 0.5s ease',
             }}
@@ -436,7 +442,7 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
                 <div key={category}>
                   <div
                     style={{
-                      ...label,
+                      ...labelStyle,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 8,
@@ -444,7 +450,7 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
                   >
                     <span>{categoryIcons[category]}</span>
                     <span>{categoryLabels[category]}</span>
-                    <span style={{ color: '#3a3a55' }}>
+                    <span style={{ color: colors.text.tertiary }}>
                       ({categoryEarned}/{categoryAchievements.length})
                     </span>
                   </div>
@@ -454,6 +460,8 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
                         key={achievement.id}
                         achievement={achievement}
                         progress={engine.getProgress(achievement.id)}
+                        colors={colors}
+                        card={cardStyle}
                       />
                     ))}
                   </div>
