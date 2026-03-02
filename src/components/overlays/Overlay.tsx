@@ -1,4 +1,6 @@
 import React from 'react';
+import { ThemeColors } from '@/utils/themeColors';
+import { useTheme } from '@/hooks/useTheme';
 import {
   formatElapsedTime,
   formatWinStats,
@@ -20,6 +22,21 @@ export const overlayStyle: React.CSSProperties = {
   padding: 24,
   textAlign: 'center',
 };
+
+export const getOverlayStyle = (colors: ThemeColors): React.CSSProperties => ({
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: colors.game.overlay,
+  backdropFilter: 'blur(8px)',
+  borderRadius: 18,
+  zIndex: 10,
+  padding: 24,
+  textAlign: 'center',
+});
 
 export const btnPrimary: React.CSSProperties = {
   padding: 'clamp(9px, 2.5vw, 12px) clamp(14px, 4vw, 22px)',
@@ -75,18 +92,20 @@ function IdleOverlay({
   levelName,
   onStart,
   solutionMessage,
+  colors,
 }: {
   readonly levelName: string;
   readonly onStart: () => void;
   readonly solutionMessage: string;
+  readonly colors: ThemeColors;
 }) {
   return (
-    <div style={overlayStyle}>
-      <div style={{ fontSize: 11, color: '#3a3a55', letterSpacing: '0.2em', marginBottom: 8 }}>
+    <div style={getOverlayStyle(colors)}>
+      <div style={{ fontSize: 11, color: colors.text.tertiary, letterSpacing: '0.2em', marginBottom: 8 }}>
         READY
       </div>
-      <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>{levelName}</div>
-      <div style={{ fontSize: 10, color: '#25253a', marginBottom: 28 }}>{solutionMessage}</div>
+      <div style={{ fontSize: 22, fontWeight: 900, color: colors.text.primary, marginBottom: 6 }}>{levelName}</div>
+      <div style={{ fontSize: 10, color: colors.text.tertiary, marginBottom: 28 }}>{solutionMessage}</div>
       <button onClick={onStart} style={btnPrimary}>
         START
       </button>
@@ -107,6 +126,7 @@ function WinOverlay({
   onRetry,
   onMenu,
   onReplay,
+  colors,
 }: {
   readonly winTitle: string;
   readonly finalScore?: number;
@@ -119,19 +139,20 @@ function WinOverlay({
   readonly onRetry: () => void;
   readonly onMenu: () => void;
   readonly onReplay?: () => void;
+  readonly colors: ThemeColors;
 }) {
   const marginTopButtons = levelRecord ? 0 : 14;
   return (
-    <div style={overlayStyle} data-testid="win-overlay">
+    <div style={getOverlayStyle(colors)} data-testid="win-overlay">
       <div style={{ fontSize: 32, marginBottom: 4 }}>✦</div>
-      <div style={{ fontSize: 20, fontWeight: 900, color: '#22c55e', marginBottom: 4 }}>
+      <div style={{ fontSize: 20, fontWeight: 900, color: colors.status.success, marginBottom: 4 }}>
         {winTitle.toUpperCase()}
       </div>
-      <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
+      <div style={{ fontSize: 10, color: colors.text.tertiary, marginBottom: 6 }}>
         {formatWinStats(isScoreMode, finalScore, moves, timeStr)}
       </div>
       {levelRecord && levelRecord.attempts > 0 && (
-        <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: colors.text.tertiary, marginBottom: 16 }}>
           {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
         </div>
       )}
@@ -177,6 +198,7 @@ function LossOverlay({
   onRetry,
   onMenu,
   onReplay,
+  colors,
 }: {
   readonly lossTitle: string;
   readonly finalScore?: number;
@@ -188,20 +210,21 @@ function LossOverlay({
   readonly onRetry: () => void;
   readonly onMenu: () => void;
   readonly onReplay?: () => void;
+  readonly colors: ThemeColors;
 }) {
   const marginTopButtons = levelRecord ? 0 : 14;
   const shouldShowScore = finalScore !== undefined && targetScore === undefined && finalScore > 0;
-  const titleColor = newHighScore ? '#fbbf24' : '#ef4444';
+  const titleColor = newHighScore ? colors.status.warning : colors.status.error;
   const overlayIcon = newHighScore ? '🏆' : '✕';
 
   return (
-    <div style={overlayStyle}>
+    <div style={getOverlayStyle(colors)}>
       <div style={{ fontSize: 32, marginBottom: 4 }}>{overlayIcon}</div>
       {newHighScore && (
         <div
           style={{
             fontSize: 10,
-            color: '#fbbf24',
+            color: colors.status.warning,
             letterSpacing: '0.12em',
             fontWeight: 800,
             marginBottom: 4,
@@ -221,15 +244,15 @@ function LossOverlay({
         {lossTitle.toUpperCase()}
       </div>
       {shouldShowScore && (
-        <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 4 }}>
+        <div style={{ fontSize: 22, fontWeight: 900, color: colors.text.primary, marginBottom: 4 }}>
           {finalScore.toLocaleString()} pts
         </div>
       )}
-      <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 6 }}>
+      <div style={{ fontSize: 10, color: colors.text.tertiary, marginBottom: 6 }}>
         {formatLossStats(isScoreMode, moves)}
       </div>
       {levelRecord && levelRecord.attempts > 0 && (
-        <div style={{ fontSize: 10, color: '#25253a', marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: colors.text.tertiary, marginBottom: 16 }}>
           {formatLevelRecord(levelRecord.wins, levelRecord.attempts)}
         </div>
       )}
@@ -278,6 +301,7 @@ export function Overlay({
   onReplay,
   newHighScore,
 }: OverlayProps) {
+  const { colors } = useTheme();
   const timeStr = formatElapsedTime(elapsedSeconds);
   const isScoreMode = targetScore !== undefined;
 
@@ -292,7 +316,7 @@ export function Overlay({
 
   if (status === 'idle')
     return (
-      <IdleOverlay levelName={levelName} onStart={onStart} solutionMessage={solutionMessage} />
+      <IdleOverlay levelName={levelName} onStart={onStart} solutionMessage={solutionMessage} colors={colors} />
     );
   if (status === 'won')
     return (
@@ -308,6 +332,7 @@ export function Overlay({
         onRetry={onRetry}
         onMenu={onMenu}
         onReplay={onReplay}
+        colors={colors}
       />
     );
   if (status === 'lost')
@@ -323,6 +348,7 @@ export function Overlay({
         onRetry={onRetry}
         onMenu={onMenu}
         onReplay={onReplay}
+        colors={colors}
       />
     );
   return null;

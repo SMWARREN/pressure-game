@@ -1,3 +1,5 @@
+import { useTheme } from '@/hooks/useTheme';
+
 export interface FeatureInfo {
   icon: string;
   name: string;
@@ -10,6 +12,8 @@ export interface FeatureInfoSheetProps {
 }
 
 export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
+  const { colors } = useTheme();
+
   if (!feature) return null;
 
   return (
@@ -18,7 +22,7 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.6)',
+        background: 'rgba(0,0,0,0.3)',
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',
@@ -37,8 +41,8 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
     >
       <div
         style={{
-          background: '#0d0d1a',
-          border: '1px solid #2a2a45',
+          background: colors.bg.secondary,
+          border: `1px solid ${colors.border.secondary}`,
           borderRadius: '16px 16px 0 0',
           padding: '24px 24px 36px',
           width: '100%',
@@ -49,13 +53,13 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
         }}
       >
         <div style={{ fontSize: 40, marginBottom: 8 }}>{feature.icon}</div>
-        <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 10 }}>
+        <div style={{ fontSize: 16, fontWeight: 900, color: colors.text.primary, marginBottom: 10 }}>
           {feature.name}
         </div>
         <div
           style={{
             fontSize: 13,
-            color: '#9999bb',
+            color: colors.text.secondary,
             lineHeight: 1.6,
             marginBottom: 20,
           }}
@@ -69,10 +73,10 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
             onClose();
           }}
           style={{
-            background: '#1e1e35',
-            border: '1px solid #3a3a60',
+            background: colors.bg.tertiary,
+            border: `1px solid ${colors.border.primary}`,
             borderRadius: 8,
-            color: '#fff',
+            color: colors.text.primary,
             fontSize: 13,
             fontWeight: 700,
             padding: '10px 32px',

@@ -9,6 +9,7 @@ import type { ReplayEngine, ReplaySnapshot } from '@/game/stats/replay';
 import type { GameEndEvent } from '@/game/stats/types';
 import { getGapValue, calculateTileSize, calculateBoardWidth } from './GameTileUtils';
 import { getStatusColor } from '@/utils/statusColors';
+import { useTheme } from '@/hooks/useTheme';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PROPS
@@ -95,14 +96,14 @@ function useReplayState(engine: ReplayEngine) {
 }
 
 // Helper to compute button styles
-function getCtrlButtonStyles() {
+function getCtrlButtonStyles(borderColor: string, textColor: string) {
   const ctrlBtn: React.CSSProperties = {
     width: 44,
     height: 44,
     borderRadius: 10,
-    border: '1px solid #1e1e35',
+    border: `1px solid ${borderColor}`,
     background: 'rgba(255,255,255,0.04)',
-    color: '#a5b4fc',
+    color: textColor,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -142,7 +143,8 @@ function PlaybackControls({
   onGoToEnd,
   onSpeedChange,
 }: PlaybackControlsProps) {
-  const { ctrlBtn, ctrlBtnDisabled } = getCtrlButtonStyles();
+  const { colors } = useTheme();
+  const { ctrlBtn, ctrlBtnDisabled } = getCtrlButtonStyles(colors.border.secondary, colors.status.info);
 
   return (
     <div
@@ -219,8 +221,8 @@ function PlaybackControls({
           fontSize: 12,
           fontWeight: 800,
           letterSpacing: '0.04em',
-          color: '#fbbf24',
-          border: '1px solid #fbbf2440',
+          color: colors.status.warning,
+          border: `1px solid ${colors.status.warning}40`,
         }}
         title="Playback speed"
       >
@@ -231,6 +233,7 @@ function PlaybackControls({
 }
 
 export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayProps) {
+  const { colors } = useTheme();
   const { step, setStep, playing, setPlaying, speedIdx, setSpeedIdx, vw, goTo } = useReplayState(engine);
 
   const snapshot: ReplaySnapshot = engine.snapshots[step];
@@ -261,13 +264,13 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(6,6,15,0.97)',
+        background: colors.game.overlay,
         zIndex: 100,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        color: '#fff',
+        color: colors.text.primary,
         userSelect: 'none',
         WebkitUserSelect: 'none',
         overflow: 'hidden',
@@ -282,8 +285,8 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
           alignItems: 'center',
           gap: 12,
           padding: 'max(14px, env(safe-area-inset-top)) 16px 14px',
-          borderBottom: '1px solid #12122a',
-          background: 'rgba(6,6,15,0.9)',
+          borderBottom: `1px solid ${colors.border.primary}`,
+          background: colors.game.footer,
         }}
       >
         {/* Mode icon + level name */}
@@ -301,7 +304,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
           >
             {engine.level.name}
           </div>
-          <div style={{ fontSize: 10, color: '#3a3a55', letterSpacing: '0.15em', marginTop: 1 }}>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.15em', marginTop: 1 }}>
             {mode.name.toUpperCase()} · REPLAY
           </div>
         </div>
@@ -340,9 +343,9 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
             width: 36,
             height: 36,
             borderRadius: 8,
-            border: '1px solid #1e1e35',
-            background: 'rgba(255,255,255,0.03)',
-            color: '#3a3a55',
+            border: `1px solid ${colors.border.secondary}`,
+            background: `${colors.bg.primary}20`,
+            color: colors.text.tertiary,
             cursor: 'pointer',
             fontSize: 18,
             display: 'flex',
@@ -371,16 +374,16 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
             fontSize: 13,
             fontWeight: 900,
             letterSpacing: '0.06em',
-            color: '#a5b4fc',
+            color: colors.status.info,
           }}
         >
           {step === 0 ? 'START' : `MOVE ${step} / ${totalMoves}`}
         </div>
         {snapshot.elapsed > 0 && (
-          <div style={{ fontSize: 10, color: '#3a3a55' }}>{fmtElapsed(snapshot.elapsed)}</div>
+          <div style={{ fontSize: 10, color: colors.text.tertiary }}>{fmtElapsed(snapshot.elapsed)}</div>
         )}
         {event.score > 0 && snapshot.score > 0 && (
-          <div style={{ fontSize: 11, color: '#fbbf24', fontWeight: 700 }}>
+          <div style={{ fontSize: 11, color: colors.status.warning, fontWeight: 700 }}>
             {snapshot.score} pts
           </div>
         )}
@@ -402,10 +405,10 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
             position: 'relative',
             width: boardW,
             height: boardW,
-            background: 'linear-gradient(145deg, #0a0a16, #07070e)',
+            background: `linear-gradient(145deg, ${colors.bg.board}, ${colors.bg.primary})`,
             borderRadius: 18,
             padding: 8,
-            border: '2px solid #12122a',
+            border: `2px solid ${colors.border.primary}`,
             boxShadow: '0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)',
             flexShrink: 0,
           }}
@@ -439,7 +442,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
         <div
           style={{
             height: 3,
-            background: '#0d0d1f',
+            background: colors.bg.secondary,
             borderRadius: 2,
             overflow: 'hidden',
           }}
@@ -448,7 +451,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
             style={{
               height: '100%',
               width: totalMoves > 0 ? `${(step / totalMoves) * 100}%` : '0%',
-              background: '#a5b4fc',
+              background: colors.status.info,
               borderRadius: 2,
               transition: 'width 0.15s ease',
             }}

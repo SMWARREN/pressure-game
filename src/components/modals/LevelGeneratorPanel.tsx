@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { generateLevel, verifyLevel } from '@/game/levels';
 import { LoadingSpinner } from '../game/LoadingSpinner';
 import { btnPrimary } from '../overlays/Overlay';
+import { useTheme } from '@/hooks/useTheme';
 
 /**
  * Get decoy count for difficulty level (replaces nested ternary)
@@ -20,6 +21,7 @@ export interface LevelGeneratorPanelProps {
 }
 
 export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
+  const { colors } = useTheme();
   const { addGeneratedLevel, generatedLevels, deleteGeneratedLevel } = useGameStore(
     useShallow((s) => ({
       addGeneratedLevel: s.addGeneratedLevel,
@@ -40,7 +42,7 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
   } | null>(null);
 
   const maxNodes = Math.floor(((gridSize - 2) * (gridSize - 2)) / 2);
-  const diff = { easy: '#22c55e', medium: '#f59e0b', hard: '#ef4444' };
+  const diff = { easy: colors.status.success, medium: colors.status.warning, hard: colors.status.error };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -92,10 +94,10 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
         style={{
           display: 'flex',
           gap: 6,
-          background: '#07070e',
+          background: colors.bg.tertiary,
           borderRadius: 12,
           padding: 4,
-          border: '1px solid #12122a',
+          border: `1px solid ${colors.border.primary}`,
         }}
       >
         {(
@@ -113,8 +115,8 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
               borderRadius: 8,
               border: 'none',
               cursor: 'pointer',
-              background: tab === t ? '#14142a' : 'transparent',
-              color: tab === t ? '#a5b4fc' : '#3a3a55',
+              background: tab === t ? colors.bg.secondary : 'transparent',
+              color: tab === t ? colors.status.info : colors.text.tertiary,
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: '0.04em',
@@ -131,7 +133,7 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
           {/* Grid Size */}
           <div>
             <div
-              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}
+              style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.2em', marginBottom: 8 }}
             >
               GRID SIZE: {gridSize}×{gridSize}
             </div>
@@ -141,13 +143,13 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
               max={10}
               value={gridSize}
               onChange={(e) => setGridSize(+e.target.value)}
-              style={{ width: '100%', accentColor: '#6366f1' }}
+              style={{ width: '100%', accentColor: colors.status.info }}
             />
           </div>
           {/* Node Count */}
           <div>
             <div
-              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}
+              style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.2em', marginBottom: 8 }}
             >
               NODES: {Math.min(nodeCount, maxNodes)}
             </div>
@@ -157,13 +159,13 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
               max={Math.max(2, maxNodes)}
               value={Math.min(nodeCount, maxNodes)}
               onChange={(e) => setNodeCount(+e.target.value)}
-              style={{ width: '100%', accentColor: '#6366f1' }}
+              style={{ width: '100%', accentColor: colors.status.info }}
             />
           </div>
           {/* Difficulty */}
           <div>
             <div
-              style={{ fontSize: 10, color: '#25253a', letterSpacing: '0.2em', marginBottom: 8 }}
+              style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.2em', marginBottom: 8 }}
             >
               DIFFICULTY
             </div>
@@ -176,10 +178,10 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
                     flex: 1,
                     padding: '10px 4px',
                     borderRadius: 10,
-                    border: `1.5px solid ${difficulty === d ? diff[d] + '60' : '#12122a'}`,
-                    background: difficulty === d ? diff[d] + '12' : '#07070e',
+                    border: `1.5px solid ${difficulty === d ? diff[d] + '60' : colors.border.primary}`,
+                    background: difficulty === d ? diff[d] + '12' : colors.bg.tertiary,
                     cursor: 'pointer',
-                    color: difficulty === d ? diff[d] : '#3a3a55',
+                    color: difficulty === d ? diff[d] : colors.text.tertiary,
                     fontSize: 'clamp(10px, 2.8vw, 11px)',
                     fontWeight: 700,
                     letterSpacing: '0.06em',
@@ -201,9 +203,9 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
                 fontSize: 12,
                 fontWeight: 600,
                 textAlign: 'center',
-                background: result.success ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                border: `1px solid ${result.success ? '#22c55e40' : '#ef444440'}`,
-                color: result.success ? '#22c55e' : '#ef4444',
+                background: result.success ? `${colors.status.success}12` : `${colors.status.error}12`,
+                border: `1px solid ${result.success ? colors.status.success + '40' : colors.status.error + '40'}`,
+                color: result.success ? colors.status.success : colors.status.error,
               }}
             >
               {result.message}
@@ -237,7 +239,7 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
       {tab === 'saved' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {generatedLevels.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 32, color: '#25253a', fontSize: 13 }}>
+            <div style={{ textAlign: 'center', padding: 32, color: colors.text.tertiary, fontSize: 13 }}>
               No saved levels yet
             </div>
           ) : (
@@ -248,15 +250,15 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
-                  background: '#07070e',
+                  background: colors.bg.tertiary,
                   borderRadius: 12,
                   padding: '12px 14px',
-                  border: '1px solid #12122a',
+                  border: `1px solid ${colors.border.primary}`,
                 }}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>{lvl.name}</div>
-                  <div style={{ fontSize: 10, color: '#3a3a55' }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: colors.text.primary, marginBottom: 2 }}>{lvl.name}</div>
+                  <div style={{ fontSize: 10, color: colors.text.tertiary }}>
                     {lvl.gridSize}×{lvl.gridSize} · {lvl.goalNodes.length} goals
                   </div>
                 </div>
@@ -272,9 +274,9 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
                     style={{
                       padding: '8px 12px',
                       borderRadius: 10,
-                      border: '1.5px solid #ef444440',
-                      background: 'rgba(239,68,68,0.06)',
-                      color: '#ef4444',
+                      border: `1.5px solid ${colors.status.error}40`,
+                      background: `${colors.status.error}10`,
+                      color: colors.status.error,
                       fontSize: 12,
                       fontWeight: 700,
                       cursor: 'pointer',

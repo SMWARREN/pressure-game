@@ -1,4 +1,5 @@
-import { btnPrimary, btnSecondary, overlayStyle } from '@/components/overlays/Overlay';
+import { btnPrimary, btnSecondary, getOverlayStyle } from '@/components/overlays/Overlay';
+import { useTheme } from '@/hooks/useTheme';
 
 export interface PauseOverlayProps {
   readonly onResume: () => void;
@@ -6,11 +7,13 @@ export interface PauseOverlayProps {
 }
 
 export function PauseOverlay({ onResume, onMenu }: PauseOverlayProps) {
+  const { colors } = useTheme();
+
   return (
-    <div style={overlayStyle}>
+    <div style={getOverlayStyle(colors)}>
       <div style={{ fontSize: 32, marginBottom: 8 }}>⏸</div>
-      <div style={{ fontSize: 20, fontWeight: 900, color: '#a5b4fc', marginBottom: 8 }}>PAUSED</div>
-      <div style={{ fontSize: 10, color: '#3a3a55', marginBottom: 24 }}>
+      <div style={{ fontSize: 20, fontWeight: 900, color: colors.status.info, marginBottom: 8 }}>PAUSED</div>
+      <div style={{ fontSize: 10, color: colors.text.tertiary, marginBottom: 24 }}>
         Take a break — your game is waiting
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>

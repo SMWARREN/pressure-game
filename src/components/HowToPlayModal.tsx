@@ -6,6 +6,7 @@ import { useGameStore } from '../game/store';
 import { getModeById } from '../game/modes';
 import { TutorialStep, TutorialDemoType } from '../game/types';
 import { getStepBackground } from './game/GameTileUtils';
+import { useTheme } from '@/hooks/useTheme';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DEMO VISUAL WRAPPER
@@ -92,6 +93,7 @@ interface HowToPlayModalProps {
 }
 
 export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
+  const { colors } = useTheme();
   const currentModeId = useGameStore((s) => s.currentModeId);
   const mode = getModeById(currentModeId);
   const steps: TutorialStep[] = mode.tutorialSteps ?? FALLBACK_STEPS;
@@ -115,7 +117,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.7)',
+          background: 'rgba(0,0,0,0.3)',
           backdropFilter: 'blur(4px)',
           zIndex: 100,
           border: 'none',
@@ -144,7 +146,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
             maxWidth: 380,
             maxHeight: '90vh',
             overflowY: 'auto',
-            background: 'linear-gradient(145deg, #0b0b1a 0%, #07070e 100%)',
+            background: `linear-gradient(145deg, ${colors.bg.secondary} 0%, ${colors.bg.primary} 100%)`,
             borderRadius: 20,
             border: `1px solid ${accentColor}20`,
             padding: 'clamp(18px, 4vw, 28px) clamp(16px, 4vw, 24px)',
@@ -185,9 +187,9 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
                 width: 32,
                 height: 32,
                 borderRadius: 8,
-                border: '1px solid #1a1a2e',
-                background: 'rgba(255,255,255,0.02)',
-                color: '#3a3a55',
+                border: `1px solid ${colors.border.primary}`,
+                background: `${colors.bg.tertiary}40`,
+                color: colors.text.tertiary,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -262,7 +264,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
             <div
               style={{
                 fontSize: 'clamp(11px, 3vw, 12px)',
-                color: '#3a3a55',
+                color: colors.text.tertiary,
                 letterSpacing: '0.04em',
               }}
             >
@@ -277,9 +279,9 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
               justifyContent: 'center',
               padding: 'clamp(12px, 3vw, 18px) 8px',
               marginBottom: 'clamp(12px, 3vw, 18px)',
-              background: 'rgba(0,0,0,0.3)',
+              background: `${colors.bg.primary}40`,
               borderRadius: 14,
-              border: '1px solid #0e0e1e',
+              border: `1px solid ${colors.border.primary}`,
               overflowX: 'auto',
             }}
           >
@@ -289,7 +291,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
           {/* Body text */}
           <div
             style={{
-              background: 'rgba(0,0,0,0.2)',
+              background: `${colors.bg.primary}30`,
               borderRadius: 12,
               padding: 'clamp(12px, 3vw, 16px)',
               marginBottom: 'clamp(14px, 3vw, 20px)',
@@ -298,7 +300,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
             <p
               style={{
                 fontSize: 'clamp(12px, 3.2vw, 13px)',
-                color: '#4a4a6a',
+                color: colors.text.secondary,
                 lineHeight: 1.8,
                 margin: 0,
                 whiteSpace: 'pre-line',
@@ -317,9 +319,9 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
                   flex: 1,
                   padding: '14px 0',
                   borderRadius: 12,
-                  border: '1px solid #1a1a2e',
-                  background: 'rgba(255,255,255,0.01)',
-                  color: '#3a3a55',
+                  border: `1px solid ${colors.border.primary}`,
+                  background: `${colors.bg.tertiary}20`,
+                  color: colors.text.tertiary,
                   fontSize: 'clamp(13px, 3.5vw, 14px)',
                   fontWeight: 600,
                   cursor: 'pointer',

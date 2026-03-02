@@ -11,6 +11,7 @@ import type { GameModeConfig } from '../game/types';
 import { Toggle } from './modals/Toggle';
 import { ModeCard } from './modals/ModeCard';
 import { GroupHeader } from './modals/GroupHeader';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ModeSelectorModalProps {
   readonly visible: boolean;
@@ -25,6 +26,7 @@ const PRESSURE_MODE_IDS = new Set(['classic', 'blitz', 'zen']);
 const ARCADE_MODE_IDS = new Set(['candy', 'shoppingSpree', 'gemBlast']);
 
 export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModalProps) {
+  const { colors } = useTheme();
   const currentModeId = useGameStore((s) => s.currentModeId);
   const setGameMode = useGameStore((s) => s.setGameMode);
   const compressionOverride = useGameStore((s) => s.compressionOverride);
@@ -72,7 +74,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           position: 'fixed',
           inset: 0,
           zIndex: 50,
-          background: 'rgba(0,0,0,0.75)',
+          background: 'rgba(0,0,0,0.3)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
           border: 'none',
@@ -90,9 +92,9 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           left: 0,
           right: 0,
           zIndex: 51,
-          background: 'linear-gradient(180deg, #0d0d1e 0%, #06060f 100%)',
+          background: `linear-gradient(180deg, ${colors.bg.secondary} 0%, ${colors.bg.primary} 100%)`,
           borderRadius: '20px 20px 0 0',
-          border: '1px solid #12122a',
+          border: `1px solid ${colors.border.primary}`,
           borderBottom: 'none',
           padding: 'clamp(16px, 4vw, 24px)',
           paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
@@ -115,7 +117,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
             width: 36,
             height: 4,
             borderRadius: 2,
-            background: '#2a2a3e',
+            background: colors.border.secondary,
             margin: '0 auto 20px',
           }}
         />
@@ -130,8 +132,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           }}
         >
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.01em' }}>Game Mode</div>
-            <div style={{ fontSize: 11, color: '#3a3a55', marginTop: 2 }}>
+            <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.01em', color: colors.text.primary }}>Game Mode</div>
+            <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
               Choose how you want to play
             </div>
           </div>
@@ -142,8 +144,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
               height: 32,
               borderRadius: '50%',
               border: 'none',
-              background: '#12122a',
-              color: '#3a3a55',
+              background: colors.border.primary,
+              color: colors.text.tertiary,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -191,8 +193,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                       gap: 12,
                       padding: '14px 16px',
                       borderRadius: 14,
-                      border: `1.5px solid ${pressureActive ? '#a78bfa30' : '#12122a'}`,
-                      background: pressureActive ? '#a78bfa08' : '#07070e',
+                      border: `1.5px solid ${pressureActive ? '#a78bfa30' : colors.border.primary}`,
+                      background: pressureActive ? '#a78bfa08' : colors.bg.tertiary,
                       cursor: 'pointer',
                       textAlign: 'left',
                       width: '100%',
@@ -209,7 +211,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                           fontWeight: 900,
                           letterSpacing: '0.1em',
                           color: '#fff',
-                          background: '#6366f1',
+                          background: colors.status.info,
                           padding: '2px 6px',
                           borderRadius: 4,
                         }}
@@ -223,17 +225,17 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                         style={{
                           fontSize: 14,
                           fontWeight: 800,
-                          color: pressureActive ? '#a78bfa' : '#2a2a3e',
+                          color: pressureActive ? '#a78bfa' : colors.text.tertiary,
                           marginBottom: 3,
                         }}
                       >
                         Pressure Hub
                       </div>
-                      <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 11, color: colors.text.tertiary, lineHeight: 1.4 }}>
                         Classic · Blitz · Zen
                       </div>
                     </div>
-                    <span style={{ fontSize: 16, color: '#2a2a3e' }}>›</span>
+                    <span style={{ fontSize: 16, color: colors.text.tertiary }}>›</span>
                   </button>
                 </div>
               );
@@ -263,8 +265,8 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                       gap: 12,
                       padding: '14px 16px',
                       borderRadius: 14,
-                      border: `1.5px solid ${arcadeActive ? '#f472b630' : '#12122a'}`,
-                      background: arcadeActive ? '#f472b608' : '#07070e',
+                      border: `1.5px solid ${arcadeActive ? '#f472b630' : colors.border.primary}`,
+                      background: arcadeActive ? '#f472b608' : colors.bg.tertiary,
                       cursor: 'pointer',
                       textAlign: 'left',
                       width: '100%',
@@ -281,7 +283,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                           fontWeight: 900,
                           letterSpacing: '0.1em',
                           color: '#fff',
-                          background: '#6366f1',
+                          background: colors.status.info,
                           padding: '2px 6px',
                           borderRadius: 4,
                         }}
@@ -295,17 +297,17 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                         style={{
                           fontSize: 14,
                           fontWeight: 800,
-                          color: arcadeActive ? '#f472b6' : '#2a2a3e',
+                          color: arcadeActive ? '#f472b6' : colors.text.tertiary,
                           marginBottom: 3,
                         }}
                       >
                         Arcade Hub
                       </div>
-                      <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 11, color: colors.text.tertiary, lineHeight: 1.4 }}>
                         Candy · Shopping Spree · Gem Blast
                       </div>
                     </div>
-                    <span style={{ fontSize: 16, color: '#2a2a3e' }}>›</span>
+                    <span style={{ fontSize: 16, color: colors.text.tertiary }}>›</span>
                   </button>
                 </div>
               );
@@ -361,16 +363,16 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
               justifyContent: 'space-between',
               padding: '12px 16px',
               borderRadius: 12,
-              border: '1px solid #12122a',
-              background: '#07070e',
+              border: `1px solid ${colors.border.primary}`,
+              background: colors.bg.tertiary,
               marginBottom: 8,
             }}
           >
             <div>
-              <div style={{ fontSize: 13, color: '#3a3a55', fontWeight: 700 }}>
+              <div style={{ fontSize: 13, color: colors.text.tertiary, fontWeight: 700 }}>
                 Wall Compression
               </div>
-              <div style={{ fontSize: 10, color: '#1e1e35', marginTop: 2 }}>
+              <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 2 }}>
                 Toggle walls on/off for this mode
               </div>
             </div>
@@ -384,7 +386,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
 
         {/* Tutorial replay hint */}
         <div style={{ textAlign: 'center', paddingTop: 4 }}>
-          <div style={{ fontSize: 10, color: '#1e1e35', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, lineHeight: 1.5 }}>
             Switching to a new mode shows its tutorial first
           </div>
         </div>
