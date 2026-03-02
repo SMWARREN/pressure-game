@@ -151,19 +151,20 @@ export const MemoryMatchMode: GameModeConfig = {
 
       // ── FACE-DOWN — dark mystery tile ─────────────────────────────────
       const inDanger = ctx.inDanger;
+      const lightBg = inDanger ? 'linear-gradient(145deg, #fee2e2, #fecaca)' : 'linear-gradient(145deg, #f0f9ff, #e0f2fe)';
+      const darkBg = inDanger ? 'linear-gradient(145deg, #1a0a0a, #0d0010)' : 'linear-gradient(145deg, #0f0e1a, #080812)';
+      const lightBorder = inDanger ? '1px solid #dc262644' : '1px solid #0284c744';
+      const darkBorder = inDanger ? '1px solid #7f1d1d44' : `1px solid ${ACCENT}22`;
+
       return ctx.theme === 'light'
         ? {
-            background: inDanger
-              ? 'linear-gradient(145deg, #fee2e2, #fecaca)'
-              : 'linear-gradient(145deg, #f0f9ff, #e0f2fe)',
-            border: inDanger ? '1px solid #dc262644' : `1px solid #0284c744`,
+            background: lightBg,
+            border: lightBorder,
             boxShadow: ctx.isHint ? `0 0 16px rgba(2,132,199,0.6)` : undefined,
           }
         : {
-            background: inDanger
-              ? 'linear-gradient(145deg, #1a0a0a, #0d0010)'
-              : 'linear-gradient(145deg, #0f0e1a, #080812)',
-            border: inDanger ? '1px solid #7f1d1d44' : `1px solid ${ACCENT}22`,
+            background: darkBg,
+            border: darkBorder,
             boxShadow: ctx.isHint ? `0 0 16px ${ACCENT}88` : undefined,
           };
     },

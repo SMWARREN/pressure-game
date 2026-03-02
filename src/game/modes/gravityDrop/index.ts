@@ -317,8 +317,8 @@ export const GravityDropMode: GameModeConfig = {
       const colors = getValColors(ctx.theme);
 
       if (d.special === 'bomb') {
-        return d.inChain
-          ? ctx.theme === 'light'
+        if (d.inChain) {
+          return ctx.theme === 'light'
             ? {
                 background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
                 border: '2px solid #dc2626',
@@ -328,23 +328,24 @@ export const GravityDropMode: GameModeConfig = {
                 background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
                 border: '2px solid #ef4444',
                 boxShadow: '0 0 18px #ef4444aa',
-              }
-          : ctx.theme === 'light'
-            ? {
-                background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
-                border: '1px solid rgba(220,38,38,0.3)',
-                boxShadow: undefined,
-              }
-            : {
-                background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
-                border: '1px solid #ef444455',
-                boxShadow: undefined,
               };
+        }
+        return ctx.theme === 'light'
+          ? {
+              background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
+              border: '1px solid rgba(220,38,38,0.3)',
+              boxShadow: undefined,
+            }
+          : {
+              background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
+              border: '1px solid #ef444455',
+              boxShadow: undefined,
+            };
       }
 
       if (d.special === 'star') {
-        return d.inChain
-          ? ctx.theme === 'light'
+        if (d.inChain) {
+          return ctx.theme === 'light'
             ? {
                 background: 'linear-gradient(145deg, #fef3c7, #fde047)',
                 border: '2px solid #ca8a04',
@@ -354,18 +355,19 @@ export const GravityDropMode: GameModeConfig = {
                 background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
                 border: '2px solid #fbbf24',
                 boxShadow: '0 0 18px #fbbf24aa',
-              }
-          : ctx.theme === 'light'
-            ? {
-                background: 'linear-gradient(145deg, #fef3c7, #fde047)',
-                border: '1px solid rgba(202,138,4,0.3)',
-                boxShadow: undefined,
-              }
-            : {
-                background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
-                border: '1px solid #fbbf2455',
-                boxShadow: undefined,
               };
+        }
+        return ctx.theme === 'light'
+          ? {
+              background: 'linear-gradient(145deg, #fef3c7, #fde047)',
+              border: '1px solid rgba(202,138,4,0.3)',
+              boxShadow: undefined,
+            }
+          : {
+              background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+              border: '1px solid #fbbf2455',
+              boxShadow: undefined,
+            };
       }
 
       if (d.special === 'lock') {

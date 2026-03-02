@@ -416,17 +416,13 @@ export const CandyMode: GameModeConfig = {
 
       // New tiles (just dropped in) get a bright indigo glow that fades out after ~1.5s
       if (tile.displayData?.isNew) {
-        return ctx.theme === 'light'
-          ? {
-              background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
-              border: '2px solid #4f46e5',
-              boxShadow: '0 0 18px rgba(79,70,229,0.5), 0 0 6px rgba(79,70,229,0.3)',
-            }
-          : {
-              background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
-              border: '2px solid #a5b4fc',
-              boxShadow: '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
-            };
+        return {
+          background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
+          border: `2px solid ${ctx.theme === 'light' ? '#4f46e5' : '#a5b4fc'}`,
+          boxShadow: ctx.theme === 'light'
+            ? '0 0 18px rgba(79,70,229,0.5), 0 0 6px rgba(79,70,229,0.3)'
+            : '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
+        };
       }
 
       return {

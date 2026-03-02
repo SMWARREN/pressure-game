@@ -48,7 +48,7 @@ export class PersistenceSystem {
         seenTutorials:
           p.seenTutorials || (p.showTutorial === false ? [DEFAULT_PERSISTED.currentModeId] : []),
         animationsEnabled: p.animationsEnabled !== false,
-        theme: (p.theme === 'light' ? 'light' : 'dark') as 'light' | 'dark',
+        theme: p.theme === 'light' ? 'light' : 'dark',
         lastPlayedLevelId: p.lastPlayedLevelId ?? {},
         editorEnabled: p.editorEnabled ?? false,
       };
