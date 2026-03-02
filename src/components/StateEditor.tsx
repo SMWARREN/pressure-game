@@ -16,8 +16,12 @@ import {
   getStatusBorderColor,
   getStatusTextColor,
 } from './game/GameTileUtils';
-import { useStateEditorLogic, type HistorySnapshot, type StatePreset, usePresetManagement } from './hooks/useStateEditorLogic';
-
+import {
+  useStateEditorLogic,
+  type HistorySnapshot,
+  type StatePreset,
+  usePresetManagement,
+} from './hooks/useStateEditorLogic';
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];
 
@@ -279,7 +283,18 @@ export const StateEditor: React.FC = () => {
       currentModeId,
       status,
     };
-  }, [tiles, moves, score, elapsedSeconds, wallOffset, timeUntilCompression, modeState, currentLevel, currentModeId, status]);
+  }, [
+    tiles,
+    moves,
+    score,
+    elapsedSeconds,
+    wallOffset,
+    timeUntilCompression,
+    modeState,
+    currentLevel,
+    currentModeId,
+    status,
+  ]);
 
   // Export state as JSON
   const exportState = useCallback(() => {

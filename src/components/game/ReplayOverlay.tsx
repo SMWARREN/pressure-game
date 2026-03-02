@@ -144,7 +144,10 @@ function PlaybackControls({
   onSpeedChange,
 }: PlaybackControlsProps) {
   const { colors } = useTheme();
-  const { ctrlBtn, ctrlBtnDisabled } = getCtrlButtonStyles(colors.border.secondary, colors.status.info);
+  const { ctrlBtn, ctrlBtnDisabled } = getCtrlButtonStyles(
+    colors.border.secondary,
+    colors.status.info
+  );
 
   return (
     <div
@@ -234,7 +237,8 @@ function PlaybackControls({
 
 export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayProps) {
   const { colors } = useTheme();
-  const { step, setStep, playing, setPlaying, speedIdx, setSpeedIdx, vw, goTo } = useReplayState(engine);
+  const { step, setStep, playing, setPlaying, speedIdx, setSpeedIdx, vw, goTo } =
+    useReplayState(engine);
 
   const snapshot: ReplaySnapshot = engine.snapshots[step];
   const { mode, gridSize, gap, tileSize, totalMoves, boardW, won } = computeReplayMetadata(
@@ -304,7 +308,14 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
           >
             {engine.level.name}
           </div>
-          <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.15em', marginTop: 1 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: colors.text.tertiary,
+              letterSpacing: '0.15em',
+              marginTop: 1,
+            }}
+          >
             {mode.name.toUpperCase()} · REPLAY
           </div>
         </div>
@@ -380,7 +391,9 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
           {step === 0 ? 'START' : `MOVE ${step} / ${totalMoves}`}
         </div>
         {snapshot.elapsed > 0 && (
-          <div style={{ fontSize: 10, color: colors.text.tertiary }}>{fmtElapsed(snapshot.elapsed)}</div>
+          <div style={{ fontSize: 10, color: colors.text.tertiary }}>
+            {fmtElapsed(snapshot.elapsed)}
+          </div>
         )}
         {event.score > 0 && snapshot.score > 0 && (
           <div style={{ fontSize: 11, color: colors.status.warning, fontWeight: 700 }}>

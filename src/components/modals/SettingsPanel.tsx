@@ -224,7 +224,9 @@ export function SettingsPanel({
           <span style={{ fontSize: 20 }}>❓</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#a5b4fc' }}>How to Play</div>
-            <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>Replay the tutorial</div>
+            <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+              Replay the tutorial
+            </div>
           </div>
           <span style={{ fontSize: 14, color: colors.text.tertiary }}>›</span>
         </button>

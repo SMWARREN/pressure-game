@@ -615,7 +615,17 @@ interface GenerationAttemptConfig {
 }
 
 function tryGenerateAttempt(config: GenerationAttemptConfig): Level | null {
-  const { attempt, gridCols, gridRows, nodeCount, dirConfig, interiorWallCount, branchCount, opts, params } = config;
+  const {
+    attempt,
+    gridCols,
+    gridRows,
+    nodeCount,
+    dirConfig,
+    interiorWallCount,
+    branchCount,
+    opts,
+    params,
+  } = config;
   const { tiles: wallTiles, borderSet } = createBorderWalls(gridCols, gridRows);
   const goalPositions = placeGoalNodes(gridCols, gridRows, nodeCount, dirConfig);
   if (!goalPositions) return null;

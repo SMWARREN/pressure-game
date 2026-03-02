@@ -644,16 +644,27 @@ interface ShoppingTapConfig {
 }
 
 function processShoppingTap(config: ShoppingTapConfig): TapResult | null {
-  const { x, y, tiles, gridSize, state, world: _world, features, gcols, grows, unlockState, minGroupSize, timeLeft } = config;
+  const {
+    x,
+    y,
+    tiles,
+    gridSize,
+    state,
+    world: _world,
+    features,
+    gcols,
+    grows,
+    unlockState,
+    minGroupSize,
+    timeLeft,
+  } = config;
   // Validate tap and find group
   const tileKey = `${x},${y}`;
   if (state.thiefPositions?.includes(tileKey)) {
     return { tiles, valid: false, scoreDelta: 0, customState: state };
   }
 
-  const group = features?.wildcards
-    ? findGroupWithWildcards(x, y, tiles)
-    : findGroup(x, y, tiles);
+  const group = features?.wildcards ? findGroupWithWildcards(x, y, tiles) : findGroup(x, y, tiles);
   if (group.length < 2) return null;
 
   // Calculate scores
@@ -700,9 +711,7 @@ function processShoppingTap(config: ShoppingTapConfig): TapResult | null {
     minGroupSize
   );
   const thiefScared = isNotEmpty(scaredThiefKeys);
-  const newThiefPositions = (state.thiefPositions || []).filter(
-    (pos) => !scaredThiefKeys.has(pos)
-  );
+  const newThiefPositions = (state.thiefPositions || []).filter((pos) => !scaredThiefKeys.has(pos));
 
   // Update flash sale
   const newFlashSaleTapsLeft = state.flashSaleTapsLeft > 0 ? state.flashSaleTapsLeft - 1 : 0;

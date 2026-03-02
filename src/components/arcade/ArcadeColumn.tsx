@@ -126,7 +126,14 @@ export function ArcadeColumn({
             >
               {def.title}
             </div>
-            <div style={{ fontSize: 9, color: colors.text.secondary, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+            <div
+              style={{
+                fontSize: 9,
+                color: colors.text.secondary,
+                lineHeight: 1.5,
+                whiteSpace: 'pre-line',
+              }}
+            >
               {def.tagline}
             </div>
           </div>

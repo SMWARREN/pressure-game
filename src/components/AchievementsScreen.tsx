@@ -94,7 +94,9 @@ function AchievementCard({ achievement, progress, colors, card }: AchievementCar
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: colors.text.tertiary }}>???</div>
-          <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4 }}>Hidden achievement</div>
+          <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4 }}>
+            Hidden achievement
+          </div>
         </div>
         <div
           style={{
@@ -359,7 +361,14 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
           <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.02em' }}>
             ACHIEVEMENTS
           </div>
-          <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.15em', marginTop: 1 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: colors.text.tertiary,
+              letterSpacing: '0.15em',
+              marginTop: 1,
+            }}
+          >
             {earnedCount}/{achievements.length} EARNED
           </div>
         </div>
@@ -372,8 +381,12 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 16, fontWeight: 900, color: colors.status.warning }}>{totalPoints}</div>
-          <div style={{ fontSize: 8, color: `${colors.status.warning}80`, letterSpacing: '0.1em' }}>POINTS</div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: colors.status.warning }}>
+            {totalPoints}
+          </div>
+          <div style={{ fontSize: 8, color: `${colors.status.warning}80`, letterSpacing: '0.1em' }}>
+            POINTS
+          </div>
         </div>
       </header>
 
@@ -398,7 +411,9 @@ export default function AchievementsScreen({ onBack }: AchievementsScreenProps) 
           <span>OVERALL PROGRESS</span>
           <span>{overallPct}%</span>
         </div>
-        <div style={{ height: 6, background: colors.bg.tertiary, borderRadius: 3, overflow: 'hidden' }}>
+        <div
+          style={{ height: 6, background: colors.bg.tertiary, borderRadius: 3, overflow: 'hidden' }}
+        >
           <div
             style={{
               height: '100%',

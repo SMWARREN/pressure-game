@@ -239,13 +239,16 @@ function renderCustomTile(props: CustomTileRenderProps): React.ReactElement {
   const appliedBg = rejectedStyle ?? customColors ?? bgStyle;
 
   const isOutbreak = tileRenderer.type === 'outbreak';
-  const { isNewTile, obOwned, obFrontier, obInterior } = computeOutbreakState(isOutbreak, displayData);
-
-  const { zpColor: _, zpShadowLo, zpShadowHi } = computeZpShadows(
-    customColors as Record<string, string> | undefined,
-    appliedBg,
-    obFrontier
+  const { isNewTile, obOwned, obFrontier, obInterior } = computeOutbreakState(
+    isOutbreak,
+    displayData
   );
+
+  const {
+    zpColor: _,
+    zpShadowLo,
+    zpShadowHi,
+  } = computeZpShadows(customColors as Record<string, string> | undefined, appliedBg, obFrontier);
 
   const outbreakAnimation = getOutbreakAnimation(
     isOutbreak,
@@ -313,7 +316,25 @@ function renderCustomTile(props: CustomTileRenderProps): React.ReactElement {
         connections.length > 0 &&
         type !== 'wall' &&
         type !== 'crushed' && (
-          <Pipes connections={connections} color={getConnColor({ type, isHint: false, inDanger: false, isDecoy: false, canRotate, tileSize })} glow={getConnGlow({ type, isHint: false, inDanger: false, isDecoy: false, canRotate, tileSize })} />
+          <Pipes
+            connections={connections}
+            color={getConnColor({
+              type,
+              isHint: false,
+              inDanger: false,
+              isDecoy: false,
+              canRotate,
+              tileSize,
+            })}
+            glow={getConnGlow({
+              type,
+              isHint: false,
+              inDanger: false,
+              isDecoy: false,
+              canRotate,
+              tileSize,
+            })}
+          />
         )}
     </button>
   );

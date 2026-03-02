@@ -178,7 +178,14 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
         >
           PRESSURE
         </div>
-        <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.25em', marginTop: 4 }}>
+        <div
+          style={{
+            fontSize: 10,
+            color: colors.text.tertiary,
+            letterSpacing: '0.25em',
+            marginTop: 4,
+          }}
+        >
           PIPE PUZZLE
         </div>
         <div style={{ marginTop: 10, width: '100%', maxWidth: 260 }}>
@@ -196,7 +203,14 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
             </span>
             <span>{pct}%</span>
           </div>
-          <div style={{ height: 4, background: colors.bg.tertiary, borderRadius: 2, overflow: 'hidden' }}>
+          <div
+            style={{
+              height: 4,
+              background: colors.bg.tertiary,
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
             <div
               style={{
                 height: '100%',
@@ -389,7 +403,10 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                   // Extract conditional world button styles (S3358: reduce nested ternaries)
                   const worldButtonStyles = active
                     ? { border: `1.5px solid ${wDef.color}60`, background: `${wDef.color}12` }
-                    : { border: `1.5px solid ${colors.border.secondary}`, background: colors.bg.secondary };
+                    : {
+                        border: `1.5px solid ${colors.border.secondary}`,
+                        background: colors.bg.secondary,
+                      };
                   const worldIconFilter = active ? `drop-shadow(0 0 8px ${wDef.color}80)` : 'none';
                   const worldNameColor = active ? wDef.color : colors.text.tertiary;
                   return (
@@ -619,9 +636,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
           }}
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
-          <span style={{ fontSize: 16 }}>
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </span>
+          <span style={{ fontSize: 16 }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
           <span
             style={{
               fontSize: 10,

@@ -369,10 +369,15 @@ export const GemBlastMode: GameModeConfig = {
       const baseColor = colors[sym] ?? {
         background: ctx.theme === 'light' ? '#f3f4f6' : '#0a0a1e',
         border: ctx.theme === 'light' ? '2px solid #6b7280' : '2px solid #6366f1',
-        boxShadow: ctx.theme === 'light' ? '0 0 10px rgba(107,114,128,0.3)' : '0 0 10px rgba(99,102,241,0.5)',
+        boxShadow:
+          ctx.theme === 'light'
+            ? '0 0 10px rgba(107,114,128,0.3)'
+            : '0 0 10px rgba(99,102,241,0.5)',
       };
 
-      return tile.displayData?.isNew ? getNewGemStyle(baseColor, ctx.theme) : getRegularGemStyle(baseColor);
+      return tile.displayData?.isNew
+        ? getNewGemStyle(baseColor, ctx.theme)
+        : getRegularGemStyle(baseColor);
     },
 
     getSymbol(tile) {

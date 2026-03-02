@@ -42,7 +42,11 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
   } | null>(null);
 
   const maxNodes = Math.floor(((gridSize - 2) * (gridSize - 2)) / 2);
-  const diff = { easy: colors.status.success, medium: colors.status.warning, hard: colors.status.error };
+  const diff = {
+    easy: colors.status.success,
+    medium: colors.status.warning,
+    hard: colors.status.error,
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -133,7 +137,12 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
           {/* Grid Size */}
           <div>
             <div
-              style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.2em', marginBottom: 8 }}
+              style={{
+                fontSize: 10,
+                color: colors.text.tertiary,
+                letterSpacing: '0.2em',
+                marginBottom: 8,
+              }}
             >
               GRID SIZE: {gridSize}×{gridSize}
             </div>
@@ -149,7 +158,12 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
           {/* Node Count */}
           <div>
             <div
-              style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.2em', marginBottom: 8 }}
+              style={{
+                fontSize: 10,
+                color: colors.text.tertiary,
+                letterSpacing: '0.2em',
+                marginBottom: 8,
+              }}
             >
               NODES: {Math.min(nodeCount, maxNodes)}
             </div>
@@ -165,7 +179,12 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
           {/* Difficulty */}
           <div>
             <div
-              style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.2em', marginBottom: 8 }}
+              style={{
+                fontSize: 10,
+                color: colors.text.tertiary,
+                letterSpacing: '0.2em',
+                marginBottom: 8,
+              }}
             >
               DIFFICULTY
             </div>
@@ -203,7 +222,9 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
                 fontSize: 12,
                 fontWeight: 600,
                 textAlign: 'center',
-                background: result.success ? `${colors.status.success}12` : `${colors.status.error}12`,
+                background: result.success
+                  ? `${colors.status.success}12`
+                  : `${colors.status.error}12`,
                 border: `1px solid ${result.success ? colors.status.success + '40' : colors.status.error + '40'}`,
                 color: result.success ? colors.status.success : colors.status.error,
               }}
@@ -239,7 +260,14 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
       {tab === 'saved' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {generatedLevels.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 32, color: colors.text.tertiary, fontSize: 13 }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 32,
+                color: colors.text.tertiary,
+                fontSize: 13,
+              }}
+            >
               No saved levels yet
             </div>
           ) : (
@@ -257,7 +285,16 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
                 }}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: colors.text.primary, marginBottom: 2 }}>{lvl.name}</div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: colors.text.primary,
+                      marginBottom: 2,
+                    }}
+                  >
+                    {lvl.name}
+                  </div>
                   <div style={{ fontSize: 10, color: colors.text.tertiary }}>
                     {lvl.gridSize}×{lvl.gridSize} · {lvl.goalNodes.length} goals
                   </div>

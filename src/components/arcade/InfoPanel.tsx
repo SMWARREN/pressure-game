@@ -41,10 +41,19 @@ export function InfoPanel({ info, accentColor }: InfoPanelProps) {
         <div key={m.label} style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
           <span style={{ fontSize: 11, flexShrink: 0, lineHeight: 1.3 }}>{m.icon}</span>
           <div>
-            <div style={{ fontSize: 8, fontWeight: 800, color: colors.text.secondary, marginBottom: 1 }}>
+            <div
+              style={{
+                fontSize: 8,
+                fontWeight: 800,
+                color: colors.text.secondary,
+                marginBottom: 1,
+              }}
+            >
               {m.label}
             </div>
-            <div style={{ fontSize: 7.5, color: colors.text.tertiary, lineHeight: 1.35 }}>{m.detail}</div>
+            <div style={{ fontSize: 7.5, color: colors.text.tertiary, lineHeight: 1.35 }}>
+              {m.detail}
+            </div>
           </div>
         </div>
       ))}

@@ -38,7 +38,11 @@ function CompressionBar({
       >
         <span style={{ color: colors.text.tertiary }}>WALLS</span>
         <span
-          style={{ color: active ? color : colors.text.tertiary, fontWeight: 800, transition: 'color 0.3s' }}
+          style={{
+            color: active ? color : colors.text.tertiary,
+            fontWeight: 800,
+            transition: 'color 0.3s',
+          }}
         >
           {label}
         </span>
@@ -71,7 +75,15 @@ function CompressionBar({
  * MovesCounter - Shows current moves vs max moves
  * If maxMoves is 0 or undefined, shows just the move count (for modes without move limits)
  */
-function MovesCounter({ moves, maxMoves, colors }: { readonly moves: number; readonly maxMoves: number; readonly colors: ReturnType<typeof useTheme>['colors']; }) {
+function MovesCounter({
+  moves,
+  maxMoves,
+  colors,
+}: {
+  readonly moves: number;
+  readonly maxMoves: number;
+  readonly colors: ReturnType<typeof useTheme>['colors'];
+}) {
   const hasLimit = maxMoves && maxMoves > 0;
   const outOfMoves = hasLimit && moves >= maxMoves;
   const color = outOfMoves ? colors.status.error : colors.text.primary;
@@ -189,7 +201,9 @@ function CountdownTimer({
       >
         {seconds}
       </div>
-      <div style={{ fontSize: 8, color: colors.text.tertiary, letterSpacing: '0.12em', marginTop: 2 }}>
+      <div
+        style={{ fontSize: 8, color: colors.text.tertiary, letterSpacing: '0.12em', marginTop: 2 }}
+      >
         SEC
       </div>
     </div>
@@ -302,7 +316,9 @@ function TimeleftDisplay({
         >
           TIME LEFT
         </span>
-        {timeLimit !== undefined && <span style={{ color: colors.text.tertiary }}>{timeLimit}s</span>}
+        {timeLimit !== undefined && (
+          <span style={{ color: colors.text.tertiary }}>{timeLimit}s</span>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div
@@ -487,9 +503,23 @@ export default function GameStats({
               />
             );
           case 'score':
-            return <ScoreDisplay key="score" score={safeScore} targetScore={targetScore} colors={colors} />;
+            return (
+              <ScoreDisplay
+                key="score"
+                score={safeScore}
+                targetScore={targetScore}
+                colors={colors}
+              />
+            );
           case 'timeleft':
-            return <TimeleftDisplay key="timeleft" timeLeft={safeTimeLeft} timeLimit={timeLimit} colors={colors} />;
+            return (
+              <TimeleftDisplay
+                key="timeleft"
+                timeLeft={safeTimeLeft}
+                timeLimit={timeLimit}
+                colors={colors}
+              />
+            );
           default:
             return null;
         }

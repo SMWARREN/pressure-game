@@ -53,7 +53,9 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
         }}
       >
         <div style={{ fontSize: 40, marginBottom: 8 }}>{feature.icon}</div>
-        <div style={{ fontSize: 16, fontWeight: 900, color: colors.text.primary, marginBottom: 10 }}>
+        <div
+          style={{ fontSize: 16, fontWeight: 900, color: colors.text.primary, marginBottom: 10 }}
+        >
           {feature.name}
         </div>
         <div

@@ -165,7 +165,9 @@ const CANDY_COLORS_LIGHT: Record<string, { bg: string; border: string; glow: str
   '🍍': { bg: '#fef9e7', border: '#b45309', glow: 'rgba(180,83,9,0.3)' },
 };
 
-function getCandyColors(theme: 'light' | 'dark'): Record<string, { bg: string; border: string; glow: string }> {
+function getCandyColors(
+  theme: 'light' | 'dark'
+): Record<string, { bg: string; border: string; glow: string }> {
   return theme === 'light' ? CANDY_COLORS_LIGHT : CANDY_COLORS_DARK;
 }
 
@@ -290,7 +292,13 @@ function processCandyRain(
     (updatedTiles.find((t) => t.canRotate)?.displayData?.activeSymbols as string[]) ??
     CANDY_SYMBOLS;
   const lastRainAt = (state.modeState?.lastRainAt as number) ?? 0;
-  const rainResult = tickRain(updatedTiles, state.elapsedSeconds, lastRainAt, activeSymbols, state.currentLevel?.gridSize ?? 8);
+  const rainResult = tickRain(
+    updatedTiles,
+    state.elapsedSeconds,
+    lastRainAt,
+    activeSymbols,
+    state.currentLevel?.gridSize ?? 8
+  );
 
   if (rainResult) {
     return {

@@ -22,7 +22,13 @@ export function useSolutionComputation(
   const [isComputingSolution, setIsComputingSolution] = useState(false);
 
   const computeSolution = useCallback(() => {
-    if (!currentLevel || !isPipeMode || editorEnabled || computedSolution !== null || isComputingSolution)
+    if (
+      !currentLevel ||
+      !isPipeMode ||
+      editorEnabled ||
+      computedSolution !== null ||
+      isComputingSolution
+    )
       return;
     setIsComputingSolution(true);
     setTimeout(() => {
@@ -59,10 +65,7 @@ export function useLevelRecord(currentLevel: Level | null) {
 /**
  * Custom hook to build and manage replay engine.
  */
-export function useReplayEngine(
-  replayEvent: GameEndEvent | null,
-  generatedLevels: Level[]
-) {
+export function useReplayEngine(replayEvent: GameEndEvent | null, generatedLevels: Level[]) {
   return useMemo(() => {
     if (!replayEvent) return null;
     const level =
@@ -83,7 +86,9 @@ export function useNotificationSystem() {
     key: number;
     isScore: boolean;
   } | null>(null);
-  const [notifLog, setNotifLog] = useState<Array<{ id: number; text: string; isScore: boolean }>>([]);
+  const [notifLog, setNotifLog] = useState<Array<{ id: number; text: string; isScore: boolean }>>(
+    []
+  );
   const notifTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showNotification = useCallback((text: string, isScore = false) => {
@@ -120,7 +125,10 @@ export function useTapRejection() {
 /**
  * Custom hook to build accepted tap notification.
  */
-export function useAcceptedTapNotification(currentModeId: string, showNotification: (text: string, isScore: boolean) => void) {
+export function useAcceptedTapNotification(
+  currentModeId: string,
+  showNotification: (text: string, isScore: boolean) => void
+) {
   return useCallback(
     (scoreDelta: number) => {
       const tappedMode = getModeById(currentModeId);
@@ -128,11 +136,7 @@ export function useAcceptedTapNotification(currentModeId: string, showNotificati
       if (tappedMode.getNotification) {
         const freshState = useGameStore.getState();
         const notifModeState = { ...(freshState.modeState ?? {}), scoreDelta };
-        notifText = tappedMode.getNotification(
-          freshState.tiles,
-          freshState.moves,
-          notifModeState
-        );
+        notifText = tappedMode.getNotification(freshState.tiles, freshState.moves, notifModeState);
       }
       if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;
       if (notifText) showNotification(notifText, scoreDelta > 0);

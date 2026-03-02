@@ -50,7 +50,9 @@ const VAL_COLORS_LIGHT: Record<number, { bg: string; border: string; glow: strin
   6: { bg: '#fef3c7', border: '#ca8a04', glow: '#ca8a0444' },
 };
 
-function getValColors(theme: 'light' | 'dark'): Record<number, { bg: string; border: string; glow: string }> {
+function getValColors(
+  theme: 'light' | 'dark'
+): Record<number, { bg: string; border: string; glow: string }> {
   return theme === 'light' ? VAL_COLORS_LIGHT : VAL_COLORS_DARK;
 }
 

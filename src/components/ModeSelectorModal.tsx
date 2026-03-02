@@ -132,7 +132,16 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           }}
         >
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.01em', color: colors.text.primary }}>Game Mode</div>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 900,
+                letterSpacing: '-0.01em',
+                color: colors.text.primary,
+              }}
+            >
+              Game Mode
+            </div>
             <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
               Choose how you want to play
             </div>

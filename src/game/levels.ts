@@ -277,14 +277,24 @@ function createNodeTiles(goalPositions: Position[]): Tile[] {
 // Helper: Route paths between goal nodes using Manhattan distance
 // ── Route path helpers ────────────────────────────────────────────────────────
 
-function addPathToMap(pathDirs: Map<string, Direction[]>, x: number, y: number, dirs: Direction[]): void {
+function addPathToMap(
+  pathDirs: Map<string, Direction[]>,
+  x: number,
+  y: number,
+  dirs: Direction[]
+): void {
   const key = `${x},${y}`;
   const existing = pathDirs.get(key) ?? [];
   const merged = [...new Set([...existing, ...dirs])];
   pathDirs.set(key, merged);
 }
 
-function routeHorizontal(pathDirs: Map<string, Direction[]>, from: Position, to: Position, cy: number): number {
+function routeHorizontal(
+  pathDirs: Map<string, Direction[]>,
+  from: Position,
+  to: Position,
+  cy: number
+): number {
   let cx = from.x;
   while (cx !== to.x) {
     const dx = to.x > cx ? 1 : -1;
@@ -297,7 +307,12 @@ function routeHorizontal(pathDirs: Map<string, Direction[]>, from: Position, to:
   return cx;
 }
 
-function routeVertical(pathDirs: Map<string, Direction[]>, cx: number, from: Position, to: Position): void {
+function routeVertical(
+  pathDirs: Map<string, Direction[]>,
+  cx: number,
+  from: Position,
+  to: Position
+): void {
   let cy = from.y;
   while (cy !== to.y) {
     const dy = to.y > cy ? 1 : -1;

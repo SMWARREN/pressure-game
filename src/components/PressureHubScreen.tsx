@@ -163,7 +163,9 @@ export default function PressureHubScreen() {
           >
             PRESSURE
           </div>
-          <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 2 }}>Classic · Blitz · Zen</div>
+          <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 2 }}>
+            Classic · Blitz · Zen
+          </div>
         </div>
 
         <div style={{ width: 36, flexShrink: 0 }} />

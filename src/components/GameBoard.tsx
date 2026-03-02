@@ -18,7 +18,14 @@ import ParticleLayer, { type ParticleSystemHandle } from './game/ParticleLayer';
 import { useViewport } from './hooks/useViewport';
 import { useTheme } from '@/hooks/useTheme';
 import { usePauseOnCondition } from '@/hooks/usePauseOnCondition';
-import { useSolutionComputation, useLevelRecord, useReplayEngine, useNotificationSystem, useTapRejection, useAcceptedTapNotification } from './hooks/useGameBoardInitialization';
+import {
+  useSolutionComputation,
+  useLevelRecord,
+  useReplayEngine,
+  useNotificationSystem,
+  useTapRejection,
+  useAcceptedTapNotification,
+} from './hooks/useGameBoardInitialization';
 import { StarField } from './game/StarField';
 import { Overlay } from './overlays/Overlay';
 import { ensureNotifStyles, ensureSpinnerStyles } from './utils/styles';
@@ -205,11 +212,11 @@ export default function GameBoard() {
     mode.tileRenderer.type === 'default' ||
     mode.tileRenderer.hidePipes === false;
 
-  const { solution, isComputing: isComputingSolution, computeSolution } = useSolutionComputation(
-    currentLevel,
-    isPipeMode,
-    editor.enabled
-  );
+  const {
+    solution,
+    isComputing: isComputingSolution,
+    computeSolution,
+  } = useSolutionComputation(currentLevel, isPipeMode, editor.enabled);
 
   // Level-specific all-time record — computed once per level load, not reactive
   const levelRecord = useLevelRecord(currentLevel);
@@ -292,7 +299,16 @@ export default function GameBoard() {
         handleRejectedTap(x, y);
       }
     },
-    [status, tiles, tapTile, editor, editorUpdateTile, showParticleBurst, handleAcceptedTap, handleRejectedTap]
+    [
+      status,
+      tiles,
+      tapTile,
+      editor,
+      editorUpdateTile,
+      showParticleBurst,
+      handleAcceptedTap,
+      handleRejectedTap,
+    ]
   );
 
   // ── WALKTHROUGH SYSTEM ────────────────────────────────────────────────────
@@ -404,9 +420,7 @@ export default function GameBoard() {
       .getAll()
       .filter(
         (e): e is GameEndEvent =>
-          e.type === 'game_end' &&
-          e.levelId === currentLevel.id &&
-          (e.moveLog?.length ?? 0) > 0
+          e.type === 'game_end' && e.levelId === currentLevel.id && (e.moveLog?.length ?? 0) > 0
       );
   }, [stats, currentLevel?.id]);
 

@@ -224,7 +224,14 @@ function traceBeamPath(config: BeamTraceConfig): { hitTarget: boolean; finalDir:
     config.beamKeys.add(key);
 
     const tile = config.map.get(key);
-    const result = processBeamStep(state.x, state.y, state.dir, tile, config.portalPairs, visitedPortals);
+    const result = processBeamStep(
+      state.x,
+      state.y,
+      state.dir,
+      tile,
+      config.portalPairs,
+      visitedPortals
+    );
     updateLaserState(result, config.beamKeys, state);
 
     if (result.shouldBreak) break;
@@ -334,7 +341,8 @@ const TILE_COLOR_STYLES: Record<
     on: {
       background: 'linear-gradient(145deg,#0d4a23,#0f7a3d)',
       border: '2px solid #22c55e',
-      boxShadow: '0 0 20px rgba(34,197,94,0.9), 0 0 8px rgba(34,197,94,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow:
+        '0 0 20px rgba(34,197,94,0.9), 0 0 8px rgba(34,197,94,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
       background: 'linear-gradient(145deg,#0a3820,#0d5a2f)',
@@ -346,7 +354,8 @@ const TILE_COLOR_STYLES: Record<
     on: {
       background: 'linear-gradient(145deg,#421111,#6b1c1c)',
       border: '2px solid #f87171',
-      boxShadow: '0 0 28px rgba(248,113,113,1), 0 0 12px rgba(248,113,113,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow:
+        '0 0 28px rgba(248,113,113,1), 0 0 12px rgba(248,113,113,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
       background: 'linear-gradient(145deg,#3f0f0f,#5a1515)',
@@ -370,7 +379,8 @@ const TILE_COLOR_STYLES: Record<
     on: {
       background: 'linear-gradient(145deg,#1e4d6d,#0d2e4f)',
       border: '2px solid #38bdf8',
-      boxShadow: '0 0 24px rgba(56,189,248,0.9), 0 0 10px rgba(56,189,248,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow:
+        '0 0 24px rgba(56,189,248,0.9), 0 0 10px rgba(56,189,248,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
       background: 'linear-gradient(145deg,#0f1e2e,#1a2332)',
@@ -382,7 +392,8 @@ const TILE_COLOR_STYLES: Record<
     on: {
       background: 'linear-gradient(145deg,#6d28d9,#a855f7)',
       border: '2px solid #d8b4fe',
-      boxShadow: '0 0 28px rgba(168,85,247,1), 0 0 12px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.12)',
+      boxShadow:
+        '0 0 28px rgba(168,85,247,1), 0 0 12px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.12)',
     },
     off: {
       background: 'linear-gradient(145deg,#3f1f6d,#581c87)',
@@ -394,7 +405,8 @@ const TILE_COLOR_STYLES: Record<
     on: {
       background: 'linear-gradient(145deg,#125e4e,#0d9488)',
       border: '2px solid #2dd4bf',
-      boxShadow: '0 0 24px rgba(45,212,191,0.8), 0 0 10px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow:
+        '0 0 24px rgba(45,212,191,0.8), 0 0 10px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
       background: 'linear-gradient(145deg,#064e3b,#0f6b5f)',
@@ -406,7 +418,8 @@ const TILE_COLOR_STYLES: Record<
     on: {
       background: 'linear-gradient(145deg,#92400e,#f97316)',
       border: '2px solid #fbbf24',
-      boxShadow: '0 0 26px rgba(249,115,22,0.9), 0 0 11px rgba(251,146,60,0.6), inset 0 1px 0 rgba(255,255,255,0.12)',
+      boxShadow:
+        '0 0 26px rgba(249,115,22,0.9), 0 0 11px rgba(251,146,60,0.6), inset 0 1px 0 rgba(255,255,255,0.12)',
     },
     off: {
       background: 'linear-gradient(145deg,#7c2d12,#a16207)',

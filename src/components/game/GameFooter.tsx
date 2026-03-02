@@ -28,7 +28,12 @@ function getUndoButtonState(history: unknown[], status: GameStatus) {
 }
 
 // Helper: compute hint button state
-function getHintButtonState(showHint: boolean, isComputingSolution: boolean, status: GameStatus, colors: ReturnType<typeof useTheme>['colors']) {
+function getHintButtonState(
+  showHint: boolean,
+  isComputingSolution: boolean,
+  status: GameStatus,
+  colors: ReturnType<typeof useTheme>['colors']
+) {
   const buttonStyles = showHint
     ? { color: colors.status.warning, border: `1px solid ${colors.status.warning}40` }
     : { color: colors.text.tertiary, border: `1px solid ${colors.border.primary}` };
@@ -42,7 +47,11 @@ function getHintButtonState(showHint: boolean, isComputingSolution: boolean, sta
 }
 
 // Helper: compute pause button state
-function getPauseButtonState(isPaused: boolean, status: GameStatus, colors: ReturnType<typeof useTheme>['colors']) {
+function getPauseButtonState(
+  isPaused: boolean,
+  status: GameStatus,
+  colors: ReturnType<typeof useTheme>['colors']
+) {
   const buttonStyles = isPaused
     ? { color: colors.status.success, border: `1px solid ${colors.status.success}40` }
     : { color: colors.text.tertiary, border: `1px solid ${colors.border.primary}` };
@@ -57,7 +66,10 @@ function getPauseButtonState(isPaused: boolean, status: GameStatus, colors: Retu
 }
 
 // Helper: compute animations button state
-function getAnimButtonState(animationsEnabled: boolean, colors: ReturnType<typeof useTheme>['colors']) {
+function getAnimButtonState(
+  animationsEnabled: boolean,
+  colors: ReturnType<typeof useTheme>['colors']
+) {
   const buttonStyles = animationsEnabled
     ? { color: colors.status.info, border: `1px solid ${colors.status.info}40` }
     : { color: colors.text.tertiary, border: `1px solid ${colors.border.primary}` };
@@ -128,7 +140,9 @@ export function GameFooter({
         >
           {timeStr || '—'}
         </div>
-        <div style={{ fontSize: 9, color: colors.text.tertiary, letterSpacing: '0.12em' }}>TIME</div>
+        <div style={{ fontSize: 9, color: colors.text.tertiary, letterSpacing: '0.12em' }}>
+          TIME
+        </div>
       </div>
 
       {/* Hint — only shown for pipe modes that have a BFS solution */}

@@ -12,7 +12,9 @@ export function PauseOverlay({ onResume, onMenu }: PauseOverlayProps) {
   return (
     <div style={getOverlayStyle(colors)}>
       <div style={{ fontSize: 32, marginBottom: 8 }}>⏸</div>
-      <div style={{ fontSize: 20, fontWeight: 900, color: colors.status.info, marginBottom: 8 }}>PAUSED</div>
+      <div style={{ fontSize: 20, fontWeight: 900, color: colors.status.info, marginBottom: 8 }}>
+        PAUSED
+      </div>
       <div style={{ fontSize: 10, color: colors.text.tertiary, marginBottom: 24 }}>
         Take a break — your game is waiting
       </div>

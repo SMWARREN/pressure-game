@@ -138,7 +138,14 @@ export default function StatsScreen({
         </button>
         <div>
           <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '-0.02em' }}>STATS</div>
-          <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.15em', marginTop: 1 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: colors.text.tertiary,
+              letterSpacing: '0.15em',
+              marginTop: 1,
+            }}
+          >
             ALL TIME
           </div>
         </div>
@@ -184,7 +191,12 @@ export default function StatsScreen({
                 </div>
                 <div style={{ ...card, textAlign: 'center' }}>
                   <div style={label}>WIN RATE</div>
-                  <div style={{ ...big, color: stats.winRate >= 50 ? colors.status.success : colors.status.error }}>
+                  <div
+                    style={{
+                      ...big,
+                      color: stats.winRate >= 50 ? colors.status.success : colors.status.error,
+                    }}
+                  >
                     {stats.winRate}%
                   </div>
                 </div>
@@ -307,7 +319,9 @@ export default function StatsScreen({
                             <div style={{ fontSize: 12, fontWeight: 700 }}>
                               {mode?.icon} {mode?.name ?? e.modeId} · Lv {e.levelId}
                             </div>
-                            <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 1 }}>
+                            <div
+                              style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 1 }}
+                            >
                               {e.moves} {e.moves === 1 ? 'move' : 'moves'} ·{' '}
                               {fmtTime(e.elapsedSeconds)}
                               {e.score > 0 ? ` · ${e.score} pts` : ''}
