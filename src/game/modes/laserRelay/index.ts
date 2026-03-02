@@ -332,26 +332,26 @@ const TILE_COLOR_STYLES: Record<
 > = {
   source: {
     on: {
-      background: 'linear-gradient(145deg,#052e16,#065f46)',
+      background: 'linear-gradient(145deg,#0d4a23,#0f7a3d)',
       border: '2px solid #22c55e',
-      boxShadow: '0 0 14px rgba(34,197,94,0.7)',
+      boxShadow: '0 0 20px rgba(34,197,94,0.9), 0 0 8px rgba(34,197,94,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
-      background: 'linear-gradient(145deg,#052e16,#065f46)',
-      border: '2px solid #22c55e',
-      boxShadow: '0 0 14px rgba(34,197,94,0.7)',
+      background: 'linear-gradient(145deg,#0a3820,#0d5a2f)',
+      border: '2px solid #16a34a',
+      boxShadow: '0 0 10px rgba(34,197,94,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
     },
   },
   target: {
     on: {
-      background: 'linear-gradient(145deg,#2d0808,#450a0a)',
-      border: '2px solid #ef4444',
-      boxShadow: '0 0 24px rgba(239,68,68,1), 0 0 8px rgba(239,68,68,0.6)',
+      background: 'linear-gradient(145deg,#421111,#6b1c1c)',
+      border: '2px solid #f87171',
+      boxShadow: '0 0 28px rgba(248,113,113,1), 0 0 12px rgba(248,113,113,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
-      background: 'linear-gradient(145deg,#2d0808,#450a0a)',
-      border: '2px solid #ef4444',
-      boxShadow: '0 0 8px rgba(239,68,68,0.35)',
+      background: 'linear-gradient(145deg,#3f0f0f,#5a1515)',
+      border: '2px solid #dc2626',
+      boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
     },
   },
   wall: {
@@ -368,62 +368,62 @@ const TILE_COLOR_STYLES: Record<
   },
   mirror: {
     on: {
-      background: 'linear-gradient(145deg,#1e3a5f,#0d2137)',
+      background: 'linear-gradient(145deg,#1e4d6d,#0d2e4f)',
       border: '2px solid #38bdf8',
-      boxShadow: '0 0 18px rgba(56,189,248,0.8)',
+      boxShadow: '0 0 24px rgba(56,189,248,0.9), 0 0 10px rgba(56,189,248,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
-      background: 'linear-gradient(145deg,#0f172a,#1e293b)',
-      border: '2px solid #475569',
-      boxShadow: '0 0 4px rgba(71,85,105,0.3)',
+      background: 'linear-gradient(145deg,#0f1e2e,#1a2332)',
+      border: '2px solid #64748b',
+      boxShadow: '0 0 8px rgba(56,189,248,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
     },
   },
   portal: {
     on: {
-      background: 'linear-gradient(145deg,#4c1d95,#7c3aed)',
-      border: '2px solid #a78bfa',
-      boxShadow: '0 0 20px rgba(167,139,250,0.9), 0 0 8px rgba(139,92,246,0.6)',
+      background: 'linear-gradient(145deg,#6d28d9,#a855f7)',
+      border: '2px solid #d8b4fe',
+      boxShadow: '0 0 28px rgba(168,85,247,1), 0 0 12px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.12)',
     },
     off: {
-      background: 'linear-gradient(145deg,#2e1065,#4c1d95)',
-      border: '2px solid #7c3aed',
-      boxShadow: '0 0 10px rgba(139,92,246,0.4)',
+      background: 'linear-gradient(145deg,#3f1f6d,#581c87)',
+      border: '2px solid #a855f7',
+      boxShadow: '0 0 14px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
     },
   },
   splitter: {
     on: {
-      background: 'linear-gradient(145deg,#0e4a2d,#059669)',
-      border: '2px solid #34d399',
-      boxShadow: '0 0 18px rgba(52,211,153,0.8)',
+      background: 'linear-gradient(145deg,#125e4e,#0d9488)',
+      border: '2px solid #2dd4bf',
+      boxShadow: '0 0 24px rgba(45,212,191,0.8), 0 0 10px rgba(16,185,129,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
     },
     off: {
-      background: 'linear-gradient(145deg,#064e3b,#065f46)',
-      border: '2px solid #10b981',
-      boxShadow: '0 0 6px rgba(16,185,129,0.4)',
+      background: 'linear-gradient(145deg,#064e3b,#0f6b5f)',
+      border: '2px solid #14b8a6',
+      boxShadow: '0 0 10px rgba(20,184,166,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
     },
   },
   doubleMirror: {
     on: {
-      background: 'linear-gradient(145deg,#7c2d12,#ea580c)',
-      border: '2px solid #fb923c',
-      boxShadow: '0 0 18px rgba(251,146,60,0.8)',
+      background: 'linear-gradient(145deg,#92400e,#f97316)',
+      border: '2px solid #fbbf24',
+      boxShadow: '0 0 26px rgba(249,115,22,0.9), 0 0 11px rgba(251,146,60,0.6), inset 0 1px 0 rgba(255,255,255,0.12)',
     },
     off: {
-      background: 'linear-gradient(145deg,#7c2d12,#9a3412)',
-      border: '2px solid #f97316',
-      boxShadow: '0 0 6px rgba(249,115,22,0.4)',
+      background: 'linear-gradient(145deg,#7c2d12,#a16207)',
+      border: '2px solid #fb923c',
+      boxShadow: '0 0 12px rgba(251,146,60,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
     },
   },
   empty: {
     on: {
-      background: 'linear-gradient(145deg,#083344,#0a4254)',
-      border: 'none',
-      boxShadow: '0 0 10px rgba(34,211,238,0.45)',
+      background: 'linear-gradient(145deg,#0a3d4d,#0d5a6f)',
+      border: '1px solid #0ea5e9',
+      boxShadow: '0 0 16px rgba(14,165,233,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
     },
     off: {
-      background: 'rgba(10,10,20,0.25)',
-      border: 'none',
-      boxShadow: 'none',
+      background: 'rgba(10,10,20,0.4)',
+      border: '1px solid #1e293b',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
     },
   },
 };
