@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { GameProviders } from '@/game/GameProviders';
 import GameBoard from './components/GameBoard';
 import TestHarness from './components/testing/TestHarness';
@@ -58,14 +58,14 @@ function AppContent() {
 }
 
 function App() {
-  const [isTestMode, setIsTestMode] = useState(false);
   const [engineReady, setEngineReady] = useState(false);
 
-  useEffect(() => {
-    // Check if running in test mode via URL param
+  // Detect test mode synchronously via useState initializer (not useEffect)
+  // to avoid race condition where normal GameBoard starts loading before TestHarness takes over
+  const [isTestMode] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    setIsTestMode(params.has('levelId') && params.has('modeId'));
-  }, []);
+    return params.has('levelId') && params.has('modeId');
+  });
 
   if (isTestMode) {
     return <TestHarness />;

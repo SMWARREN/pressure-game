@@ -2,10 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: true, // Run tests one at a time
+  fullyParallel: false, // Run tests sequentially to avoid dev server resource contention
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: 2, // Use 1 worker (sequential)
+  workers: 1, // Use 1 worker (sequential) to prevent parallel test timeouts
   reporter: 'html',
   timeout: 120000, // 120s per test (increased from 60s)
   expect: { timeout: 15000 }, // Increased from 10s
@@ -41,12 +41,10 @@ export default defineConfig({
       testMatch: 'tests/e2e/pipe-solver.spec.ts',
     },
   ],
-
-  // webServer disabled - start server manually or point to existing URL
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 220000,
-  // },
+    webServer: {
+     command: 'npm run dev',
+     url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+     timeout: 220000,
+  }
 });
