@@ -42,30 +42,26 @@ if [ $attempts -eq $max_attempts ]; then
   exit 1
 fi
 
-echo "🆕 Generating new SonarQube token..."
+echo "🆕 Checking SonarQube token..."
+# Try to generate a new token (may fail on some SonarQube versions)
 TOKEN_RESPONSE=$(curl -s -u "$SONAR_ADMIN_USER:$SONAR_ADMIN_PASS" \
   -X POST "$SONAR_URL/api/user_tokens/generate" \
-  -d "name=$TOKEN_NAME")
+  -d "name=$TOKEN_NAME" 2>/dev/null)
 
 TOKEN=$(echo "$TOKEN_RESPONSE" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
 
-if [ -z "$TOKEN" ]; then
-  echo "❌ Failed to generate token"
-  echo "Response: $TOKEN_RESPONSE"
-  exit 1
-fi
-
-echo "✅ New token generated: $TOKEN"
-
-echo "📝 Updating package.json with new token..."
-# Use sed to replace the token in package.json
-sed -i '' "s/squ_[a-f0-9]\{64\}/$TOKEN/" package.json
-
-if grep -q "$TOKEN" package.json; then
-  echo "✅ package.json updated"
+if [ -n "$TOKEN" ]; then
+  echo "✅ New token generated: $TOKEN"
+  echo "📝 Updating package.json with new token..."
+  sed -i '' "s/squ_[a-f0-9]\{64\}/$TOKEN/" package.json
+  if grep -q "$TOKEN" package.json; then
+    echo "✅ package.json updated"
+  else
+    echo "⚠️  Could not update token in package.json"
+  fi
 else
-  echo "❌ Failed to update package.json"
-  exit 1
+  echo "⚠️  Token generation not available (SonarQube version may not support it)"
+  echo "✅ Using existing token from package.json"
 fi
 
 echo "🔍 Running SonarQube analysis..."
