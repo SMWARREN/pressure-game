@@ -2,15 +2,18 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { useGameStore } from '@/game/store';
+import { useGameStore, destroyGameStore } from '@/game/store';
 import '@/game/stats'; // bootstrap stats engine
 
-// Performance monitoring for debugging load issues
+// Performance monitoring and test utilities
 if (process.env.NODE_ENV !== 'production') {
   const isTestMode = new URLSearchParams(window.location.search).has('levelId');
   if (isTestMode) {
     performance.mark('main-start');
   }
+
+  // Expose destroy function for E2E test cleanup
+  (window as any).__DESTROY_GAME_STORE__ = destroyGameStore;
 }
 
 // Expose store for E2E testing and disable walkthrough in test mode

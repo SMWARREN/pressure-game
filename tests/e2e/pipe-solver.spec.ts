@@ -3,6 +3,20 @@ import { mkdirSync, readFileSync, existsSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
+// Hook to cleanup between tests
+test.afterEach(async ({ page }) => {
+  // Destroy the game store to prevent listener accumulation and memory leaks
+  try {
+    await page.evaluate(() => {
+      if (typeof (window as any).__DESTROY_GAME_STORE__ === 'function') {
+        (window as any).__DESTROY_GAME_STORE__();
+      }
+    });
+  } catch (e) {
+    // Cleanup failed - continue anyway
+  }
+});
+
 interface Solution {
   modeId: string;
   levelId: number;

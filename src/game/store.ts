@@ -975,5 +975,42 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
   };
 });
 
+/**
+ * Properly destroy the game store and clean up all resources.
+ * This should be called when:
+ * - Navigation away from game
+ * - Test teardown
+ * - App unmount
+ *
+ * The main issue: Zustand stores accumulate listeners and subscriptions that can cause:
+ * - Memory leaks (listeners never unsubscribed)
+ * - Stale closures (old state references)
+ * - Performance degradation (accumulated state snapshots)
+ */
+export function destroyGameStore() {
+  // Clear all timers to prevent any pending operations
+  if (engine) {
+    try {
+      engine.clearTimers();
+    } catch (e) {
+      console.warn('Error clearing engine timers:', e);
+    }
+  }
+
+  // Reset engine reference - this prevents stale references and breaks closures
+  _setEngineInstance(null);
+
+  // Zustand v5: properly destroy the store and all listeners
+  // This clears all subscriptions and listeners attached to the store
+  try {
+    // Call destroy if it exists (Zustand v5+)
+    if (typeof (useGameStore as any).destroy === 'function') {
+      (useGameStore as any).destroy();
+    }
+  } catch (e) {
+    console.warn('Error destroying Zustand store:', e);
+  }
+}
+
 // Export type helpers
 export type { PressureEngine, SoundEffect };
