@@ -3,6 +3,7 @@ import { Level } from '@/game/types';
 import { GameEndEvent } from '@/game/stats/types';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
+import { useTheme } from '@/hooks/useTheme';
 import { getModeById } from '@/game/modes';
 import { ReplayEngine } from '@/game/stats/replay';
 import { useStats } from '@/game/contexts';
@@ -28,6 +29,7 @@ export interface MenuScreenProps {
 }
 
 export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
+  const { colors } = useTheme();
   const statsEngine = useStats();
   const {
     completedLevels,
@@ -139,8 +141,8 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        background: 'radial-gradient(ellipse 80% 60% at 50% -10%, #0f0f28 0%, #06060f 70%)',
-        color: '#fff',
+        background: colors.game.header,
+        color: colors.text.primary,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
       }}
@@ -154,8 +156,8 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
           flexShrink: 0,
           zIndex: 2,
           position: 'relative',
-          borderBottom: '1px solid #12122a',
-          background: 'rgba(6,6,15,0.75)',
+          borderBottom: `1px solid ${colors.border.primary}`,
+          background: colors.game.footer,
           backdropFilter: 'blur(12px)',
           display: 'flex',
           flexDirection: 'column',
@@ -176,7 +178,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
         >
           PRESSURE
         </div>
-        <div style={{ fontSize: 10, color: '#3a3a55', letterSpacing: '0.25em', marginTop: 4 }}>
+        <div style={{ fontSize: 10, color: colors.text.tertiary, letterSpacing: '0.25em', marginTop: 4 }}>
           PIPE PUZZLE
         </div>
         <div style={{ marginTop: 10, width: '100%', maxWidth: 260 }}>
@@ -185,7 +187,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
               display: 'flex',
               justifyContent: 'space-between',
               fontSize: 10,
-              color: '#25253a',
+              color: colors.text.tertiary,
               marginBottom: 4,
             }}
           >
@@ -194,12 +196,12 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
             </span>
             <span>{pct}%</span>
           </div>
-          <div style={{ height: 4, background: '#0d0d1f', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: 4, background: colors.bg.tertiary, borderRadius: 2, overflow: 'hidden' }}>
             <div
               style={{
                 height: '100%',
                 width: `${pct}%`,
-                background: 'linear-gradient(90deg, #6366f1, #a5b4fc)',
+                background: `linear-gradient(90deg, ${colors.status.info}, ${colors.status.success})`,
                 borderRadius: 2,
                 transition: 'width 0.5s ease',
               }}
@@ -218,8 +220,8 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
             width: '100%',
             maxWidth: 420,
             flexShrink: 0,
-            background: 'rgba(6,6,15,0.9)',
-            borderBottom: '1px solid #0a0a1f',
+            background: colors.game.footer,
+            borderBottom: `1px solid ${colors.border.primary}`,
             zIndex: 2,
             position: 'relative',
             gap: 6,
@@ -562,8 +564,8 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
           width: '100%',
           flexShrink: 0,
           zIndex: 2,
-          borderTop: '1px solid #12122a',
-          background: 'rgba(6,6,15,0.75)',
+          borderTop: `1px solid ${colors.border.primary}`,
+          background: colors.game.footer,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -580,8 +582,9 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
             gap: 6,
             padding: '8px 14px',
             borderRadius: 10,
-            border: '1px solid #1e1e3540',
+            border: `1px solid ${colors.border.secondary}40`,
             background: 'transparent',
+            color: colors.text.secondary,
             cursor: 'pointer',
           }}
           title="Settings"
