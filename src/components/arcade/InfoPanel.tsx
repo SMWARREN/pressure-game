@@ -1,3 +1,4 @@
+import { useTheme } from '@/hooks/useTheme';
 import { ArcadeModeInfo } from '../hubs/HubTypes';
 
 export interface InfoPanelProps {
@@ -6,6 +7,7 @@ export interface InfoPanelProps {
 }
 
 export function InfoPanel({ info, accentColor }: InfoPanelProps) {
+  const { colors } = useTheme();
   return (
     <div
       style={{
@@ -30,7 +32,7 @@ export function InfoPanel({ info, accentColor }: InfoPanelProps) {
         >
           {info.scoreFormula}
         </div>
-        <div style={{ fontSize: 8, color: '#4a4a6a', marginTop: 2, lineHeight: 1.3 }}>
+        <div style={{ fontSize: 8, color: colors.text.secondary, marginTop: 2, lineHeight: 1.3 }}>
           {info.scoreNote}
         </div>
       </div>
@@ -39,10 +41,10 @@ export function InfoPanel({ info, accentColor }: InfoPanelProps) {
         <div key={m.label} style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
           <span style={{ fontSize: 11, flexShrink: 0, lineHeight: 1.3 }}>{m.icon}</span>
           <div>
-            <div style={{ fontSize: 8, fontWeight: 800, color: '#8a8aa8', marginBottom: 1 }}>
+            <div style={{ fontSize: 8, fontWeight: 800, color: colors.text.secondary, marginBottom: 1 }}>
               {m.label}
             </div>
-            <div style={{ fontSize: 7.5, color: '#3a3a58', lineHeight: 1.35 }}>{m.detail}</div>
+            <div style={{ fontSize: 7.5, color: colors.text.tertiary, lineHeight: 1.35 }}>{m.detail}</div>
           </div>
         </div>
       ))}
@@ -50,8 +52,8 @@ export function InfoPanel({ info, accentColor }: InfoPanelProps) {
       <div
         style={{
           fontSize: 7.5,
-          color: '#2a2a45',
-          borderTop: '1px solid #12122a',
+          color: colors.text.tertiary,
+          borderTop: `1px solid ${colors.border.secondary}`,
           paddingTop: 6,
           textAlign: 'center',
           lineHeight: 1.4,

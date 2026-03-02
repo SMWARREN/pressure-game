@@ -1,6 +1,7 @@
 import { CandyMode } from '@/game/modes/candy/index';
 import { ShoppingSpreeMode } from '@/game/modes/shoppingSpree/index';
 import { GemBlastMode } from '@/game/modes/gemBlast/index';
+import { useTheme } from '@/hooks/useTheme';
 import { InfoPanel } from './InfoPanel';
 import { SampleGrid } from './SampleGrid';
 import { ArcadeModeInfo } from '../hubs/HubTypes';
@@ -32,6 +33,7 @@ export function ArcadeColumn({
   onPlay,
   hasDividerRight,
 }: ArcadeColumnProps) {
+  const { colors } = useTheme();
   // Extract conditional info button styles (S3358: reduce nested ternaries)
   const infoBtnStyles = showInfo
     ? {
@@ -39,7 +41,11 @@ export function ArcadeColumn({
         background: `${def.accentColor}20`,
         color: def.accentColor,
       }
-    : { border: '1.5px solid #1e1e35', background: '#0d0d1e', color: '#3a3a55' };
+    : {
+        border: `1.5px solid ${colors.border.secondary}`,
+        background: colors.bg.tertiary,
+        color: colors.text.tertiary,
+      };
   const infoBtnIcon = showInfo ? '✕' : 'ℹ';
   const infoBtnLabel = showInfo ? 'Close info' : 'Show info';
 
@@ -57,7 +63,7 @@ export function ArcadeColumn({
         cursor: 'pointer',
         position: 'relative',
         background: `${def.accentColor}04`,
-        borderRight: hasDividerRight ? '1px solid #12122a' : 'none',
+        borderRight: hasDividerRight ? `1px solid ${colors.border.secondary}` : 'none',
         transition: 'background 0.15s',
         overflowY: 'auto',
         boxSizing: 'border-box',
@@ -120,7 +126,7 @@ export function ArcadeColumn({
             >
               {def.title}
             </div>
-            <div style={{ fontSize: 9, color: '#4a4a6a', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+            <div style={{ fontSize: 9, color: colors.text.secondary, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
               {def.tagline}
             </div>
           </div>
