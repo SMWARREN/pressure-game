@@ -1,6 +1,11 @@
 /**
  * Tile color and glow utilities
  * Pure functions for computing tile colors based on state
+ *
+ * Handler pattern:
+ * - Each tile type has its own handler function
+ * - getTileBackgroundStyle routes to the appropriate handler
+ * - Reduces cognitive complexity by breaking into single-purpose functions
  */
 
 import { selectByCondition } from '@/utils/conditionalStyles';
@@ -14,6 +19,112 @@ interface TileStyleContext {
   readonly tileSize: number;
   readonly theme?: 'light' | 'dark';
 }
+
+type TileStyleHandler = (ctx: TileStyleContext) => React.CSSProperties;
+
+// ── Tile Style Handlers ───────────────────────────────────────────────────────
+// Each handler is a pure function that takes context and returns styles.
+// This pattern reduces cognitive complexity by creating single-purpose functions.
+
+const WALL_STYLES = {
+  light: { background: 'linear-gradient(145deg, #e5e7eb 0%, #d1d5db 100%)', border: '1px solid #9ca3af' },
+  dark: { background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)', border: '1px solid #131325' },
+};
+
+const CRUSHED_STYLES = {
+  light: {
+    background: 'linear-gradient(145deg, #fee2e2 0%, #fecaca 100%)',
+    border: '2px solid #ef4444',
+    boxShadow: '0 0 12px rgba(239,68,68,0.3), inset 0 0 8px rgba(239,68,68,0.1)',
+  },
+  dark: {
+    background: 'linear-gradient(145deg, #450a0a 0%, #2d0606 100%)',
+    border: '2px solid #ef4444',
+    boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.2)',
+  },
+};
+
+const PATH_STYLES = {
+  default: {
+    background: 'linear-gradient(145deg, #1e3060 0%, #172349 100%)',
+    border: '1.5px solid #2a4080',
+    boxShadow: '0 0 6px rgba(59,130,246,0.12)',
+  },
+};
+
+/** Handler for wall tiles */
+const handleWall: TileStyleHandler = (ctx) => WALL_STYLES[ctx.theme as keyof typeof WALL_STYLES];
+
+/** Handler for crushed tiles */
+const handleCrushed: TileStyleHandler = (ctx) => CRUSHED_STYLES[ctx.theme as keyof typeof CRUSHED_STYLES];
+
+/** Handler for node tiles */
+const handleNode: TileStyleHandler = (ctx) => ({
+  background: ctx.inDanger
+    ? 'linear-gradient(145deg, #3d0808 0%, #2d0606 100%)'
+    : 'linear-gradient(145deg, #14532d 0%, #0f3d21 100%)',
+  border: `2px solid ${getNodeBorderColor(ctx.isHint, ctx.inDanger, false)}`,
+  boxShadow: ctx.inDanger
+    ? '0 0 20px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
+    : '0 0 14px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
+});
+
+/** Handler for path decoy tiles */
+const handlePathDecoy: TileStyleHandler = (ctx) => {
+  const bg = selectByCondition(
+    [ctx.isHint, 'linear-gradient(145deg, #1e4060 0%, #153049 100%)'],
+    [ctx.inDanger, 'linear-gradient(145deg, #3d1a1a 0%, #2d1010 100%)'],
+    [true, 'linear-gradient(145deg, #1e3060 0%, #172349 100%)']
+  );
+  const borderColor = selectByCondition(
+    [ctx.isHint, '#60a5fa'],
+    [ctx.inDanger, '#ef4444'],
+    [true, '#3b82f6']
+  );
+  const shadow = selectByCondition(
+    [ctx.isHint, '0 0 18px rgba(96,165,250,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'],
+    [ctx.inDanger, '0 0 14px rgba(239,68,68,0.4)'],
+    [true, '0 0 10px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.06)']
+  );
+  return { background: bg, border: `2px solid ${borderColor}`, boxShadow: shadow };
+};
+
+/** Handler for path rotatable tiles */
+const handlePathRotatable: TileStyleHandler = (ctx) => {
+  const bg = selectByCondition(
+    [ctx.isHint, 'linear-gradient(145deg, #7c5c00 0%, #5c4400 100%)'],
+    [ctx.inDanger, 'linear-gradient(145deg, #5c1a1a 0%, #3d1010 100%)'],
+    [true, 'linear-gradient(145deg, #78350f 0%, #5c2a0a 100%)']
+  );
+  const borderColor = selectByCondition(
+    [ctx.isHint, '#fde68a'],
+    [ctx.inDanger, '#ef4444'],
+    [true, '#f59e0b']
+  );
+  const shadow = selectByCondition(
+    [ctx.isHint, '0 0 18px rgba(253,230,138,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'],
+    [ctx.inDanger, '0 0 14px rgba(239,68,68,0.4)'],
+    [true, '0 0 8px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.06)']
+  );
+  return { background: bg, border: `2px solid ${borderColor}`, boxShadow: shadow };
+};
+
+/** Handler for default path tiles */
+const handlePathDefault: TileStyleHandler = () => PATH_STYLES.default;
+
+/** Handler for empty/default tiles */
+const handleEmpty: TileStyleHandler = () => ({ background: 'rgba(10,10,20,0.3)' });
+
+/** Router function that selects the appropriate handler */
+const getTileHandler = (ctx: TileStyleContext): TileStyleHandler => {
+  if (ctx.type === 'wall') return handleWall;
+  if (ctx.type === 'crushed') return handleCrushed;
+  if (ctx.type === 'node') return handleNode;
+  if (ctx.type === 'path' && ctx.isDecoy) return handlePathDecoy;
+  if (ctx.type === 'path' && ctx.canRotate) return handlePathRotatable;
+  if (ctx.type === 'path') return handlePathDefault;
+  return handleEmpty;
+};
 
 /**
  * Get connection color based on tile context
@@ -120,36 +231,8 @@ function getPathBorderColor(isHint: boolean, inDanger: boolean, canRotate: boole
 }
 
 /**
- * Style configuration maps for different tile types
- */
-const WALL_STYLES = {
-  light: { background: 'linear-gradient(145deg, #e5e7eb 0%, #d1d5db 100%)', border: '1px solid #9ca3af' },
-  dark: { background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)', border: '1px solid #131325' },
-};
-
-const CRUSHED_STYLES = {
-  light: {
-    background: 'linear-gradient(145deg, #fee2e2 0%, #fecaca 100%)',
-    border: '2px solid #ef4444',
-    boxShadow: '0 0 12px rgba(239,68,68,0.3), inset 0 0 8px rgba(239,68,68,0.1)',
-  },
-  dark: {
-    background: 'linear-gradient(145deg, #450a0a 0%, #2d0606 100%)',
-    border: '2px solid #ef4444',
-    boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.2)',
-  },
-};
-
-const PATH_STYLES = {
-  default: {
-    background: 'linear-gradient(145deg, #1e3060 0%, #172349 100%)',
-    border: '1.5px solid #2a4080',
-    boxShadow: '0 0 6px rgba(59,130,246,0.12)',
-  },
-};
-
-/**
- * Get tile background style using map-based lookup
+ * Get tile background style using handler routing
+ * Routes to the appropriate handler based on tile context
  */
 function getTileBackgroundStyle(
   type: string,
@@ -159,70 +242,18 @@ function getTileBackgroundStyle(
   canRotate: boolean,
   theme: 'light' | 'dark' = 'dark'
 ): React.CSSProperties {
-  // Wall tiles
-  if (type === 'wall') return WALL_STYLES[theme];
+  const ctx: TileStyleContext = {
+    type,
+    isHint,
+    inDanger,
+    isDecoy,
+    canRotate,
+    tileSize: 0, // Not used by the handlers
+    theme,
+  };
 
-  // Crushed tiles
-  if (type === 'crushed') return CRUSHED_STYLES[theme];
-
-  // Node tiles
-  if (type === 'node') {
-    return {
-      background: inDanger
-        ? 'linear-gradient(145deg, #3d0808 0%, #2d0606 100%)'
-        : 'linear-gradient(145deg, #14532d 0%, #0f3d21 100%)',
-      border: `2px solid ${getNodeBorderColor(isHint, inDanger, false)}`,
-      boxShadow: inDanger
-        ? '0 0 20px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
-        : '0 0 14px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
-    };
-  }
-
-  // Path decoy tiles
-  if (type === 'path' && isDecoy) {
-    const bg = selectByCondition(
-      [isHint, 'linear-gradient(145deg, #1e4060 0%, #153049 100%)'],
-      [inDanger, 'linear-gradient(145deg, #3d1a1a 0%, #2d1010 100%)'],
-      [true, 'linear-gradient(145deg, #1e3060 0%, #172349 100%)']
-    );
-    const borderColor = selectByCondition(
-      [isHint, '#60a5fa'],
-      [inDanger, '#ef4444'],
-      [true, '#3b82f6']
-    );
-    const shadow = selectByCondition(
-      [isHint, '0 0 18px rgba(96,165,250,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'],
-      [inDanger, '0 0 14px rgba(239,68,68,0.4)'],
-      [true, '0 0 10px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.06)']
-    );
-    return { background: bg, border: `2px solid ${borderColor}`, boxShadow: shadow };
-  }
-
-  // Path rotatable tiles
-  if (type === 'path' && canRotate) {
-    const bg = selectByCondition(
-      [isHint, 'linear-gradient(145deg, #7c5c00 0%, #5c4400 100%)'],
-      [inDanger, 'linear-gradient(145deg, #5c1a1a 0%, #3d1010 100%)'],
-      [true, 'linear-gradient(145deg, #78350f 0%, #5c2a0a 100%)']
-    );
-    const borderColor = selectByCondition(
-      [isHint, '#fde68a'],
-      [inDanger, '#ef4444'],
-      [true, '#f59e0b']
-    );
-    const shadow = selectByCondition(
-      [isHint, '0 0 18px rgba(253,230,138,0.6), inset 0 1px 0 rgba(255,255,255,0.08)'],
-      [inDanger, '0 0 14px rgba(239,68,68,0.4)'],
-      [true, '0 0 8px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.06)']
-    );
-    return { background: bg, border: `2px solid ${borderColor}`, boxShadow: shadow };
-  }
-
-  // Path default tiles
-  if (type === 'path') return PATH_STYLES.default;
-
-  // Default empty tile
-  return { background: 'rgba(10,10,20,0.3)' };
+  const handler = getTileHandler(ctx);
+  return handler(ctx);
 }
 
 export {
