@@ -417,12 +417,12 @@ const TILE_COLOR_STYLES: Record<
   empty: {
     on: {
       background: 'linear-gradient(145deg,#083344,#0a4254)',
-      border: '1px solid #22d3ee',
+      border: 'none',
       boxShadow: '0 0 10px rgba(34,211,238,0.45)',
     },
     off: {
       background: 'rgba(10,10,20,0.25)',
-      border: '1px solid #1e293b',
+      border: 'none',
       boxShadow: 'none',
     },
   },
