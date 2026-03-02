@@ -64,7 +64,11 @@ function App() {
   // to avoid race condition where normal GameBoard starts loading before TestHarness takes over
   const [isTestMode] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.has('levelId') && params.has('modeId');
+    const testMode = params.has('levelId') && params.has('modeId');
+    if (testMode && process.env.NODE_ENV !== 'production') {
+      performance.mark('app-test-mode-detected');
+    }
+    return testMode;
   });
 
   if (isTestMode) {

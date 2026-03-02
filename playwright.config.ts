@@ -15,7 +15,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    navigationTimeout: 45000, // Increased from 30s
+    navigationTimeout: 30000, // 30s - using domcontentloaded in page.goto should help
   },
 
   projects: [

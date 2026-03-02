@@ -36,8 +36,16 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
     return enginesInstance;
   }
 
+  if (process.env.NODE_ENV !== 'production') {
+    performance.mark('engine-create-start');
+  }
+
   // Create engine
   const pressureEngine = createPressureEngine();
+
+  if (process.env.NODE_ENV !== 'production') {
+    performance.mark('pressure-engine-created');
+  }
 
   // Initialize engine with store access
   pressureEngine.init(
@@ -73,6 +81,17 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
 
   enginesInstance = { pressureEngine, statsEngine, achievementEngine };
   enginesCreated = true;
+
+  if (process.env.NODE_ENV !== 'production') {
+    performance.mark('engine-create-end');
+    try {
+      performance.measure('engine-creation', 'engine-create-start', 'engine-create-end');
+      const measure = performance.getEntriesByName('engine-creation')[0];
+      console.log(`[PERF] Engine creation took ${measure.duration.toFixed(2)}ms`);
+    } catch (e) {
+      // ignore
+    }
+  }
 
   return enginesInstance;
 }

@@ -5,6 +5,14 @@ import './index.css';
 import { useGameStore } from '@/game/store';
 import '@/game/stats'; // bootstrap stats engine
 
+// Performance monitoring for debugging load issues
+if (process.env.NODE_ENV !== 'production') {
+  const isTestMode = new URLSearchParams(window.location.search).has('levelId');
+  if (isTestMode) {
+    performance.mark('main-start');
+  }
+}
+
 // Expose store for E2E testing and disable walkthrough in test mode
 if (process.env.NODE_ENV !== 'production') {
   (window as any).__GAME_STORE__ = useGameStore;
