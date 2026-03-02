@@ -32,6 +32,7 @@ export function LevelHeader({
         justifyContent: 'space-between',
         padding: 'max(10px, env(safe-area-inset-top)) 12px 10px',
         gap: 8,
+        marginBottom: 12,
       }}
     >
       <button onClick={onMenu} style={iconBtn} title="Menu">

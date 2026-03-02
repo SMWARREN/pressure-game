@@ -26,7 +26,7 @@ function CompressionBar({
   const label = getCompressionLabel(percent, active);
 
   return (
-    <div style={{ flex: 1 }}>
+    <div style={{ flex: 1, marginTop: 5 }}>
       <div
         style={{
           display: 'flex',
