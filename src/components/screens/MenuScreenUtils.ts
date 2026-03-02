@@ -2,45 +2,47 @@
  * MenuScreen utility functions
  * Extracted to reduce cognitive complexity and nested ternaries
  */
+import { ThemeColors } from '@/utils/themeColors';
 
 interface LevelButtonStyleProps {
   isLastPlayed: boolean;
   done: boolean;
   worldColor: string;
+  colors: ThemeColors;
 }
 
 /**
  * Compute level button border style
  */
 export function getLevelButtonBorder(props: LevelButtonStyleProps): string {
-  const { isLastPlayed, done, worldColor } = props;
+  const { isLastPlayed, done, worldColor, colors } = props;
   if (isLastPlayed) return '1.5px solid #6366f1';
   if (done) return `1.5px solid ${worldColor}50`;
-  return '1.5px solid #12122a';
+  return `1.5px solid ${colors.border.secondary}`;
 }
 
 /**
  * Compute level button background style
  */
 export function getLevelButtonBackground(props: LevelButtonStyleProps): string {
-  const { isLastPlayed, done, worldColor } = props;
+  const { isLastPlayed, done, worldColor, colors } = props;
   if (isLastPlayed) {
     return 'linear-gradient(145deg, #6366f120 0%, #6366f108 100%)';
   }
   if (done) {
     return `linear-gradient(145deg, ${worldColor}18 0%, ${worldColor}0a 100%)`;
   }
-  return 'linear-gradient(145deg, #0a0a16 0%, #07070e 100%)';
+  return `linear-gradient(145deg, ${colors.bg.secondary} 0%, ${colors.bg.secondary} 100%)`;
 }
 
 /**
  * Compute level button text color
  */
 export function getLevelButtonColor(props: LevelButtonStyleProps): string {
-  const { isLastPlayed, done, worldColor } = props;
+  const { isLastPlayed, done, worldColor, colors } = props;
   if (isLastPlayed) return '#a5b4fc';
   if (done) return worldColor;
-  return '#2a2a3e';
+  return colors.text.tertiary;
 }
 
 /**

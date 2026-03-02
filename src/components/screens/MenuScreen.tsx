@@ -245,9 +245,9 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                   cursor: 'default',
                 }
               : {
-                  border: '1.5px solid #12122a',
+                  border: `1.5px solid ${colors.border.secondary}`,
                   background: 'transparent',
-                  color: '#2e2e48',
+                  color: colors.text.tertiary,
                   cursor: 'pointer',
                 };
             return (
@@ -286,7 +286,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
           width: '100%',
           maxWidth: 420,
           flexShrink: 0,
-          borderBottom: '1px solid #12122a',
+          borderBottom: `1px solid ${colors.border.secondary}`,
           zIndex: 2,
           position: 'relative',
         }}
@@ -306,7 +306,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
               border: 'none',
               cursor: 'pointer',
               background: 'transparent',
-              color: view === v ? '#a5b4fc' : '#3a3a55',
+              color: view === v ? colors.status.info : colors.text.tertiary,
               fontSize: 13,
               fontWeight: 700,
               letterSpacing: '0.04em',
@@ -363,7 +363,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                     <div
                       style={{
                         fontSize: 12,
-                        color: '#3a3a55',
+                        color: colors.text.secondary,
                         marginTop: 4,
                         letterSpacing: '0.1em',
                       }}
@@ -389,9 +389,9 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                   // Extract conditional world button styles (S3358: reduce nested ternaries)
                   const worldButtonStyles = active
                     ? { border: `1.5px solid ${wDef.color}60`, background: `${wDef.color}12` }
-                    : { border: '1.5px solid #12122a', background: '#07070e' };
+                    : { border: `1.5px solid ${colors.border.secondary}`, background: colors.bg.secondary };
                   const worldIconFilter = active ? `drop-shadow(0 0 8px ${wDef.color}80)` : 'none';
-                  const worldNameColor = active ? wDef.color : '#3a3a55';
+                  const worldNameColor = active ? wDef.color : colors.text.tertiary;
                   return (
                     <button
                       key={wDef.id}
@@ -427,7 +427,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                       >
                         {wDef.name}
                       </div>
-                      <div style={{ fontSize: 10, color: '#25253a' }}>
+                      <div style={{ fontSize: 10, color: colors.text.tertiary }}>
                         {done}/{lvls.length}
                       </div>
                     </button>
@@ -440,7 +440,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                 <div
                   style={{
                     fontSize: 10,
-                    color: '#25253a',
+                    color: colors.text.tertiary,
                     letterSpacing: '0.2em',
                     marginBottom: 10,
                     paddingLeft: 2,
@@ -469,7 +469,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                       const worldLevels = levels.filter((l) => l.world === world);
                       const displayNum = worldLevels.findIndex((l) => l.id === level.id) + 1;
                       const isLastPlayed = lastPlayedLevelId[currentModeId] === level.id;
-                      const styleProps = { isLastPlayed, done, worldColor: wm.color };
+                      const styleProps = { isLastPlayed, done, worldColor: wm.color, colors };
                       return (
                         <button
                           key={level.id}
@@ -595,7 +595,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
               fontSize: 10,
               fontWeight: 700,
               letterSpacing: '0.06em',
-              color: '#3a3a55',
+              color: colors.text.secondary,
             }}
           >
             SETTINGS
