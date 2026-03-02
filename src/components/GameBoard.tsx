@@ -16,6 +16,7 @@ import ArcadeHubScreen from './ArcadeHubScreen';
 import PressureHubScreen from './PressureHubScreen';
 import ParticleLayer, { type ParticleSystemHandle } from './game/ParticleLayer';
 import { useViewport } from './hooks/useViewport';
+import { useTheme } from '@/hooks/useTheme';
 import { usePauseOnCondition } from '@/hooks/usePauseOnCondition';
 import { useSolutionComputation, useLevelRecord, useReplayEngine, useNotificationSystem, useTapRejection, useAcceptedTapNotification } from './hooks/useGameBoardInitialization';
 import { StarField } from './game/StarField';
@@ -176,6 +177,7 @@ export default function GameBoard() {
     description: string;
   } | null>(null);
   const { w: vw, h: vh } = useViewport();
+  const { colors } = useTheme();
 
   // Pause game when How to Play modal is open
   usePauseOnCondition(showHowToPlay, status, pauseGame, resumeGame);
@@ -506,8 +508,8 @@ export default function GameBoard() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          background: 'radial-gradient(ellipse 70% 50% at 50% -5%, #0d0d22 0%, #06060f 100%)',
-          color: '#fff',
+          background: colors.game.header,
+          color: colors.text.primary,
           fontFamily: 'system-ui, -apple-system, sans-serif',
           userSelect: 'none',
           WebkitUserSelect: 'none',
@@ -570,13 +572,13 @@ export default function GameBoard() {
               position: 'relative',
               width: boardWidth,
               height: boardHeight,
-              background: 'linear-gradient(145deg, #0a0a16, #07070e)',
+              background: colors.bg.board,
               borderRadius: 18,
               padding,
-              border: `2px solid ${wallsJustAdvanced ? '#ef444480' : '#12122a'}`,
+              border: `2px solid ${wallsJustAdvanced ? colors.status.error + '50' : colors.border.primary}`,
               boxShadow: wallsJustAdvanced
-                ? '0 0 40px rgba(239,68,68,0.3), inset 0 0 40px rgba(239,68,68,0.05)'
-                : '0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)',
+                ? `0 0 40px ${colors.status.error}4d, inset 0 0 40px ${colors.status.error}0d`
+                : `0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)`,
               transition: 'border-color 0.3s, box-shadow 0.3s',
               flexShrink: 0,
             }}
@@ -711,8 +713,8 @@ export default function GameBoard() {
             flexShrink: 0,
             position: 'relative',
             zIndex: 10,
-            borderTop: '1px solid #0e0e22',
-            background: 'rgba(6,6,15,0.85)',
+            borderTop: `1px solid ${colors.border.primary}`,
+            background: colors.game.footer,
             backdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
@@ -818,10 +820,10 @@ export default function GameBoard() {
               flexDirection: 'column',
               gap: 8,
               padding: '8px 12px',
-              background: 'rgba(10,10,22,0.95)',
+              background: colors.game.overlay,
               borderRadius: 16,
-              border: '1px solid #a855f740',
-              boxShadow: '0 4px 24px rgba(168,85,247,0.2)',
+              border: `1px solid ${colors.status.info}40`,
+              boxShadow: `0 4px 24px ${colors.status.info}33`,
               zIndex: 100,
               maxWidth: '95vw',
             }}
