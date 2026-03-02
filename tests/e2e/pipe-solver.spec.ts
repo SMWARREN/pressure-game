@@ -3,20 +3,6 @@ import { mkdirSync, readFileSync, existsSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-// Hook to cleanup between tests
-test.afterEach(async ({ page }) => {
-  // Destroy the game store to prevent listener accumulation and memory leaks
-  try {
-    await page.evaluate(() => {
-      if (typeof (window as any).__DESTROY_GAME_STORE__ === 'function') {
-        (window as any).__DESTROY_GAME_STORE__();
-      }
-    });
-  } catch (e) {
-    // Cleanup failed - continue anyway
-  }
-});
-
 interface Solution {
   modeId: string;
   levelId: number;
@@ -46,6 +32,27 @@ const solutions = solutionsRaw.filter((s: Solution) => s.status === 'won');
 
 // Support filtering by mode via environment variable or grep
 const MODE_FILTER = process.env.TEST_MODE?.toLowerCase();
+
+// Cleanup hook: destroy the game store after each test to prevent listener accumulation
+test.afterEach(async ({ page }) => {
+  try {
+    // Only try cleanup if page is actually loaded
+    const url = page.url();
+    if (url && url !== 'about:blank') {
+      // Use Promise.race to add a timeout to avoid hanging on failed page loads
+      await Promise.race([
+        page.evaluate(() => {
+          if (typeof (window as any).__DESTROY_GAME_STORE__ === 'function') {
+            (window as any).__DESTROY_GAME_STORE__();
+          }
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Cleanup timeout')), 2000)),
+      ]);
+    }
+  } catch (e) {
+    // Page might have failed to load or navigated away - skip cleanup
+  }
+});
 
 if (solutions.length === 0) {
   // No solutions available - add a placeholder test
