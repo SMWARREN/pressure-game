@@ -29,7 +29,7 @@ export interface MenuScreenProps {
 }
 
 export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
-  const { colors } = useTheme();
+  const { colors, theme, toggleTheme } = useTheme();
   const statsEngine = useStats();
   const {
     completedLevels,
@@ -599,6 +599,38 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
             }}
           >
             SETTINGS
+          </span>
+        </button>
+
+        {/* ── THEME TOGGLE BUTTON ────────────────── */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            borderRadius: 10,
+            border: `1px solid ${colors.border.secondary}40`,
+            background: 'transparent',
+            color: colors.text.secondary,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          <span style={{ fontSize: 16 }}>
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              color: colors.text.tertiary,
+            }}
+          >
+            THEME
           </span>
         </button>
 
