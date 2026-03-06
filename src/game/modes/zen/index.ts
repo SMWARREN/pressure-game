@@ -19,9 +19,6 @@ export const ZEN_WORLDS = [
   { id: 8, name: 'Nirvana', tagline: 'The full canvas', color: '#064e3b', icon: '✦' },
 ];
 
-// Solvable procedural levels for Zen (all others are unsolvable)
-const SOLVABLE_PROCEDURAL = new Set([1001, 1003, 1004, 1005, 1007, 1009, 1011, 1012, 1015, 1020, 1025, 1026, 1027, 1029]);
-
 export const ZenMode: GameModeConfig = {
   id: 'zen',
   name: 'Zen',
@@ -33,14 +30,7 @@ export const ZenMode: GameModeConfig = {
   useMoveLimit: false,
   tutorialSteps: ZEN_TUTORIAL_STEPS,
   renderDemo: renderZenDemo,
-  getLevels: () =>
-    PRESSURE_LEVELS.filter(
-      (level) =>
-        (level.id >= 1 && level.id <= 20) || // Built-in levels
-        level.id === 200 ||
-        level.id === 201 ||
-        SOLVABLE_PROCEDURAL.has(level.id)
-    ),
+  getLevels: () => PRESSURE_LEVELS,
   worlds: ZEN_WORLDS,
   supportsWorkshop: true,
 

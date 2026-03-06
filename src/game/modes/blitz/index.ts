@@ -20,9 +20,6 @@ export const BLITZ_WORLDS = [
   { id: 8, name: 'Zero Hour', tagline: 'The full grid unleashed', color: '#450a0a', icon: '✦' },
 ];
 
-// Solvable procedural levels for Blitz (all others are unsolvable)
-const SOLVABLE_PROCEDURAL = new Set([1001, 1003, 1004, 1005, 1007, 1009, 1011, 1012, 1015, 1020, 1025, 1026, 1027, 1029]);
-
 export const BlitzMode: GameModeConfig = {
   id: 'blitz',
   name: 'Blitz',
@@ -34,14 +31,7 @@ export const BlitzMode: GameModeConfig = {
   useMoveLimit: false,
   tutorialSteps: BLITZ_TUTORIAL_STEPS,
   renderDemo: renderBlitzDemo,
-  getLevels: () =>
-    PRESSURE_LEVELS.filter(
-      (level) =>
-        (level.id >= 1 && level.id <= 20) || // Built-in levels
-        level.id === 200 ||
-        level.id === 201 ||
-        SOLVABLE_PROCEDURAL.has(level.id)
-    ),
+  getLevels: () => PRESSURE_LEVELS,
   worlds: BLITZ_WORLDS,
   supportsWorkshop: true,
 
