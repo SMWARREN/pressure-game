@@ -89,6 +89,21 @@ async function main() {
         'Squeeze', 'Bind', 'Compress', 'Compact',
       ],
     },
+    {
+      worldId: 7,
+      levelCount: 6,
+      startId: 1025,
+      gridCols: 6,
+      gridRows: 9,
+      nodeCount: 2,
+      difficulty: 'easy',
+      compressionDirection: 'bottom',
+      interiorWalls: 0,
+      branches: 1,
+      names: [
+        'Zenith', 'Ascend', 'Soar', 'Rise', 'Elevate', 'Skyward',
+      ],
+    },
   ];
 
   // Generate each world
