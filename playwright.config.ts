@@ -7,15 +7,15 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1, // Use 1 worker (sequential) to prevent parallel test timeouts
   reporter: 'html',
-  timeout: 120000, // 120s per test (increased from 60s)
-  expect: { timeout: 15000 }, // Increased from 10s
+  timeout: 60000, // 60s per test (reduced from 120s after optimization)
+  expect: { timeout: 10000 }, // 10s for assertions
 
   use: {
     baseURL: process.env.TEST_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    navigationTimeout: 30000, // 30s - using domcontentloaded in page.goto should help
+    navigationTimeout: 30000, // 30s - preview server can be slow to respond
   },
 
   projects: [
@@ -41,10 +41,12 @@ export default defineConfig({
       testMatch: 'tests/e2e/pipe-solver.spec.ts',
     },
   ],
-    webServer: {
-     command: 'npm run dev',
-     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-     timeout: 220000,
+  webServer: {
+    // Use preview (production build) instead of dev server to avoid Vite HMR
+    // interfering with tests and causing page.goto timeouts
+    command: 'npm run build && npm run preview -- --port 3000',
+    url: 'http://localhost:3000',
+    reuseExistingServer: false, // Always start fresh — no HMR, no stale state
+    timeout: 120000,
   }
 });

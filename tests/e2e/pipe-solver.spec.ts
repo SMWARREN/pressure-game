@@ -90,69 +90,53 @@ if (solutions.length === 0) {
         }
 
         // Navigate to the level with TestHarness parameters
-        await page.goto(`/?levelId=${sol.levelId}&modeId=${sol.modeId}`);
+        // Use domcontentloaded instead of networkidle - much faster and more reliable
+        await page.goto(`/?levelId=${sol.levelId}&modeId=${sol.modeId}`, {
+          waitUntil: 'domcontentloaded',
+        });
 
-        // Wait for page to be fully loaded (no more network activity)
-        await page.waitForLoadState('networkidle', { timeout: 20000 });
+        // Wait for game grid to appear (the grid renders when level is loaded)
+        await page.waitForSelector('[data-testid="game-grid"]', { timeout: 15000 });
 
-        // Wait for game grid to appear (increased timeout)
-        await page.waitForSelector('[data-testid="game-grid"]', { timeout: 20000 });
-
-        // Give TestHarness + React time to fully initialize and render
-        await page.waitForTimeout(1500);
-
-        // Aggressively dismiss tutorial and start game
-        // Try up to 5 times in case state changes take time
-        for (let attempt = 0; attempt < 5; attempt++) {
-          await page.evaluate(() => {
+        // Wait for the level to be loaded into idle state by TestHarness
+        // This is the key wait - the game must be ready before we interact
+        await page.waitForFunction(
+          () => {
             const store = (window as any).__GAME_STORE__;
-            if (store && store.getState) {
-              const state = store.getState();
+            const state = store?.getState?.();
+            // Check for idle status AND that tiles are loaded
+            return (
+              (state?.status === 'idle' || state?.status === 'menu') &&
+              state?.tiles?.length > 0
+            );
+          },
+          { timeout: 15000 }
+        );
 
-              // If in tutorial, complete it
-              if (state.status === 'tutorial' && typeof state.completeTutorial === 'function') {
-                state.completeTutorial();
-              }
-
-              // If in menu/idle and game is ready, start it
-              if ((state.status === 'menu' || state.status === 'idle') && typeof state.startGame === 'function') {
-                state.startGame();
-              }
-            }
-          });
-
-          // Skip any walkthrough that might be showing
-          const skipBtn = page.locator('button:has-text("Skip")').first();
-          if (await skipBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-            await skipBtn.click({ timeout: 5000 });
-          }
-
-          await page.waitForTimeout(300);
-        }
-
-        // Extra wait for all state changes to settle
-        await page.waitForTimeout(800);
-
-        // Verify game grid is visible and in playing state
-        await page.waitForSelector('[data-testid="game-grid"]', { state: 'visible', timeout: 5000 });
-
-        // Extra wait to ensure everything is rendered
-        await page.waitForTimeout(1000);
-
-        // Disable animations via Zustand store to speed up tests
+        // Disable animations before starting — avoids waiting for animation frames
         await page.evaluate(() => {
           const store = (window as any).__GAME_STORE__;
-          if (store && store.getState && typeof store.getState().toggleAnimations === 'function') {
-            // If animations are enabled, disable them
-            const state = store.getState();
-            if (state.animationsEnabled) {
-              state.toggleAnimations();
-            }
+          const state = store?.getState?.();
+          if (state?.animationsEnabled && typeof state.toggleAnimations === 'function') {
+            state.toggleAnimations();
           }
         });
 
-        // Final wait before first screenshot
-        await page.waitForTimeout(500);
+        // Now start the game — wall timer begins HERE, not during page load
+        await page.evaluate(() => {
+          const store = (window as any).__GAME_STORE__;
+          store?.getState?.().startGame?.();
+        });
+
+        // Wait for game to actually be in 'playing' status (overlay should be gone)
+        await page.waitForFunction(
+          () => {
+            const store = (window as any).__GAME_STORE__;
+            const state = store?.getState?.();
+            return state?.status === 'playing';
+          },
+          { timeout: 5000 }
+        );
 
         // Take screenshot of initial board state
         await page.screenshot({ path: `${screenshotDir}/step-00-initial.png` });
@@ -161,11 +145,11 @@ if (solutions.length === 0) {
         for (let i = 0; i < sol.moves.length; i++) {
           const { x, y } = sol.moves[i];
 
-          // Click the tile (increased timeout)
+          // Click the tile
           await page.locator(`[data-testid="tile-${x}-${y}"]`).click({ timeout: 5000 });
 
-          // Wait for interaction (increased from 150ms)
-          await page.waitForTimeout(250);
+          // Wait for tile rotation animation to complete
+          await page.waitForTimeout(100);
 
           // Take screenshot after the click
           const stepNum = String(i + 1).padStart(2, '0');
