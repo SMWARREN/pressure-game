@@ -19,10 +19,11 @@
     "test:solver:blitz": "TEST_MODE=blitz playwright test tests/e2e/pipe-solver.spec.ts --project=solver",
     "solve": "npx tsx src/cli/level-solver.ts",
     "solve:json": "npx tsx src/cli/level-solver.ts --json",
+    "generate:pressure": "npx tsx src/cli/pressure-level-generator.ts",
     "enhance": "npx tsx src/cli/level-enhancer.ts",
     "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
     "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
-    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_b51fa17b30125ec75428b8198dab23492c71ae65",
+    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_918896c0f6ad8e2e731aaf7e0b57bcb8fc394c6c",
     "sonar:clean": "bash scripts/sonar-clean-analyze.sh"
   },
   "dependencies": {
