@@ -38,7 +38,7 @@ export const ClassicMode: GameModeConfig = {
   useMoveLimit: true,
   tutorialSteps: CLASSIC_TUTORIAL_STEPS,
   renderDemo: renderClassicDemo,
-  getLevels: () => PRESSURE_LEVELS,
+  getLevels: () => PRESSURE_LEVELS.filter((level) => level.id >= 1 && level.id <= 20),
   worlds: CLASSIC_WORLDS,
   supportsWorkshop: true,
 
