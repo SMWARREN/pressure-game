@@ -32,7 +32,7 @@ sleep 1
 # Start PHP Backend Server
 echo -e "${YELLOW}Starting Backend (PHP)...${NC}"
 cd "$PROJECT_DIR/server"
-php -S localhost:8000 > /tmp/backend.log 2>&1 &
+php -S localhost:8000 router.php > /tmp/backend.log 2>&1 &
 BACKEND_PID=$!
 echo -e "${GREEN}✅ Backend${NC} running on ${BLUE}localhost:8000${NC} (PID: $BACKEND_PID)"
 
