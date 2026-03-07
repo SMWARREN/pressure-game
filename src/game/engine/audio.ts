@@ -16,7 +16,7 @@ export class AudioSystem {
    * Get or create the AudioContext lazily
    */
   private getAudioContext(): AudioContext | null {
-    if (typeof globalThis === 'undefined') return null;
+    if (globalThis === undefined) return null;
     try {
       if (!this.audioCtx || this.audioCtx.state === 'closed') {
         this.audioCtx = new (

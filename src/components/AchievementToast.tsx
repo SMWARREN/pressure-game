@@ -92,7 +92,7 @@ function AchievementToast({ achievementId, onClose }: AchievementToastProps) {
 // Inject animation styles
 let stylesInjected = false;
 function ensureStyles() {
-  if (stylesInjected || typeof document === 'undefined') return;
+  if (stylesInjected || !globalThis.document) return;
   stylesInjected = true;
   const el = document.createElement('style');
   el.textContent = `

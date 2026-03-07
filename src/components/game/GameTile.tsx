@@ -70,7 +70,7 @@ import type { TileRenderer, TileType, Direction } from '@/game/types';
 // Inject candy drop + outbreak zombie animation keyframes once into the document
 let candyStylesInjected = false;
 function ensureCandyStyles() {
-  if (candyStylesInjected || typeof document === 'undefined') return;
+  if (candyStylesInjected || !globalThis.document) return;
   candyStylesInjected = true;
   const el = document.createElement('style');
   el.textContent = `

@@ -4,7 +4,7 @@
 let hubStylesInjected = false;
 
 export function ensureHubStyles() {
-  if (hubStylesInjected || typeof document === 'undefined') return;
+  if (hubStylesInjected || !globalThis.document) return;
   hubStylesInjected = true;
 
   const el = document.createElement('style');

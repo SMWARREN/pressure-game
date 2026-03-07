@@ -4,7 +4,7 @@
 
 let spinnerStylesInjected = false;
 export function ensureSpinnerStyles() {
-  if (spinnerStylesInjected || typeof document === 'undefined') return;
+  if (spinnerStylesInjected || !globalThis.document) return;
   spinnerStylesInjected = true;
   const el = document.createElement('style');
   el.textContent = `
@@ -18,7 +18,7 @@ export function ensureSpinnerStyles() {
 
 let notifStylesInjected = false;
 export function ensureNotifStyles() {
-  if (notifStylesInjected || typeof document === 'undefined') return;
+  if (notifStylesInjected || !globalThis.document) return;
   notifStylesInjected = true;
   const el = document.createElement('style');
   el.textContent = `
