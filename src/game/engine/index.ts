@@ -18,7 +18,7 @@ import type { AchievementEngine } from '../achievements/engine';
 import type { GameState, Level, Tile } from '../types';
 import { getModeById } from '../modes';
 import { getConnectedTiles } from '../modes/utils';
-import { saveHighscore } from '../api/leaderboards';
+import { saveHighscore, saveReplay } from '../api/leaderboards';
 
 // Re-export types and systems
 export * from './types';
@@ -614,9 +614,14 @@ export class PressureEngine implements IPressureEngine {
         _winCheckPending: false,
       });
 
-      // Save highscore to API (in background)
+      // Save highscore and replay to API (in background)
       saveHighscore(s.currentModeId, level.id, s.moves).catch((err) =>
         console.warn('Failed to save highscore to API:', err)
+      );
+
+      // Save replay (currently saves with empty moveLog - will be populated by stats engine)
+      saveReplay(s.currentModeId, level.id, [], s.moves).catch((err) =>
+        console.warn('Failed to save replay to API:', err)
       );
 
       // Check achievements after winning
