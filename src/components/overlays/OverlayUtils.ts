@@ -24,7 +24,7 @@ export function formatElapsedTime(elapsedSeconds: number): string {
  */
 export function formatMovesTaps(moves: number, isTaps: boolean): string {
   const unit = isTaps ? 'tap' : 'move';
-  const plural = moves !== 1 ? 's' : '';
+  const plural = moves === 1 ? '' : 's';
   return `${moves} ${unit}${plural}`;
 }
 
@@ -51,8 +51,8 @@ export function formatWinStats(
  * Format level record string (wins · attempts)
  */
 export function formatLevelRecord(wins: number, attempts: number): string {
-  const winsText = `${wins} win${wins !== 1 ? 's' : ''}`;
-  const attemptsText = `${attempts} attempt${attempts !== 1 ? 's' : ''}`;
+  const winsText = `${wins} win${wins === 1 ? '' : 's'}`;
+  const attemptsText = `${attempts} attempt${attempts === 1 ? '' : 's'}`;
   return `${winsText} · ${attemptsText}`;
 }
 

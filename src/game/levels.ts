@@ -362,8 +362,8 @@ function createPathTiles(pathDirs: Map<string, Direction[]>, goalSet: Set<string
     let bestShape = pipeShapes[0];
     for (const shape of pipeShapes) {
       for (let r = 0; r < 4; r++) {
-        const rotated = shape.map((d) => DIRS[(DIRS.indexOf(d) + r) % 4]);
-        if (dirs.every((d) => rotated.includes(d))) {
+        const rotated = new Set(shape.map((d) => DIRS[(DIRS.indexOf(d) + r) % 4]));
+        if (dirs.every((d) => rotated.has(d))) {
           bestShape = shape;
           break;
         }
@@ -555,43 +555,47 @@ function generateSimpleFallback(gridSize: number, difficulty: string): Level {
 
   const wallTiles: Tile[] = [];
   for (let i = 0; i < gridSize; i++) {
-    wallTiles.push({
-      id: `wall-${i}-0`,
-      type: 'wall',
-      x: i,
-      y: 0,
-      connections: [],
-      isGoalNode: false,
-      canRotate: false,
-    });
-    wallTiles.push({
-      id: `wall-${i}-${gridSize - 1}`,
-      type: 'wall',
-      x: i,
-      y: gridSize - 1,
-      connections: [],
-      isGoalNode: false,
-      canRotate: false,
-    });
+    wallTiles.push(
+      {
+        id: `wall-${i}-0`,
+        type: 'wall',
+        x: i,
+        y: 0,
+        connections: [],
+        isGoalNode: false,
+        canRotate: false,
+      },
+      {
+        id: `wall-${i}-${gridSize - 1}`,
+        type: 'wall',
+        x: i,
+        y: gridSize - 1,
+        connections: [],
+        isGoalNode: false,
+        canRotate: false,
+      }
+    );
     if (i > 0 && i < gridSize - 1) {
-      wallTiles.push({
-        id: `wall-0-${i}`,
-        type: 'wall',
-        x: 0,
-        y: i,
-        connections: [],
-        isGoalNode: false,
-        canRotate: false,
-      });
-      wallTiles.push({
-        id: `wall-${gridSize - 1}-${i}`,
-        type: 'wall',
-        x: gridSize - 1,
-        y: i,
-        connections: [],
-        isGoalNode: false,
-        canRotate: false,
-      });
+      wallTiles.push(
+        {
+          id: `wall-0-${i}`,
+          type: 'wall',
+          x: 0,
+          y: i,
+          connections: [],
+          isGoalNode: false,
+          canRotate: false,
+        },
+        {
+          id: `wall-${gridSize - 1}-${i}`,
+          type: 'wall',
+          x: gridSize - 1,
+          y: i,
+          connections: [],
+          isGoalNode: false,
+          canRotate: false,
+        }
+      );
     }
   }
 

@@ -87,7 +87,7 @@ function generateGrid(gridSize: number, seed: number, density = 0.6): Tile[] {
       let special: GravityTileData['special'] = 'none';
       if (r < 0.04) special = 'bomb';
       else if (r < 0.08) special = 'star';
-      const value = special !== 'none' ? 0 : Math.floor(rng() * 6) + 1;
+      const value = special === 'none' ? Math.floor(rng() * 6) + 1 : 0;
       tiles.push(makeNumberTile(x, y, value, false, special));
     }
   }

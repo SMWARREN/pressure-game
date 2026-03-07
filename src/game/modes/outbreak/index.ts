@@ -304,7 +304,7 @@ export const OutbreakMode: GameModeConfig = {
     if (burst) return burst;
 
     // Default: always show cells gained + running percentage
-    return `+${cells} cell${cells !== 1 ? 's' : ''} · ${pct}%`;
+    return `+${cells} cell${cells === 1 ? '' : 's'} · ${pct}%`;
   },
 
   // ── Tutorial ──────────────────────────────────────────────────────────────

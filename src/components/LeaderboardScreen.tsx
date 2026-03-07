@@ -54,11 +54,11 @@ function LeaderboardRow({
   onSelect,
   isGlobal,
 }: {
-  entry: LeaderboardEntry;
-  index: number;
-  colors: ReturnType<typeof useTheme>['colors'];
-  onSelect: (userId: string) => void;
-  isGlobal?: boolean;
+  readonly entry: LeaderboardEntry;
+  readonly index: number;
+  readonly colors: ReturnType<typeof useTheme>['colors'];
+  readonly onSelect: (userId: string) => void;
+  readonly isGlobal?: boolean;
 }) {
   const rankColor = getRankColor(index, colors);
   const medal = getRankMedal(index);
@@ -374,7 +374,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
           >
             <div>{error}</div>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => globalThis.location.reload()}
               style={{
                 padding: '12px 24px',
                 background: colors.status.error,

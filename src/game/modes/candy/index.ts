@@ -462,12 +462,12 @@ export const CandyMode: GameModeConfig = {
 
     // Setup symbol unlock state
     const unlockState: SymbolUnlockState =
-      modeState?.lockedSymbols != null
-        ? {
+      modeState?.lockedSymbols == null
+        ? { lockedSymbols: [...CANDY_BONUS_SYMBOLS], freshSymbols: [] }
+        : {
             lockedSymbols: modeState.lockedSymbols as string[],
             freshSymbols: (modeState.freshSymbols as string[]) ?? [],
-          }
-        : { lockedSymbols: [...CANDY_BONUS_SYMBOLS], freshSymbols: [] };
+          };
 
     // Calculate score multiplier and base score
     const clearedSymbol = group[0].displayData?.symbol as string;

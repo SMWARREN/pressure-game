@@ -61,7 +61,7 @@ function buildModeStateForTap(
   const timeLimit = currentLevel?.timeLimit;
   const timeLeft = timeLimit ? Math.max(0, timeLimit - elapsedSeconds) : undefined;
   return {
-    ...(modeState ?? {}),
+    ...modeState,
     timeLeft,
     levelId: currentLevel?.id,
     world: currentLevel?.world,
@@ -353,9 +353,9 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
       // Store previous tiles for undo if supported
       const prevTiles =
-        mode.supportsUndo !== false
-          ? tiles.map((t) => ({ ...t, connections: [...t.connections] }))
-          : null;
+        mode.supportsUndo === false
+          ? null
+          : tiles.map((t) => ({ ...t, connections: [...t.connections] }));
 
       // Calculate new elapsed time with time bonus
       const newElapsedSeconds = result.timeBonus

@@ -109,7 +109,7 @@ export function renderGemBlastDemo(
         ['💎', '💎', '🟣'],
         ['🔵', '💍', '💎'],
       ];
-      const highlights = ['0,0', '1,0', '0,1', '1,1']; // Top-left 2×2
+      const highlights = new Set(['0,0', '1,0', '0,1', '1,1']); // Top-left 2×2
 
       return (
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(3, ${tileSize}px)`, gap }}>
@@ -118,7 +118,7 @@ export function renderGemBlastDemo(
               key={`gem-${sym}-${i}`}
               symbol={sym}
               size={tileSize}
-              highlight={highlights.includes(`${i % 3},${Math.floor(i / 3)}`)}
+              highlight={highlights.has(`${i % 3},${Math.floor(i / 3)}`)}
             />
           ))}
         </div>

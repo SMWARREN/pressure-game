@@ -106,8 +106,8 @@ function buildMirrorLevel(
 
     const mirrorX = gridSize - 1 - t.x; // mirror x position
 
-    // Left tile
     tiles.push(
+      // Left tile
       tile({
         x: t.x,
         y: t.y,
@@ -116,11 +116,8 @@ function buildMirrorLevel(
         isGoalNode: t.isGoalNode === true,
         side: 'left',
         mirrorX,
-      })
-    );
-
-    // Right mirror tile (auto-generated with flipped connections)
-    tiles.push(
+      }),
+      // Right mirror tile (auto-generated with flipped connections)
       tile({
         x: mirrorX,
         y: t.y,

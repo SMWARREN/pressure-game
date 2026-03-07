@@ -28,7 +28,7 @@ function TestHarnessContent() {
     initializedRef.current = true;
 
     const params = new URLSearchParams(globalThis.location.search);
-    const levelId = parseInt(params.get('levelId') ?? '0', 10);
+    const levelId = Number.parseInt(params.get('levelId') ?? '0', 10);
     const modeId = params.get('modeId') ?? 'pressure';
 
     if (!levelId || !modeId) {

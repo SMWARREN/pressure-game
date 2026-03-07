@@ -108,7 +108,7 @@ function applyGravity(tiles: Tile[], gridSize: number, seed: number): Tile[] {
       let special: GravityTileData['special'] = 'none';
       if (r < 0.04) special = 'bomb';
       else if (r < 0.08) special = 'star';
-      const value = special !== 'none' ? 0 : Math.floor(rng() * 6) + 1;
+      const value = special === 'none' ? Math.floor(rng() * 6) + 1 : 0;
       result.push(makeNumberTile(col, row, value, true, special));
     }
   }
@@ -236,7 +236,7 @@ function handleExtend(
       tiles: markChain(tiles, newChain),
       valid: true,
       scoreDelta: 0,
-      customState: { chain: newChain, chainSum: d.special !== 'star' ? d.value : 0 },
+      customState: { chain: newChain, chainSum: d.special === 'star' ? 0 : d.value },
     };
   }
 
@@ -252,7 +252,7 @@ function handleExtend(
       tiles: markChain(cleared, newChain),
       valid: true,
       scoreDelta: 0,
-      customState: { chain: newChain, chainSum: d.special !== 'star' ? d.value : 0 },
+      customState: { chain: newChain, chainSum: d.special === 'star' ? 0 : d.value },
     };
   }
 
@@ -294,7 +294,7 @@ function getEmptyTileColors(ctx: TileRenderContext): TileColors {
 }
 
 function getBombTileColors(d: Record<string, unknown>, ctx: TileRenderContext): TileColors {
-  const theme = ctx.theme as 'light' | 'dark';
+  const theme = ctx.theme;
   const bombStyles = d.inChain
     ? {
         light: {
@@ -324,7 +324,7 @@ function getBombTileColors(d: Record<string, unknown>, ctx: TileRenderContext): 
 }
 
 function getStarTileColors(d: Record<string, unknown>, ctx: TileRenderContext): TileColors {
-  const theme = ctx.theme as 'light' | 'dark';
+  const theme = ctx.theme;
   const starStyles = d.inChain
     ? {
         light: {

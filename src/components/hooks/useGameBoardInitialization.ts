@@ -135,7 +135,7 @@ export function useAcceptedTapNotification(
       let notifText: string | null = null;
       if (tappedMode.getNotification) {
         const freshState = useGameStore.getState();
-        const notifModeState = { ...(freshState.modeState ?? {}), scoreDelta };
+        const notifModeState = { ...freshState.modeState, scoreDelta };
         notifText = tappedMode.getNotification(freshState.tiles, freshState.moves, notifModeState);
       }
       if (!notifText && scoreDelta > 0) notifText = `+${scoreDelta}`;

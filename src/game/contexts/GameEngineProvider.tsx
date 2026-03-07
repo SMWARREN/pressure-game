@@ -150,8 +150,8 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
       performance.measure('engine-creation', 'engine-create-start', 'engine-create-end');
       const measure = performance.getEntriesByName('engine-creation')[0];
       console.log(`[PERF] Engine creation took ${measure.duration.toFixed(2)}ms`);
-    } catch (e) {
-      // ignore
+    } catch {
+      // Performance API not available in some environments - safe to ignore
     }
   }
 

@@ -32,9 +32,9 @@ interface UserStats {
 }
 
 interface ProfileScreenProps {
-  userId?: string;
-  onClose?: () => void;
-  onWatchReplay?: (moves: any[], mode: string, levelId: number) => void;
+  readonly userId?: string;
+  readonly onClose?: () => void;
+  readonly onWatchReplay?: (moves: any[], mode: string, levelId: number) => void;
 }
 
 export default function ProfileScreen({

@@ -872,9 +872,9 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const grows = (modeState?.gridRows as number) ?? gridSize;
 
     const unlockState: SymbolUnlockState =
-      state.lockedSymbols != null
-        ? { lockedSymbols: state.lockedSymbols, freshSymbols: state.freshSymbols ?? [] }
-        : { lockedSymbols: [...SHOPPING_BONUS_ITEMS], freshSymbols: [] };
+      state.lockedSymbols == null
+        ? { lockedSymbols: [...SHOPPING_BONUS_ITEMS], freshSymbols: [] }
+        : { lockedSymbols: state.lockedSymbols, freshSymbols: state.freshSymbols ?? [] };
 
     return processShoppingTap({
       x,

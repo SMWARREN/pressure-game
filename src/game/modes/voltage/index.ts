@@ -180,7 +180,7 @@ export const VoltageMode: GameModeConfig = {
       tiles: discharged,
       valid: true,
       scoreDelta: totalCharge,
-      customState: { ...(modeState ?? {}), lastDischarge: totalCharge },
+      customState: { ...modeState, lastDischarge: totalCharge },
     };
   },
 

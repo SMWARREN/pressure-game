@@ -237,7 +237,7 @@ export const LevelEditor: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${levelName.toLowerCase().replace(/\s+/g, '-')}.json`;
+    a.download = `${levelName.toLowerCase().replaceAll(/\s+/g, '-')}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setMessage('Level exported!');

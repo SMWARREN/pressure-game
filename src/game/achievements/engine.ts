@@ -258,9 +258,7 @@ class AchievementEngine {
     if (stats.levelsCompleted === 0) return;
 
     const levelKey = `${stats.currentModeId}:${stats.currentLevelId}`;
-    if (!this.state.completedLevelKeys) {
-      this.state.completedLevelKeys = {};
-    }
+    this.state.completedLevelKeys ??= {};
 
     if (this.state.completedLevelKeys[levelKey]) return; // Already tracked
 
@@ -278,10 +276,10 @@ class AchievementEngine {
    * Update no-reset streak counter
    */
   private updateNoResetStreak(levelRestarted?: boolean): void {
-    if (!levelRestarted) {
-      this.state.currentNoResetStreak = (this.state.currentNoResetStreak || 0) + 1;
-    } else {
+    if (levelRestarted) {
       this.state.currentNoResetStreak = 0;
+    } else {
+      this.state.currentNoResetStreak = (this.state.currentNoResetStreak || 0) + 1;
     }
 
     this.state.stats.noResetStreak = Math.max(
@@ -413,12 +411,8 @@ class AchievementEngine {
    * Track world progress for world completion achievements
    */
   private trackWorldProgress(modeId: string, worldId: number): void {
-    if (!this.state.completedWorlds) {
-      this.state.completedWorlds = {};
-    }
-    if (!this.state.completedWorlds[modeId]) {
-      this.state.completedWorlds[modeId] = new Set();
-    }
+    this.state.completedWorlds ??= {};
+    this.state.completedWorlds[modeId] ??= new Set();
 
     // Check if all levels in this world are complete
     const mode = getModeById(modeId);
@@ -517,9 +511,7 @@ class AchievementEngine {
     );
 
     if (allComplete && allLevels.length > 0) {
-      if (!this.state.completedModes) {
-        this.state.completedModes = new Set();
-      }
+      this.state.completedModes ??= new Set();
       this.state.completedModes.add(modeId);
 
       // Check for mode completion achievement

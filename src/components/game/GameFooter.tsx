@@ -190,7 +190,7 @@ export function GameFooter({
         disabled={status !== 'playing'}
         style={{
           ...iconBtn,
-          opacity: status !== 'playing' ? 0.25 : 1,
+          opacity: status === 'playing' ? 1 : 0.25,
         }}
         title="How to Play"
       >

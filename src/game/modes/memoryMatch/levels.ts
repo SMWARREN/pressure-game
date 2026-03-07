@@ -92,7 +92,7 @@ function makeMemoryGrid(gridSize: number, symbols: string[], seed: number): Tile
         flipped: false,
         matched: false,
         isNew: false,
-        pairId: symbol + (chosen.indexOf(symbol) >= 0 ? '-A' : '-B'),
+        pairId: symbol + (chosen.includes(symbol) ? '-A' : '-B'),
       };
       // Use actual pairId based on position
       // Count how many of this symbol we've already placed

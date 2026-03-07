@@ -72,7 +72,7 @@ export function LevelGeneratorPanel({ onLoad }: LevelGeneratorPanelProps) {
         return;
       }
       addGeneratedLevel(level);
-      const pluralS = verification.minMoves !== 1 ? 's' : '';
+      const pluralS = verification.minMoves === 1 ? '' : 's';
       const movesText = verification.minMoves
         ? `Solvable in ${verification.minMoves} move${pluralS}`
         : 'Solvable!';
