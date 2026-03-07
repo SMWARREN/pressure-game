@@ -116,10 +116,13 @@ export default function ArcadeHubScreen() {
     [enabledModeIds]
   );
 
-  // Tile size: fit N columns on screen
+  // Tile size: fit N columns on screen with better spacing
   const numColumns = Math.max(1, arcadeModes.length);
-  const cardWidth = globalThis.innerWidth / numColumns;
-  const tileSize = Math.min(28, Math.floor((cardWidth - 16) / 4));
+  const containerPadding = 32; // 16px padding * 2 sides
+  const gapTotal = (numColumns - 1) * 12; // 12px gap between columns
+  const availableWidth = globalThis.innerWidth - containerPadding - gapTotal;
+  const cardWidth = availableWidth / numColumns;
+  const tileSize = Math.min(36, Math.floor((cardWidth - 32) / 4));
 
   function selectMode(id: string) {
     setGameMode(id);
@@ -140,6 +143,7 @@ export default function ArcadeHubScreen() {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        overscrollBehavior: 'contain',
       }}
     >
       {/* ── Header ── */}
@@ -200,16 +204,19 @@ export default function ArcadeHubScreen() {
       {/* ── Divider ── */}
       <div style={{ height: 1, background: colors.border.primary, flexShrink: 0 }} />
 
-      {/* ── Dynamic N-column split ── */}
+      {/* ── Dynamic N-column split with better spacing ── */}
       <div
         style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'row',
           overflow: 'hidden',
+          padding: '16px',
+          gap: '12px',
+          alignItems: 'stretch',
         }}
       >
-        {arcadeModes.map((def, i) => (
+        {arcadeModes.map((def) => (
           <ArcadeColumn
             key={def.id}
             def={def}
@@ -217,7 +224,6 @@ export default function ArcadeHubScreen() {
             showInfo={openInfoId === def.id}
             onToggleInfo={(e) => toggleInfo(def.id, e)}
             onPlay={() => selectMode(def.id)}
-            hasDividerRight={i < arcadeModes.length - 1}
           />
         ))}
       </div>

@@ -586,6 +586,9 @@ export default function GameBoard() {
             position: 'relative',
             zIndex: 1,
             padding: '4px 0',
+            minHeight: 0,
+            minWidth: 0,
+            overflow: 'hidden',
           }}
         >
           <div
@@ -601,6 +604,7 @@ export default function GameBoard() {
               boxShadow: getBoardBoxShadow(wallsJustAdvanced, colors),
               transition: 'border-color 0.3s, box-shadow 0.3s',
               flexShrink: 0,
+              overflow: 'hidden',
             }}
           >
             {/* Tile grid + wall overlay — delegated to GameGrid which passes

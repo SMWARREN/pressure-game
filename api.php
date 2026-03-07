@@ -230,14 +230,74 @@ class Database {
     $success = $stmt->execute();
     $stmt->close();
 
+    // Update user profile stats (aggregate from highscores and achievements)
+    if ($success) {
+      $this->updateUserProfileStats($userId);
+    }
+
     return $success;
+  }
+
+  /**
+   * Update user profile with aggregated stats from highscores and achievements
+   */
+  public function updateUserProfileStats($userId) {
+    // Count total levels completed (each unique mode/level completion counts as 1)
+    $stmt = $this->conn->prepare(
+      'SELECT COUNT(DISTINCT level_id) as levels_completed, SUM(score) as total_score
+       FROM highscores WHERE user_id = ?'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('s', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stats = $result->fetch_assoc();
+    $stmt->close();
+
+    $levelsCompleted = intval($stats['levels_completed'] ?? 0);
+    $totalScore = intval($stats['total_score'] ?? 0);
+
+    // Count achievements
+    $stmt = $this->conn->prepare(
+      'SELECT COUNT(*) as achievement_count FROM achievements WHERE user_id = ?'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('s', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $achStats = $result->fetch_assoc();
+    $stmt->close();
+
+    $achievementsCount = intval($achStats['achievement_count'] ?? 0);
+
+    // Update user profile
+    $stmt = $this->conn->prepare(
+      'UPDATE user_profiles
+       SET total_score = ?, levels_completed = ?, achievements_count = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE user_id = ?'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('iis', $totalScore, $levelsCompleted, $achievementsCount, $userId);
+    $stmt->execute();
+    $stmt->close();
   }
 
   public function getLeaderboard($mode, $limit = 100) {
     $stmt = $this->conn->prepare(
-      'SELECT user_id, score, created_at FROM highscores
-       WHERE mode = ?
-       ORDER BY score DESC
+      'SELECT h.user_id, h.score, h.created_at, COALESCE(up.username, h.user_id) as username
+       FROM highscores h
+       LEFT JOIN user_profiles up ON h.user_id = up.user_id
+       WHERE h.mode = ?
+       ORDER BY h.score DESC
        LIMIT ?'
     );
     if (!$stmt) {
@@ -293,6 +353,11 @@ class Database {
     $success = $stmt->execute();
     $stmt->close();
 
+    // Update user profile stats after unlocking achievement
+    if ($success) {
+      $this->updateUserProfileStats($userId);
+    }
+
     return $success;
   }
 
@@ -309,9 +374,37 @@ class Database {
     $result = $stmt->get_result();
     $stmt->close();
 
+    // Load achievement definitions from JSON file
+    $achievementDefs = [];
+    if (file_exists(__DIR__ . '/achievements.json')) {
+      $defsJson = file_get_contents(__DIR__ . '/achievements.json');
+      $defsData = json_decode($defsJson, true);
+      if (isset($defsData['achievements'])) {
+        foreach ($defsData['achievements'] as $def) {
+          $achievementDefs[$def['id']] = $def;
+        }
+      }
+    }
+
     $achievements = [];
     while ($row = $result->fetch_assoc()) {
-      $achievements[] = $row;
+      $achId = $row['achievement_id'];
+      $achDef = $achievementDefs[$achId] ?? null;
+
+      // Merge achievement definition with unlocked data
+      $achievement = [
+        'id' => $achId,
+        'name' => $achDef['name'] ?? $achId,
+        'icon' => $achDef['icon'] ?? '🏆',
+        'unlockedAt' => $row['unlocked_at'],
+      ];
+
+      if ($achDef) {
+        $achievement['description'] = $achDef['description'] ?? '';
+        $achievement['points'] = $achDef['points'] ?? 0;
+      }
+
+      $achievements[] = $achievement;
     }
 
     return $achievements;
@@ -370,6 +463,24 @@ class Database {
     }
 
     return $result->fetch_assoc();
+  }
+
+  public function updateUserUsername($userId, $username) {
+    // Ensure profile exists first
+    $this->ensureUserProfile($userId);
+
+    $stmt = $this->conn->prepare(
+      'UPDATE user_profiles SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('ss', $username, $userId);
+    $success = $stmt->execute();
+    $stmt->close();
+
+    return $success;
   }
 
   public function close() {
@@ -675,6 +786,38 @@ try {
     $profile = $db->getUserProfile($userId);
     http_response_code(200);
     echo json_encode($profile);
+    $db->close();
+    exit;
+  }
+
+  // Update user profile (username): POST /api/profile/{userId}
+  if (count($routeParts) === 2 && $routeParts[0] === 'profile' && $method === 'POST') {
+    $userId = $routeParts[1];
+
+    if (empty($userId)) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing userId']);
+      $db->close();
+      exit;
+    }
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    $username = $body['username'] ?? null;
+
+    if (empty($username)) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing username']);
+      $db->close();
+      exit;
+    }
+
+    if ($db->updateUserUsername($userId, $username)) {
+      http_response_code(200);
+      echo json_encode(['success' => true]);
+    } else {
+      http_response_code(500);
+      echo json_encode(['error' => 'Failed to update profile']);
+    }
     $db->close();
     exit;
   }

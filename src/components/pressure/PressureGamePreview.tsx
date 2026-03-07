@@ -156,13 +156,12 @@ export function PressureGamePreview({ level }: PressureGamePreviewProps) {
 
   // Calculate responsive tile size - scale based on grid size
   const gridSize = level.gridSize;
-  // Keep grid smaller so it fully fits in preview area
-  const baseMaxWidth = 200;
-  const maxWidth = Math.min(baseMaxWidth + (gridSize - 5) * 5, 240); // Even smaller scaling
+  // Scale board to fit preview area with breathing room - ensure all walls visible
+  const maxPreviewWidth = 280;
   const gap = 1;
   const padding = 4;
-  const tileSizeByW = Math.floor((maxWidth - padding * 2 - gap * (gridSize - 1)) / gridSize);
-  const tileSize = Math.max(1, tileSizeByW);
+  const tileSizeByW = Math.floor((maxPreviewWidth - padding * 2 - gap * (gridSize - 1)) / gridSize);
+  const tileSize = Math.max(10, tileSizeByW); // Minimum 10px tiles for wall visibility
   const boardWidth = tileSize * gridSize + padding * 2 + gap * (gridSize - 1);
   const boardHeight = tileSize * gridSize + padding * 2 + gap * (gridSize - 1);
 
@@ -175,6 +174,7 @@ export function PressureGamePreview({ level }: PressureGamePreviewProps) {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
+        padding: '8px',
       }}
     >
       <div

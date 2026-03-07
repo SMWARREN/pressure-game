@@ -39,7 +39,9 @@ function computeBoardDimensions(
   const { gap, padding } = computeGridDimensions(maxDim);
 
   const reserved = hasFeatures ? 224 : 200;
-  const maxAvailW = Math.min(vw * 0.97, 460);
+  // Use 90% viewport width with safe margins - ensure board never exceeds viewport
+  const viewportSafeWidth = vw * 0.9;
+  const maxAvailW = Math.min(viewportSafeWidth, 440);
   const maxAvailH = Math.max(vh - reserved, 160);
 
   const tileSizeByW = Math.floor((maxAvailW - padding * 2 - gap * (gridCols - 1)) / gridCols);
@@ -49,7 +51,10 @@ function computeBoardDimensions(
   const boardWidth = tileSize * gridCols + padding * 2 + gap * (gridCols - 1);
   const boardHeight = tileSize * gridRows + padding * 2 + gap * (gridRows - 1);
 
-  return { tileSize, boardWidth, boardHeight, gap, padding };
+  // Safety check: ensure board width never exceeds 90% of viewport
+  const constrainedBoardWidth = Math.min(boardWidth, vw * 0.9);
+
+  return { tileSize, boardWidth: constrainedBoardWidth, boardHeight, gap, padding };
 }
 
 export { computeBoardDimensions, computeGridDimensions };

@@ -299,7 +299,9 @@ function renderCustomTile(props: CustomTileRenderProps): React.ReactElement {
           style={{
             zIndex: 1,
             userSelect: 'none',
-            display: 'block',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             lineHeight: 1,
             animation: iconAnimation,
             opacity: isOutbreak && obInterior ? 0.55 : 1,
@@ -307,6 +309,8 @@ function renderCustomTile(props: CustomTileRenderProps): React.ReactElement {
               isOutbreak && obOwned && !isNewTile
                 ? 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
                 : undefined,
+            minHeight: 0,
+            minWidth: 0,
           }}
         >
           {symbol}

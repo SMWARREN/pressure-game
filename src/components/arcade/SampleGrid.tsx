@@ -49,8 +49,9 @@ export function SampleGrid({ symbols, mode, tileSize }: SampleGridProps) {
         display: 'grid',
         gridTemplateColumns: `repeat(3, ${tileSize}px)`,
         gridTemplateRows: `repeat(3, ${tileSize}px)`,
-        gap: 3,
+        gap: 4,
         justifyContent: 'center',
+        alignContent: 'center',
       }}
     >
       {tiles.map((tile) => {
@@ -67,8 +68,9 @@ export function SampleGrid({ symbols, mode, tileSize }: SampleGridProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: tileSize * 0.48,
+              fontSize: Math.max(16, tileSize * 0.5),
               lineHeight: 1,
+              overflow: 'hidden',
               animation: `hubTileFloat ${1.8 + (tile.x + tile.y) * 0.05}s ease-in-out infinite`,
               animationDelay: `${delay}s`,
               ...colors,

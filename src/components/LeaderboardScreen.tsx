@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { getLeaderboard } from '@/game/api/leaderboards';
 import { StarField } from './game/StarField';
+import ProfileScreen from './ProfileScreen';
 
 export interface LeaderboardScreenProps {
   readonly onBack: () => void;
@@ -27,6 +28,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Fetch leaderboard when mode changes
   useEffect(() => {
@@ -239,6 +241,18 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
           </div>
         )}
 
+        {selectedUserId && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 200,
+            }}
+          >
+            <ProfileScreen />
+          </div>
+        )}
+
         {!loading &&
           !error &&
           leaderboard.length > 0 &&
@@ -251,8 +265,9 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
             };
             const rankColor = getRankColor();
             return (
-              <div
+              <button
                 key={`${entry.userId}-${index}`}
+                onClick={() => setSelectedUserId(entry.userId)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -262,6 +277,17 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
                   border: `1px solid ${index < 3 ? rankColor + '40' : colors.border.primary}`,
                   borderRadius: 8,
                   transition: 'all 0.2s',
+                  cursor: 'pointer',
+                  minHeight: 'unset',
+                  minWidth: 'unset',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background =
+                    index < 3 ? `${rankColor}20` : 'rgba(255,255,255,0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background =
+                    index < 3 ? `${rankColor}10` : 'rgba(255,255,255,0.02)';
                 }}
               >
                 {/* Rank */}
@@ -325,7 +351,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
                     {entry.score}
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
       </div>

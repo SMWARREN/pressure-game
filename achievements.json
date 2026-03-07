@@ -1,0 +1,121 @@
+{
+  "achievements": [
+    {
+      "id": "first_win",
+      "name": "First Connection",
+      "description": "Complete your first level",
+      "icon": "🎉",
+      "rarity": "common",
+      "category": "progression",
+      "points": 10
+    },
+    {
+      "id": "ten_levels",
+      "name": "Getting Started",
+      "description": "Complete 10 levels",
+      "icon": "🚀",
+      "rarity": "common",
+      "category": "progression",
+      "points": 25
+    },
+    {
+      "id": "fifty_levels",
+      "name": "Puzzle Enthusiast",
+      "description": "Complete 50 levels",
+      "icon": "🧩",
+      "rarity": "uncommon",
+      "category": "progression",
+      "points": 50
+    },
+    {
+      "id": "hundred_levels",
+      "name": "Puzzle Master",
+      "description": "Complete 100 levels",
+      "icon": "👑",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "speed_demon",
+      "name": "Speed Demon",
+      "description": "Solve 10 levels under par time",
+      "icon": "⚡",
+      "rarity": "uncommon",
+      "category": "skill",
+      "points": 50
+    },
+    {
+      "id": "perfectionist",
+      "name": "Perfectionist",
+      "description": "Complete a world with all gold stars",
+      "icon": "⭐",
+      "rarity": "rare",
+      "category": "skill",
+      "points": 75
+    },
+    {
+      "id": "no_hints",
+      "name": "No Help Needed",
+      "description": "Complete 25 levels without using hints",
+      "icon": "🧠",
+      "rarity": "uncommon",
+      "category": "skill",
+      "points": 40
+    },
+    {
+      "id": "speedrun",
+      "name": "Speedrunner",
+      "description": "Complete 10 levels in under 10 seconds each",
+      "icon": "🏃",
+      "rarity": "rare",
+      "category": "skill",
+      "points": 60
+    },
+    {
+      "id": "daily_streak_7",
+      "name": "Week Warrior",
+      "description": "Play 7 days in a row",
+      "icon": "📅",
+      "rarity": "uncommon",
+      "category": "dedication",
+      "points": 30
+    },
+    {
+      "id": "daily_streak_30",
+      "name": "Monthly Master",
+      "description": "Play 30 days in a row",
+      "icon": "🗓️",
+      "rarity": "rare",
+      "category": "dedication",
+      "points": 100
+    },
+    {
+      "id": "survivor",
+      "name": "Survivor",
+      "description": "Survive 50 wall compressions",
+      "icon": "🛡️",
+      "rarity": "uncommon",
+      "category": "special",
+      "points": 35
+    },
+    {
+      "id": "zen_master",
+      "name": "Zen Master",
+      "description": "Complete all Zen mode levels",
+      "icon": "🧘",
+      "rarity": "legendary",
+      "category": "special",
+      "points": 150
+    },
+    {
+      "id": "blitz_survivor",
+      "name": "Blitz Survivor",
+      "description": "Complete all Blitz mode levels",
+      "icon": "🔥",
+      "rarity": "legendary",
+      "category": "special",
+      "points": 150
+    }
+  ]
+}

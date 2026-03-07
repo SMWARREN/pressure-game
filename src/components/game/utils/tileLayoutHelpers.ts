@@ -12,7 +12,11 @@ function getSymbolSize(
   obOwned: boolean,
   obFrontier: boolean
 ): string {
-  if (!isOutbreak) return '1.2rem';
+  if (!isOutbreak) {
+    // Scale dynamically with tile size - 55% of tile
+    const size = Math.max(14, Math.min(tileSize * 0.55, 24));
+    return `${size}px`;
+  }
   if (obOwned) {
     if (tileSize <= 36) return '0.6rem';
     if (tileSize <= 48) return '0.72rem';

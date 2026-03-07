@@ -160,6 +160,7 @@ function GameGridComponent({
           gap,
           width: '100%',
           height: '100%',
+          overflow: 'hidden',
         }}
       >
         {gridCells.map(({ key, x, y, tile, inDanger }) => {

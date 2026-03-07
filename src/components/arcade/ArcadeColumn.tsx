@@ -22,17 +22,9 @@ export interface ArcadeColumnProps {
   readonly showInfo: boolean;
   readonly onToggleInfo: (e: React.MouseEvent) => void;
   readonly onPlay: () => void;
-  readonly hasDividerRight: boolean;
 }
 
-export function ArcadeColumn({
-  def,
-  tileSize,
-  showInfo,
-  onToggleInfo,
-  onPlay,
-  hasDividerRight,
-}: ArcadeColumnProps) {
+export function ArcadeColumn({ def, tileSize, showInfo, onToggleInfo, onPlay }: ArcadeColumnProps) {
   const { colors } = useTheme();
   // Extract conditional info button styles (S3358: reduce nested ternaries)
   const infoBtnStyles = showInfo
@@ -50,7 +42,16 @@ export function ArcadeColumn({
   const infoBtnLabel = showInfo ? 'Close info' : 'Show info';
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onPlay}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPlay();
+        }
+      }}
       style={{
         flex: 1,
         minWidth: 'unset',
@@ -58,24 +59,24 @@ export function ArcadeColumn({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
-        padding: '14px 8px',
+        gap: 12,
+        padding: '20px 14px',
         cursor: 'pointer',
         position: 'relative',
-        background: `${def.accentColor}04`,
-        borderRight: hasDividerRight ? `1px solid ${colors.border.secondary}` : 'none',
-        transition: 'background 0.15s',
+        background: `linear-gradient(135deg, ${def.accentColor}08 0%, ${def.accentColor}02 100%)`,
+        border: `1.5px solid ${def.accentColor}30`,
+        borderRadius: 16,
+        transition: 'all 0.2s',
         overflowY: 'auto',
+        overflowX: 'hidden',
         boxSizing: 'border-box',
-        border: 'none',
-        minHeight: 'unset',
+        boxShadow: `0 2px 8px ${def.accentColor}12`,
       }}
-      onClick={onPlay}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = `${def.accentColor}10`;
+        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 16px ${def.accentColor}20`;
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = `${def.accentColor}04`;
+        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 2px 8px ${def.accentColor}12`;
       }}
     >
       {/* ℹ button */}
@@ -84,17 +85,17 @@ export function ArcadeColumn({
         aria-label={infoBtnLabel}
         style={{
           position: 'absolute',
-          top: 8,
-          right: 8,
-          width: 22,
-          height: 22,
+          top: 10,
+          right: 10,
+          width: 24,
+          height: 24,
           borderRadius: '50%',
           ...infoBtnStyles,
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: 900,
           minHeight: 'unset',
           minWidth: 'unset',
@@ -180,6 +181,6 @@ export function ArcadeColumn({
           PLAY
         </button>
       )}
-    </button>
+    </div>
   );
 }

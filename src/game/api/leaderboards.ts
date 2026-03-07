@@ -5,7 +5,18 @@
 
 import { robustFetch } from '@/game/engine/backends';
 
-const API_URL = import.meta.env.VITE_API_URL?.replace('/api.php', '') || '';
+const VITE_API_URL = import.meta.env.VITE_API_URL || '';
+
+/**
+ * Construct API URL by removing /api.php suffix and ensuring single trailing slash
+ */
+function getApiBaseUrl(): string {
+  if (!VITE_API_URL) return '';
+  const baseUrl = VITE_API_URL.replace('/api.php', '');
+  return baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+}
+
+const API_URL = getApiBaseUrl();
 
 /**
  * Get the user ID from localStorage
@@ -181,5 +192,35 @@ export async function getUserProfile(userId?: string): Promise<any> {
   } catch (error) {
     console.error('[Profile] Error fetching profile:', error);
     return null;
+  }
+}
+
+/**
+ * Update user profile (username)
+ */
+export async function updateUserProfile(username: string, userId?: string): Promise<boolean> {
+  if (!API_URL) {
+    console.warn('[Profile] API URL not configured');
+    return false;
+  }
+
+  try {
+    const id = userId || getUserId();
+    const response = await robustFetch(`${API_URL}/api/profile/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    });
+
+    if (!response.ok) {
+      console.error('[Profile] Failed to update profile:', response.status);
+      return false;
+    }
+
+    console.log(`[Profile] Updated username to: ${username}`);
+    return true;
+  } catch (error) {
+    console.error('[Profile] Error updating profile:', error);
+    return false;
   }
 }
