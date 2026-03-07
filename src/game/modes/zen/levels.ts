@@ -26,6 +26,8 @@ function createZenLevels(): Level[] {
         world: 4,
         compressionDelay: 999999,
       });
+    } else {
+      console.warn(`[Zen Levels] Failed to generate World 4 level ${i + 1} (${world4Names[i]})`);
     }
   }
 
@@ -46,6 +48,8 @@ function createZenLevels(): Level[] {
         world: 5,
         compressionDelay: 999999,
       });
+    } else {
+      console.warn(`[Zen Levels] Failed to generate World 5 level ${i + 1} (${world5Names[i]})`);
     }
   }
 
@@ -66,9 +70,14 @@ function createZenLevels(): Level[] {
         world: 6,
         compressionDelay: 999999,
       });
+    } else {
+      console.warn(
+        `[Zen Levels] Failed to generate World 6 (Nirvana) level ${i + 1} (${world6Names[i]})`
+      );
     }
   }
 
+  console.log(`[Zen Levels] Generated ${levels.length} additional levels for Zen mode`);
   return levels;
 }
 

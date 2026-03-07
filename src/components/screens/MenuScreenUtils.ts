@@ -86,7 +86,10 @@ export function formatLevelBadge(props: LevelBadgeProps): string {
  * Determine if level badge should be shown
  */
 export function shouldShowLevelBadge(props: LevelBadgeProps): boolean {
-  const { isUnlimited, unlimitedBest, scoreBest } = props;
+  const { isUnlimited, unlimitedBest, scoreBest, best } = props;
   if (isUnlimited && unlimitedBest > 0) return true;
-  return scoreBest !== undefined;
+  if (scoreBest !== undefined) return true;
+  // Show badge for regular completed levels with best moves
+  if (best !== undefined) return true;
+  return false;
 }

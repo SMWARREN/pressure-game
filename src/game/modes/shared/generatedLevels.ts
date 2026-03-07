@@ -1,0 +1,40 @@
+// PRESSURE - Pre-generated Procedural Levels
+// This file loads pre-generated levels from JSON to avoid runtime generation blocking.
+// Run: npm run generate:pressure to regenerate the JSON file
+
+import type { Level } from '../../types';
+import pressureLevelsJson from './pressure-levels.json';
+
+// Cache for lazy loading
+let cachedLevels: Level[] | null = null;
+
+/**
+ * Get all pressure levels - lazy loading from pre-generated JSON.
+ * Levels are loaded from JSON file on first call, then cached.
+ */
+export function getPressureLevels(): Level[] {
+  if (cachedLevels) return cachedLevels;
+
+  // Cast the JSON data to Level[] type
+  cachedLevels = pressureLevelsJson as Level[];
+  return cachedLevels;
+}
+
+// Proxy for backwards compatibility with PRESSURE_LEVELS array access
+export const PRESSURE_LEVELS: Level[] = new Proxy([] as Level[], {
+  get(_target, prop) {
+    const levels = getPressureLevels();
+    if (prop === 'length') return levels.length;
+    if (prop === Symbol.iterator) return levels[Symbol.iterator].bind(levels);
+    if (typeof prop === 'string' && !Number.isNaN(Number(prop))) {
+      return levels[Number(prop)];
+    }
+    if (typeof prop === 'symbol') return levels[prop as keyof Level[]];
+    const value = (levels as any)[prop];
+    if (typeof value === 'function') return value.bind(levels);
+    return value;
+  },
+  has(_target, prop) {
+    return prop in getPressureLevels();
+  },
+});

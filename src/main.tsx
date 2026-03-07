@@ -6,23 +6,15 @@ import { useGameStore, destroyGameStore } from '@/game/store';
 import '@/game/stats'; // bootstrap stats engine
 
 // Expose store and utilities for E2E testing (detected by URL param, works in any build mode)
-const isTestMode = new URLSearchParams(window.location.search).has('levelId');
+const isTestMode = new URLSearchParams(globalThis.location.search).has('levelId');
 if (isTestMode) {
-  (window as any).__GAME_STORE__ = useGameStore;
-  (window as any).__DESTROY_GAME_STORE__ = destroyGameStore;
-
-  // Disable walkthroughs to prevent them from blocking test interactions
-  const modes = ['classic', 'zen', 'blitz', 'candy', 'shoppingSpree', 'outbreak'];
-  const levels = [1, 2, 3, 4, 5];
-  for (const mode of modes) {
-    for (const level of levels) {
-      localStorage.setItem(`walkthrough-${mode}-${level}`, 'true');
-    }
-  }
+  (globalThis as any).__GAME_STORE__ = useGameStore;
+  (globalThis as any).__DESTROY_GAME_STORE__ = destroyGameStore;
+  // Note: Walkthrough disabling is now handled in TestHarness.tsx after engine initialization
 }
 
 // Cleanup timers on page unload/reload to prevent memory leaks and stale timers
-window.addEventListener('beforeunload', () => {
+globalThis.addEventListener('beforeunload', () => {
   destroyGameStore();
 });
 

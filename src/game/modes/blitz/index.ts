@@ -17,7 +17,6 @@ export const BLITZ_WORLDS = [
   { id: 5, name: 'Lateral', tagline: 'Sideways burn', color: '#b91c1c', icon: '◀' },
   { id: 6, name: 'Vise', tagline: 'Closing from both ends', color: '#991b1b', icon: '⬛' },
   { id: 7, name: 'Channel', tagline: 'Side by side annihilation', color: '#7f1d1d', icon: '▬' },
-  { id: 8, name: 'Zero Hour', tagline: 'The full grid unleashed', color: '#450a0a', icon: '✦' },
 ];
 
 export const BlitzMode: GameModeConfig = {

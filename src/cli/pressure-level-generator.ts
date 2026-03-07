@@ -23,7 +23,9 @@ const colors = {
 async function main() {
   console.log(`${colors.bold}${colors.cyan}═══════════════════════════════════════${colors.reset}`);
   console.log(`${colors.bold}${colors.cyan}  PRESSURE LEVEL GENERATOR${colors.reset}`);
-  console.log(`${colors.bold}${colors.cyan}═══════════════════════════════════════${colors.reset}\n`);
+  console.log(
+    `${colors.bold}${colors.cyan}═══════════════════════════════════════${colors.reset}\n`
+  );
 
   const levels: any[] = [];
 
@@ -52,10 +54,7 @@ async function main() {
       compressionDirection: 'left',
       interiorWalls: 0,
       branches: 1,
-      names: [
-        'Sideswipe', 'Drift', 'Current', 'Ripple',
-        'Wave', 'Flow', 'Breeze', 'Echo',
-      ],
+      names: ['Sideswipe', 'Drift', 'Current', 'Ripple', 'Wave', 'Flow', 'Breeze', 'Echo'],
     },
     {
       worldId: 5,
@@ -68,10 +67,7 @@ async function main() {
       compressionDirection: 'top',
       interiorWalls: 1,
       branches: 2,
-      names: [
-        'Descent', 'Topfall', 'Canopy', 'Peak',
-        'Valley', 'Summit', 'Base', 'Depth',
-      ],
+      names: ['Descent', 'Topfall', 'Canopy', 'Peak', 'Valley', 'Summit', 'Base', 'Depth'],
     },
     {
       worldId: 6,
@@ -85,8 +81,14 @@ async function main() {
       interiorWalls: 1,
       branches: 2,
       names: [
-        'Corridor', 'Bottleneck', 'Gauntlet', 'Pinch',
-        'Squeeze', 'Bind', 'Compress', 'Compact',
+        'Corridor',
+        'Bottleneck',
+        'Gauntlet',
+        'Pinch',
+        'Squeeze',
+        'Bind',
+        'Compress',
+        'Compact',
       ],
     },
     {
@@ -100,9 +102,7 @@ async function main() {
       compressionDirection: 'bottom',
       interiorWalls: 0,
       branches: 1,
-      names: [
-        'Zenith', 'Ascend', 'Soar', 'Rise', 'Elevate', 'Skyward',
-      ],
+      names: ['Zenith', 'Ascend', 'Soar', 'Rise', 'Elevate', 'Skyward'],
     },
   ];
 

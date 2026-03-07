@@ -269,8 +269,7 @@ export function EditorToolbar({
       </div>
 
       {/* Connection presets row */}
-      {selectedTile &&
-        selectedTile.type === 'path' &&
+      {selectedTile?.type === 'path' &&
         (() => {
           const tile = selectedTile as Tile & { type: 'path' };
           return (

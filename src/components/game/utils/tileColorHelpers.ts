@@ -27,8 +27,14 @@ type TileStyleHandler = (ctx: TileStyleContext) => React.CSSProperties;
 // This pattern reduces cognitive complexity by creating single-purpose functions.
 
 const WALL_STYLES = {
-  light: { background: 'linear-gradient(145deg, #e5e7eb 0%, #d1d5db 100%)', border: '1px solid #9ca3af' },
-  dark: { background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)', border: '1px solid #131325' },
+  light: {
+    background: 'linear-gradient(145deg, #e5e7eb 0%, #d1d5db 100%)',
+    border: '1px solid #9ca3af',
+  },
+  dark: {
+    background: 'linear-gradient(145deg, #0e0e1c 0%, #090912 100%)',
+    border: '1px solid #131325',
+  },
 };
 
 const CRUSHED_STYLES = {
@@ -56,7 +62,8 @@ const PATH_STYLES = {
 const handleWall: TileStyleHandler = (ctx) => WALL_STYLES[ctx.theme as keyof typeof WALL_STYLES];
 
 /** Handler for crushed tiles */
-const handleCrushed: TileStyleHandler = (ctx) => CRUSHED_STYLES[ctx.theme as keyof typeof CRUSHED_STYLES];
+const handleCrushed: TileStyleHandler = (ctx) =>
+  CRUSHED_STYLES[ctx.theme as keyof typeof CRUSHED_STYLES];
 
 /** Handler for node tiles */
 const handleNode: TileStyleHandler = (ctx) => ({

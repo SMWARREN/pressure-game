@@ -11,11 +11,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/game/store';
+import { useEngine } from '@/game/contexts/GameEngineProvider';
 import { getModeById } from '@/game/modes';
 import { GameProviders } from '@/game/GameProviders';
 import GameBoard from '../GameBoard';
 
 function TestHarnessContent() {
+  const engine = useEngine();
   const initializedRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ function TestHarnessContent() {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const levelId = parseInt(params.get('levelId') ?? '0', 10);
     const modeId = params.get('modeId') ?? 'pressure';
 
@@ -40,13 +42,18 @@ function TestHarnessContent() {
     const initTimeout = setTimeout(() => {
       try {
         const { setGameMode, loadLevel, completeTutorial } = useGameStore.getState();
-        
+
         // Complete tutorial to prevent tutorial overlay from blocking
         completeTutorial();
-        
+
         // Set the game mode first
         setGameMode(modeId);
-        
+
+        // Disable walkthroughs to prevent them from blocking test interactions
+        const modes = ['classic', 'zen', 'blitz', 'candy', 'shoppingSpree', 'outbreak'];
+        const levels = [1, 2, 3, 4, 5];
+        engine.markAllWalkthroughsSeen(modes, levels);
+
         // Find and load the level (this triggers lazy level generation on first call)
         const mode = getModeById(modeId);
         if (!mode) {
@@ -56,11 +63,11 @@ function TestHarnessContent() {
         if (!level) {
           throw new Error(`Level ${levelId} not found`);
         }
-        
+
         // Load the level into 'idle' state — do NOT call startGame() here.
         // The test controls when the game starts via the __GAME_STORE__ handle.
         loadLevel(level);
-        
+
         // Wait for state to settle before rendering
         requestAnimationFrame(() => {
           setReady(true);
@@ -72,7 +79,7 @@ function TestHarnessContent() {
     }, 0);
 
     return () => clearTimeout(initTimeout);
-  }, []);
+  }, [engine]);
 
   // Show error if initialization failed
   if (error) {

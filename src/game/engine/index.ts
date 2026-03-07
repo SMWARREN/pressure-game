@@ -18,6 +18,7 @@ import type { AchievementEngine } from '../achievements/engine';
 import type { GameState, Level, Tile } from '../types';
 import { getModeById } from '../modes';
 import { getConnectedTiles } from '../modes/utils';
+import { saveHighscore } from '../api/leaderboards';
 
 // Re-export types and systems
 export * from './types';
@@ -57,7 +58,10 @@ export class PressureEngine implements IPressureEngine {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.timer = createTimerSystem(this.config.tickInterval);
     this.audio = createAudioSystem(this.config.audioEnabled);
-    this.persistence = createPersistenceSystem(this.config.storageKey);
+    this.persistence = createPersistenceSystem(
+      this.config.storageKey,
+      this.config.persistenceBackend
+    );
     this.compression = createCompressionSystem();
   }
 
@@ -323,6 +327,68 @@ export class PressureEngine implements IPressureEngine {
     return this.persistence.buildPayload(state);
   }
 
+  // ─── Walkthrough Persistence ───────────────────────────────────────────
+
+  /**
+   * Check if a walkthrough has been seen
+   */
+  isWalkthroughSeen(modeId: string, levelId: number): boolean {
+    return this.persistence.isWalkthroughSeen(modeId, levelId);
+  }
+
+  /**
+   * Mark a walkthrough as seen
+   */
+  markWalkthroughSeen(modeId: string, levelId: number): void {
+    this.persistence.markWalkthroughSeen(modeId, levelId);
+  }
+
+  /**
+   * Reset a walkthrough
+   */
+  resetWalkthrough(modeId: string, levelId: number): void {
+    this.persistence.resetWalkthrough(modeId, levelId);
+  }
+
+  /**
+   * Mark multiple walkthroughs as seen
+   */
+  markAllWalkthroughsSeen(modes: string[], levelIds: number[]): void {
+    this.persistence.markAllWalkthroughsSeen(modes, levelIds);
+  }
+
+  // ─── High Score Persistence ────────────────────────────────────────────
+
+  /**
+   * Get high score for a level
+   */
+  getHighScore(modeId: string, levelId: number): number | null {
+    return this.persistence.getHighScore(modeId, levelId);
+  }
+
+  /**
+   * Set high score for a level
+   */
+  setHighScore(modeId: string, levelId: number, score: number): void {
+    this.persistence.setHighScore(modeId, levelId, score);
+  }
+
+  // ─── State Editor Presets ───────────────────────────────────────────────
+
+  /**
+   * Get all editor presets
+   */
+  getEditorPresets(): unknown[] {
+    return this.persistence.getEditorPresets();
+  }
+
+  /**
+   * Save editor presets
+   */
+  setEditorPresets(presets: unknown[]): void {
+    this.persistence.setEditorPresets(presets);
+  }
+
   // ─── Compression ───────────────────────────────────────────────────────────
 
   /**
@@ -529,8 +595,9 @@ export class PressureEngine implements IPressureEngine {
       const level = s.currentLevel!;
       const newCompleted = [...new Set([...s.completedLevels, level.id])];
       const newBest = { ...s.bestMoves };
-      if (!newBest[level.id] || s.moves < newBest[level.id]) {
-        newBest[level.id] = s.moves;
+      const bestKey = `${s.currentModeId}:${level.id}`;
+      if (!newBest[bestKey] || s.moves < newBest[bestKey]) {
+        newBest[bestKey] = s.moves;
       }
 
       this.persist({
@@ -546,6 +613,11 @@ export class PressureEngine implements IPressureEngine {
         bestMoves: newBest,
         _winCheckPending: false,
       });
+
+      // Save highscore to API (in background)
+      saveHighscore(s.currentModeId, level.id, s.moves).catch((err) =>
+        console.warn('Failed to save highscore to API:', err)
+      );
 
       // Check achievements after winning
       this.checkAchievementsOnWin(s, level);

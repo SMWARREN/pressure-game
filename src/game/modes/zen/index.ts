@@ -16,7 +16,6 @@ export const ZEN_WORLDS = [
   { id: 5, name: 'Current', tagline: 'Winding corridors', color: '#059669', icon: '⬡' },
   { id: 6, name: 'Deep', tagline: 'Complex networks', color: '#047857', icon: '✧' },
   { id: 7, name: 'Peace', tagline: 'Wide open puzzles', color: '#065f46', icon: '⬢' },
-  { id: 8, name: 'Nirvana', tagline: 'The full canvas', color: '#064e3b', icon: '✦' },
 ];
 
 export const ZenMode: GameModeConfig = {

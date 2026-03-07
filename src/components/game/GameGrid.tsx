@@ -166,7 +166,7 @@ function GameGridComponent({
           const isHint =
             (hintPos?.x === x && hintPos?.y === y) || (hintTiles?.has(`${x},${y}`) ?? false);
 
-          const isRejected = Boolean(rejectedPos && rejectedPos.x === x && rejectedPos.y === y);
+          const isRejected = Boolean(rejectedPos?.x === x && rejectedPos.y === y);
 
           return (
             <GameTile

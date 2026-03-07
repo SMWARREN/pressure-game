@@ -5,6 +5,7 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { useGameStore } from '@/game/store';
+import { useEngine } from '@/game/contexts/GameEngineProvider';
 import type { Tile, Direction, Level, GameStatus } from '@/game/types';
 
 export interface HistorySnapshot {
@@ -97,27 +98,31 @@ export interface StatePreset {
  * Custom hook to manage preset save/load functionality.
  */
 export function usePresetManagement() {
+  const engine = useEngine();
   const [presets, setPresets] = useState<StatePreset[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const setState = useGameStore.setState;
 
-  // Load presets from localStorage
+  // Load presets from engine
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('state-editor-presets');
-      if (saved) {
-        setPresets(JSON.parse(saved));
+      const saved = engine.getEditorPresets();
+      if (Array.isArray(saved)) {
+        setPresets(saved as StatePreset[]);
       }
     } catch (e) {
       console.error('Failed to load presets:', e);
     }
-  }, []);
+  }, [engine]);
 
-  // Save presets to localStorage
-  const savePresetsToStorage = useCallback((newPresets: StatePreset[]) => {
-    setPresets(newPresets);
-    localStorage.setItem('state-editor-presets', JSON.stringify(newPresets));
-  }, []);
+  // Save presets to engine
+  const savePresetsToStorage = useCallback(
+    (newPresets: StatePreset[]) => {
+      setPresets(newPresets);
+      engine.setEditorPresets(newPresets);
+    },
+    [engine]
+  );
 
   // Show message temporarily
   const showMessage = useCallback((msg: string) => {

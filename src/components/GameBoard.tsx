@@ -37,6 +37,7 @@ import { LevelHeader } from './game/LevelHeader';
 import { FeatureIndicators } from './game/FeatureIndicators';
 import { GameFooter } from './game/GameFooter';
 import { NotificationLog } from './game/NotificationLog';
+import { SyncStatusIndicator } from './game/SyncStatusIndicator';
 import {
   getParticleBurstColor,
   getParticleBurstShape,
@@ -859,6 +860,18 @@ export default function GameBoard() {
       {status === 'playing' && (
         <NotificationLog notifLog={notifLog} mode={mode} viewportWidth={vw} boardMaxWidth={238} />
       )}
+
+      {/* ── SYNC STATUS INDICATOR — fixed top-right, always visible ── */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 'max(12px, env(safe-area-inset-top))',
+          right: 12,
+          zIndex: 1000,
+        }}
+      >
+        <SyncStatusIndicator />
+      </div>
     </>
   );
 }

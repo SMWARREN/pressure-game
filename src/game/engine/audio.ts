@@ -110,7 +110,7 @@ export class AudioSystem {
    */
   async resume(): Promise<void> {
     const ctx = this.getAudioContext();
-    if (ctx && ctx.state === 'suspended') {
+    if (ctx?.state === 'suspended') {
       await ctx.resume();
     }
   }

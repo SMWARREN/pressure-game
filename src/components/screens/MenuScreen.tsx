@@ -12,6 +12,7 @@ import { StarField } from '../game/StarField';
 import ModeSelectorModal from '../ModeSelectorModal';
 import StatsScreen from '../StatsScreen';
 import AchievementsScreen from '../AchievementsScreen';
+import LeaderboardScreen from '../LeaderboardScreen';
 import ReplayOverlay from '../game/ReplayOverlay';
 import { SettingsPanel } from '../modals/SettingsPanel';
 import { LevelGeneratorPanel } from '../modals/LevelGeneratorPanel';
@@ -68,6 +69,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [replayEventFromStats, setReplayEventFromStats] = useState<GameEndEvent | null>(null);
 
   const activeMode = getModeById(currentModeId);
@@ -132,6 +134,8 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
     );
 
   if (showAchievements) return <AchievementsScreen onBack={() => setShowAchievements(false)} />;
+
+  if (showLeaderboard) return <LeaderboardScreen onBack={() => setShowLeaderboard(false)} />;
 
   return (
     <div
@@ -476,7 +480,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                     .filter((l) => l.world === world)
                     .map((level) => {
                       const done = isLevelDone(level);
-                      const best = bestMoves[level.id];
+                      const best = bestMoves[`${currentModeId}:${level.id}`];
                       const unlimitedBest = level.isUnlimited
                         ? (unlimitedHighScores[`${currentModeId}:${level.id}`] ?? 0)
                         : 0;
@@ -687,6 +691,10 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
         onToggleAnimations={toggleAnimations}
         onShowStats={() => setShowStats(true)}
         onShowAchievements={() => setShowAchievements(true)}
+        onShowLeaderboard={() => {
+          setShowSettings(false);
+          setShowLeaderboard(true);
+        }}
         onHowToPlay={replayTutorial}
         onRewatchWalkthrough={replayWalkthrough}
         hasWalkthrough={!!activeMode.walkthrough}

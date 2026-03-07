@@ -421,9 +421,10 @@ export const CandyMode: GameModeConfig = {
         return {
           background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
           border: `2px solid ${ctx.theme === 'light' ? '#4f46e5' : '#a5b4fc'}`,
-          boxShadow: ctx.theme === 'light'
-            ? '0 0 18px rgba(79,70,229,0.5), 0 0 6px rgba(79,70,229,0.3)'
-            : '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
+          boxShadow:
+            ctx.theme === 'light'
+              ? '0 0 18px rgba(79,70,229,0.5), 0 0 6px rgba(79,70,229,0.3)'
+              : '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
         };
       }
 

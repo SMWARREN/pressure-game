@@ -7,6 +7,7 @@ export interface SettingsPanelProps {
   readonly onToggleAnimations: () => void;
   readonly onShowStats: () => void;
   readonly onShowAchievements: () => void;
+  readonly onShowLeaderboard: () => void;
   readonly onHowToPlay: () => void;
   readonly onRewatchWalkthrough: () => void;
   readonly hasWalkthrough: boolean;
@@ -19,6 +20,7 @@ export function SettingsPanel({
   onToggleAnimations,
   onShowStats,
   onShowAchievements,
+  onShowLeaderboard,
   onHowToPlay,
   onRewatchWalkthrough,
   hasWalkthrough,
@@ -198,6 +200,31 @@ export function SettingsPanel({
             <div style={{ fontSize: 13, fontWeight: 700, color: '#fbbf24' }}>Achievements</div>
             <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
               View your accomplishments
+            </div>
+          </div>
+          <span style={{ fontSize: 14, color: colors.text.tertiary }}>›</span>
+        </button>
+
+        {/* Leaderboards row */}
+        <button
+          onClick={onShowLeaderboard}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '14px 16px',
+            borderRadius: 14,
+            border: `1px solid ${colors.border.primary}`,
+            background: colors.bg.tertiary,
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 20 }}>📈</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>Leaderboards</div>
+            <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+              View global rankings
             </div>
           </div>
           <span style={{ fontSize: 14, color: colors.text.tertiary }}>›</span>

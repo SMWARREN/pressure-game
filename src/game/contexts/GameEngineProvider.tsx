@@ -6,6 +6,7 @@ import { AchievementEngine } from '@/game/achievements/engine';
 import { LocalStorageStatsBackend } from '@/game/stats/backends/localStorage';
 import { getModeById } from '@/game/modes';
 import type { StatsBackend } from '@/game/stats/types';
+import { SyncingBackend, MySQLBackend } from '@/game/engine/persistence';
 
 interface GameEngineContextType {
   readonly pressureEngine: PressureEngine;
@@ -27,6 +28,27 @@ let enginesCreated = false;
 let enginesInstance: GameEngineContextType | null = null;
 
 /**
+ * Get or generate user ID for database persistence
+ */
+function getUserId(): string {
+  const envUserId = import.meta.env.VITE_USER_ID;
+  if (envUserId) {
+    return envUserId;
+  }
+
+  // Check localStorage for existing user ID
+  const storedUserId = localStorage.getItem('pressure_user_id');
+  if (storedUserId) {
+    return storedUserId;
+  }
+
+  // Generate new UUID for anonymous user
+  const newUserId = `user_${Math.random().toString(36).substr(2, 9)}`;
+  localStorage.setItem('pressure_user_id', newUserId);
+  return newUserId;
+}
+
+/**
  * Create engines - this function is called during render
  * but the engines are only created once due to module-level tracking.
  */
@@ -40,8 +62,27 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
     performance.mark('engine-create-start');
   }
 
-  // Create engine
-  const pressureEngine = createPressureEngine();
+  // Configure persistence backend from environment
+  const backendType = import.meta.env.VITE_PERSISTENCE_BACKEND || 'localStorage';
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  let persistenceBackend = undefined;
+
+  if (backendType === 'syncing' && apiUrl) {
+    // Offline-first with sync (recommended)
+    const userId = getUserId();
+    persistenceBackend = new SyncingBackend(apiUrl, userId);
+  } else if (backendType === 'database' && apiUrl) {
+    // Direct database (online only)
+    const userId = getUserId();
+    persistenceBackend = new MySQLBackend(apiUrl, userId);
+  }
+  // else: use default LocalStorageBackend
+
+  // Create engine with configured backend
+  const pressureEngine = createPressureEngine({
+    persistenceBackend,
+  });
 
   if (process.env.NODE_ENV !== 'production') {
     performance.mark('pressure-engine-created');
@@ -67,7 +108,7 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
 
   // Expose engine for E2E testing
   if (process.env.NODE_ENV !== 'production') {
-    (window as any).__PRESSURE_ENGINE__ = pressureEngine;
+    (globalThis as any).__PRESSURE_ENGINE__ = pressureEngine;
   }
 
   const backend = statsBackend ?? new LocalStorageStatsBackend();

@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../game/store';
+import { useEngine } from '@/game/contexts/GameEngineProvider';
 import { getGapValue, getPaddingValue, getStepBackground } from './game/GameTileUtils';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -424,12 +425,12 @@ export function useWalkthrough(
   config: WalkthroughConfig | null,
   _boardRef: React.RefObject<HTMLDivElement | null>
 ) {
+  const engine = useEngine();
   const [isActive, setIsActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [hasSeenWalkthrough, setHasSeenWalkthrough] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const seen = localStorage.getItem(`walkthrough-${config?.modeId}-${config?.levelId}`);
-    return seen === 'true';
+    if (!config) return false;
+    return engine.isWalkthroughSeen(config.modeId, config.levelId);
   });
 
   const tiles = useGameStore((s) => s.tiles);
@@ -478,11 +479,11 @@ export function useWalkthrough(
       useGameStore.setState({ _replayWalkthrough: undefined });
       setIsActive(false);
       setHasSeenWalkthrough(true);
-      localStorage.setItem(`walkthrough-${config.modeId}-${config.levelId}`, 'true');
+      engine.markWalkthroughSeen(config.modeId, config.levelId);
     } else {
       setCurrentStepIndex(nextIndex);
     }
-  }, [config, currentStepIndex]);
+  }, [config, currentStepIndex, engine]);
 
   // Skip walkthrough
   const skip = useCallback(() => {
@@ -491,8 +492,8 @@ export function useWalkthrough(
     useGameStore.setState({ _replayWalkthrough: undefined });
     setIsActive(false);
     setHasSeenWalkthrough(true);
-    localStorage.setItem(`walkthrough-${config.modeId}-${config.levelId}`, 'true');
-  }, [config]);
+    engine.markWalkthroughSeen(config.modeId, config.levelId);
+  }, [config, engine]);
 
   // Auto-advance on certain conditions
   useEffect(() => {
@@ -517,8 +518,8 @@ export function useWalkthrough(
     setIsActive(true);
     setCurrentStepIndex(0);
     setHasSeenWalkthrough(false);
-    localStorage.removeItem(`walkthrough-${config.modeId}-${config.levelId}`);
-  }, [config]);
+    engine.resetWalkthrough(config.modeId, config.levelId);
+  }, [config, engine]);
 
   return {
     isActive,

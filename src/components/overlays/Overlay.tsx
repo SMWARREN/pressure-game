@@ -319,7 +319,7 @@ export function Overlay({
   // Compute solution message to avoid nested ternary
   const moveCount = solution?.length ?? 0;
   const moveSuffix = moveCount !== 1 ? 's' : '';
-  const isSolved = solution && solution.length === 0;
+  const isSolved = solution?.length === 0;
   let solutionMessage = '';
   if (solution) {
     solutionMessage = isSolved ? 'Already solved' : `${moveCount} move${moveSuffix} to solve`;

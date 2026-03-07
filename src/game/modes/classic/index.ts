@@ -18,13 +18,6 @@ export const CLASSIC_WORLDS = [
   { id: 5, name: 'Lateral', tagline: 'Horizontal pressure', color: '#dc2626', icon: '◀' },
   { id: 6, name: 'Squeeze', tagline: 'Top and bottom close in', color: '#b91c1c', icon: '⬛' },
   { id: 7, name: 'Corridor', tagline: 'Left and right close in', color: '#991b1b', icon: '▬' },
-  {
-    id: 8,
-    name: 'Singularity',
-    tagline: 'The largest grid. No mercy',
-    color: '#7f1d1d',
-    icon: '✦',
-  },
 ];
 
 export const ClassicMode: GameModeConfig = {

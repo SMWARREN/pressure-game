@@ -3,6 +3,7 @@
 // This can be swapped out or extended for different game behaviors.
 
 import { GameState, Level, Tile } from '../types';
+import type { PersistenceBackend } from './backends';
 
 /**
  * Configuration for the pressure engine
@@ -10,6 +11,8 @@ import { GameState, Level, Tile } from '../types';
 export interface PressureEngineConfig {
   /** Storage key for persistence */
   storageKey?: string;
+  /** Persistence backend (defaults to localStorage) */
+  persistenceBackend?: PersistenceBackend;
   /** Whether audio is enabled by default */
   audioEnabled?: boolean;
   /** Default compression delay in ms */
@@ -39,7 +42,8 @@ export type SoundEffect = 'rotate' | 'win' | 'lose' | 'crush' | 'start' | 'undo'
  */
 export interface PersistedState {
   completedLevels: number[];
-  bestMoves: Record<number, number>;
+  /** Best moves per level, keyed by `${modeId}:${levelId}` */
+  bestMoves: Record<string, number>;
   showTutorial: boolean;
   generatedLevels: Level[];
   currentModeId: string;
@@ -114,6 +118,36 @@ export interface IPressureEngine {
     modeId: string,
     override: boolean | null
   ): boolean;
+
+  // ─── Walkthrough Persistence ──────────────────────────────────────────
+
+  /** Check if a walkthrough has been seen for a mode and level */
+  isWalkthroughSeen?(modeId: string, levelId: number): boolean;
+
+  /** Mark a walkthrough as seen */
+  markWalkthroughSeen?(modeId: string, levelId: number): void;
+
+  /** Reset a walkthrough (mark as not seen) */
+  resetWalkthrough?(modeId: string, levelId: number): void;
+
+  /** Mark multiple walkthroughs as seen (for bulk operations) */
+  markAllWalkthroughsSeen?(modes: string[], levelIds: number[]): void;
+
+  // ─── High Score Persistence ────────────────────────────────────────────
+
+  /** Get high score for an unlimited level */
+  getHighScore?(modeId: string, levelId: number): number | null;
+
+  /** Set high score for an unlimited level */
+  setHighScore?(modeId: string, levelId: number, score: number): void;
+
+  // ─── State Editor Presets ──────────────────────────────────────────────
+
+  /** Get all state editor presets */
+  getEditorPresets?(): unknown[];
+
+  /** Save state editor presets */
+  setEditorPresets?(presets: unknown[]): void;
 
   // ─── Game Flow ─────────────────────────────────────────────────────────────
 

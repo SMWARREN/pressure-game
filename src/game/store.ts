@@ -48,6 +48,13 @@ function getOrCreateEngine(): PressureEngine {
   return engine;
 }
 
+/**
+ * Get engine for modules that may not throw if unavailable (like unlimited.ts during init)
+ */
+export function _getEngineForUnlimited(): PressureEngine | null {
+  return engine;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    STORE HELPERS
    Extract complex logic to reduce cognitive complexity in store methods.
@@ -195,7 +202,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const { seenTutorials } = get();
       // Check if in test/harness mode (E2E tests with ?levelId=X)
       const isTestMode =
-        typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('levelId');
+        typeof globalThis.window !== 'undefined' && new URLSearchParams(globalThis.location.search).has('levelId');
       const alreadySeen = seenTutorials.includes(modeId) || isTestMode;
       set({
         currentModeId: modeId,
@@ -515,8 +522,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const mode = getModeById(currentModeId);
       const walkthrough = mode.walkthrough;
       if (walkthrough) {
-        // Clear the walkthrough seen flag from localStorage
-        localStorage.removeItem(`walkthrough-${walkthrough.modeId}-${walkthrough.levelId}`);
+        // Clear the walkthrough seen flag through the engine
+        getEngine().resetWalkthrough(walkthrough.modeId, walkthrough.levelId);
         // Load the first level of this mode (where walkthrough is shown)
         const levels = mode.getLevels();
         const firstLevel = levels.find((l) => l.id === walkthrough.levelId) ?? levels[0];
@@ -744,7 +751,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       currentLevel: Level
     ) => {
       const goalNodes = currentLevel.goalNodes;
-      if (existing && existing.type === 'node') {
+      if (existing?.type === 'node') {
         const newTiles = [...tiles];
         const isGoal = !existing.isGoalNode;
         newTiles[existingIdx] = { ...existing, isGoalNode: isGoal };

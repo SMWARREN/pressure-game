@@ -54,43 +54,47 @@ export const LevelEditor: React.FC = () => {
   const initializeGrid = useCallback((size: number) => {
     const newTiles: Tile[] = [];
     for (let i = 0; i < size; i++) {
-      newTiles.push({
-        id: `wall-${i}-0`,
-        type: 'wall',
-        x: i,
-        y: 0,
-        connections: [],
-        isGoalNode: false,
-        canRotate: false,
-      });
-      newTiles.push({
-        id: `wall-${i}-${size - 1}`,
-        type: 'wall',
-        x: i,
-        y: size - 1,
-        connections: [],
-        isGoalNode: false,
-        canRotate: false,
-      });
+      newTiles.push(
+        {
+          id: `wall-${i}-0`,
+          type: 'wall',
+          x: i,
+          y: 0,
+          connections: [],
+          isGoalNode: false,
+          canRotate: false,
+        },
+        {
+          id: `wall-${i}-${size - 1}`,
+          type: 'wall',
+          x: i,
+          y: size - 1,
+          connections: [],
+          isGoalNode: false,
+          canRotate: false,
+        }
+      );
       if (i > 0 && i < size - 1) {
-        newTiles.push({
-          id: `wall-0-${i}`,
-          type: 'wall',
-          x: 0,
-          y: i,
-          connections: [],
-          isGoalNode: false,
-          canRotate: false,
-        });
-        newTiles.push({
-          id: `wall-${size - 1}-${i}`,
-          type: 'wall',
-          x: size - 1,
-          y: i,
-          connections: [],
-          isGoalNode: false,
-          canRotate: false,
-        });
+        newTiles.push(
+          {
+            id: `wall-0-${i}`,
+            type: 'wall',
+            x: 0,
+            y: i,
+            connections: [],
+            isGoalNode: false,
+            canRotate: false,
+          },
+          {
+            id: `wall-${size - 1}-${i}`,
+            type: 'wall',
+            x: size - 1,
+            y: i,
+            connections: [],
+            isGoalNode: false,
+            canRotate: false,
+          }
+        );
       }
     }
     setTiles(newTiles);
@@ -371,7 +375,7 @@ ${tilesStr}
           </div>
 
           {/* Connection Presets */}
-          {selectedTile && selectedTile.type === 'path' && (
+          {selectedTile?.type === 'path' && (
             <div>
               <label htmlFor="connections-group" className="block text-sm mb-1">
                 Connections

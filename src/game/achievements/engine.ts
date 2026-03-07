@@ -3,6 +3,7 @@
  */
 
 import { Achievement, AchievementProgress, AchievementState, DEFAULT_ACHIEVEMENTS } from './types';
+import { unlockAchievement } from '../api/leaderboards';
 
 const STORAGE_KEY = 'pressure_achievements_v1';
 const STREAK_KEY = 'pressure_daily_streak_v1';
@@ -161,6 +162,12 @@ class AchievementEngine {
       this.recentlyEarnedQueue.push(achievementId);
       this.saveState();
       this.notifySubscribers();
+
+      // Sync to API in background
+      unlockAchievement(achievementId).catch((err) =>
+        console.warn(`Failed to sync achievement ${achievementId} to API:`, err)
+      );
+
       return true;
     }
 

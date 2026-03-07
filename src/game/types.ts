@@ -169,7 +169,8 @@ export interface GameState {
   modeState?: Record<string, unknown>;
   status: GameStatus;
   completedLevels: number[];
-  bestMoves: Record<number, number>;
+  /** Best moves per level, keyed by `${modeId}:${levelId}` */
+  bestMoves: Record<string, number>;
   history: Tile[][];
   lastRotatedPos: Position | null;
   showTutorial: boolean;
