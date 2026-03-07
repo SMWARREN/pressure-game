@@ -5272,15 +5272,21 @@ export const PRESSURE_LOGO_LEVEL: Level = {
     { id: 'w-3-2', type: 'wall', x: 3, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
     // Goal nodes - 3 strategic connections
-    { id: 'g-1-1', type: 'straight', x: 1, y: 1, connections: ['up', 'down'] as Direction[], isGoalNode: true, canRotate: false },
-    { id: 'g-2-1', type: 'straight', x: 2, y: 1, connections: ['left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
-    { id: 'g-1-2', type: 'corner', x: 1, y: 2, connections: ['up', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-1-1', type: 'path', x: 1, y: 1, connections: ['up', 'down'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-2-1', type: 'path', x: 2, y: 1, connections: ['left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-1-2', type: 'path', x: 1, y: 2, connections: ['up', 'right'] as Direction[], isGoalNode: true, canRotate: false },
 
     // Puzzle pipes to connect
-    { id: 'p-2-2', type: 'corner', x: 2, y: 2, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-2-2', type: 'path', x: 2, y: 2, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
   ],
-  wallCompression: 'never',
-  description: 'The iconic Pressure logo - a compact puzzle showcasing the game.',
+  compressionDelay: Infinity,
+  maxMoves: 10,
+  compressionEnabled: false,
+  goalNodes: [
+    { x: 1, y: 1 },
+    { x: 2, y: 1 },
+    { x: 1, y: 2 },
+  ],
 };
 
 // SECRET: 10x10 "P" shaped level - Unlocked by achievement
@@ -5371,4 +5377,27 @@ export const PRESSURE_LOGO_SECRET_LEVEL: Level = {
     { id: 'wall-3-8', type: 'wall', x: 3, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'wall-4-8', type: 'wall', x: 4, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'wall-5-8', type: 'wall', x: 5, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'wall-6-8', type: 'wall', x: 6, y: 8, connections: [] as Direction[], isGoal
+    { id: 'wall-6-8', type: 'wall', x: 6, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-8', type: 'wall', x: 7, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-8', type: 'wall', x: 8, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+
+    // Goal nodes - 3 strategic positions for the P shape
+    { id: 'g-2-2', type: 'path', x: 2, y: 2, connections: ['up', 'down'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-4-3', type: 'path', x: 4, y: 3, connections: ['left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-2-5', type: 'path', x: 2, y: 5, connections: ['left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+
+    // Puzzle pipes to connect
+    { id: 'p-3-2', type: 'path', x: 3, y: 2, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-3', type: 'path', x: 3, y: 3, connections: ['up', 'right'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-4', type: 'path', x: 3, y: 4, connections: ['up', 'right'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-5', type: 'path', x: 3, y: 5, connections: ['up', 'right'] as Direction[], isGoalNode: false, canRotate: true },
+  ],
+  compressionDelay: Infinity,
+  maxMoves: 20,
+  compressionEnabled: false,
+  goalNodes: [
+    { x: 2, y: 2 },
+    { x: 4, y: 3 },
+    { x: 2, y: 5 },
+  ],
+};

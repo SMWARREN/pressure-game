@@ -52,7 +52,7 @@ export default function AboutScreen({
             transition: 'all 0.15s',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = RGBA_COLORS.TRANSPARENT_WHITE_05;
+            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = RGBA_COLORS.TRANSPARENT_WHITE_02;
@@ -107,7 +107,7 @@ export default function AboutScreen({
             transition: 'all 0.15s',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = RGBA_COLORS.TRANSPARENT_WHITE_05;
+            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = RGBA_COLORS.TRANSPARENT_WHITE_02;
