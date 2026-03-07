@@ -87,7 +87,7 @@ function calculateScore($mode, $moves, $time, $levelId) {
 
 // Database Connection
 class Database {
-  private $conn;
+  public $conn;  // Made public for direct access in endpoints
 
   public function __construct($host, $port, $user, $pass, $db) {
     try {
@@ -217,10 +217,10 @@ class Database {
         user_id VARCHAR(64) NOT NULL,
         username VARCHAR(255),
         score INT,
-        rank INT,
+        `rank` INT,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         UNIQUE KEY unique_mode_user (mode, user_id),
-        INDEX idx_mode_rank (mode, rank),
+        INDEX idx_mode_rank (mode, `rank`),
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
@@ -1004,15 +1004,15 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $pathParts = array_filter(explode('/', trim($path, '/')));
 $pathParts = array_values($pathParts); // Re-index after filter
 
-// Find 'api' segment and extract route
+// Find 'api' segment or detect if we're running as api.php
 $apiIndex = array_search('api', $pathParts);
-
 if ($apiIndex === false) {
-  // Health check at root (direct hit to api.php or /api)
-  if (empty($pathParts) ||
-      (count($pathParts) === 1 && $pathParts[0] === 'api') ||
-      (count($pathParts) === 1 && strpos($pathParts[0], 'api.php') !== false) ||
-      (count($pathParts) === 2 && $pathParts[1] === 'api.php')) {
+  $apiIndex = array_search('api.php', $pathParts);
+}
+
+// Health check at root (direct hit to api.php or /api)
+if ($apiIndex === false) {
+  if (empty($pathParts)) {
     http_response_code(200);
     echo json_encode([
       'status' => 'ok',
@@ -1029,7 +1029,7 @@ if ($apiIndex === false) {
   exit;
 }
 
-// Extract route after 'api'
+// Extract route after 'api' or 'api.php'
 $routeParts = array_slice($pathParts, $apiIndex + 1);
 
 try {
@@ -1550,20 +1550,149 @@ try {
     }
   }
 
-  // ─── INCLUDE NEW RELATIONAL API ENDPOINTS ────────────────────────────────
-  // If legacy endpoints didn't handle this route, try the new relational endpoints
-  // This provides both backward compatibility and new features
-  if (file_exists(__DIR__ . '/api-endpoints.php')) {
-    // Use a buffer to catch the new endpoints output
-    ob_start();
-    include __DIR__ . '/api-endpoints.php';
-    $output = ob_get_clean();
+  // ─── NEW RELATIONAL API ENDPOINTS ────────────────────────────────────────
+  // POST /api/users - Create or get user
+  if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'users') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $data['id'] ?? null;
+    $username = $data['username'] ?? null;
 
-    // If new endpoints produced output, send it; otherwise fall through to 404
-    if (!empty($output)) {
-      echo $output;
+    if (!$userId) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing user ID']);
+      $db->close();
       exit;
     }
+
+    try {
+      $stmt = $db->conn->prepare('INSERT IGNORE INTO users (id, username) VALUES (?, ?)');
+      $stmt->bind_param('ss', $userId, $username);
+      $stmt->execute();
+      $stmt->close();
+
+      $stmt = $db->conn->prepare('SELECT id, username, created_at FROM users WHERE id = ?');
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $user = $result->fetch_assoc();
+      $stmt->close();
+
+      http_response_code(201);
+      echo json_encode($user);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // POST /api/games - Record game completion
+  if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'games') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $data['user_id'] ?? null;
+    $mode = $data['mode'] ?? null;
+    $levelId = $data['level_id'] ?? null;
+    $score = $data['score'] ?? null;
+    $moves = $data['moves'] ?? null;
+    $time = $data['elapsed_seconds'] ?? null;
+
+    if (!$userId || !$mode || $levelId === null) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing required fields']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $stmt = $db->conn->prepare(
+        'INSERT INTO game_completions (user_id, mode, level_id, score, moves, elapsed_seconds)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE score = GREATEST(score, VALUES(score))'
+      );
+      $stmt->bind_param('ssiiid', $userId, $mode, $levelId, $score, $moves, $time);
+      $stmt->execute();
+      $stmt->close();
+
+      http_response_code(201);
+      echo json_encode(['success' => true, 'message' => 'Game recorded']);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // GET /api/games - Get user games
+  if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'games') {
+    $userId = $_GET['user_id'] ?? null;
+    $mode = $_GET['mode'] ?? null;
+    $limit = (int)($_GET['limit'] ?? 100);
+
+    if (!$userId) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing user_id']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $sql = 'SELECT * FROM game_completions WHERE user_id = ?';
+      $types = 's';
+      $params = [$userId];
+
+      if ($mode) {
+        $sql .= ' AND mode = ?';
+        $types .= 's';
+        $params[] = $mode;
+      }
+
+      $sql .= ' ORDER BY completed_at DESC LIMIT ' . $limit;
+
+      $stmt = $db->conn->prepare($sql);
+      if ($mode) {
+        $stmt->bind_param($types, ...$params);
+      } else {
+        $stmt->bind_param($types, $userId);
+      }
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $games = $result->fetch_all(MYSQLI_ASSOC);
+      $stmt->close();
+
+      echo json_encode($games);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // GET /api/leaderboards/{mode} - Get leaderboard
+  if ($method === 'GET' && count($routeParts) === 2 && $routeParts[0] === 'leaderboards') {
+    $mode = $routeParts[1];
+    $limit = (int)($_GET['limit'] ?? 100);
+
+    try {
+      $stmt = $db->conn->prepare(
+        'SELECT user_id, username, score, `rank` FROM leaderboard_cache
+         WHERE mode = ? ORDER BY `rank` ASC LIMIT ?'
+      );
+      $stmt->bind_param('si', $mode, $limit);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $leaderboard = $result->fetch_all(MYSQLI_ASSOC);
+      $stmt->close();
+
+      echo json_encode($leaderboard);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
   }
 
   // Route not found

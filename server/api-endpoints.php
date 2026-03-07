@@ -2,30 +2,46 @@
 /**
  * PRESSURE - Game API Endpoints
  * Proper relational database endpoints (no JSON blobs)
+ *
+ * This file is included by api.php and uses the $pdo connection already established.
+ * Variables available from api.php: $pdo, $method, $routeParts
  */
 
-require_once 'config.php';
-
-// CORS headers
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-  http_response_code(200);
-  exit;
-}
-
-// Parse request
-$method = $_SERVER['REQUEST_METHOD'];
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$parts = array_filter(explode('/', $path));
 
 // ─── USER ENDPOINTS ────────────────────────────────────────────────────────
 
-// GET /api/users/{userId} - Get user profile
-if ($method === 'GET' && count($parts) === 3 && $parts[1] === 'api' && $parts[2] === 'users') {
+// POST /api/users - Create or get user
+if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'users') {
+  $data = json_decode(file_get_contents('php://input'), true);
+  $userId = $data['id'] ?? null;
+  $username = $data['username'] ?? null;
+
+  if (!$userId) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing user ID']);
+    exit;
+  }
+
+  try {
+    // Try to insert (IGNORE if exists)
+    $stmt = $pdo->prepare('INSERT IGNORE INTO users (id, username) VALUES (?, ?)');
+    $stmt->execute([$userId, $username]);
+
+    // Return user
+    $stmt = $pdo->prepare('SELECT id, username, created_at FROM users WHERE id = ?');
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    echo json_encode($user);
+  } catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => $e->getMessage()]);
+  }
+  exit;
+}
+
+// GET /api/users?id=... - Get user profile
+if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'users') {
   $userId = $_GET['id'] ?? null;
   if (!$userId) {
     http_response_code(400);
@@ -60,40 +76,10 @@ if ($method === 'GET' && count($parts) === 3 && $parts[1] === 'api' && $parts[2]
   exit;
 }
 
-// POST /api/users - Create or get user
-if ($method === 'POST' && count($parts) === 2 && $parts[1] === 'users') {
-  $data = json_decode(file_get_contents('php://input'), true);
-  $userId = $data['id'] ?? null;
-  $username = $data['username'] ?? null;
-
-  if (!$userId) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing user ID']);
-    exit;
-  }
-
-  try {
-    // Try to insert (IGNORE if exists)
-    $stmt = $pdo->prepare('INSERT IGNORE INTO users (id, username) VALUES (?, ?)');
-    $stmt->execute([$userId, $username]);
-
-    // Return user
-    $stmt = $pdo->prepare('SELECT id, username, created_at FROM users WHERE id = ?');
-    $stmt->execute([$userId]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    echo json_encode($user);
-  } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
-  }
-  exit;
-}
-
 // ─── GAME COMPLETION ENDPOINTS ─────────────────────────────────────────────
 
 // POST /api/games - Record game completion
-if ($method === 'POST' && count($parts) === 2 && $parts[1] === 'games') {
+if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'games') {
   $data = json_decode(file_get_contents('php://input'), true);
   $userId = $data['user_id'] ?? null;
   $mode = $data['mode'] ?? null;
@@ -125,8 +111,8 @@ if ($method === 'POST' && count($parts) === 2 && $parts[1] === 'games') {
   exit;
 }
 
-// GET /api/games - Get user games
-if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'games') {
+// GET /api/games?user_id=... - Get user games
+if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'games') {
   $userId = $_GET['user_id'] ?? null;
   $mode = $_GET['mode'] ?? null;
   $limit = $_GET['limit'] ?? 100;
@@ -164,9 +150,9 @@ if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'games') {
 // ─── ACHIEVEMENT ENDPOINTS ────────────────────────────────────────────────
 
 // POST /api/achievements/{id} - Unlock achievement
-if ($method === 'POST' && count($parts) === 3 && $parts[1] === 'achievements') {
+if ($method === 'POST' && count($routeParts) === 2 && $routeParts[0] === 'achievements') {
   $userId = $_GET['user_id'] ?? null;
-  $achievementId = $parts[2];
+  $achievementId = $routeParts[1];
 
   if (!$userId) {
     http_response_code(400);
@@ -189,8 +175,8 @@ if ($method === 'POST' && count($parts) === 3 && $parts[1] === 'achievements') {
   exit;
 }
 
-// GET /api/achievements - Get user achievements
-if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'achievements') {
+// GET /api/achievements?user_id=... - Get user achievements
+if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'achievements') {
   $userId = $_GET['user_id'] ?? null;
   $limit = $_GET['limit'] ?? 100;
 
@@ -218,7 +204,7 @@ if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'achievements') {
 // ─── STATS ENDPOINTS ───────────────────────────────────────────────────────
 
 // POST /api/stats - Update user stats
-if ($method === 'POST' && count($parts) === 2 && $parts[1] === 'stats') {
+if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'stats') {
   $data = json_decode(file_get_contents('php://input'), true);
   $userId = $data['user_id'] ?? null;
 
@@ -267,8 +253,8 @@ if ($method === 'POST' && count($parts) === 2 && $parts[1] === 'stats') {
   exit;
 }
 
-// GET /api/stats - Get user stats
-if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'stats') {
+// GET /api/stats?user_id=... - Get user stats
+if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'stats') {
   $userId = $_GET['user_id'] ?? null;
 
   if (!$userId) {
@@ -293,14 +279,14 @@ if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'stats') {
 // ─── LEADERBOARD ENDPOINTS ────────────────────────────────────────────────
 
 // GET /api/leaderboards/{mode} - Get mode leaderboard
-if ($method === 'GET' && count($parts) === 3 && $parts[1] === 'leaderboards') {
-  $mode = $parts[2];
+if ($method === 'GET' && count($routeParts) === 2 && $routeParts[0] === 'leaderboards') {
+  $mode = $routeParts[1];
   $limit = $_GET['limit'] ?? 100;
 
   try {
     $stmt = $pdo->prepare(
-      'SELECT user_id, username, score, rank FROM leaderboard_cache
-       WHERE mode = ? ORDER BY rank ASC LIMIT ?'
+      'SELECT user_id, username, score, `rank` FROM leaderboard_cache
+       WHERE mode = ? ORDER BY `rank` ASC LIMIT ?'
     );
     $stmt->execute([$mode, (int)$limit]);
     $leaderboard = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -316,7 +302,7 @@ if ($method === 'GET' && count($parts) === 3 && $parts[1] === 'leaderboards') {
 // ─── REPLAY ENDPOINTS ──────────────────────────────────────────────────────
 
 // POST /api/replays - Save replay
-if ($method === 'POST' && count($parts) === 2 && $parts[1] === 'replays') {
+if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'replays') {
   $data = json_decode(file_get_contents('php://input'), true);
   $userId = $data['user_id'] ?? null;
   $mode = $data['mode'] ?? null;
@@ -346,8 +332,8 @@ if ($method === 'POST' && count($parts) === 2 && $parts[1] === 'replays') {
   exit;
 }
 
-// GET /api/replays - Get replay
-if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'replays') {
+// GET /api/replays?user_id=...&mode=...&level_id=... - Get replay
+if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'replays') {
   $userId = $_GET['user_id'] ?? null;
   $mode = $_GET['mode'] ?? null;
   $levelId = $_GET['level_id'] ?? null;
@@ -379,6 +365,5 @@ if ($method === 'GET' && count($parts) === 2 && $parts[1] === 'replays') {
   exit;
 }
 
-// 404
-http_response_code(404);
-echo json_encode(['error' => 'Endpoint not found']);
+// No matching endpoint
+// Fall through - will be caught by api.php 404 handler
