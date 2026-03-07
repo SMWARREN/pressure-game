@@ -37,6 +37,207 @@
       "points": 100
     },
     {
+      "id": "world_1_champion",
+      "name": "World 1 Champion",
+      "description": "Complete all World 1 levels",
+      "icon": "🌍",
+      "rarity": "common",
+      "category": "progression",
+      "points": 25
+    },
+    {
+      "id": "world_2_explorer",
+      "name": "World 2 Explorer",
+      "description": "Complete all World 2 levels",
+      "icon": "🌎",
+      "rarity": "common",
+      "category": "progression",
+      "points": 30
+    },
+    {
+      "id": "world_3_master",
+      "name": "World 3 Master",
+      "description": "Complete all World 3 levels",
+      "icon": "🌏",
+      "rarity": "uncommon",
+      "category": "progression",
+      "points": 40
+    },
+    {
+      "id": "world_4_legend",
+      "name": "World 4 Legend",
+      "description": "Complete all World 4 levels",
+      "icon": "🗺️",
+      "rarity": "uncommon",
+      "category": "progression",
+      "points": 50
+    },
+    {
+      "id": "world_5_hero",
+      "name": "World 5 Hero",
+      "description": "Complete all World 5 levels",
+      "icon": "🧭",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 60
+    },
+    {
+      "id": "world_6_champion",
+      "name": "World 6 Champion",
+      "description": "Complete all World 6 levels",
+      "icon": "🏔️",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 70
+    },
+    {
+      "id": "world_7_master",
+      "name": "World 7 Master",
+      "description": "Complete all World 7 levels",
+      "icon": "🌋",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 80
+    },
+    {
+      "id": "all_worlds_complete",
+      "name": "All Worlds Complete",
+      "description": "Complete every world in the game",
+      "icon": "🏆",
+      "rarity": "legendary",
+      "category": "progression",
+      "points": 200,
+      "hidden": true
+    },
+    {
+      "id": "classic_champion",
+      "name": "Classic Champion",
+      "description": "Complete all Classic mode levels",
+      "icon": "⚡",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "zen_master",
+      "name": "Zen Master",
+      "description": "Complete all Zen mode levels",
+      "icon": "🧘",
+      "rarity": "legendary",
+      "category": "special",
+      "points": 150,
+      "hidden": true
+    },
+    {
+      "id": "blitz_survivor",
+      "name": "Blitz Survivor",
+      "description": "Complete all Blitz mode levels",
+      "icon": "🔥",
+      "rarity": "legendary",
+      "category": "special",
+      "points": 150,
+      "hidden": true
+    },
+    {
+      "id": "laser_legend",
+      "name": "Laser Legend",
+      "description": "Complete all Laser Relay levels",
+      "icon": "🔦",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "memory_master",
+      "name": "Memory Master",
+      "description": "Complete all Memory Match levels",
+      "icon": "🧠",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "gravity_champion",
+      "name": "Gravity Champion",
+      "description": "Complete all Gravity Drop levels",
+      "icon": "⬇️",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "voltage_victor",
+      "name": "Voltage Victor",
+      "description": "Complete all Voltage levels",
+      "icon": "⚡",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "outbreak_survivor",
+      "name": "Outbreak Survivor",
+      "description": "Complete all Outbreak levels",
+      "icon": "🦠",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "quantum_master",
+      "name": "Quantum Master",
+      "description": "Complete all Quantum Chain levels",
+      "icon": "⚛️",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "mirror_master",
+      "name": "Mirror Master",
+      "description": "Complete all Mirror Forge levels",
+      "icon": "🪞",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "gem_collector",
+      "name": "Gem Collector",
+      "description": "Complete all Gem Blast levels",
+      "icon": "💎",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "shopping_spree",
+      "name": "Shopping Spree",
+      "description": "Complete all Shopping Spree levels",
+      "icon": "🛒",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "candy_crusher",
+      "name": "Candy Crusher",
+      "description": "Complete all Candy levels",
+      "icon": "🍬",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
+      "id": "fuse_master",
+      "name": "Fuse Master",
+      "description": "Complete all Fuse levels",
+      "icon": "🧨",
+      "rarity": "rare",
+      "category": "progression",
+      "points": 100
+    },
+    {
       "id": "speed_demon",
       "name": "Speed Demon",
       "description": "Solve 10 levels under par time",
@@ -57,11 +258,11 @@
     {
       "id": "no_hints",
       "name": "No Help Needed",
-      "description": "Complete 25 levels without using hints",
+      "description": "Complete 50 levels without using hints",
       "icon": "🧠",
       "rarity": "uncommon",
       "category": "skill",
-      "points": 40
+      "points": 50
     },
     {
       "id": "speedrun",
@@ -71,6 +272,60 @@
       "rarity": "rare",
       "category": "skill",
       "points": 60
+    },
+    {
+      "id": "combo_king",
+      "name": "Combo King",
+      "description": "Achieve a 10x combo in one game",
+      "icon": "🔥",
+      "rarity": "rare",
+      "category": "skill",
+      "points": 75
+    },
+    {
+      "id": "perfect_game",
+      "name": "Perfect Game",
+      "description": "Complete a level without any mistakes",
+      "icon": "✨",
+      "rarity": "uncommon",
+      "category": "skill",
+      "points": 40
+    },
+    {
+      "id": "speed_level",
+      "name": "Lightning Fast",
+      "description": "Complete a level in under 5 seconds",
+      "icon": "⚡",
+      "rarity": "uncommon",
+      "category": "skill",
+      "points": 35
+    },
+    {
+      "id": "wall_survivor",
+      "name": "Wall Survivor",
+      "description": "Survive 100 wall compressions",
+      "icon": "🛡️",
+      "rarity": "rare",
+      "category": "skill",
+      "points": 60
+    },
+    {
+      "id": "no_reset",
+      "name": "No Reset",
+      "description": "Complete 10 levels without restarting",
+      "icon": "🎯",
+      "rarity": "uncommon",
+      "category": "skill",
+      "points": 45
+    },
+    {
+      "id": "daily_player",
+      "name": "Daily Player",
+      "description": "Play for 30 days total",
+      "icon": "📅",
+      "rarity": "uncommon",
+      "category": "dedication",
+      "points": 50
     },
     {
       "id": "daily_streak_7",
@@ -91,6 +346,24 @@
       "points": 100
     },
     {
+      "id": "year_long",
+      "name": "Year Long",
+      "description": "Play for 365 days total",
+      "icon": "📆",
+      "rarity": "legendary",
+      "category": "dedication",
+      "points": 200
+    },
+    {
+      "id": "marathon",
+      "name": "Marathon",
+      "description": "Play for 100 hours total",
+      "icon": "⏱️",
+      "rarity": "legendary",
+      "category": "dedication",
+      "points": 150
+    },
+    {
       "id": "survivor",
       "name": "Survivor",
       "description": "Survive 50 wall compressions",
@@ -100,22 +373,54 @@
       "points": 35
     },
     {
-      "id": "zen_master",
-      "name": "Zen Master",
-      "description": "Complete all Zen mode levels",
-      "icon": "🧘",
-      "rarity": "legendary",
+      "id": "first_try",
+      "name": "First Try",
+      "description": "Attempt a level 10 times before completing",
+      "icon": "🎲",
+      "rarity": "uncommon",
       "category": "special",
-      "points": 150
+      "points": 30,
+      "hidden": true
     },
     {
-      "id": "blitz_survivor",
-      "name": "Blitz Survivor",
-      "description": "Complete all Blitz mode levels",
-      "icon": "🔥",
-      "rarity": "legendary",
+      "id": "comeback_kid",
+      "name": "Comeback Kid",
+      "description": "Win after being at 0% progress",
+      "icon": "💪",
+      "rarity": "rare",
       "category": "special",
-      "points": 150
+      "points": 50,
+      "hidden": true
+    },
+    {
+      "id": "perfect_streak",
+      "name": "Perfect Streak",
+      "description": "Complete 5 levels in a row without any mistakes",
+      "icon": "🌟",
+      "rarity": "rare",
+      "category": "special",
+      "points": 75,
+      "hidden": true
+    },
+    {
+      "id": "night_owl",
+      "name": "Night Owl",
+      "description": "Play between midnight and 4 AM",
+      "icon": "🦉",
+      "rarity": "uncommon",
+      "category": "special",
+      "points": 25,
+      "hidden": true
+    },
+    {
+      "id": "early_bird",
+      "name": "Early Bird",
+      "description": "Play before 6 AM",
+      "icon": "🐦",
+      "rarity": "uncommon",
+      "category": "special",
+      "points": 25,
+      "hidden": true
     }
   ]
 }

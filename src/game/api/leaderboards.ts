@@ -4,8 +4,27 @@
  */
 
 import { robustFetch } from '@/game/engine/backends';
+import { getUserId } from '@/game/contexts/GameEngineProvider';
 
 const VITE_API_URL = import.meta.env.VITE_API_URL || '';
+
+/**
+ * API endpoint paths - centralized to prevent duplication
+ */
+const API_PATHS = {
+  HIGHSCORE: (userId: string, mode: string, levelId: number) =>
+    `/api/highscore/${userId}/${mode}/${levelId}`,
+  ACHIEVEMENT: (userId: string) => `/api/achievement/${userId}`,
+  ACHIEVEMENTS: () => `/api/achievements`,
+  LEADERBOARD: (mode: string) => `/api/leaderboard/${mode}`,
+  PROFILE: (userId: string) => `/api/profile/${userId}`,
+  PROFILE_WINS: (userId: string) => `/api/profile/${userId}/wins`,
+  PROFILE_FULL: (userId: string) => `/api/profile/${userId}/full`,
+  REPLAY_SAVE: (userId: string, mode: string, levelId: number) =>
+    `/api/replay/${userId}/${mode}/${levelId}`,
+  REPLAY_GET: (userId: string, mode: string, levelId: number) =>
+    `/api/replay/${userId}/${mode}/${levelId}`,
+} as const;
 
 /**
  * Construct API base URL by removing /api.php suffix (no trailing slash)
@@ -18,11 +37,48 @@ function getApiBaseUrl(): string {
 const API_URL = getApiBaseUrl();
 
 /**
- * Get the user ID from localStorage
+ * Generic fetch helper for API calls
  */
-function getUserId(): string {
-  const stored = localStorage.getItem('pressure_user_id');
-  return stored || 'anonymous';
+async function fetchFromApi<T = any>(url: string, allow404 = false): Promise<T | null> {
+  try {
+    const response = await robustFetch(url);
+
+    if (!response.ok) {
+      if (response.status === 404 && allow404) {
+        return null;
+      }
+      console.error(`[API] Request failed: ${response.status}`);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`[API] Error fetching ${url}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Wrapper for POST/PUT requests with error handling
+ */
+async function fetchWithBody(url: string, method: 'POST' | 'PUT', body: Record<string, any>): Promise<boolean> {
+  try {
+    const response = await robustFetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      console.error(`[API] Request failed: ${response.status}`);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error(`[API] Error in ${method} request:`, error);
+    return false;
+  }
 }
 
 /**
@@ -38,25 +94,13 @@ export async function saveHighscore(
     return false;
   }
 
-  try {
-    const userId = getUserId();
-    const response = await robustFetch(`${API_URL}/api/highscore/${userId}/${mode}/${levelId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score }),
-    });
-
-    if (!response.ok) {
-      console.error('[Leaderboard] Failed to save highscore:', response.status);
-      return false;
-    }
-
+  const userId = getUserId();
+  const url = `${API_URL}${API_PATHS.HIGHSCORE(userId, mode, levelId)}`;
+  const success = await fetchWithBody(url, 'POST', { score });
+  if (success) {
     console.log(`[Leaderboard] Saved score ${score} for ${mode} level ${levelId}`);
-    return true;
-  } catch (error) {
-    console.error('[Leaderboard] Error saving highscore:', error);
-    return false;
   }
+  return success;
 }
 
 /**
@@ -70,9 +114,8 @@ export async function unlockAchievement(achievementId: string): Promise<boolean>
 
   try {
     const userId = getUserId();
-    const response = await robustFetch(`${API_URL}/api/achievement/${userId}/${achievementId}`, {
-      method: 'POST',
-    });
+    const url = `${API_URL}/api/achievement/${userId}/${achievementId}`;
+    const response = await robustFetch(url, { method: 'POST' });
 
     if (!response.ok) {
       console.error('[Achievement] Failed to unlock achievement:', response.status);
@@ -97,7 +140,7 @@ export async function getLeaderboard(mode: string, limit: number = 100): Promise
   }
 
   try {
-    const response = await robustFetch(`${API_URL}/api/leaderboard/${mode}?limit=${limit}`);
+    const response = await robustFetch(`${API_URL}${API_PATHS.LEADERBOARD(mode)}?limit=${limit}`);
 
     if (!response.ok) {
       console.error('[Leaderboard] Failed to fetch leaderboard:', response.status);
@@ -121,24 +164,9 @@ export async function getUserAchievements(userId?: string): Promise<any[]> {
     return [];
   }
 
-  try {
-    const id = userId || getUserId();
-    const response = await robustFetch(`${API_URL}/api/achievement/${id}`);
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return []; // No achievements yet
-      }
-      console.error('[Achievement] Failed to fetch achievements:', response.status);
-      return [];
-    }
-
-    const data = await response.json();
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error('[Achievement] Error fetching achievements:', error);
-    return [];
-  }
+  const id = userId || getUserId();
+  const result = await fetchFromApi<any[]>(`${API_URL}${API_PATHS.ACHIEVEMENT(id)}`, true);
+  return (Array.isArray(result) ? result : null) || [];
 }
 
 /**
@@ -175,23 +203,8 @@ export async function getUserProfile(userId?: string): Promise<any> {
     return null;
   }
 
-  try {
-    const id = userId || getUserId();
-    const response = await robustFetch(`${API_URL}/api/profile/${id}`);
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null; // User doesn't exist yet
-      }
-      console.error('[Profile] Failed to fetch profile:', response.status);
-      return null;
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('[Profile] Error fetching profile:', error);
-    return null;
-  }
+  const id = userId || getUserId();
+  return await fetchFromApi(`${API_URL}${API_PATHS.PROFILE(id)}`, false);
 }
 
 /**
@@ -203,23 +216,122 @@ export async function updateUserProfile(username: string, userId?: string): Prom
     return false;
   }
 
+  const id = userId || getUserId();
+  const url = `${API_URL}${API_PATHS.PROFILE(id)}`;
+  const success = await fetchWithBody(url, 'POST', { username });
+  if (success) {
+    console.log(`[Profile] Updated username to: ${username}`);
+  }
+  return success;
+}
+
+/**
+ * Get user wins (game history)
+ */
+export async function getUserWins(userId?: string, limit: number = 50): Promise<any[]> {
+  if (!API_URL) {
+    console.warn('[Profile] API URL not configured');
+    return [];
+  }
+
+  const id = userId || getUserId();
+  const result = await fetchFromApi<any[]>(`${API_URL}${API_PATHS.PROFILE_WINS(id)}?limit=${limit}`, true);
+  return (Array.isArray(result) ? result : null) || [];
+}
+
+/**
+ * Save replay data for a completed game
+ */
+export async function saveReplay(
+  mode: string,
+  levelId: number,
+  moves: any[],
+  score: number
+): Promise<boolean> {
+  if (!API_URL) {
+    console.warn('[Replay] API URL not configured');
+    return false;
+  }
+
+  const userId = getUserId();
+  const url = `${API_URL}${API_PATHS.REPLAY_SAVE(userId, mode, levelId)}`;
+  const success = await fetchWithBody(url, 'POST', { moves, score });
+  if (success) {
+    console.log(`[Replay] Saved replay for ${mode} level ${levelId}`);
+  }
+  return success;
+}
+
+/**
+ * Get replay data for a specific game
+ */
+export async function getReplay(userId: string, mode: string, levelId: number): Promise<any> {
+  if (!API_URL) {
+    console.warn('[Replay] API URL not configured');
+    return null;
+  }
+
   try {
-    const id = userId || getUserId();
-    const response = await robustFetch(`${API_URL}/api/profile/${id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username }),
-    });
+    const response = await robustFetch(`${API_URL}${API_PATHS.REPLAY_GET(userId, mode, levelId)}`);
 
     if (!response.ok) {
-      console.error('[Profile] Failed to update profile:', response.status);
-      return false;
+      if (response.status === 404) {
+        return null;
+      }
+      console.error('[Replay] Failed to fetch replay:', response.status);
+      return null;
     }
 
-    console.log(`[Profile] Updated username to: ${username}`);
-    return true;
+    return await response.json();
   } catch (error) {
-    console.error('[Profile] Error updating profile:', error);
-    return false;
+    console.error('[Replay] Error fetching replay:', error);
+    return null;
+  }
+}
+
+/**
+ * Get complete user profile (profile + achievements + wins + rankings) in one call
+ */
+export async function getCompleteUserProfile(userId?: string): Promise<any> {
+  if (!API_URL) {
+    console.warn('[Profile] API URL not configured');
+    return null;
+  }
+
+  const id = userId || getUserId();
+
+  try {
+    // Fetch profile data and rankings in parallel
+    const [profileData, leaderboards] = await Promise.all([
+      fetchFromApi(`${API_URL}${API_PATHS.PROFILE_FULL(id)}`, false),
+      Promise.all([
+        getLeaderboard('classic', 100),
+        getLeaderboard('blitz', 100),
+        getLeaderboard('zen', 100),
+        getLeaderboard('candy', 100),
+        getLeaderboard('shoppingSpree', 100),
+        getLeaderboard('gemBlast', 100),
+      ]),
+    ]);
+
+    if (!profileData) return null;
+
+    // Calculate rankings
+    const modes = ['classic', 'blitz', 'zen', 'candy', 'shoppingSpree', 'gemBlast'];
+    const rankings: Record<string, number> = {};
+
+    modes.forEach((mode, idx) => {
+      const leaderboard = leaderboards[idx];
+      const rank = leaderboard.findIndex((entry) => (entry.user_id || entry.userId) === id);
+      if (rank >= 0) rankings[mode] = rank + 1;
+    });
+
+    return {
+      ...profileData,
+      rankings,
+    };
+  } catch (error) {
+    console.error('[Profile] Error fetching complete profile:', error);
+    return null;
   }
 }

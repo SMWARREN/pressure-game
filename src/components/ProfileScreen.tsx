@@ -6,7 +6,8 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { useGameStore } from '@/game/store';
-import { getUserProfile, getLeaderboard, getUserAchievements } from '@/game/api/leaderboards';
+import { getCompleteUserProfile, getReplay } from '@/game/api/leaderboards';
+import { getUserId } from '@/game/contexts/GameEngineProvider';
 
 interface UserStats {
   userId: string;
@@ -15,55 +16,56 @@ interface UserStats {
   levelsCompleted: number;
   achievements: Array<{ id: string; name: string; icon: string; unlockedAt: string }>;
   rankings: Record<string, number>; // mode -> rank
+  wins: Array<{
+    user_id: string;
+    mode: string;
+    level_id: number;
+    score: number;
+    created_at: string;
+    username?: string;
+  }>;
 }
 
 interface ProfileScreenProps {
   userId?: string;
   onClose?: () => void;
+  onWatchReplay?: (moves: any[], mode: string, levelId: number) => void;
 }
 
-export default function ProfileScreen({ userId: propUserId, onClose }: ProfileScreenProps) {
+export default function ProfileScreen({
+  userId: propUserId,
+  onClose,
+  onWatchReplay,
+}: ProfileScreenProps) {
   const { colors } = useTheme();
   const closeArcadeHub = useGameStore((s) => s.closeArcadeHub);
   const closeProfile = onClose || closeArcadeHub;
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [watching, setWatching] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
         setLoading(true);
-        const userId = propUserId || localStorage.getItem('pressure_user_id') || 'anonymous';
+        const userId = propUserId || getUserId();
 
-        // Fetch user profile
-        const profile = await getUserProfile(userId);
-        if (!profile) {
+        const completeProfile = await getCompleteUserProfile(userId);
+        if (!completeProfile) {
           setError('Profile not found');
           setLoading(false);
           return;
         }
 
-        // Fetch achievements
-        const achievements = await getUserAchievements(userId);
-
-        // Fetch rankings for each mode
-        const modes = ['classic', 'blitz', 'zen', 'candy', 'shoppingSpree', 'gemBlast'];
-        const rankings: Record<string, number> = {};
-
-        for (const mode of modes) {
-          const leaderboard = await getLeaderboard(mode, 100);
-          const rank = leaderboard.findIndex((entry) => (entry.userId || entry.user_id) === userId);
-          if (rank >= 0) rankings[mode] = rank + 1;
-        }
-
         setUserStats({
           userId,
-          username: profile.username || userId,
-          totalScore: profile.totalScore || 0,
-          levelsCompleted: profile.levelsCompleted || 0,
-          achievements: achievements,
-          rankings,
+          username: completeProfile.profile?.username || userId,
+          totalScore: completeProfile.profile?.totalScore || 0,
+          levelsCompleted: completeProfile.profile?.levelsCompleted || 0,
+          achievements: completeProfile.achievements || [],
+          rankings: completeProfile.rankings || {},
+          wins: completeProfile.wins || [],
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -306,6 +308,83 @@ export default function ProfileScreen({ userId: propUserId, onClose }: ProfileSc
             </div>
           ) : (
             <div style={{ color: colors.text.tertiary, fontSize: 12 }}>No achievements yet</div>
+          )}
+        </div>
+
+        {/* Recent Wins */}
+        <div>
+          <div
+            style={{ fontSize: 12, fontWeight: 800, color: colors.text.tertiary, marginBottom: 8 }}
+          >
+            RECENT WINS ({userStats.wins.length})
+          </div>
+          {userStats.wins.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {userStats.wins.slice(0, 10).map((win, idx) => {
+                const modeColor = modeColors[win.mode] || '#a5b4fc';
+                return (
+                  <button
+                    key={`${win.mode}-${win.level_id}-${idx}`}
+                    onClick={async () => {
+                      if (!onWatchReplay) return;
+                      setWatching(true);
+                      try {
+                        const replay = await getReplay(win.user_id, win.mode, win.level_id);
+                        if (replay?.moves) {
+                          onWatchReplay(replay.moves, win.mode, win.level_id);
+                          closeProfile();
+                        }
+                      } catch (err) {
+                        console.error('Failed to load replay:', err);
+                      } finally {
+                        setWatching(false);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 12px',
+                      background: colors.bg.secondary,
+                      borderRadius: 6,
+                      border: `1px solid ${modeColor}40`,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: onWatchReplay ? 'pointer' : 'default',
+                      minHeight: 'unset',
+                      minWidth: 'unset',
+                      textAlign: 'left',
+                      transition: 'all 0.2s',
+                    }}
+                    disabled={watching}
+                    onMouseEnter={(e) => {
+                      if (onWatchReplay) {
+                        e.currentTarget.style.background = `${modeColor}20`;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = colors.bg.secondary;
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: modeColor }}>
+                        {win.mode.charAt(0).toUpperCase() + win.mode.slice(1)} - Level{' '}
+                        {win.level_id}
+                      </div>
+                      <div style={{ fontSize: 9, color: colors.text.tertiary, marginTop: 2 }}>
+                        {new Date(win.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: modeColor }}>
+                        {win.score}
+                      </div>
+                      {onWatchReplay && <div style={{ fontSize: 14, opacity: 0.6 }}>▶</div>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ color: colors.text.tertiary, fontSize: 12 }}>No wins yet</div>
           )}
         </div>
       </div>

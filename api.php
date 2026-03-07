@@ -124,6 +124,25 @@ class Database {
 
     // Achievements table
     $sql = "
+      CREATE TABLE IF NOT EXISTS replays (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        mode VARCHAR(50) NOT NULL,
+        level_id INT NOT NULL,
+        moves LONGTEXT NOT NULL,
+        score INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_replay (user_id, mode, level_id),
+        INDEX idx_mode (mode),
+        INDEX idx_user (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ";
+
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create replays table: ' . $this->conn->error);
+    }
+
       CREATE TABLE IF NOT EXISTS achievements (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id VARCHAR(255) NOT NULL,
@@ -483,6 +502,77 @@ class Database {
     return $success;
   }
 
+  public function getUserWins($userId, $limit = 50) {
+    $stmt = $this->conn->prepare(
+      'SELECT h.user_id, h.mode, h.level_id, h.score, h.created_at,
+              COALESCE(up.username, h.user_id) as username
+       FROM highscores h
+       LEFT JOIN user_profiles up ON h.user_id = up.user_id
+       WHERE h.user_id = ? AND h.score > 0
+       ORDER BY h.created_at DESC
+       LIMIT ?'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('si', $userId, $limit);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+
+    $wins = [];
+    while ($row = $result->fetch_assoc()) {
+      $wins[] = $row;
+    }
+
+    return $wins;
+  }
+
+  public function saveReplay($userId, $mode, $levelId, $moves, $score) {
+    $movesJson = is_string($moves) ? $moves : json_encode($moves);
+    $stmt = $this->conn->prepare(
+      'INSERT INTO replays (user_id, mode, level_id, moves, score)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+       moves = VALUES(moves),
+       score = VALUES(score),
+       updated_at = CURRENT_TIMESTAMP'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('ssiss', $userId, $mode, $levelId, $movesJson, $score);
+    $success = $stmt->execute();
+    $stmt->close();
+
+    return $success;
+  }
+
+  public function getReplay($userId, $mode, $levelId) {
+    $stmt = $this->conn->prepare(
+      'SELECT user_id, mode, level_id, moves, score, created_at
+       FROM replays
+       WHERE user_id = ? AND mode = ? AND level_id = ?'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('ssi', $userId, $mode, $levelId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+
+    $row = $result->fetch_assoc();
+    if ($row) {
+      $row['moves'] = json_decode($row['moves'], true);
+    }
+
+    return $row;
+  }
+
   public function close() {
     $this->conn->close();
   }
@@ -820,6 +910,114 @@ try {
     } else {
       http_response_code(500);
       echo json_encode(['error' => 'Failed to update profile']);
+    }
+    $db->close();
+    exit;
+  }
+
+  // Get user wins (game history): GET /api/profile/{userId}/wins
+  if (count($routeParts) === 3 && $routeParts[0] === 'profile' && $routeParts[2] === 'wins' && $method === 'GET') {
+    $userId = $routeParts[1];
+
+    if (empty($userId)) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing userId']);
+      $db->close();
+      exit;
+    }
+
+    $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 50;
+    $wins = $db->getUserWins($userId, $limit);
+    http_response_code(200);
+    echo json_encode($wins);
+    $db->close();
+    exit;
+  }
+
+  // Get complete user profile with achievements and wins: GET /api/profile/{userId}/full
+  if (count($routeParts) === 3 && $routeParts[0] === 'profile' && $routeParts[2] === 'full' && $method === 'GET') {
+    $userId = $routeParts[1];
+
+    if (empty($userId)) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing userId']);
+      $db->close();
+      exit;
+    }
+
+    $db->ensureUserProfile($userId);
+    $profile = $db->getUserProfile($userId);
+    $achievements = $db->getUserAchievements($userId);
+    $wins = $db->getUserWins($userId, 50);
+
+    $fullProfile = [
+      'profile' => $profile,
+      'achievements' => $achievements,
+      'wins' => $wins,
+    ];
+
+    http_response_code(200);
+    echo json_encode($fullProfile);
+    $db->close();
+    exit;
+  }
+
+  // Save replay: POST /api/replay/{userId}/{mode}/{levelId}
+  if (count($routeParts) === 4 && $routeParts[0] === 'replay' && $method === 'POST') {
+    $userId = $routeParts[1];
+    $mode = $routeParts[2];
+    $levelId = intval($routeParts[3]);
+
+    if (empty($userId) || empty($mode) || $levelId === 0) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing userId, mode, or levelId']);
+      $db->close();
+      exit;
+    }
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    $moves = $body['moves'] ?? null;
+    $score = intval($body['score'] ?? 0);
+
+    if ($moves === null) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing moves data']);
+      $db->close();
+      exit;
+    }
+
+    if ($db->saveReplay($userId, $mode, $levelId, $moves, $score)) {
+      http_response_code(200);
+      echo json_encode(['success' => true]);
+    } else {
+      http_response_code(500);
+      echo json_encode(['error' => 'Failed to save replay']);
+    }
+    $db->close();
+    exit;
+  }
+
+  // Get replay: GET /api/replay/{userId}/{mode}/{levelId}
+  if (count($routeParts) === 4 && $routeParts[0] === 'replay' && $method === 'GET') {
+    $userId = $routeParts[1];
+    $mode = $routeParts[2];
+    $levelId = intval($routeParts[3]);
+
+    if (empty($userId) || empty($mode) || $levelId === 0) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing userId, mode, or levelId']);
+      $db->close();
+      exit;
+    }
+
+    $replay = $db->getReplay($userId, $mode, $levelId);
+
+    if ($replay) {
+      http_response_code(200);
+      echo json_encode($replay);
+    } else {
+      http_response_code(404);
+      echo json_encode(['error' => 'Replay not found']);
     }
     $db->close();
     exit;

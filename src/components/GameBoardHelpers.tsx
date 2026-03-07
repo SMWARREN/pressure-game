@@ -6,7 +6,6 @@ import HowToPlayModal from './HowToPlayModal';
 import { FeatureInfoSheet } from './modals/FeatureInfoSheet';
 import { EditorToolbar } from './editor/EditorToolbar';
 import { NotificationLog } from './game/NotificationLog';
-import { SyncStatusIndicator } from './game/SyncStatusIndicator';
 import { useGameStore } from '@/game/store';
 
 export function renderOverlays(props: any) {
@@ -123,18 +122,6 @@ export function renderFixedElements(props: any) {
       {status === 'playing' && (
         <NotificationLog notifLog={notifLog} mode={mode} viewportWidth={vw} boardMaxWidth={238} />
       )}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 'max(12px, env(safe-area-inset-bottom))',
-          right: 12,
-          zIndex: 50,
-          pointerEvents: 'none',
-          opacity: 0.7,
-        }}
-      >
-        <SyncStatusIndicator />
-      </div>
     </>
   );
 }

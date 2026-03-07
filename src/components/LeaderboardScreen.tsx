@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { getLeaderboard } from '@/game/api/leaderboards';
 import { StarField } from './game/StarField';
@@ -10,10 +10,13 @@ export interface LeaderboardScreenProps {
 }
 
 interface LeaderboardEntry {
-  userId: string;
+  user_id?: string;
+  userId?: string;
   username?: string;
   score: number;
+  level_id?: number;
   levelId?: number;
+  created_at?: string;
   createdAt?: string;
 }
 
@@ -22,6 +25,122 @@ const PRESSURE_MODES = [
   { id: 'blitz', label: 'Blitz', icon: '🔥', color: '#f97316' },
   { id: 'zen', label: 'Zen', icon: '🧘', color: '#34d399' },
 ];
+
+function getRankColor(index: number, colors: ReturnType<typeof useTheme>['colors']): string {
+  if (index === 0) return '#fbbf24';
+  if (index === 1) return '#c0c0c0';
+  if (index === 2) return '#cd7f32';
+  return colors.text.tertiary;
+}
+
+function getRankMedal(index: number): string {
+  if (index === 0) return '🥇';
+  if (index === 1) return '🥈';
+  if (index === 2) return '🥉';
+  return `#${index + 1}`;
+}
+
+function LeaderboardRow({
+  entry,
+  index,
+  colors,
+  onSelect,
+}: {
+  entry: LeaderboardEntry;
+  index: number;
+  colors: ReturnType<typeof useTheme>['colors'];
+  onSelect: (userId: string) => void;
+}) {
+  const rankColor = getRankColor(index, colors);
+  const medal = getRankMedal(index);
+  const isTopThree = index < 3;
+
+  return (
+    <button
+      key={`${entry.user_id || entry.userId || 'unknown'}-${index}`}
+      onClick={() => {
+        const userId = entry.user_id || entry.userId;
+        if (userId) onSelect(userId);
+      }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px',
+        background: isTopThree ? `${rankColor}10` : 'rgba(255,255,255,0.02)',
+        border: `1px solid ${isTopThree ? rankColor + '40' : colors.border.primary}`,
+        borderRadius: 8,
+        transition: 'all 0.2s',
+        cursor: 'pointer',
+        minHeight: 'unset',
+        minWidth: 'unset',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = isTopThree ? `${rankColor}20` : 'rgba(255,255,255,0.04)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = isTopThree ? `${rankColor}10` : 'rgba(255,255,255,0.02)';
+      }}
+    >
+      <div
+        style={{
+          minWidth: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 16,
+          fontWeight: 900,
+          color: rankColor,
+        }}
+      >
+        {isTopThree ? medal : <span style={{ fontSize: 14 }}>{medal}</span>}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.text.primary,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {entry.username || entry.user_id || entry.userId || 'Anonymous'}
+        </div>
+        {(entry.created_at || entry.createdAt) && (
+          <div
+            style={{
+              fontSize: 10,
+              color: colors.text.tertiary,
+              marginTop: 2,
+            }}
+          >
+            {new Date(entry.created_at || entry.createdAt!).toLocaleDateString()}
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          textAlign: 'right',
+          minWidth: 80,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 900,
+            color: rankColor,
+          }}
+        >
+          {entry.score}
+        </div>
+      </div>
+    </button>
+  );
+}
 
 export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
   const { colors } = useTheme();
@@ -49,11 +168,6 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
 
     fetchLeaderboard();
   }, [selectedMode]);
-
-  const modeConfig = useMemo(
-    () => PRESSURE_MODES.find((m) => m.id === selectedMode),
-    [selectedMode]
-  );
 
   return (
     <div
@@ -287,105 +401,15 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
         {!loading &&
           !error &&
           leaderboard.length > 0 &&
-          leaderboard.map((entry, index) => {
-            const getRankColor = () => {
-              if (index === 0) return '#fbbf24';
-              if (index === 1) return '#c0c0c0';
-              if (index === 2) return '#cd7f32';
-              return colors.text.tertiary;
-            };
-            const rankColor = getRankColor();
-            return (
-              <button
-                key={`${entry.userId}-${index}`}
-                onClick={() => setSelectedUserId(entry.userId)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '12px',
-                  background: index < 3 ? `${rankColor}10` : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${index < 3 ? rankColor + '40' : colors.border.primary}`,
-                  borderRadius: 8,
-                  transition: 'all 0.2s',
-                  cursor: 'pointer',
-                  minHeight: 'unset',
-                  minWidth: 'unset',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    index < 3 ? `${rankColor}20` : 'rgba(255,255,255,0.04)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background =
-                    index < 3 ? `${rankColor}10` : 'rgba(255,255,255,0.02)';
-                }}
-              >
-                {/* Rank */}
-                <div
-                  style={{
-                    minWidth: 40,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 16,
-                    fontWeight: 900,
-                    color: rankColor,
-                  }}
-                >
-                  {index === 0 && '🥇'}
-                  {index === 1 && '🥈'}
-                  {index === 2 && '🥉'}
-                  {index > 2 && <span style={{ fontSize: 14 }}>#{index + 1}</span>}
-                </div>
-
-                {/* Username */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: colors.text.primary,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {entry.username || entry.userId || 'Anonymous'}
-                  </div>
-                  {entry.createdAt && (
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: colors.text.tertiary,
-                        marginTop: 2,
-                      }}
-                    >
-                      {new Date(entry.createdAt).toLocaleDateString()}
-                    </div>
-                  )}
-                </div>
-
-                {/* Score */}
-                <div
-                  style={{
-                    textAlign: 'right',
-                    minWidth: 80,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 900,
-                      color: modeConfig?.color,
-                    }}
-                  >
-                    {entry.score}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+          leaderboard.map((entry, index) => (
+            <LeaderboardRow
+              key={`${entry.user_id || entry.userId || 'unknown'}-${index}`}
+              entry={entry}
+              index={index}
+              colors={colors}
+              onSelect={setSelectedUserId}
+            />
+          ))}
       </div>
     </div>
   );

@@ -29,8 +29,9 @@ let enginesInstance: GameEngineContextType | null = null;
 
 /**
  * Get or generate user ID for database persistence
+ * Exported so API clients can use the same user ID
  */
-function getUserId(): string {
+export function getUserId(): string {
   const envUserId = import.meta.env.VITE_USER_ID;
   if (envUserId) {
     return envUserId;

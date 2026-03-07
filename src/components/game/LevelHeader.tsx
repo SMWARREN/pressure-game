@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { Level } from '@/game/types';
+import { SyncStatusIndicator } from './SyncStatusIndicator';
 
 export interface LevelHeaderProps {
   readonly currentLevel: Level;
@@ -63,9 +64,14 @@ export function LevelHeader({
           {currentLevel.isGenerated ? ' · CUSTOM' : ''}
         </div>
       </div>
-      <button onClick={onRestart} style={iconBtn} title="Restart">
-        <span style={{ fontSize: 16 }}>↺</span>
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button onClick={onRestart} style={iconBtn} title="Restart">
+          <span style={{ fontSize: 16 }}>↺</span>
+        </button>
+        <div style={{ opacity: 0.6 }}>
+          <SyncStatusIndicator />
+        </div>
+      </div>
     </header>
   );
 }

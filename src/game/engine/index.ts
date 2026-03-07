@@ -642,17 +642,34 @@ export class PressureEngine implements IPressureEngine {
     // Get current mode for mode-specific achievements
     const currentModeId = state.currentModeId;
 
+    // Check for speed level achievement (under 5 seconds)
+    const speedLevel = state.elapsedSeconds < 5;
+
+    // Check for perfect level (no undo used = history empty or minimal)
+    const perfectLevel = state.history.length === 0 || state.moves === 1;
+
     this.achievementEngine.checkAchievements({
       levelsCompleted,
       movesUnderPar,
       speedruns,
-      currentStreak: 0, // Not yet implemented
+      currentStreak: this.achievementEngine.getCurrentStreak(),
       noHintsLevels: 0, // Not yet implemented
       perfectWorlds: 0, // Not yet implemented
       wallsSurvived: 0, // Tracked separately via advanceWalls
       currentModeId,
       currentLevelId: level.id,
+      currentWorldId: level.world,
+      speedLevel,
+      perfectLevel,
     });
+
+    // Check for "First Try" achievement
+    this.achievementEngine.checkFirstTryAchievement(currentModeId, level.id);
+
+    // Check for perfect streak achievement
+    if (perfectLevel) {
+      this.achievementEngine.checkPerfectStreakAchievement();
+    }
   }
 
   /**

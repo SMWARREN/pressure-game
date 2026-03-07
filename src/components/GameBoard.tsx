@@ -399,6 +399,12 @@ export default function GameBoard() {
     // For now, we'll use a simple heuristic: if the level was won, count it
     const isMovesUnderPar = status === 'won';
 
+    // Check for speed level achievement (under 5 seconds)
+    const speedLevel = status === 'won' && elapsedSeconds < 5;
+
+    // Check for perfect level (no undo used = history empty)
+    const perfectLevel = status === 'won' && history.length === 0;
+
     // Check achievements
     achievementEngine.checkAchievements({
       levelsCompleted: status === 'won' ? 1 : 0,
@@ -410,8 +416,19 @@ export default function GameBoard() {
       wallsSurvived: 0, // This would need wall tracking during gameplay
       currentModeId,
       currentLevelId: currentLevel.id,
+      currentWorldId: currentLevel.world,
+      speedLevel,
+      perfectLevel,
     });
-  }, [status, currentLevel, elapsedSeconds, currentModeId, showHint, achievementEngine]);
+  }, [
+    status,
+    currentLevel,
+    elapsedSeconds,
+    currentModeId,
+    showHint,
+    achievementEngine,
+    history.length,
+  ]);
 
   // Helper: find best-scoring game event from array
   const findBestScoreEvent = (events: GameEndEvent[]): GameEndEvent => {
