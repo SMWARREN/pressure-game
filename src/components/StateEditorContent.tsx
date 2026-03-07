@@ -1,13 +1,5 @@
 // StateEditorContent - separated to reduce StateEditor.tsx cognitive complexity
 import React from 'react';
-import GameGrid from './game/GameGrid';
-import {
-  getGapValue,
-  getPaddingValue,
-  getStatusBackgroundColor,
-  getStatusBorderColor,
-  getStatusTextColor,
-} from './game/GameTileUtils';
 import { getMessageColor } from './StateEditorHelpers';
 
 export interface StateEditorContentProps {
