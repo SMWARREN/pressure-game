@@ -25,7 +25,73 @@ export interface PersistenceBackend {
 }
 
 /**
- * localStorage backend - stores data in browser localStorage
+ * Cookie backend - stores all data in a single HTTP-only cookie
+ * Uses document.cookie for persistence across sessions
+ */
+export class CookieBackend implements PersistenceBackend {
+  private readonly cookieName = 'pressure_data';
+  private data: Map<string, string> = new Map();
+  private loaded = false;
+
+  constructor() {
+    this.loadFromCookie();
+  }
+
+  private loadFromCookie(): void {
+    if (globalThis.window === undefined || this.loaded) return;
+
+    try {
+      const cookies = document.cookie.split(';');
+      for (const cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === this.cookieName && value) {
+          const decoded = decodeURIComponent(value);
+          const parsed = JSON.parse(decoded);
+          this.data = new Map(Object.entries(parsed));
+          console.log(`[CookieBackend] Loaded ${this.data.size} items from cookie`);
+          this.loaded = true;
+          return;
+        }
+      }
+    } catch (error) {
+      console.error(`[CookieBackend] Failed to load from cookie:`, error);
+    }
+    this.loaded = true;
+  }
+
+  private saveToCookie(): void {
+    if (globalThis.window === undefined) return;
+
+    try {
+      const obj = Object.fromEntries(this.data);
+      const encoded = encodeURIComponent(JSON.stringify(obj));
+      // Set cookie with 1-year expiry, secure, sameSite
+      const expiry = new Date();
+      expiry.setFullYear(expiry.getFullYear() + 1);
+      document.cookie = `${this.cookieName}=${encoded}; expires=${expiry.toUTCString()}; path=/; SameSite=Lax`;
+      console.log(`[CookieBackend] Saved to cookie (${encoded.length} bytes)`);
+    } catch (error) {
+      console.error(`[CookieBackend] Failed to save to cookie:`, error);
+    }
+  }
+
+  getItem(key: string): string | null {
+    return this.data.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string): void {
+    this.data.set(key, value);
+    this.saveToCookie();
+  }
+
+  removeItem(key: string): void {
+    this.data.delete(key);
+    this.saveToCookie();
+  }
+}
+
+/**
+ * localStorage backend - stores data in browser localStorage (deprecated, use CookieBackend)
  */
 export class LocalStorageBackend implements PersistenceBackend {
   getItem(key: string): string | null {
@@ -294,14 +360,14 @@ export class MySQLBackend implements PersistenceBackend {
  * 4. Pull server data when online to keep local up-to-date
  */
 export class SyncingBackend implements PersistenceBackend {
-  private readonly localBackend: LocalStorageBackend;
+  private readonly localBackend: CookieBackend;
   private readonly remoteBackend: MySQLBackend;
   private readonly syncQueue: Map<string, string | null> = new Map();
   isSyncing = false;
   private syncInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(apiUrl: string, userId?: string) {
-    this.localBackend = new LocalStorageBackend();
+    this.localBackend = new CookieBackend();
 
     // Get or generate userId
     const finalUserId = userId || this.getUserId();
@@ -380,32 +446,27 @@ export class SyncingBackend implements PersistenceBackend {
   }
 
   /**
-   * Pull critical data keys from server on reconnect
+   * Pull critical data from server on reconnect
    */
   private pullCriticalData(): void {
     if (!navigator.onLine) return;
 
-    const criticalKeys = [
-      'pressure_save_v3', // Main game state
-      'pressure_unlimited_highscores', // High scores
-      'pressure_achievements_v1', // Achievements
-    ];
+    // Single consolidated storage key contains all game data
+    const storageKey = 'pressure_storage_v1';
 
-    // Pull data in background without blocking
-    for (const key of criticalKeys) {
-      this.remoteBackend
-        .fetchAndGetItem(key)
-        .then((serverValue) => {
-          // Only update local if server has the key
-          if (serverValue !== null) {
-            this.localBackend.setItem(key, serverValue);
-            console.log(`[SyncingBackend] Pulled ${key} from server`);
-          }
-        })
-        .catch((error) => {
-          console.error(`[SyncingBackend] Failed to pull ${key}:`, error);
-        });
-    }
+    // Pull consolidated data in background
+    this.remoteBackend
+      .fetchAndGetItem(storageKey)
+      .then((serverValue) => {
+        // Only update local if server has the data
+        if (serverValue !== null) {
+          this.localBackend.setItem(storageKey, serverValue);
+          console.log(`[SyncingBackend] Pulled ${storageKey} from server`);
+        }
+      })
+      .catch(() => {
+        // Silently fail - server may not have data yet
+      });
   }
 
   /**

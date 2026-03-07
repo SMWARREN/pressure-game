@@ -5,7 +5,16 @@
 import type { GameState } from '../types';
 import type { PersistedState } from './types';
 import type { PersistenceBackend } from './backends';
-import { LocalStorageBackend } from './backends';
+import { CookieBackend } from './backends';
+
+/**
+ * Single consolidated storage object containing all game data
+ */
+interface ConsolidatedStorage {
+  save: PersistedState;
+  highscores: Record<string, number>;
+  editorPresets: unknown[];
+}
 
 /**
  * Default persisted state values
@@ -25,16 +34,21 @@ const DEFAULT_PERSISTED: PersistedState = {
 };
 
 /**
+ * Storage key - consolidated single object for all game data
+ */
+const STORAGE_KEY = 'pressure_storage_v1';
+
+/**
  * Persistence system that handles saving and loading game state.
  * Uses an injected backend for flexible storage (localStorage, database, etc.)
+ * All data is consolidated in a single storage object.
  */
 export class PersistenceSystem {
-  private storageKey: string;
   private readonly backend: PersistenceBackend;
 
-  constructor(storageKey: string = 'pressure_save_v3', backend?: PersistenceBackend) {
-    this.storageKey = storageKey;
-    this.backend = backend ?? new LocalStorageBackend();
+  constructor(_storageKey?: string, backend?: PersistenceBackend) {
+    // storageKey parameter ignored - always uses consolidated STORAGE_KEY
+    this.backend = backend ?? new CookieBackend();
   }
 
   /**
@@ -42,10 +56,12 @@ export class PersistenceSystem {
    */
   load(): PersistedState {
     try {
-      const raw = this.backend.getItem(this.storageKey);
+      const raw = this.backend.getItem(STORAGE_KEY);
       if (!raw) return { ...DEFAULT_PERSISTED };
 
-      const p = JSON.parse(raw);
+      const storage = JSON.parse(raw) as ConsolidatedStorage;
+      const p = storage.save || {};
+
       return {
         completedLevels: p.completedLevels || [],
         bestMoves: p.bestMoves || {},
@@ -66,12 +82,19 @@ export class PersistenceSystem {
   }
 
   /**
-   * Save state to backend
+   * Save state to backend (consolidated)
    */
   save(state: GameState): void {
     try {
-      const payload: PersistedState = this.buildPayload(state);
-      this.backend.setItem(this.storageKey, JSON.stringify(payload));
+      // Load existing storage to preserve highscores and presets
+      const raw = this.backend.getItem(STORAGE_KEY);
+      const storage: ConsolidatedStorage = raw ? JSON.parse(raw) : { save: {}, highscores: {}, editorPresets: [] };
+
+      // Update only the save section
+      storage.save = this.buildPayload(state);
+
+      // Write consolidated object
+      this.backend.setItem(STORAGE_KEY, JSON.stringify(storage));
     } catch {
       // Silently fail if storage isn't available
     }
@@ -101,24 +124,17 @@ export class PersistenceSystem {
    */
   clear(): void {
     try {
-      this.backend.removeItem(this.storageKey);
+      this.backend.removeItem(STORAGE_KEY);
     } catch {
       // Silently fail
     }
   }
 
   /**
-   * Update the storage key
-   */
-  setStorageKey(key: string): void {
-    this.storageKey = key;
-  }
-
-  /**
-   * Get the current storage key
+   * Get the current storage key (always consolidated)
    */
   getStorageKey(): string {
-    return this.storageKey;
+    return STORAGE_KEY;
   }
 
   /**
@@ -189,12 +205,11 @@ export class PersistenceSystem {
    */
   getHighScore(modeId: string, levelId: number): number | null {
     try {
-      const key = 'pressure_unlimited_highscores';
-      const raw = this.backend.getItem(key);
+      const raw = this.backend.getItem(STORAGE_KEY);
       if (!raw) return null;
 
-      const scores = JSON.parse(raw) as Record<string, number>;
-      return scores[`${modeId}:${levelId}`] ?? null;
+      const storage = JSON.parse(raw) as ConsolidatedStorage;
+      return storage.highscores?.[`${modeId}:${levelId}`] ?? null;
     } catch {
       return null;
     }
@@ -205,14 +220,13 @@ export class PersistenceSystem {
    */
   setHighScore(modeId: string, levelId: number, score: number): void {
     try {
-      const key = 'pressure_unlimited_highscores';
-      const raw = this.backend.getItem(key);
-      const scores = raw ? JSON.parse(raw) : ({} as Record<string, number>);
+      const raw = this.backend.getItem(STORAGE_KEY);
+      const storage: ConsolidatedStorage = raw ? JSON.parse(raw) : { save: DEFAULT_PERSISTED, highscores: {}, editorPresets: [] };
 
       const levelKey = `${modeId}:${levelId}`;
-      if (!scores[levelKey] || score > scores[levelKey]) {
-        scores[levelKey] = score;
-        this.backend.setItem(key, JSON.stringify(scores));
+      if (!storage.highscores[levelKey] || score > storage.highscores[levelKey]) {
+        storage.highscores[levelKey] = score;
+        this.backend.setItem(STORAGE_KEY, JSON.stringify(storage));
       }
     } catch {
       // Silently fail
@@ -226,8 +240,11 @@ export class PersistenceSystem {
    */
   getEditorPresets(): unknown[] {
     try {
-      const raw = this.backend.getItem('state-editor-presets');
-      return raw ? JSON.parse(raw) : [];
+      const raw = this.backend.getItem(STORAGE_KEY);
+      if (!raw) return [];
+
+      const storage = JSON.parse(raw) as ConsolidatedStorage;
+      return storage.editorPresets ?? [];
     } catch {
       return [];
     }
@@ -238,7 +255,11 @@ export class PersistenceSystem {
    */
   setEditorPresets(presets: unknown[]): void {
     try {
-      this.backend.setItem('state-editor-presets', JSON.stringify(presets));
+      const raw = this.backend.getItem(STORAGE_KEY);
+      const storage: ConsolidatedStorage = raw ? JSON.parse(raw) : { save: DEFAULT_PERSISTED, highscores: {}, editorPresets: [] };
+
+      storage.editorPresets = presets;
+      this.backend.setItem(STORAGE_KEY, JSON.stringify(storage));
     } catch {
       // Silently fail
     }
