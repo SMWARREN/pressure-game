@@ -139,7 +139,29 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
 
   if (showLeaderboard) return <LeaderboardScreen onBack={() => setShowLeaderboard(false)} />;
 
-  if (showProfile) return <ProfileScreen onClose={() => setShowProfile(false)} />;
+  if (showProfile) {
+    return (
+      <ProfileScreen
+        onClose={() => setShowProfile(false)}
+        onWatchReplay={(moveLog, mode, levelId) => {
+          setShowProfile(false);
+          setReplayEventFromStats({
+            type: 'game_end',
+            ts: Date.now(),
+            modeId: mode,
+            levelId,
+            sessionId: 'preview',
+            outcome: 'won',
+            score: 0,
+            moves: moveLog.length,
+            elapsedSeconds: 0,
+            moveLog: moveLog,
+            lossReason: null,
+          });
+        }}
+      />
+    );
+  }
 
   return (
     <div
