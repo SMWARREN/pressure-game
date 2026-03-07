@@ -219,7 +219,11 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
         {error && (
           <div
             style={{
-              padding: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 16,
+              padding: 20,
               background: colors.status.error + '15',
               border: `1px solid ${colors.status.error}40`,
               borderRadius: 8,
@@ -228,7 +232,28 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               textAlign: 'center',
             }}
           >
-            {error}
+            <div>{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '12px 24px',
+                background: colors.status.error,
+                color: colors.game.header,
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 16,
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                minHeight: 'unset',
+                minWidth: 'unset',
+              }}
+            >
+              <span style={{ fontSize: 20 }}>🔄</span>
+              Retry
+            </button>
           </div>
         )}
 
