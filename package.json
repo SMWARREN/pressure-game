@@ -11,6 +11,8 @@
   "scripts": {
     "start": "./start-dev.sh",
     "dev": "./start-dev.sh",
+    "prod": "./start-prod.sh",
+    "build:prod": "./start-prod.sh",
     "web:dev": "cd apps/web && npm run dev",
     "web:build": "cd apps/web && npm run build",
     "web:preview": "cd apps/web && npm run preview",
