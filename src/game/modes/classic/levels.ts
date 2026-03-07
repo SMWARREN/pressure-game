@@ -5250,12 +5250,12 @@ export const CLASSIC_LEVELS: Level[] = [
 // LOGO LEVELS - Two-tier system
 // ═══════════════════════════════════════════════════════════════════════════
 
-// PUBLIC: P-shaped logo with central goal node for About page & marketing
+// PUBLIC: Filled P-shape logo (square-ish) with Zen mode for About page & marketing
 export const PRESSURE_LOGO_LEVEL: Level = {
   id: 999,
   name: 'Pressure',
   world: 0,
-  gridSize: 6,
+  gridSize: 8,
   tiles: [
     // Top border (row 0)
     { id: 'w-0-0', type: 'wall', x: 0, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
@@ -5264,49 +5264,64 @@ export const PRESSURE_LOGO_LEVEL: Level = {
     { id: 'w-3-0', type: 'wall', x: 3, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-4-0', type: 'wall', x: 4, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-5-0', type: 'wall', x: 5, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-6-0', type: 'wall', x: 6, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-7-0', type: 'wall', x: 7, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
-    // Bottom border (row 5)
-    { id: 'w-0-5', type: 'wall', x: 0, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-1-5', type: 'wall', x: 1, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-2-5', type: 'wall', x: 2, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-3-5', type: 'wall', x: 3, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-4-5', type: 'wall', x: 4, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-5-5', type: 'wall', x: 5, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Bottom border (row 7)
+    { id: 'w-0-7', type: 'wall', x: 0, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-1-7', type: 'wall', x: 1, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-2-7', type: 'wall', x: 2, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-3-7', type: 'wall', x: 3, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-4-7', type: 'wall', x: 4, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-5-7', type: 'wall', x: 5, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-6-7', type: 'wall', x: 6, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-7-7', type: 'wall', x: 7, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
     // Left border (col 0)
     { id: 'w-0-1', type: 'wall', x: 0, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-0-2', type: 'wall', x: 0, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-0-3', type: 'wall', x: 0, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-0-4', type: 'wall', x: 0, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-0-5', type: 'wall', x: 0, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-0-6', type: 'wall', x: 0, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
-    // Right border (col 5)
-    { id: 'w-5-1', type: 'wall', x: 5, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-5-2', type: 'wall', x: 5, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-5-3', type: 'wall', x: 5, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-5-4', type: 'wall', x: 5, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Right border (col 7)
+    { id: 'w-7-1', type: 'wall', x: 7, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-7-2', type: 'wall', x: 7, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-7-3', type: 'wall', x: 7, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-7-4', type: 'wall', x: 7, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-7-5', type: 'wall', x: 7, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-7-6', type: 'wall', x: 7, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
-    // Central goal node (heart of the P)
-    { id: 'g-center', type: 'path', x: 2, y: 2, connections: ['up', 'down', 'left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+    // Filled P-shape (4x4 bump + 2x2 stem)
+    // Top row of P bump (y=1)
+    { id: 'p-2-1', type: 'path', x: 2, y: 1, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-1', type: 'path', x: 3, y: 1, connections: ['left', 'right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-4-1', type: 'path', x: 4, y: 1, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
 
-    // P-shape pipes
-    // Top of P (horizontal bar)
-    { id: 'p-1-1', type: 'path', x: 1, y: 1, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'p-3-1', type: 'path', x: 3, y: 1, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    // Second row of P bump (y=2)
+    { id: 'p-2-2', type: 'path', x: 2, y: 2, connections: ['up', 'right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'g-3-2', type: 'path', x: 3, y: 2, connections: ['left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'p-4-2', type: 'path', x: 4, y: 2, connections: ['up', 'left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
 
-    // Left vertical stem of P
-    { id: 'p-1-2', type: 'path', x: 1, y: 2, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'p-1-3', type: 'path', x: 1, y: 3, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'p-1-4', type: 'path', x: 1, y: 4, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    // Third row of P bump (y=3)
+    { id: 'p-2-3', type: 'path', x: 2, y: 3, connections: ['up', 'right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-3', type: 'path', x: 3, y: 3, connections: ['left', 'right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-4-3', type: 'path', x: 4, y: 3, connections: ['up', 'left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
 
-    // Right side of P bump
-    { id: 'p-3-2', type: 'path', x: 3, y: 2, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'p-3-3', type: 'path', x: 3, y: 3, connections: ['up', 'left'] as Direction[], isGoalNode: false, canRotate: true },
+    // Bottom of bump / top of stem (y=4)
+    { id: 'p-2-4', type: 'path', x: 2, y: 4, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-4', type: 'path', x: 3, y: 4, connections: ['up'] as Direction[], isGoalNode: false, canRotate: true },
+
+    // Stem of P (y=5, y=6)
+    { id: 'p-2-5', type: 'path', x: 2, y: 5, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-2-6', type: 'path', x: 2, y: 6, connections: ['up'] as Direction[], isGoalNode: false, canRotate: true },
   ],
   compressionDelay: Infinity,
-  maxMoves: 20,
+  maxMoves: 30,
   compressionEnabled: false,
   goalNodes: [
-    { x: 2, y: 2 },
+    { x: 3, y: 2 },
   ],
 };
 
