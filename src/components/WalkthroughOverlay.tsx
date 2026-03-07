@@ -443,6 +443,14 @@ export function useWalkthrough(
   const currentModeId = useGameStore((s) => s.currentModeId);
   const replayWalkthrough = useGameStore((s) => s._replayWalkthrough);
 
+  // Re-check if walkthrough has been seen when level changes
+  useEffect(() => {
+    if (config) {
+      const isSeen = engine.isWalkthroughSeen(config.modeId, config.levelId);
+      setHasSeenWalkthrough(isSeen);
+    }
+  }, [config, engine]);
+
   // Start walkthrough when level is loaded (idle only) and no moves made
   // Also trigger when replayWalkthrough timestamp changes
   useEffect(() => {
