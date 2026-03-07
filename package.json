@@ -24,7 +24,10 @@
     "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
     "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
     "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN",
-    "sonar:clean": "bash scripts/sonar-clean-analyze.sh"
+    "sonar:clean": "bash scripts/sonar-clean-analyze.sh",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -37,11 +40,14 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^4.0.18",
     "eslint": "^9",
+    "jsdom": "^28.1.0",
     "prettier": "^3.8.1",
     "sonarqube-scanner": "^4.3.4",
     "typescript": "^5",
     "vite": "5.4.11",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.0.18"
   }
 }
