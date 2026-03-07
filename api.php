@@ -508,8 +508,11 @@ $pathParts = array_values($pathParts); // Re-index after filter
 $apiIndex = array_search('api', $pathParts);
 
 if ($apiIndex === false) {
-  // Health check at root
-  if (empty($pathParts) || (count($pathParts) === 1 && $pathParts[0] === 'api')) {
+  // Health check at root (direct hit to api.php or /api)
+  if (empty($pathParts) ||
+      (count($pathParts) === 1 && $pathParts[0] === 'api') ||
+      (count($pathParts) === 1 && strpos($pathParts[0], 'api.php') !== false) ||
+      (count($pathParts) === 2 && $pathParts[1] === 'api.php')) {
     http_response_code(200);
     echo json_encode([
       'status' => 'ok',
@@ -521,7 +524,7 @@ if ($apiIndex === false) {
   }
 
   http_response_code(404);
-  echo json_encode(['error' => 'Route not found']);
+  echo json_encode(['error' => 'Route not found', 'pathParts' => $pathParts, 'apiIndex' => $apiIndex]);
   $db->close();
   exit;
 }
