@@ -64,7 +64,10 @@ export function getConnectionCountLabel(count: number): string {
   return `${count} connection${count !== 1 ? 's' : ''}`;
 }
 
-export function getCompressionStatusLabel(compressionActive: boolean, compressionOverride: boolean): string {
+export function getCompressionStatusLabel(
+  compressionActive: boolean,
+  compressionOverride: boolean
+): string {
   if (compressionOverride) return '🔓 OVERRIDE (on)';
   return compressionActive ? '🚪 CLOSING' : '🔒 Safe';
 }
@@ -81,7 +84,10 @@ export function shouldEnableDebugStepBackButton(debugStep: number): boolean {
   return debugStep > 0;
 }
 
-export function shouldEnableDebugStepForwardButton(debugHistory: any[], debugStep: number): boolean {
+export function shouldEnableDebugStepForwardButton(
+  debugHistory: any[],
+  debugStep: number
+): boolean {
   return debugHistory.length > 0 && debugStep < debugHistory.length - 1;
 }
 
@@ -107,4 +113,49 @@ export function getMessageColor(message: string): string {
   if (message.includes('Deleted')) return '#ef4444';
   if (message.includes('Loaded')) return '#3b82f6';
   return '#fbbf24';
+}
+
+// Render helpers - extracted to reduce StateEditor component complexity
+export function renderEditorHeader(props: any): React.ReactNode {
+  const { setIsOpen } = props;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 16px',
+        borderBottom: '1px solid #1e1e3a',
+        background: '#0d0d20',
+      }}
+    >
+      <span style={{ fontWeight: 700, color: '#6366f1' }}>🛠️ State Editor</span>
+      <button
+        onClick={() => setIsOpen(false)}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          color: '#666',
+          cursor: 'pointer',
+          fontSize: 18,
+        }}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+export function getTabStyle(active: boolean): React.CSSProperties {
+  return {
+    padding: '8px 12px',
+    background: active ? '#1e1e3a' : 'transparent',
+    border: `1px solid ${active ? '#3a3a5a' : '#1e1e3a'}`,
+    borderBottom: active ? `2px solid #6366f1` : '1px solid #1e1e3a',
+    color: active ? '#6366f1' : '#6a6a8a',
+    fontWeight: active ? 600 : 400,
+    cursor: 'pointer',
+    fontSize: 12,
+    transition: 'all 0.2s',
+  };
 }

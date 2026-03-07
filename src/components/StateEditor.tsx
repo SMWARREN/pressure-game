@@ -3,7 +3,7 @@
 // Allows inspecting and modifying tiles, moves, time, compression, mode state, etc.
 // Includes replay/step-through debugging similar to ReplayOverlay.
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useGameStore } from '../game/store';
 import { Direction, CompressionDirection } from '../game/types';
 import { getModeById, GAME_MODES } from '../game/modes';
@@ -22,6 +22,8 @@ import {
   type StatePreset,
   usePresetManagement,
 } from './hooks/useStateEditorLogic';
+import { getMessageColor } from './StateEditorHelpers';
+import { useStateEditorHandlers } from './hooks/useStateEditorHandlers';
 
 const DIRECTIONS: Direction[] = ['up', 'down', 'left', 'right'];
 
@@ -118,8 +120,6 @@ export const StateEditor: React.FC = () => {
     setDebugSpeed,
   } = useStateEditorState();
 
-  const debugIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const DEBUG_SPEEDS = [800, 400, 200];
   const DEBUG_SPEED_LABELS = ['1×', '2×', '4×'];
 
   // Get current state from store
@@ -296,104 +296,28 @@ export const StateEditor: React.FC = () => {
     status,
   ]);
 
-  // Export state as JSON
-  const exportState = useCallback(() => {
-    const stateData = buildExportData();
-    const json = JSON.stringify(stateData, null, 2);
-    navigator.clipboard.writeText(json);
-    showMessage('State copied to clipboard!');
-  }, [buildExportData, showMessage]);
-
-  // ── Debug/Replay Controls ───────────────────────────────────────────────
-
-  // Go to specific debug step
-  const goToDebugStep = useCallback(
-    (step: number) => {
-      if (step < 0 || step >= debugHistory.length) return;
-      const snapshot = debugHistory[step];
-      setState({
-        tiles: snapshot.tiles,
-        moves: snapshot.moves,
-        score: snapshot.score,
-      });
-      setDebugStep(step);
-      setIsDebugPlaying(false);
-    },
-    [debugHistory, setState]
-  );
-
-  // Step forward/backward
-  const stepBackward = useCallback(() => {
-    if (debugStep > 0) goToDebugStep(debugStep - 1);
-  }, [debugStep, goToDebugStep]);
-
-  const stepForward = useCallback(() => {
-    if (debugStep < debugHistory.length - 1) goToDebugStep(debugStep + 1);
-  }, [debugStep, debugHistory.length, goToDebugStep]);
-
-  // Auto-play effect
-  useEffect(() => {
-    if (debugIntervalRef.current) clearInterval(debugIntervalRef.current);
-    if (!isDebugPlaying) return;
-
-    debugIntervalRef.current = setInterval(() => {
-      setDebugStep((prev) => {
-        if (prev >= debugHistory.length - 1) {
-          setIsDebugPlaying(false);
-          return prev;
-        }
-        const next = prev + 1;
-        const snapshot = debugHistory[next];
-        setState({
-          tiles: snapshot.tiles,
-          moves: snapshot.moves,
-          score: snapshot.score,
-        });
-        return next;
-      });
-    }, DEBUG_SPEEDS[debugSpeed]);
-
-    return () => {
-      if (debugIntervalRef.current) clearInterval(debugIntervalRef.current);
-    };
-  }, [isDebugPlaying, debugSpeed, debugHistory, setState]);
-
-  // Clear debug history
-  const clearDebugHistory = useCallback(() => {
-    setDebugHistory([]);
-    setDebugStep(-1);
-    setIsDebugPlaying(false);
-    showMessage('Debug history cleared');
-  }, [showMessage]);
-
-  // ── Trigger Win/Lose ─────────────────────────────────────────────────────
-
-  const triggerWin = useCallback(() => {
-    setState({ status: 'won', showingWin: true });
-    showMessage('Triggered WIN state');
-    captureDebugSnapshot('Triggered WIN');
-  }, [setState, showMessage, captureDebugSnapshot]);
-
-  const triggerLose = useCallback(
-    (reason?: string) => {
-      setState({ status: 'lost', lossReason: reason ?? 'Debug triggered' });
-      showMessage('Triggered LOSE state');
-      captureDebugSnapshot('Triggered LOSE');
-    },
-    [setState, showMessage, captureDebugSnapshot]
-  );
-
-  // ── Compression Direction ───────────────────────────────────────────────
-
-  const setCompressionDirection = useCallback(
-    (dir: CompressionDirection) => {
-      if (!currentLevel) return;
-      const updatedLevel = { ...currentLevel, compressionDirection: dir };
-      setState({ currentLevel: updatedLevel });
-      showMessage(`Compression: ${dir}`);
-    },
-    [currentLevel, setState, showMessage]
-  );
+  // Extract handlers to reduce component complexity
+  const {
+    exportState,
+    goToDebugStep,
+    stepBackward,
+    stepForward,
+    clearDebugHistory,
+    triggerWin,
+    triggerLose,
+    setCompressionDirection,
+  } = useStateEditorHandlers({
+    setState,
+    showMessage,
+    captureDebugSnapshot,
+    buildExportData,
+    debugHistory,
+    debugStep,
+    setDebugHistory,
+    setDebugStep,
+    setDebugPlaying: setIsDebugPlaying,
+    currentLevel,
+  });
 
   // Get selected tile
   const selectedTileData = selectedTile
@@ -462,6 +386,38 @@ export const StateEditor: React.FC = () => {
       >
         🛠️ State Editor
       </button>
+    );
+  }
+
+  if (message) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          width: 380,
+          height: '100vh',
+          background: '#0a0a1a',
+          borderLeft: '1px solid #1e1e3a',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 14,
+            color: getMessageColor(message),
+            fontWeight: 600,
+            textAlign: 'center',
+          }}
+        >
+          {message}
+        </div>
+      </div>
     );
   }
 
@@ -668,20 +624,6 @@ export const StateEditor: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Message */}
-      {message && (
-        <div
-          style={{
-            padding: '8px 16px',
-            background: '#1e1e3a',
-            color: '#10b981',
-            fontSize: 12,
-          }}
-        >
-          {message}
-        </div>
-      )}
 
       {/* Tabs */}
       <div
