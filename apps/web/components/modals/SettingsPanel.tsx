@@ -10,6 +10,7 @@ export interface SettingsPanelProps {
   readonly onShowAchievements: () => void;
   readonly onShowLeaderboard: () => void;
   readonly onShowProfile: () => void;
+  readonly onShowAbout: () => void;
   readonly onHowToPlay: () => void;
   readonly onRewatchWalkthrough: () => void;
   readonly hasWalkthrough: boolean;
@@ -24,6 +25,7 @@ export function SettingsPanel({
   onShowAchievements,
   onShowLeaderboard,
   onShowProfile,
+  onShowAbout,
   onHowToPlay,
   onRewatchWalkthrough,
   hasWalkthrough,
@@ -259,6 +261,34 @@ export function SettingsPanel({
             <div style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>My Profile</div>
             <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
               View your stats & achievements
+            </div>
+          </div>
+          <span style={{ fontSize: 14, color: colors.text.tertiary }}>›</span>
+        </button>
+
+        {/* About row */}
+        <button
+          onClick={() => {
+            onShowAbout();
+            onClose();
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '14px 16px',
+            borderRadius: 14,
+            border: `1px solid ${colors.border.primary}`,
+            background: colors.bg.tertiary,
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 20 }}>ℹ️</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#ec4899' }}>About</div>
+            <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+              The Pressure logo puzzle
             </div>
           </div>
           <span style={{ fontSize: 14, color: colors.text.tertiary }}>›</span>
