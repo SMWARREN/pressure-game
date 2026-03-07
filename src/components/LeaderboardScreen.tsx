@@ -14,7 +14,9 @@ interface LeaderboardEntry {
   user_id?: string;
   userId?: string;
   username?: string;
-  score: number;
+  score?: number;
+  total_score?: number;
+  total_moves?: number;
   level_id?: number;
   levelId?: number;
   created_at?: string;
@@ -22,6 +24,7 @@ interface LeaderboardEntry {
 }
 
 const PRESSURE_MODES = [
+  { id: 'global', label: 'Global', icon: '🌍', color: '#60a5fa' },
   { id: GAME_MODES.CLASSIC, label: 'Pressure', icon: '⚡', color: '#a78bfa' },
   { id: GAME_MODES.BLITZ, label: 'Blitz', icon: '🔥', color: '#f97316' },
   { id: GAME_MODES.ZEN, label: 'Zen', icon: '🧘', color: '#34d399' },
@@ -46,11 +49,13 @@ function LeaderboardRow({
   index,
   colors,
   onSelect,
+  isGlobal,
 }: {
   entry: LeaderboardEntry;
   index: number;
   colors: ReturnType<typeof useTheme>['colors'];
   onSelect: (userId: string) => void;
+  isGlobal?: boolean;
 }) {
   const rankColor = getRankColor(index, colors);
   const medal = getRankMedal(index);
@@ -126,7 +131,7 @@ function LeaderboardRow({
       <div
         style={{
           textAlign: 'right',
-          minWidth: 80,
+          minWidth: isGlobal ? 100 : 80,
         }}
       >
         <div
@@ -136,8 +141,19 @@ function LeaderboardRow({
             color: rankColor,
           }}
         >
-          {entry.score}
+          {isGlobal ? entry.total_score : entry.score}
         </div>
+        {isGlobal && (
+          <div
+            style={{
+              fontSize: 10,
+              color: colors.text.tertiary,
+              marginTop: 2,
+            }}
+          >
+            {entry.total_moves} moves
+          </div>
+        )}
       </div>
     </button>
   );
@@ -145,7 +161,7 @@ function LeaderboardRow({
 
 export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
   const { colors } = useTheme();
-  const [selectedMode, setSelectedMode] = useState<string>('classic');
+  const [selectedMode, setSelectedMode] = useState<string>('global');
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -409,6 +425,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               index={index}
               colors={colors}
               onSelect={setSelectedUserId}
+              isGlobal={selectedMode === 'global'}
             />
           ))}
       </div>
