@@ -182,7 +182,7 @@ function WinOverlay({
           </button>
         )}
         <button onClick={onRetry} style={btnSecondary}>
-          ↺ RETRY
+          <span style={{ fontSize: '1.5em', marginRight: '6px' }}>↺</span> RETRY
         </button>
         <button onClick={onMenu} style={btnSecondary}>
           MENU
