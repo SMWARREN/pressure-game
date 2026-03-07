@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Dimensions, ActivityIndicator } from 'react-native';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
+import GameBoard from '../../components/GameBoard.native';
 
 /**
  * Main Game Screen
@@ -42,8 +43,7 @@ export default function GameScreen() {
 
   return (
     <View style={styles.container}>
-      {/* GameBoard will be rendered here in Phase 2 */}
-      <View style={styles.gameArea} />
+      <GameBoard />
     </View>
   );
 }

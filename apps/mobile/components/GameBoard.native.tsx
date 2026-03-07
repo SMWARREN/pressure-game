@@ -27,7 +27,7 @@ export default function GameBoard() {
     compressionActive,
     currentModeId,
     tapTile,
-    resetLevel,
+    restartLevel,
   } = useGameStore(
     useShallow((state) => ({
       tiles: state.tiles,
