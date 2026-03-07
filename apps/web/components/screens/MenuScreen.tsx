@@ -14,6 +14,7 @@ import StatsScreen from '../StatsScreen';
 import AchievementsScreen from '../AchievementsScreen';
 import LeaderboardScreen from '../LeaderboardScreen';
 import ProfileScreen from '../ProfileScreen';
+import AboutScreen from '../AboutScreen';
 import ReplayOverlay from '@/components/game/ReplayOverlay';
 import { SettingsPanel } from '../modals/SettingsPanel';
 import { LevelGeneratorPanel } from '../modals/LevelGeneratorPanel';
@@ -72,6 +73,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
   const [showAchievements, setShowAchievements] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [replayEventFromStats, setReplayEventFromStats] = useState<GameEndEvent | null>(null);
 
   const activeMode = getModeById(currentModeId);
@@ -160,6 +162,12 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
           });
         }}
       />
+    );
+  }
+
+  if (showAbout) {
+    return (
+      <AboutScreen onBack={() => setShowAbout(false)} />
     );
   }
 
@@ -724,6 +732,10 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
         onShowProfile={() => {
           setShowSettings(false);
           setShowProfile(true);
+        }}
+        onShowAbout={() => {
+          setShowSettings(false);
+          setShowAbout(true);
         }}
         onHowToPlay={replayTutorial}
         onRewatchWalkthrough={replayWalkthrough}
