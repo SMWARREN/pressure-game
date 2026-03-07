@@ -159,7 +159,7 @@ export async function getAchievementStats(limit: number = 100): Promise<any[]> {
 /**
  * Get user profile
  */
-export async function getUserProfile(userId?: string): Promise<any | null> {
+export async function getUserProfile(userId?: string): Promise<any> {
   if (!API_URL) {
     console.warn('[Profile] API URL not configured');
     return null;
