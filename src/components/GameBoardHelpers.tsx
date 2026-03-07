@@ -137,6 +137,59 @@ export function renderFixedElements(props: any) {
   );
 }
 
+export function shouldShowOverlay(props: any): boolean {
+  const { isUnlimited, showUnlimitedRules, walkthroughActive, isPaused, editorEnabled } = props;
+  return !(isUnlimited && showUnlimitedRules) && !walkthroughActive && !isPaused && !editorEnabled;
+}
+
+export function shouldShowPauseOverlay(isPaused: boolean, editorEnabled: boolean): boolean {
+  return isPaused && !editorEnabled;
+}
+
+export function getTransformStyle(animationsEnabled: boolean, screenShake: boolean): string {
+  return animationsEnabled && screenShake ? 'translateX(-4px)' : 'none';
+}
+
+export function getTransitionStyle(animationsEnabled: boolean, screenShake: boolean): string {
+  return animationsEnabled && screenShake ? 'none' : 'transform 0.05s ease';
+}
+
+export function getBoardBorderColor(wallsJustAdvanced: boolean, colors: any): string {
+  return wallsJustAdvanced ? colors.status.error + '50' : colors.border.primary;
+}
+
+export function getBoardBoxShadow(wallsJustAdvanced: boolean, colors: any): string {
+  return wallsJustAdvanced
+    ? `0 0 40px ${colors.status.error}4d, inset 0 0 40px ${colors.status.error}0d`
+    : `0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)`;
+}
+
+export function renderNotification(props: any) {
+  const { notification, mode } = props;
+  if (!notification) return null;
+  return (
+    <div
+      key={notification.key}
+      style={{
+        position: 'absolute',
+        top: -24,
+        left: '50%',
+        animation: 'notifFloat 1.4s ease forwards',
+        fontSize: 15,
+        fontWeight: 900,
+        color: notification.isScore ? mode.color : '#fbbf24',
+        letterSpacing: '0.05em',
+        pointerEvents: 'none',
+        zIndex: 20,
+        whiteSpace: 'nowrap',
+        textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
+      }}
+    >
+      {notification.text}
+    </div>
+  );
+}
+
 export function renderFooter(props: any) {
   const {
     editor,

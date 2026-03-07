@@ -45,6 +45,13 @@ import {
   renderModalsAndExtras,
   renderFixedElements,
   renderFooter,
+  shouldShowOverlay,
+  renderNotification,
+  shouldShowPauseOverlay,
+  getTransformStyle,
+  getTransitionStyle,
+  getBoardBorderColor,
+  getBoardBoxShadow,
 } from './GameBoardHelpers';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -529,8 +536,8 @@ export default function GameBoard() {
           userSelect: 'none',
           WebkitUserSelect: 'none',
           overflow: 'hidden',
-          transform: animationsEnabled && screenShake ? 'translateX(-4px)' : 'none',
-          transition: animationsEnabled && screenShake ? 'none' : 'transform 0.05s ease',
+          transform: getTransformStyle(animationsEnabled, screenShake),
+          transition: getTransitionStyle(animationsEnabled, screenShake),
           zIndex: 1,
         }}
       >
@@ -590,10 +597,8 @@ export default function GameBoard() {
               background: colors.bg.board,
               borderRadius: 18,
               padding,
-              border: `2px solid ${wallsJustAdvanced ? colors.status.error + '50' : colors.border.primary}`,
-              boxShadow: wallsJustAdvanced
-                ? `0 0 40px ${colors.status.error}4d, inset 0 0 40px ${colors.status.error}0d`
-                : `0 0 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.2)`,
+              border: `2px solid ${getBoardBorderColor(wallsJustAdvanced, colors)}`,
+              boxShadow: getBoardBoxShadow(wallsJustAdvanced, colors),
               transition: 'border-color 0.3s, box-shadow 0.3s',
               flexShrink: 0,
             }}
@@ -629,60 +634,40 @@ export default function GameBoard() {
               theme={theme}
             />
 
-            {/* Pause overlay - hide when editor is enabled */}
-            {isPaused && !editor.enabled && (
+            {shouldShowPauseOverlay(isPaused, editor.enabled) && (
               <PauseOverlay onResume={resumeGame} onMenu={goToMenu} />
             )}
 
             {/* Editor mode indicator in top bar - no blocking overlay */}
 
-            {/* Overlay screens - hide for Unlimited levels when rules dialog is shown, or when walkthrough is active, or when paused, or when editor is enabled */}
-            {!(isUnlimited && showUnlimitedRules) &&
-              !walkthroughActive &&
-              !isPaused &&
-              !editor.enabled && (
-                <Overlay
-                  status={status}
-                  moves={moves}
-                  levelName={currentLevel.name}
-                  onStart={isUnlimited ? handleUnlimitedStart : startGame}
-                  onNext={() => nextLevel && loadLevel(nextLevel)}
-                  onMenu={goToMenu}
-                  onRetry={restartLevel}
-                  solution={solution}
-                  hasNext={!!nextLevel}
-                  elapsedSeconds={elapsedSeconds}
-                  winTitle={winTitle}
-                  lossTitle={lossTitle}
-                  finalScore={score}
-                  targetScore={currentLevel.targetScore}
-                  levelRecord={levelRecord}
-                  onReplay={onReplayForOverlay}
-                  newHighScore={isNewHighScore}
-                />
-              )}
-            {/* Score / mode notification — floats above the board, fades out */}
-            {notification && (
-              <div
-                key={notification.key}
-                style={{
-                  position: 'absolute',
-                  top: -24,
-                  left: '50%',
-                  animation: 'notifFloat 1.4s ease forwards',
-                  fontSize: 15,
-                  fontWeight: 900,
-                  color: notification.isScore ? mode.color : '#fbbf24',
-                  letterSpacing: '0.05em',
-                  pointerEvents: 'none',
-                  zIndex: 20,
-                  whiteSpace: 'nowrap',
-                  textShadow: `0 0 12px ${notification.isScore ? mode.color : '#fbbf24'}99`,
-                }}
-              >
-                {notification.text}
-              </div>
+            {shouldShowOverlay({
+              isUnlimited,
+              showUnlimitedRules,
+              walkthroughActive,
+              isPaused,
+              editorEnabled: editor.enabled,
+            }) && (
+              <Overlay
+                status={status}
+                moves={moves}
+                levelName={currentLevel.name}
+                onStart={isUnlimited ? handleUnlimitedStart : startGame}
+                onNext={() => nextLevel && loadLevel(nextLevel)}
+                onMenu={goToMenu}
+                onRetry={restartLevel}
+                solution={solution}
+                hasNext={!!nextLevel}
+                elapsedSeconds={elapsedSeconds}
+                winTitle={winTitle}
+                lossTitle={lossTitle}
+                finalScore={score}
+                targetScore={currentLevel.targetScore}
+                levelRecord={levelRecord}
+                onReplay={onReplayForOverlay}
+                newHighScore={isNewHighScore}
+              />
             )}
+            {renderNotification({ notification, mode })}
           </div>
         </div>
 
