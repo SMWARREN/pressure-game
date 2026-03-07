@@ -391,7 +391,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
                 minWidth: 'unset',
               }}
             >
-              <span style={{ fontSize: 20 }}>🔄</span>
+              <span style={{ fontSize: 20, marginRight: 8 }}>🔄</span>
               Retry
             </button>
           </div>

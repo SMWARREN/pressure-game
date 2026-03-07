@@ -857,7 +857,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
       return { tiles: updatedTiles, modeState: updatedState };
     }
 
-    if (features && features.thieves) {
+    if (features?.thieves) {
       return processUnlimitedThiefTick(state, modeState ?? {}, storedState, features);
     }
     return null;
