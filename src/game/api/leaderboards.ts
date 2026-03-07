@@ -8,12 +8,11 @@ import { robustFetch } from '@/game/engine/backends';
 const VITE_API_URL = import.meta.env.VITE_API_URL || '';
 
 /**
- * Construct API URL by removing /api.php suffix and ensuring single trailing slash
+ * Construct API base URL by removing /api.php suffix (no trailing slash)
  */
 function getApiBaseUrl(): string {
   if (!VITE_API_URL) return '';
-  const baseUrl = VITE_API_URL.replace('/api.php', '');
-  return baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+  return VITE_API_URL.replace('/api.php', '').replace(/\/$/, '');
 }
 
 const API_URL = getApiBaseUrl();
