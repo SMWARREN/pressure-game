@@ -1,4 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
+import { RGBA_COLORS } from '@/utils/constants';
 
 export interface FeatureInfo {
   icon: string;
@@ -22,7 +23,7 @@ export function FeatureInfoSheet({ feature, onClose }: FeatureInfoSheetProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.3)',
+        background: RGBA_COLORS.TRANSPARENT_BLACK_30,
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',

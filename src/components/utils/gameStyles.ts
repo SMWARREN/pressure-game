@@ -3,6 +3,8 @@
  * Consolidates commonly used styles to reduce duplication
  */
 
+import { RGBA_COLORS } from '@/utils/constants';
+
 export const iconBtn: React.CSSProperties = {
   width: 44,
   height: 44,
@@ -37,7 +39,7 @@ export const headerStyle: React.CSSProperties = {
   zIndex: 2,
   position: 'relative',
   borderBottom: '1px solid #12122a',
-  background: 'rgba(6,6,15,0.85)',
+  background: RGBA_COLORS.DARK_FOOTER,
   backdropFilter: 'blur(12px)',
   display: 'flex',
   alignItems: 'center',

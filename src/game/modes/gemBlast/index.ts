@@ -280,7 +280,7 @@ const CASCADE_NOTIFICATIONS: Array<{ minLevel: number; emoji: string; text: stri
   { minLevel: 0, emoji: '🔗', text: 'CASCADE' },
 ];
 
-function getCascadeNotification(delta: number, cascade: number, modeState: any): string {
+function getCascadeNotification(delta: number, cascade: number, modeState: Record<string, unknown> | undefined): string {
   const mult = (modeState?.cascadeMult as number) ?? 1;
   const multStr = mult.toFixed(0);
 

@@ -8,7 +8,7 @@
 // No pipes, no walls — pure match-3 arcade gameplay.
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
-import { Tile } from '../../types';
+import { Tile, GameState } from '../../types';
 import { getMinGroupSizeForWorld } from '../utils';
 import { pickRandom } from '@/utils/conditionalStyles';
 import { CANDY_LEVELS, CANDY_WORLDS, CANDY_SYMBOLS } from './levels';
@@ -172,7 +172,7 @@ function getCandyColors(
 }
 
 // Color helpers for tile states (extracted to reduce complexity)
-function getFreshColors(c: any) {
+function getFreshColors(c: { bg: string; border: string; glow: string }) {
   return {
     background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}cc 100%)`,
     border: '2px solid #fbbf24',
@@ -196,7 +196,7 @@ function getFrozenColors(theme: 'light' | 'dark') {
   return frozenStyles[theme];
 }
 
-function getNewColors(c: any, theme: 'light' | 'dark') {
+function getNewColors(c: { bg: string; border: string; glow: string }, theme: 'light' | 'dark') {
   return {
     background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
     border: `2px solid ${theme === 'light' ? '#4f46e5' : '#a5b4fc'}`,
@@ -319,7 +319,7 @@ function getNonTimedNotification(delta: number, groupSize: number): string | nul
 
 function processCandyRain(
   updatedTiles: Tile[],
-  state: any
+  state: GameState
 ): {
   updatedTiles: Tile[];
   updatedState: Record<string, unknown> | null;
@@ -351,7 +351,7 @@ function processCandyRain(
 
 function processCandyIce(
   updatedTiles: Tile[],
-  state: any,
+  state: GameState,
   updatedState: Record<string, unknown> | null
 ): {
   updatedTiles: Tile[];

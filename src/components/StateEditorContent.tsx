@@ -1,6 +1,7 @@
 // StateEditorContent - separated to reduce StateEditor.tsx cognitive complexity
 import React from 'react';
 import { getMessageColor } from './StateEditorHelpers';
+import { RGBA_COLORS } from '@/utils/constants';
 
 export interface StateEditorContentProps {
   setIsOpen: (open: boolean) => void;
@@ -32,7 +33,7 @@ export const StateEditorContent: React.FC<StateEditorContentProps> = (props) => 
           cursor: 'pointer',
           fontWeight: 700,
           fontSize: 12,
-          boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+          boxShadow: `0 4px 12px ${RGBA_COLORS.INDIGO_BORDER}`,
         }}
       >
         🛠️ State Editor

@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { getModeById } from '@/game/modes';
+import { RGBA_COLORS } from '@/utils/constants';
 
 interface UnlimitedRulesDialogProps {
   readonly levelName: string;
@@ -134,7 +135,7 @@ export default function UnlimitedRulesDialog({
           maxWidth: 340,
           width: '100%',
           textAlign: 'center',
-          boxShadow: '0 0 40px rgba(34,197,94,0.2)',
+          boxShadow: `0 0 40px ${RGBA_COLORS.GREEN_SUCCESS}`,
           transform: visible ? 'scale(1)' : 'scale(0.95)',
           transition: 'transform 0.3s',
         }}

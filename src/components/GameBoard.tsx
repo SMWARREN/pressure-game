@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useGameStore } from '@/game/store';
 import { useStats, useAchievements } from '@/game/contexts';
 import { useShallow } from 'zustand/react/shallow';
+import { RGBA_COLORS } from '@/utils/constants';
 import TutorialScreen from './TutorialScreen';
 import { useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '../game/modes';
@@ -76,7 +77,7 @@ const iconBtn: React.CSSProperties = {
   height: 44,
   borderRadius: 12,
   border: '1px solid #12122a',
-  background: 'rgba(255,255,255,0.02)',
+  background: RGBA_COLORS.TRANSPARENT_WHITE_02,
   color: '#3a3a55',
   cursor: 'pointer',
   display: 'flex',
@@ -533,7 +534,7 @@ export default function GameBoard() {
   // Extract conditional editor button styles (S3358: reduce nested ternaries)
   const isEditorActive = editor.enabled;
   const editorButtonStyles = isEditorActive
-    ? { color: '#22c55e', border: '1px solid #22c55e40', background: 'rgba(34,197,94,0.1)' }
+    ? { color: '#22c55e', border: '1px solid #22c55e40', background: RGBA_COLORS.GREEN_BG }
     : { color: '#a855f7', border: '1px solid #a855f740', background: 'transparent' };
   const editorButtonTitle = isEditorActive ? 'Exit Editor' : 'Level Editor';
   const editorButtonIcon = isEditorActive ? '✓' : '🛠️';

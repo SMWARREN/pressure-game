@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../game/store';
 import { useEngine } from '@/game/contexts/GameEngineProvider';
 import { getGapValue, getPaddingValue, getStepBackground } from './game/GameTileUtils';
+import { RGBA_COLORS } from '@/utils/constants';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    WALKTHROUGH STEP TYPE
@@ -163,7 +164,7 @@ export function WalkthroughOverlay({
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'rgba(0,0,0,0.6)',
+            background: RGBA_COLORS.TRANSPARENT_BLACK_60,
             pointerEvents: 'auto',
             border: 'none',
             padding: 0,
@@ -190,7 +191,7 @@ export function WalkthroughOverlay({
               left: 0,
               right: 0,
               height: highlightRect.top,
-              background: 'rgba(0,0,0,0.6)',
+              background: RGBA_COLORS.TRANSPARENT_BLACK_60,
               pointerEvents: 'auto',
               border: 'none',
               padding: 0,
@@ -213,7 +214,7 @@ export function WalkthroughOverlay({
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'rgba(0,0,0,0.6)',
+              background: RGBA_COLORS.TRANSPARENT_BLACK_60,
               pointerEvents: 'auto',
               border: 'none',
               padding: 0,
@@ -236,7 +237,7 @@ export function WalkthroughOverlay({
               left: 0,
               width: highlightRect.left,
               height: highlightRect.height,
-              background: 'rgba(0,0,0,0.6)',
+              background: RGBA_COLORS.TRANSPARENT_BLACK_60,
               pointerEvents: 'auto',
               border: 'none',
               padding: 0,
@@ -259,7 +260,7 @@ export function WalkthroughOverlay({
               left: highlightRect.right,
               right: 0,
               height: highlightRect.height,
-              background: 'rgba(0,0,0,0.6)',
+              background: RGBA_COLORS.TRANSPARENT_BLACK_60,
               pointerEvents: 'auto',
               border: 'none',
               padding: 0,

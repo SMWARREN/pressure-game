@@ -13,7 +13,7 @@
 // Engine exploitation: checkWin traces the full beam path on every valid tap.
 // tileRenderer animates the beam path in real-time cyan glow.
 
-import { GameModeConfig, TapResult, WinResult } from '../types';
+import { GameModeConfig, TapResult, WinResult, TileRenderContext, TileColors } from '../types';
 import { Tile } from '../../types';
 import { buildTileMap } from '../arcadeShared';
 import { LASER_LEVELS, LASER_WORLDS } from './levels';
@@ -440,7 +440,7 @@ const TILE_COLOR_STYLES: Record<
   },
 };
 
-function getTileColors(tile: Tile, _ctx?: any) {
+function getTileColors(tile: Tile, _ctx?: TileRenderContext): TileColors {
   const kind = (tile.displayData?.kind as string) ?? 'empty';
   const beamOn = tile.displayData?.beamOn as boolean;
   const styles = TILE_COLOR_STYLES[kind] ?? TILE_COLOR_STYLES['empty'];

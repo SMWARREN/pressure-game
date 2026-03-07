@@ -7,6 +7,7 @@ import { getModeById } from '../game/modes';
 import { TutorialStep, TutorialDemoType } from '../game/types';
 import { getStepBackground } from './game/GameTileUtils';
 import { useTheme } from '@/hooks/useTheme';
+import { RGBA_COLORS } from '@/utils/constants';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DEMO VISUAL WRAPPER
@@ -117,7 +118,7 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.3)',
+          background: RGBA_COLORS.TRANSPARENT_BLACK_30,
           backdropFilter: 'blur(4px)',
           zIndex: 100,
           border: 'none',

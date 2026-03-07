@@ -1,10 +1,12 @@
 // StateEditor UI rendering helpers - extracted to reduce main component complexity
 
+import { RGBA_COLORS } from '@/utils/constants';
+
 export function getButtonStyle(isActive: boolean, color: string = '#6366f1'): React.CSSProperties {
   return {
     padding: '8px 12px',
     background: isActive ? color + '22' : 'transparent',
-    border: `1px solid ${isActive ? color : 'rgba(99,102,241,0.3)'}`,
+    border: `1px solid ${isActive ? color : RGBA_COLORS.INDIGO_BORDER}`,
     borderRadius: 6,
     color,
     fontWeight: 600,

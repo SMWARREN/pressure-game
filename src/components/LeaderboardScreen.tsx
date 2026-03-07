@@ -4,6 +4,7 @@ import { getLeaderboard } from '@/game/api/leaderboards';
 import { StarField } from './game/StarField';
 import ProfileScreen from './ProfileScreen';
 import { SyncStatusIndicator } from './game/SyncStatusIndicator';
+import { RGBA_COLORS, GAME_MODES } from '@/utils/constants';
 
 export interface LeaderboardScreenProps {
   readonly onBack: () => void;
@@ -21,9 +22,9 @@ interface LeaderboardEntry {
 }
 
 const PRESSURE_MODES = [
-  { id: 'classic', label: 'Pressure', icon: '⚡', color: '#a78bfa' },
-  { id: 'blitz', label: 'Blitz', icon: '🔥', color: '#f97316' },
-  { id: 'zen', label: 'Zen', icon: '🧘', color: '#34d399' },
+  { id: GAME_MODES.CLASSIC, label: 'Pressure', icon: '⚡', color: '#a78bfa' },
+  { id: GAME_MODES.BLITZ, label: 'Blitz', icon: '🔥', color: '#f97316' },
+  { id: GAME_MODES.ZEN, label: 'Zen', icon: '🧘', color: '#34d399' },
 ];
 
 function getRankColor(index: number, colors: ReturnType<typeof useTheme>['colors']): string {
@@ -67,7 +68,7 @@ function LeaderboardRow({
         alignItems: 'center',
         gap: 12,
         padding: '12px',
-        background: isTopThree ? `${rankColor}10` : 'rgba(255,255,255,0.02)',
+        background: isTopThree ? `${rankColor}10` : RGBA_COLORS.TRANSPARENT_WHITE_02,
         border: `1px solid ${isTopThree ? rankColor + '40' : colors.border.primary}`,
         borderRadius: 8,
         transition: 'all 0.2s',
@@ -76,10 +77,10 @@ function LeaderboardRow({
         minWidth: 'unset',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = isTopThree ? `${rankColor}20` : 'rgba(255,255,255,0.04)';
+        e.currentTarget.style.background = isTopThree ? `${rankColor}20` : RGBA_COLORS.TRANSPARENT_WHITE_04;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = isTopThree ? `${rankColor}10` : 'rgba(255,255,255,0.02)';
+        e.currentTarget.style.background = isTopThree ? `${rankColor}10` : RGBA_COLORS.TRANSPARENT_WHITE_02;
       }}
     >
       <div
@@ -218,7 +219,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               height: 44,
               borderRadius: 12,
               border: `1px solid ${colors.border.primary}`,
-              background: 'rgba(255,255,255,0.02)',
+              background: RGBA_COLORS.TRANSPARENT_WHITE_02,
               color: colors.text.primary,
               cursor: 'pointer',
               display: 'flex',
@@ -284,7 +285,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               padding: '8px 12px',
               borderRadius: 8,
               border: `1px solid ${selectedMode === mode.id ? mode.color : colors.border.primary}`,
-              background: selectedMode === mode.id ? `${mode.color}20` : 'rgba(255,255,255,0.02)',
+              background: selectedMode === mode.id ? `${mode.color}20` : RGBA_COLORS.TRANSPARENT_WHITE_02,
               color: selectedMode === mode.id ? mode.color : colors.text.primary,
               cursor: 'pointer',
               fontSize: 12,

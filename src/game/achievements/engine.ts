@@ -5,10 +5,7 @@
 import { Achievement, AchievementProgress, AchievementState, SessionStats, DEFAULT_ACHIEVEMENTS } from './types';
 import { unlockAchievement } from '../api/leaderboards';
 import { getModeById } from '../modes';
-
-const STORAGE_KEY = 'pressure_achievements_v2';
-const STREAK_KEY = 'pressure_daily_streak_v1';
-const ATTEMPTS_KEY = 'pressure_level_attempts_v1';
+import { STORAGE_KEYS } from '@/utils/constants';
 
 type AchievementSubscriber = () => void;
 
@@ -49,7 +46,7 @@ class AchievementEngine {
 
   private loadState(): AchievementState {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
@@ -99,7 +96,7 @@ class AchievementEngine {
   private saveState(): void {
     try {
       localStorage.setItem(
-        STORAGE_KEY,
+        STORAGE_KEYS.ACHIEVEMENTS,
         JSON.stringify({
           progress: this.state.progress,
           totalPoints: this.state.totalPoints,
@@ -119,7 +116,7 @@ class AchievementEngine {
 
   private loadLevelAttempts(): void {
     try {
-      const saved = localStorage.getItem(ATTEMPTS_KEY);
+      const saved = localStorage.getItem(STORAGE_KEYS.LEVEL_ATTEMPTS);
       if (saved) {
         this.levelAttempts = JSON.parse(saved);
       }
@@ -130,7 +127,7 @@ class AchievementEngine {
 
   private saveLevelAttempts(): void {
     try {
-      localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(this.levelAttempts));
+      localStorage.setItem(STORAGE_KEYS.LEVEL_ATTEMPTS, JSON.stringify(this.levelAttempts));
     } catch (e) {
       console.warn('Failed to save level attempts:', e);
     }
@@ -654,7 +651,7 @@ class AchievementEngine {
    */
   getStreakData(): { currentStreak: number; lastPlayDate: string | null } {
     try {
-      const saved = localStorage.getItem(STREAK_KEY);
+      const saved = localStorage.getItem(STORAGE_KEYS.DAILY_STREAK);
       if (saved) {
         return JSON.parse(saved);
       }
@@ -697,7 +694,7 @@ class AchievementEngine {
     // Save updated streak
     const newData = { currentStreak: newStreak, lastPlayDate: today };
     try {
-      localStorage.setItem(STREAK_KEY, JSON.stringify(newData));
+      localStorage.setItem(STORAGE_KEYS.DAILY_STREAK, JSON.stringify(newData));
     } catch (e) {
       console.warn('Failed to save streak data:', e);
     }

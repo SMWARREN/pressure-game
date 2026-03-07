@@ -1,4 +1,5 @@
 import React from 'react';
+import { RGBA_COLORS } from '@/utils/constants';
 
 const iconBtn: React.CSSProperties = {
   width: 40,
@@ -9,7 +10,7 @@ const iconBtn: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   border: '1px solid #12122a',
-  background: 'rgba(255,255,255,0.02)',
+  background: RGBA_COLORS.TRANSPARENT_WHITE_02,
   color: '#3a3a55',
   transition: 'all 0.15s',
   flexShrink: 0,

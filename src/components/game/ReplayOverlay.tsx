@@ -10,6 +10,7 @@ import type { GameEndEvent } from '@/game/stats/types';
 import { getGapValue, calculateTileSize, calculateBoardWidth } from './GameTileUtils';
 import { getStatusColor } from '@/utils/statusColors';
 import { useTheme } from '@/hooks/useTheme';
+import { RGBA_COLORS } from '@/utils/constants';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PROPS
@@ -102,7 +103,7 @@ function getCtrlButtonStyles(borderColor: string, textColor: string) {
     height: 44,
     borderRadius: 10,
     border: `1px solid ${borderColor}`,
-    background: 'rgba(255,255,255,0.04)',
+    background: RGBA_COLORS.TRANSPARENT_WHITE_04,
     color: textColor,
     cursor: 'pointer',
     display: 'flex',

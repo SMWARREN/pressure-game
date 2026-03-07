@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThemeColors } from '@/utils/themeColors';
 import { useTheme } from '@/hooks/useTheme';
+import { RGBA_COLORS } from '@/utils/constants';
 import {
   formatElapsedTime,
   formatWinStats,
@@ -49,7 +50,7 @@ export const btnPrimary: React.CSSProperties = {
   cursor: 'pointer',
   letterSpacing: '0.06em',
   minHeight: 40,
-  boxShadow: '0 4px 16px rgba(99,102,241,0.35)',
+  boxShadow: `0 4px 16px ${RGBA_COLORS.INDIGO_BORDER}`,
   whiteSpace: 'nowrap',
 };
 

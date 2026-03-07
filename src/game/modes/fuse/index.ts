@@ -20,7 +20,7 @@
 // - modeState.frontier / .exploded track wave propagation between ticks
 // - canRotate:false on relay/blocker tiles means only regular tiles + detonator are tappable
 
-import { GameModeConfig, TapResult, WinResult } from '../types';
+import { GameModeConfig, TapResult, WinResult, TileRenderContext, TileColors } from '../types';
 import { Tile, GameState } from '../../types';
 import { isEmpty } from '@/utils/conditionalStyles';
 import { FUSE_LEVELS, FUSE_WORLDS } from './levels';
@@ -84,7 +84,7 @@ const FUSE_KIND_SYMBOLS = {
   blocker: '◼',
 } satisfies Record<string, string>;
 
-function fuseColors(tile: Tile, _ctx?: any): any {
+function fuseColors(tile: Tile, _ctx?: TileRenderContext): TileColors {
   const kind = tile.displayData?.kind as string;
   const armed = tile.displayData?.armed as boolean;
   const exploded = tile.displayData?.exploded as boolean;

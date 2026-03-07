@@ -3,7 +3,7 @@
 // The store is now a thin wrapper that coordinates state with the engine.
 
 import { create } from 'zustand';
-import { GameState, GameActions, Level, Direction, Tile } from './types';
+import { GameState, GameActions, Level, Direction, Tile, EditorState, Position } from './types';
 import { getModeById } from './modes';
 import type { TapResult } from './modes/types';
 export { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
@@ -63,14 +63,14 @@ export function _getEngineForUnlimited(): PressureEngine | null {
  * Build the mode state with timing and grid info for a tile tap.
  */
 function buildModeStateForTap(
-  modeState: any,
+  modeState: Record<string, unknown> | undefined,
   currentLevel: Level | null,
   elapsedSeconds: number
-): any {
+): Record<string, unknown> {
   const timeLimit = currentLevel?.timeLimit;
   const timeLeft = timeLimit ? Math.max(0, timeLimit - elapsedSeconds) : undefined;
   return {
-    ...modeState,
+    ...(modeState ?? {}),
     timeLeft,
     levelId: currentLevel?.id,
     world: currentLevel?.world,
@@ -83,7 +83,7 @@ function buildModeStateForTap(
 /**
  * Build the editor state for exiting editor mode.
  */
-function buildEditorExitState(): any {
+function buildEditorExitState(): EditorState {
   return {
     enabled: false,
     tool: null,
@@ -91,6 +91,8 @@ function buildEditorExitState(): any {
     moveSource: null,
     gridSize: null,
     savedState: null,
+    connectionPreset: null,
+    compressionDirection: 'all',
   };
 }
 
@@ -98,18 +100,20 @@ function buildEditorExitState(): any {
  * Handle restoring tiles and level after editor mode exit.
  */
 function restoreEditorState(
-  savedState: any,
+  savedState: { tiles: Tile[]; goalNodes: Position[]; gridSize: number; wasPlaying?: boolean } | null,
   currentLevel: Level | null,
   wasPlaying: boolean,
   status: string
-): { tiles: any[]; currentLevel: Level | null; timerAction: 'start' | 'none' } {
+): { tiles: Tile[]; currentLevel: Level | null; timerAction: 'start' | 'none' } {
+  if (!savedState) return { tiles: [], currentLevel: null, timerAction: 'none' };
+
   const { tiles, goalNodes, gridSize } = savedState;
   const restoredLevel = currentLevel ? { ...currentLevel, gridSize, goalNodes } : null;
 
   const timerAction = wasPlaying && status === 'playing' ? 'start' : 'none';
 
   return {
-    tiles: tiles.map((t: any) => ({ ...t, connections: [...t.connections] })),
+    tiles: tiles.map((t) => ({ ...t, connections: [...t.connections] })),
     currentLevel: restoredLevel,
     timerAction,
   };

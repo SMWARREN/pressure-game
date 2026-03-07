@@ -7,6 +7,7 @@ import { LocalStorageStatsBackend } from '@/game/stats/backends/localStorage';
 import { getModeById } from '@/game/modes';
 import type { StatsBackend } from '@/game/stats/types';
 import { SyncingBackend, MySQLBackend } from '@/game/engine/persistence';
+import { STORAGE_KEYS } from '@/utils/constants';
 
 interface GameEngineContextType {
   readonly pressureEngine: PressureEngine;
@@ -38,14 +39,14 @@ export function getUserId(): string {
   }
 
   // Check localStorage for existing user ID
-  const storedUserId = localStorage.getItem('pressure_user_id');
+  const storedUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
   if (storedUserId) {
     return storedUserId;
   }
 
   // Generate new UUID for anonymous user
   const newUserId = `user_${Math.random().toString(36).slice(2, 11)}`;
-  localStorage.setItem('pressure_user_id', newUserId);
+  localStorage.setItem(STORAGE_KEYS.USER_ID, newUserId);
   return newUserId;
 }
 

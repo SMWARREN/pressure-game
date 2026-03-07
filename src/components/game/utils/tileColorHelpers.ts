@@ -9,6 +9,7 @@
  */
 
 import { selectByCondition } from '@/utils/conditionalStyles';
+import { RGBA_COLORS } from '@/utils/constants';
 
 interface TileStyleContext {
   readonly type: string;
@@ -46,7 +47,7 @@ const CRUSHED_STYLES = {
   dark: {
     background: 'linear-gradient(145deg, #450a0a 0%, #2d0606 100%)',
     border: '2px solid #ef4444',
-    boxShadow: '0 0 12px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.2)',
+    boxShadow: `0 0 12px ${RGBA_COLORS.RED_ERROR}, inset 0 0 8px ${RGBA_COLORS.RED_BG}`,
   },
 };
 
@@ -72,8 +73,8 @@ const handleNode: TileStyleHandler = (ctx) => ({
     : 'linear-gradient(145deg, #14532d 0%, #0f3d21 100%)',
   border: `2px solid ${getNodeBorderColor(ctx.isHint, ctx.inDanger, false)}`,
   boxShadow: ctx.inDanger
-    ? '0 0 20px rgba(239,68,68,0.5), inset 0 1px 0 rgba(255,255,255,0.05)'
-    : '0 0 14px rgba(34,197,94,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
+    ? `0 0 20px ${RGBA_COLORS.RED_ERROR}, inset 0 1px 0 rgba(255,255,255,0.05)`
+    : `0 0 14px ${RGBA_COLORS.GREEN_SUCCESS}, inset 0 1px 0 rgba(255,255,255,0.06)`,
 });
 
 /** Handler for path decoy tiles */
@@ -162,7 +163,7 @@ function getConnGlow(ctx: TileStyleContext): string {
   }
   if (ctx.isDecoy) {
     if (ctx.isHint) return 'rgba(96,165,250,0.7)';
-    if (ctx.inDanger) return 'rgba(239,68,68,0.5)';
+    if (ctx.inDanger) return RGBA_COLORS.RED_ERROR;
     return 'rgba(59,130,246,0.4)';
   }
   if (ctx.canRotate) {

@@ -63,9 +63,9 @@ export default function ProfileScreen({
           username: completeProfile.profile?.username || userId,
           totalScore: completeProfile.profile?.totalScore || 0,
           levelsCompleted: completeProfile.profile?.levelsCompleted || 0,
-          achievements: completeProfile.achievements || [],
+          achievements: (completeProfile.achievements as UserStats['achievements']) || [],
           rankings: completeProfile.rankings || {},
-          wins: completeProfile.wins || [],
+          wins: (completeProfile.wins as UserStats['wins']) || [],
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load profile');

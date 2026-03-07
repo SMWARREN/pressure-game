@@ -8,6 +8,62 @@ import { getUserId } from '@/game/contexts/GameEngineProvider';
 
 const VITE_API_URL = import.meta.env.VITE_API_URL || '';
 
+/** Leaderboard entry with user and score info */
+interface LeaderboardEntry {
+  userId: string;
+  user_id?: string;
+  username?: string;
+  score: number;
+  levelId?: number;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+/** User profile information */
+interface UserProfile {
+  userId: string;
+  username?: string;
+  totalScore?: number;
+  levelsCompleted?: number;
+  achievementsCount?: number;
+  profile?: {
+    username?: string;
+    totalScore?: number;
+    levelsCompleted?: number;
+  };
+  achievements?: Array<{ id: string; name?: string; icon?: string; unlockedAt?: string; [key: string]: unknown }>;
+  wins?: Array<{
+    user_id: string;
+    mode: string;
+    level_id: number;
+    score: number;
+    created_at: string;
+    username?: string;
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+}
+
+/** Achievement entry */
+interface AchievementEntry {
+  id: string;
+  userId: string;
+  unlockedAt?: string;
+  [key: string]: unknown;
+}
+
+/** Replay move data */
+interface ReplayMove {
+  [key: string]: unknown;
+}
+
+/** Replay data */
+interface ReplayData {
+  moves: ReplayMove[];
+  score: number;
+  [key: string]: unknown;
+}
+
 /**
  * API endpoint paths - centralized to prevent duplication
  */
@@ -39,7 +95,7 @@ const API_URL = getApiBaseUrl();
 /**
  * Generic fetch helper for API calls
  */
-async function fetchFromApi<T = any>(url: string, allow404 = false): Promise<T | null> {
+async function fetchFromApi<T = Record<string, unknown>>(url: string, allow404 = false): Promise<T | null> {
   try {
     const response = await robustFetch(url);
 
@@ -61,7 +117,7 @@ async function fetchFromApi<T = any>(url: string, allow404 = false): Promise<T |
 /**
  * Wrapper for POST/PUT requests with error handling
  */
-async function fetchWithBody(url: string, method: 'POST' | 'PUT', body: Record<string, any>): Promise<boolean> {
+async function fetchWithBody(url: string, method: 'POST' | 'PUT', body: Record<string, unknown>): Promise<boolean> {
   try {
     const response = await robustFetch(url, {
       method,
@@ -133,7 +189,7 @@ export async function unlockAchievement(achievementId: string): Promise<boolean>
 /**
  * Get leaderboard for a mode
  */
-export async function getLeaderboard(mode: string, limit: number = 100): Promise<any[]> {
+export async function getLeaderboard(mode: string, limit: number = 100): Promise<LeaderboardEntry[]> {
   if (!API_URL) {
     console.warn('[Leaderboard] API URL not configured');
     return [];
@@ -158,7 +214,7 @@ export async function getLeaderboard(mode: string, limit: number = 100): Promise
 /**
  * Get user's achievements
  */
-export async function getUserAchievements(userId?: string): Promise<any[]> {
+export async function getUserAchievements(userId?: string): Promise<AchievementEntry[]> {
   if (!API_URL) {
     console.warn('[Achievement] API URL not configured');
     return [];
@@ -172,7 +228,7 @@ export async function getUserAchievements(userId?: string): Promise<any[]> {
 /**
  * Get achievement statistics (who unlocked what)
  */
-export async function getAchievementStats(limit: number = 100): Promise<any[]> {
+export async function getAchievementStats(limit: number = 100): Promise<AchievementEntry[]> {
   if (!API_URL) {
     console.warn('[Achievement] API URL not configured');
     return [];
@@ -197,7 +253,7 @@ export async function getAchievementStats(limit: number = 100): Promise<any[]> {
 /**
  * Get user profile
  */
-export async function getUserProfile(userId?: string): Promise<any> {
+export async function getUserProfile(userId?: string): Promise<UserProfile | null> {
   if (!API_URL) {
     console.warn('[Profile] API URL not configured');
     return null;
@@ -228,7 +284,7 @@ export async function updateUserProfile(username: string, userId?: string): Prom
 /**
  * Get user wins (game history)
  */
-export async function getUserWins(userId?: string, limit: number = 50): Promise<any[]> {
+export async function getUserWins(userId?: string, limit: number = 50): Promise<LeaderboardEntry[]> {
   if (!API_URL) {
     console.warn('[Profile] API URL not configured');
     return [];
@@ -245,7 +301,7 @@ export async function getUserWins(userId?: string, limit: number = 50): Promise<
 export async function saveReplay(
   mode: string,
   levelId: number,
-  moves: any[],
+  moves: ReplayMove[],
   score: number
 ): Promise<boolean> {
   if (!API_URL) {
@@ -265,7 +321,7 @@ export async function saveReplay(
 /**
  * Get replay data for a specific game
  */
-export async function getReplay(userId: string, mode: string, levelId: number): Promise<any> {
+export async function getReplay(userId: string, mode: string, levelId: number): Promise<ReplayData | null> {
   if (!API_URL) {
     console.warn('[Replay] API URL not configured');
     return null;
@@ -292,7 +348,7 @@ export async function getReplay(userId: string, mode: string, levelId: number): 
 /**
  * Get complete user profile (profile + achievements + wins + rankings) in one call
  */
-export async function getCompleteUserProfile(userId?: string): Promise<any> {
+export async function getCompleteUserProfile(userId?: string): Promise<(UserProfile & { rankings: Record<string, number> }) | null> {
   if (!API_URL) {
     console.warn('[Profile] API URL not configured');
     return null;
@@ -328,8 +384,9 @@ export async function getCompleteUserProfile(userId?: string): Promise<any> {
 
     return {
       ...profileData,
+      userId: id,
       rankings,
-    };
+    } as UserProfile & { rankings: Record<string, number> };
   } catch (error) {
     console.error('[Profile] Error fetching complete profile:', error);
     return null;

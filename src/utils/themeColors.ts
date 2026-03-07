@@ -3,6 +3,8 @@
  * Centralized color definitions for consistent theming across the game
  */
 
+import { RGBA_COLORS } from './constants';
+
 export type Theme = 'light' | 'dark';
 
 export interface ThemeColors {
@@ -66,8 +68,8 @@ export const DARK_THEME: ThemeColors = {
   },
   game: {
     header: 'linear-gradient(180deg, #06060f 0%, #0a0a1a 100%)',
-    footer: 'rgba(6,6,15,0.85)',
-    overlay: 'rgba(10,10,20,0.95)',
+    footer: RGBA_COLORS.DARK_FOOTER,
+    overlay: RGBA_COLORS.DARK_OVERLAY,
     hint: '#60a5fa',
   },
 };
@@ -97,8 +99,8 @@ export const LIGHT_THEME: ThemeColors = {
   },
   game: {
     header: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
-    footer: 'rgba(241,245,249,0.9)',
-    overlay: 'rgba(241,245,249,0.95)',
+    footer: RGBA_COLORS.LIGHT_FOOTER,
+    overlay: RGBA_COLORS.LIGHT_OVERLAY,
     hint: '#3b82f6',
   },
 };

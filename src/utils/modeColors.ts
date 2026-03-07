@@ -5,6 +5,8 @@
  * Reduces nested ternaries in mode files.
  */
 
+import { RGBA_COLORS } from './constants';
+
 // Mode accent colors
 export const MODE_COLORS = {
   candy: '#ec4899', // pink
@@ -33,7 +35,7 @@ export function getModeColor(modeId: string): string {
  */
 export function getModeGlowColor(modeId: string, state: 'hint' | 'danger' | 'normal'): string {
   const base = getModeColor(modeId);
-  if (state === 'danger') return 'rgba(239,68,68,0.5)';
+  if (state === 'danger') return RGBA_COLORS.RED_ERROR;
   if (state === 'hint') return `${base}80`;
   return `${base}40`;
 }

@@ -119,7 +119,14 @@ export interface ProceduralOptions {
   world?: number;
 }
 
-const DIFF_PARAMS = {
+interface DiffParams {
+  readonly compressionDelay: number;
+  readonly movePadding: number;
+  readonly wallsMin: number;
+  readonly wallsMax: number;
+}
+
+const DIFF_PARAMS: Record<string, DiffParams> = {
   easy: { compressionDelay: 12000, movePadding: 4, wallsMin: 0, wallsMax: 1 },
   medium: { compressionDelay: 8000, movePadding: 3, wallsMin: 1, wallsMax: 2 },
   hard: { compressionDelay: 5000, movePadding: 2, wallsMin: 2, wallsMax: 3 },
@@ -129,7 +136,11 @@ const DIFF_PARAMS = {
 // Compression direction → goal node placement zone [minFrac, maxFrac] for x and y.
 // Goals are placed TOWARD the compressing wall so walls actually threaten them.
 // e.g. 'top' walls come from y=0, so goals live in the top portion (small y).
-type DirConfig = { dir: CompressionDirection; zoneX: [number, number]; zoneY: [number, number] };
+interface DirConfig {
+  readonly dir: CompressionDirection;
+  readonly zoneX: [number, number];
+  readonly zoneY: [number, number];
+}
 const DIR_CONFIGS: DirConfig[] = [
   { dir: 'top', zoneX: [0.15, 0.85], zoneY: [0.15, 0.5] }, // near top wall
   { dir: 'bottom', zoneX: [0.15, 0.85], zoneY: [0.5, 0.85] }, // near bottom wall
@@ -607,11 +618,11 @@ interface GenerationAttemptConfig {
   readonly gridCols: number;
   readonly gridRows: number;
   readonly nodeCount: number;
-  readonly dirConfig: any;
+  readonly dirConfig: DirConfig;
   readonly interiorWallCount: number;
   readonly branchCount: number;
   readonly opts: ProceduralOptions;
-  readonly params: any;
+  readonly params: DiffParams;
 }
 
 function tryGenerateAttempt(config: GenerationAttemptConfig): Level | null {

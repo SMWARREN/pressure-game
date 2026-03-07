@@ -3,6 +3,8 @@
  * Extracted to reduce cognitive complexity and nested ternaries
  */
 
+import { RGBA_COLORS } from '@/utils/constants';
+
 /**
  * Get compression bar color based on percentage
  */
@@ -16,9 +18,9 @@ export function getCompressionColor(percent: number): string {
  * Get compression bar glow color based on percentage
  */
 export function getCompressionGlow(percent: number): string {
-  if (percent > 66) return 'rgba(239,68,68,0.5)';
-  if (percent > 33) return 'rgba(245,158,11,0.4)';
-  return 'rgba(34,197,94,0.3)';
+  if (percent > 66) return RGBA_COLORS.RED_ERROR;
+  if (percent > 33) return RGBA_COLORS.AMBER_WARNING;
+  return RGBA_COLORS.GREEN_SUCCESS;
 }
 
 /**
@@ -54,6 +56,6 @@ export function getTimeleftColor(timeLeft: number): string {
  */
 export function getTimeleftGlow(timeLeft: number, pct: number): string {
   if (pct <= 10) return 'none';
-  if (timeLeft <= 10) return 'rgba(239,68,68,0.5)';
-  return 'rgba(96,165,250,0.4)';
+  if (timeLeft <= 10) return RGBA_COLORS.RED_ERROR;
+  return RGBA_COLORS.BLUE_INFO;
 }

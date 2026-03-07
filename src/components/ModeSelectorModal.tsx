@@ -12,6 +12,7 @@ import { Toggle } from './modals/Toggle';
 import { ModeCard } from './modals/ModeCard';
 import { GroupHeader } from './modals/GroupHeader';
 import { useTheme } from '@/hooks/useTheme';
+import { RGBA_COLORS } from '@/utils/constants';
 
 interface ModeSelectorModalProps {
   readonly visible: boolean;
@@ -74,7 +75,7 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           position: 'fixed',
           inset: 0,
           zIndex: 50,
-          background: 'rgba(0,0,0,0.3)',
+          background: RGBA_COLORS.TRANSPARENT_BLACK_30,
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
           border: 'none',

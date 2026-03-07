@@ -1,6 +1,8 @@
 // PRESSURE - Persistence Backends
 // Abstract interface for different storage backends (localStorage, database, etc.)
 
+import { STORAGE_KEYS } from '@/utils/constants';
+
 /**
  * Abstract interface for persistence backends.
  * Implement this to add support for different storage mechanisms (DB, Cloud, etc.)
@@ -313,14 +315,14 @@ export class SyncingBackend implements PersistenceBackend {
    * Get or generate user ID
    */
   private getUserId(): string {
-    const storedUserId = localStorage.getItem('pressure_user_id');
+    const storedUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
     if (storedUserId) {
       return storedUserId;
     }
 
     // Generate new UUID for anonymous user
     const newUserId = `user_${Math.random().toString(36).slice(2, 11)}`;
-    localStorage.setItem('pressure_user_id', newUserId);
+    localStorage.setItem(STORAGE_KEYS.USER_ID, newUserId);
     return newUserId;
   }
 

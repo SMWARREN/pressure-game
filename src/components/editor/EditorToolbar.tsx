@@ -1,5 +1,6 @@
 import { useGameStore } from '@/game/store';
 import { Tile, Direction, EditorState } from '@/game/types';
+import { RGBA_COLORS } from '@/utils/constants';
 
 export interface EditorToolbarProps {
   readonly editor: EditorState;
@@ -114,7 +115,7 @@ export function EditorToolbar({
         flexDirection: 'column',
         gap: 12,
         padding: '12px 16px',
-        background: 'rgba(6,6,15,0.95)',
+        background: RGBA_COLORS.DARK_TOOLBAR,
         backdropFilter: 'blur(8px)',
         borderTop: '1px solid #12122a',
       }}
@@ -171,7 +172,7 @@ export function EditorToolbar({
                 padding: '6px 10px',
                 borderRadius: 10,
                 border: isActive ? '1px solid #a855f7' : '1px solid transparent',
-                background: isActive ? 'rgba(168,85,247,0.2)' : 'transparent',
+                background: isActive ? RGBA_COLORS.PURPLE_ACCENT : 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
                 minWidth: 44,
@@ -204,7 +205,7 @@ export function EditorToolbar({
               padding: '6px 10px',
               borderRadius: 10,
               border: '1px solid #22c55e40',
-              background: 'rgba(34,197,94,0.1)',
+              background: RGBA_COLORS.GREEN_BG,
               cursor: 'pointer',
               transition: 'all 0.15s',
               minWidth: 44,

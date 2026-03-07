@@ -1,4 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
+import { RGBA_COLORS } from '@/utils/constants';
 
 export interface SettingsPanelProps {
   readonly visible: boolean;
@@ -44,7 +45,7 @@ export function SettingsPanel({
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.3)',
+          background: RGBA_COLORS.TRANSPARENT_BLACK_30,
           zIndex: 50,
           border: 'none',
           padding: 0,

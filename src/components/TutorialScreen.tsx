@@ -7,6 +7,7 @@ import { useGameStore } from '../game/store';
 import { getModeById } from '../game/modes';
 import { TutorialStep, TutorialDemoType } from '../game/types';
 import { getStepBackground } from './game/GameTileUtils';
+import { RGBA_COLORS } from '@/utils/constants';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FALLBACK STEPS (used if a mode doesn't define tutorialSteps)
@@ -233,7 +234,7 @@ export default function TutorialScreen({ onComplete }: TutorialScreenProps) {
             justifyContent: 'center',
             padding: 'clamp(12px, 3vw, 18px) 8px',
             marginBottom: 'clamp(12px, 3vw, 18px)',
-            background: 'rgba(0,0,0,0.3)',
+            background: RGBA_COLORS.TRANSPARENT_BLACK_30,
             borderRadius: 14,
             border: '1px solid #0e0e1e',
             overflowX: 'auto',

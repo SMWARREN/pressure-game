@@ -16,7 +16,7 @@
 //   ⭐ Star bonus: +50 pts per star used in a chain
 //   💣 Bomb clear: +100 pts per column tile cleared
 
-import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
+import { GameModeConfig, TapResult, WinResult, LossResult, TileRenderContext, TileColors } from '../types';
 import { Tile } from '../../types';
 import {
   GRAVITY_LEVELS,
@@ -279,13 +279,13 @@ function handleExtend(
 }
 
 // Color helpers for getColors (extracted to reduce complexity)
-function getEmptyTileColors(ctx: any) {
+function getEmptyTileColors(ctx: TileRenderContext): TileColors {
   return ctx.theme === 'light'
     ? { background: '#f3f4f6', border: '1px solid #d1d5db' }
     : { background: '#0d0d1a', border: '1px solid #1a1a2e' };
 }
 
-function getBombTileColors(d: any, ctx: any) {
+function getBombTileColors(d: Record<string, unknown>, ctx: TileRenderContext): TileColors {
   const theme = ctx.theme as 'light' | 'dark';
   const bombStyles = d.inChain
     ? {
@@ -315,7 +315,7 @@ function getBombTileColors(d: any, ctx: any) {
   return bombStyles[theme];
 }
 
-function getStarTileColors(d: any, ctx: any) {
+function getStarTileColors(d: Record<string, unknown>, ctx: TileRenderContext): TileColors {
   const theme = ctx.theme as 'light' | 'dark';
   const starStyles = d.inChain
     ? {
@@ -345,7 +345,7 @@ function getStarTileColors(d: any, ctx: any) {
   return starStyles[theme];
 }
 
-function getLockTileColors(ctx: any) {
+function getLockTileColors(ctx: TileRenderContext): TileColors {
   return ctx.theme === 'light'
     ? {
         background: 'linear-gradient(145deg, #e5e7eb, #d1d5db)',
@@ -359,7 +359,7 @@ function getLockTileColors(ctx: any) {
       };
 }
 
-function getChainTileColors(c: any) {
+function getChainTileColors(c: { bg: string; border: string; glow: string }): TileColors {
   return {
     background: `linear-gradient(145deg, ${c.border}33, ${c.bg})`,
     border: `2px solid ${c.border}`,
@@ -367,7 +367,7 @@ function getChainTileColors(c: any) {
   };
 }
 
-function getHintTileColors(c: any, ctx: any) {
+function getHintTileColors(c: { bg: string; border: string; glow: string }, ctx: TileRenderContext): TileColors {
   return {
     background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
     border: `2px solid ${c.border}88`,
@@ -375,7 +375,7 @@ function getHintTileColors(c: any, ctx: any) {
   };
 }
 
-function getDefaultTileColors(c: any, ctx: any) {
+function getDefaultTileColors(c: { bg: string; border: string; glow: string }, ctx: TileRenderContext): TileColors {
   return {
     background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
     border: `1px solid ${c.border}55`,

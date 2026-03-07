@@ -8,6 +8,7 @@ import type { GameEndEvent } from '@/game/stats/types';
 import { GAME_MODES } from '@/game/modes';
 import { getStatusColor } from '@/utils/statusColors';
 import { useTheme } from '@/hooks/useTheme';
+import { RGBA_COLORS } from '@/utils/constants';
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
@@ -124,7 +125,7 @@ export default function StatsScreen({
             height: 40,
             borderRadius: 10,
             border: `1px solid ${colors.border.primary}`,
-            background: 'rgba(255,255,255,0.02)',
+            background: RGBA_COLORS.TRANSPARENT_WHITE_02,
             color: colors.status.info,
             cursor: 'pointer',
             fontSize: 18,

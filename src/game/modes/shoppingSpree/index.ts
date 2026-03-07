@@ -13,7 +13,7 @@
 // Win: reach targetScore within maxMoves. Loss: moves exhausted without hitting target.
 
 import { GameModeConfig, TapResult, WinResult, LossResult } from '../types';
-import { Tile } from '../../types';
+import { Tile, GameState, Level } from '../../types';
 import { getMinGroupSizeForWorld } from '../utils';
 import { pickRandom, isNotEmpty } from '@/utils/conditionalStyles';
 import { SHOPPING_LEVELS, SHOPPING_WORLDS, SHOPPING_ITEMS, ITEM_VALUES } from './levels';
@@ -311,7 +311,7 @@ function calculateScoreDelta(
  */
 function processRainTick(
   updatedTiles: Tile[],
-  state: any,
+  state: GameState,
   storedState: ShoppingModeState
 ): { tiles: Tile[]; newState: ShoppingModeState | null } {
   const activeSymbols = (updatedTiles.find((t) => t.canRotate)?.displayData
@@ -336,7 +336,7 @@ function processRainTick(
  */
 function processThiefTick(
   updatedTiles: Tile[],
-  state: any,
+  state: GameState,
   storedState: ShoppingModeState
 ): { tiles: Tile[]; newState: ShoppingModeState | null } {
   const lastThiefAt = storedState.lastThiefAt ?? 0;
@@ -364,16 +364,16 @@ function processThiefTick(
  * Process time-based thief spawning (Unlimited world)
  */
 function processUnlimitedThiefTick(
-  state: any,
-  modeState: any,
+  state: GameState,
+  modeState: Record<string, unknown>,
   storedState: ShoppingModeState,
-  features: any
-): any {
+  features: Level['features'] | undefined
+): { tiles: Tile[]; modeState: ShoppingModeState } | null {
   const timeLeft = modeState?.timeLeft as number | undefined;
   if (timeLeft === undefined) return null;
   const count = getBlockerCount(features, timeLeft);
   if (count === 0) return null;
-  const intensity = features.blockerIntensity ?? 0;
+  const intensity = (features?.blockerIntensity as number | undefined) ?? 0;
   const spawnChance = getThiefSpawnChance(intensity, timeLeft);
   if (spawnChance === 0) return null;
   const existingThieves = new Set(storedState.thiefPositions || []);
@@ -409,7 +409,7 @@ const TIME_BONUS_TIERS: Array<{ minSize: number; bonus: number }> = [
  */
 function getEventNotification(
   state: ShoppingModeState,
-  modeState: any,
+  modeState: Record<string, unknown>,
   delta: number
 ): string | null {
   // Combo chain notification (Black Friday levels)
@@ -635,7 +635,7 @@ interface ShoppingTapConfig {
   readonly gridSize: number;
   readonly state: ShoppingModeState;
   readonly world: number;
-  readonly features: any;
+  readonly features: Level['features'];
   readonly gcols: number;
   readonly grows: number;
   readonly unlockState: SymbolUnlockState;
@@ -856,9 +856,10 @@ export const ShoppingSpreeMode: GameModeConfig = {
       return { tiles: updatedTiles, modeState: updatedState };
     }
 
-    return features?.thieves
-      ? processUnlimitedThiefTick(state, modeState, storedState, features)
-      : null;
+    if (features && features.thieves) {
+      return processUnlimitedThiefTick(state, modeState ?? {}, storedState, features);
+    }
+    return null;
   },
 
   onTileTap(x, y, tiles, gridSize, modeState): TapResult | null {
@@ -918,7 +919,7 @@ export const ShoppingSpreeMode: GameModeConfig = {
     const timeLeft = modeState?.timeLeft as number | undefined;
 
     // Try event-based notifications first (highest priority)
-    const eventNotif = getEventNotification(state, modeState, delta);
+    const eventNotif = getEventNotification(state, modeState ?? {}, delta);
     if (eventNotif) return eventNotif;
 
     // Fall back to score notifications
