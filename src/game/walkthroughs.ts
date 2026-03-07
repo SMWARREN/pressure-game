@@ -39,7 +39,7 @@ export const WALKTHROUGHS: Record<string, WalkthroughConfig> = {
  */
 export function getWalkthrough(modeId: string, levelId: number): WalkthroughConfig | null {
   const config = WALKTHROUGHS[modeId];
-  if (!config || config.levelId !== levelId) return null;
+  if (config?.levelId !== levelId) return null;
   return config;
 }
 

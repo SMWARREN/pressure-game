@@ -35,6 +35,11 @@ export const PRESSURE_LEVELS: Level[] = new Proxy([] as Level[], {
     return value;
   },
   has(_target, prop) {
-    return prop in getPressureLevels();
+    const levels = getPressureLevels();
+    if (typeof prop === 'string') {
+      const index = Number(prop);
+      if (!Number.isNaN(index)) return index < levels.length;
+    }
+    return Reflect.has(levels, prop);
   },
 });

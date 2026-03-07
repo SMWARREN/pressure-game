@@ -441,7 +441,7 @@ export const GravityDropMode: GameModeConfig = {
     const lastInChain = chain[chain.length - 1];
 
     // Commit: tap last tile again when sum = 10
-    if (lastInChain && lastInChain.x === x && lastInChain.y === y) {
+    if (lastInChain?.x === x && lastInChain.y === y) {
       return handleCommit(chain, tiles, gridSize);
     }
 

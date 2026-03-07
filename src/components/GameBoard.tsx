@@ -318,7 +318,7 @@ export default function GameBoard() {
     if (!currentLevel || currentLevel.isGenerated) return null;
     // Check if this level matches the walkthrough's target level
     const config = mode.walkthrough;
-    if (!config || config.levelId !== currentLevel.id) return null;
+    if (config?.levelId !== currentLevel.id) return null;
     return config;
   }, [currentLevel, mode.walkthrough]);
 
