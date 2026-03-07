@@ -3,15 +3,12 @@ import { useGameStore } from '@/game/store';
 import { useStats, useAchievements } from '@/game/contexts';
 import { useShallow } from 'zustand/react/shallow';
 import TutorialScreen from './TutorialScreen';
-import { WalkthroughOverlay, useWalkthrough } from './WalkthroughOverlay';
+import { useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '../game/modes';
 import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
 import type { GameEndEvent } from '@/game/stats/types';
-import ReplayOverlay from '@/components/game/ReplayOverlay';
-import UnlimitedRulesDialog from './UnlimitedRulesDialog';
 import { getUnlimitedHighScore, setUnlimitedHighScore } from '@/game/unlimited';
-import HowToPlayModal from './HowToPlayModal';
 import ArcadeHubScreen from './ArcadeHubScreen';
 import PressureHubScreen from './PressureHubScreen';
 import ParticleLayer, { type ParticleSystemHandle } from './game/ParticleLayer';
@@ -29,15 +26,10 @@ import {
 import { StarField } from './game/StarField';
 import { Overlay } from './overlays/Overlay';
 import { ensureNotifStyles, ensureSpinnerStyles } from './utils/styles';
-import { EditorToolbar } from './editor/EditorToolbar';
 import { PauseOverlay } from './modals/PauseOverlay';
-import { FeatureInfoSheet } from './modals/FeatureInfoSheet';
 import { MenuScreen } from './screens/MenuScreen';
 import { LevelHeader } from './game/LevelHeader';
 import { FeatureIndicators } from './game/FeatureIndicators';
-import { GameFooter } from './game/GameFooter';
-import { NotificationLog } from './game/NotificationLog';
-import { SyncStatusIndicator } from './game/SyncStatusIndicator';
 import {
   getParticleBurstColor,
   getParticleBurstShape,
@@ -48,6 +40,12 @@ import {
   computeOverlayProps,
   computeCompressionPercent,
 } from './game/GameBoardUtils';
+import {
+  renderOverlays,
+  renderModalsAndExtras,
+  renderFixedElements,
+  renderFooter,
+} from './GameBoardHelpers';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NOTIFICATION & ANIMATION SETUP
@@ -688,190 +686,79 @@ export default function GameBoard() {
           </div>
         </div>
 
-        {/* ── REPLAY OVERLAY ──────────────────────────────────────── */}
-        {replayEngine && replayEvent && (
-          <ReplayOverlay
-            event={replayEvent}
-            engine={replayEngine}
-            onClose={() => setReplayEvent(null)}
-          />
-        )}
+        {renderOverlays({
+          replayEngine,
+          replayEvent,
+          setReplayEvent,
+          walkthroughActive,
+          walkthroughConfig,
+          walkthroughStepIndex,
+          advanceWalkthrough,
+          skipWalkthrough,
+          walkthroughStep,
+          boardRef,
+          gs,
+          startGame,
+          showUnlimitedRules,
+          currentLevel,
+          unlimitedPreviousScore,
+          handleUnlimitedStart,
+          goToMenu,
+          currentModeId,
+          onWatchBestUnlimited,
+        })}
 
-        {/* ── WALKTHROUGH OVERLAY ──────────────────────────────────── */}
-        {walkthroughActive && walkthroughConfig && (
-          <WalkthroughOverlay
-            steps={walkthroughConfig.steps}
-            currentStepIndex={walkthroughStepIndex}
-            onAdvance={advanceWalkthrough}
-            onSkip={skipWalkthrough}
-            targetTile={walkthroughStep?.targetTile}
-            boardRef={boardRef}
-            gridSize={gs}
-            onStartGame={startGame}
-          />
-        )}
+        {renderFooter({
+          editor,
+          iconBtn,
+          editorButtonStyles,
+          editorButtonTitle,
+          editorButtonIcon,
+          toggleEditor,
+          gs,
+          showUndoBtn,
+          showHintBtn,
+          timeStr,
+          showHint,
+          isComputingSolution,
+          isPaused,
+          status,
+          animationsEnabled,
+          history,
+          undoMove,
+          solution,
+          computeSolution,
+          resumeGame,
+          pauseGame,
+          setShowHint,
+          setShowHowToPlay,
+          toggleAnimations,
+          colors,
+        })}
 
-        {/* ── UNLIMITED RULES DIALOG ────────────────────────────────── */}
-        {showUnlimitedRules && currentLevel && (
-          <UnlimitedRulesDialog
-            levelName={currentLevel.name}
-            previousScore={unlimitedPreviousScore}
-            onStart={handleUnlimitedStart}
-            onBack={goToMenu}
-            modeId={currentModeId}
-            features={currentLevel.features}
-            onWatchBest={onWatchBestUnlimited}
-          />
-        )}
-
-        {/* ── FOOTER / CONTROLS ───────────────────────────────────── */}
-        <footer
-          style={{
-            width: '100%',
-            flexShrink: 0,
-            position: 'relative',
-            zIndex: 10,
-            borderTop: `1px solid ${colors.border.primary}`,
-            background: colors.game.footer,
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 'clamp(10px, 3vw, 20px)',
-            padding: 'clamp(8px, 1.5vh, 12px) 16px max(10px, env(safe-area-inset-bottom))',
-          }}
-        >
-          {/* Editor toggle - always visible */}
-          <button
-            onClick={toggleEditor}
-            style={{
-              ...iconBtn,
-              ...editorButtonStyles,
-            }}
-            title={editorButtonTitle}
-          >
-            <span style={{ fontSize: 16 }}>{editorButtonIcon}</span>
-          </button>
-
-          {/* In editor mode, show simplified footer with grid controls */}
-          {editor.enabled ? (
-            <>
-              {/* Grid size controls */}
-              <button
-                onClick={() => useGameStore.getState().editorResizeGrid(-1)}
-                style={{
-                  ...iconBtn,
-                  color: '#a855f7',
-                  border: '1px solid #a855f740',
-                }}
-                title="Decrease Grid"
-              >
-                <span style={{ fontSize: 18 }}>−</span>
-              </button>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  minWidth: 44,
-                }}
-              >
-                <div style={{ fontSize: 14, fontWeight: 900, color: '#a855f7' }}>
-                  {editor.gridSize ?? gs}×{editor.gridSize ?? gs}
-                </div>
-                <div style={{ fontSize: 8, color: '#3a3a55', letterSpacing: '0.1em' }}>GRID</div>
-              </div>
-              <button
-                onClick={() => useGameStore.getState().editorResizeGrid(1)}
-                style={{
-                  ...iconBtn,
-                  color: '#a855f7',
-                  border: '1px solid #a855f740',
-                }}
-                title="Increase Grid"
-              >
-                <span style={{ fontSize: 18 }}>+</span>
-              </button>
-            </>
-          ) : (
-            <GameFooter
-              showUndoBtn={showUndoBtn}
-              showHintBtn={showHintBtn}
-              timeStr={timeStr}
-              showHint={showHint}
-              isComputingSolution={isComputingSolution}
-              isPaused={isPaused}
-              status={status}
-              animationsEnabled={animationsEnabled}
-              history={history}
-              iconBtn={iconBtn}
-              onUndo={undoMove}
-              onHint={() => {
-                if (solution === null && !isComputingSolution) {
-                  computeSolution();
-                }
-                setShowHint((h) => !h);
-              }}
-              onPauseResume={() => (isPaused ? resumeGame : pauseGame)()}
-              onHowToPlay={() => setShowHowToPlay(true)}
-              onToggleAnimations={toggleAnimations}
-              computeSolution={computeSolution}
-            />
-          )}
-        </footer>
-
-        {/* How to Play Modal */}
-        {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
-
-        {/* Feature Info Sheet */}
-        <FeatureInfoSheet feature={showFeatureInfo} onClose={() => setShowFeatureInfo(null)} />
-
-        {/* ── EDITOR TOOLBAR ─────────────────────────────────────── */}
-        {editor.enabled && (
-          <div
-            style={{
-              position: 'fixed',
-              left: '50%',
-              bottom: 100,
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              padding: '8px 12px',
-              background: colors.game.overlay,
-              borderRadius: 16,
-              border: `1px solid ${colors.status.info}40`,
-              boxShadow: `0 4px 24px ${colors.status.info}33`,
-              zIndex: 100,
-              maxWidth: '95vw',
-            }}
-          >
-            <EditorToolbar
-              editor={editor}
-              tiles={tiles}
-              setEditorTool={setEditorTool}
-              showNotification={showNotification}
-            />
-          </div>
-        )}
+        {renderModalsAndExtras({
+          showHowToPlay,
+          setShowHowToPlay,
+          showFeatureInfo,
+          setShowFeatureInfo,
+          editor,
+          colors,
+          tiles,
+          setEditorTool,
+          showNotification,
+          status,
+          notifLog,
+          mode,
+          vw,
+        })}
       </div>
 
-      {/* ── NOTIFICATION LOG — fixed right panel, escapes overflow:hidden ── */}
-      {status === 'playing' && (
-        <NotificationLog notifLog={notifLog} mode={mode} viewportWidth={vw} boardMaxWidth={238} />
-      )}
-
-      {/* ── SYNC STATUS INDICATOR — fixed top-right, always visible ── */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 'max(12px, env(safe-area-inset-top))',
-          right: 12,
-          zIndex: 1000,
-        }}
-      >
-        <SyncStatusIndicator />
-      </div>
+      {renderFixedElements({
+        status,
+        notifLog,
+        mode,
+        vw,
+      })}
     </>
   );
 }

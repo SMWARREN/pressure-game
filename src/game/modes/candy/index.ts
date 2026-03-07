@@ -171,6 +171,42 @@ function getCandyColors(
   return theme === 'light' ? CANDY_COLORS_LIGHT : CANDY_COLORS_DARK;
 }
 
+// Color helpers for tile states (extracted to reduce complexity)
+function getFreshColors(c: any) {
+  return {
+    background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}cc 100%)`,
+    border: '2px solid #fbbf24',
+    boxShadow: '0 0 18px rgba(251,191,36,0.7), 0 0 6px rgba(251,191,36,0.4)',
+  };
+}
+
+function getFrozenColors(theme: 'light' | 'dark') {
+  const frozenStyles = {
+    light: {
+      background: 'linear-gradient(145deg, #cffafe 0%, #e0f2fe 100%)',
+      border: '2px solid #0369a1',
+      boxShadow: '0 0 14px rgba(3,105,161,0.45)',
+    },
+    dark: {
+      background: 'linear-gradient(145deg, #0f1f3d 0%, #091529 100%)',
+      border: '2px solid #60a5fa',
+      boxShadow: '0 0 14px rgba(96,165,250,0.45)',
+    },
+  };
+  return frozenStyles[theme];
+}
+
+function getNewColors(c: any, theme: 'light' | 'dark') {
+  return {
+    background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
+    border: `2px solid ${theme === 'light' ? '#4f46e5' : '#a5b4fc'}`,
+    boxShadow:
+      theme === 'light'
+        ? '0 0 18px rgba(79,70,229,0.5), 0 0 6px rgba(79,70,229,0.3)'
+        : '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
+  };
+}
+
 // Bonus symbols that don't exist in the base pool — unlocked one at a time via 5+ combos.
 // Every level starts without these; big combos introduce them as fresh (2× score) tiles.
 const CANDY_BONUS_SYMBOLS = ['🍇', '🥝', '🍒', '🥭', '🍑', '🍍'];
@@ -370,45 +406,10 @@ export const CandyMode: GameModeConfig = {
     getColors(tile, ctx) {
       if (isWildcard(tile)) return getWildcardColors(tile);
       if (isBomb(tile)) return getBombColors(tile);
+      if (!tile.canRotate)
+        return { background: 'rgba(10,10,20,0)', border: '1px solid transparent' };
 
       const colors = getCandyColors(ctx.theme);
-
-      // Fresh (newly unlocked) tile — golden glow, worth 2×
-      if (tile.displayData?.isFresh && tile.canRotate) {
-        const sym = tile.displayData?.symbol as string;
-        const c = colors[sym] ?? {
-          bg: ctx.theme === 'light' ? '#fef3c7' : '#1a1a2e',
-          border: '#fbbf24',
-          glow: 'rgba(251,191,36,0.5)',
-        };
-        return {
-          background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}cc 100%)`,
-          border: '2px solid #fbbf24',
-          boxShadow: '0 0 18px rgba(251,191,36,0.7), 0 0 6px rgba(251,191,36,0.4)',
-        };
-      }
-
-      // Frozen tile — icy blue styling
-      if (tile.displayData?.frozen) {
-        const frozenStyles = {
-          light: {
-            background: 'linear-gradient(145deg, #cffafe 0%, #e0f2fe 100%)',
-            border: '2px solid #0369a1',
-            boxShadow: '0 0 14px rgba(3,105,161,0.45)',
-          },
-          dark: {
-            background: 'linear-gradient(145deg, #0f1f3d 0%, #091529 100%)',
-            border: '2px solid #60a5fa',
-            boxShadow: '0 0 14px rgba(96,165,250,0.45)',
-          },
-        };
-        return frozenStyles[ctx.theme];
-      }
-
-      if (!tile.canRotate) {
-        return { background: 'rgba(10,10,20,0)', border: '1px solid transparent' };
-      }
-
       const sym = tile.displayData?.symbol as string;
       const c = colors[sym] ?? {
         bg: ctx.theme === 'light' ? '#f3f4f6' : '#1a1a2e',
@@ -416,17 +417,10 @@ export const CandyMode: GameModeConfig = {
         glow: ctx.theme === 'light' ? 'rgba(107,114,128,0.3)' : 'rgba(99,102,241,0.4)',
       };
 
-      // New tiles (just dropped in) get a bright indigo glow that fades out after ~1.5s
-      if (tile.displayData?.isNew) {
-        return {
-          background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,
-          border: `2px solid ${ctx.theme === 'light' ? '#4f46e5' : '#a5b4fc'}`,
-          boxShadow:
-            ctx.theme === 'light'
-              ? '0 0 18px rgba(79,70,229,0.5), 0 0 6px rgba(79,70,229,0.3)'
-              : '0 0 18px rgba(165,180,252,0.75), 0 0 6px rgba(165,180,252,0.4)',
-        };
-      }
+      // Check special states in priority order
+      if (tile.displayData?.isFresh) return getFreshColors(c);
+      if (tile.displayData?.frozen) return getFrozenColors(ctx.theme);
+      if (tile.displayData?.isNew) return getNewColors(c, ctx.theme);
 
       return {
         background: `linear-gradient(145deg, ${c.bg} 0%, ${c.bg}bb 100%)`,

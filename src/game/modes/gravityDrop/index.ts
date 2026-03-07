@@ -278,6 +278,110 @@ function handleExtend(
   };
 }
 
+// Color helpers for getColors (extracted to reduce complexity)
+function getEmptyTileColors(ctx: any) {
+  return ctx.theme === 'light'
+    ? { background: '#f3f4f6', border: '1px solid #d1d5db' }
+    : { background: '#0d0d1a', border: '1px solid #1a1a2e' };
+}
+
+function getBombTileColors(d: any, ctx: any) {
+  const theme = ctx.theme as 'light' | 'dark';
+  const bombStyles = d.inChain
+    ? {
+        light: {
+          background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
+          border: '2px solid #dc2626',
+          boxShadow: '0 0 18px rgba(220,38,38,0.5)',
+        },
+        dark: {
+          background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
+          border: '2px solid #ef4444',
+          boxShadow: '0 0 18px #ef4444aa',
+        },
+      }
+    : {
+        light: {
+          background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
+          border: '1px solid rgba(220,38,38,0.3)',
+          boxShadow: undefined,
+        },
+        dark: {
+          background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
+          border: '1px solid #ef444455',
+          boxShadow: undefined,
+        },
+      };
+  return bombStyles[theme];
+}
+
+function getStarTileColors(d: any, ctx: any) {
+  const theme = ctx.theme as 'light' | 'dark';
+  const starStyles = d.inChain
+    ? {
+        light: {
+          background: 'linear-gradient(145deg, #fef3c7, #fde047)',
+          border: '2px solid #ca8a04',
+          boxShadow: '0 0 18px rgba(202,138,4,0.5)',
+        },
+        dark: {
+          background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+          border: '2px solid #fbbf24',
+          boxShadow: '0 0 18px #fbbf24aa',
+        },
+      }
+    : {
+        light: {
+          background: 'linear-gradient(145deg, #fef3c7, #fde047)',
+          border: '1px solid rgba(202,138,4,0.3)',
+          boxShadow: undefined,
+        },
+        dark: {
+          background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
+          border: '1px solid #fbbf2455',
+          boxShadow: undefined,
+        },
+      };
+  return starStyles[theme];
+}
+
+function getLockTileColors(ctx: any) {
+  return ctx.theme === 'light'
+    ? {
+        background: 'linear-gradient(145deg, #e5e7eb, #d1d5db)',
+        border: '2px solid #6b7280',
+        boxShadow: undefined,
+      }
+    : {
+        background: 'linear-gradient(145deg, #1a1a1a, #0d0d0d)',
+        border: '2px solid #4b5563',
+        boxShadow: undefined,
+      };
+}
+
+function getChainTileColors(c: any) {
+  return {
+    background: `linear-gradient(145deg, ${c.border}33, ${c.bg})`,
+    border: `2px solid ${c.border}`,
+    boxShadow: `0 0 16px ${c.glow}`,
+  };
+}
+
+function getHintTileColors(c: any, ctx: any) {
+  return {
+    background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
+    border: `2px solid ${c.border}88`,
+    boxShadow: `0 0 10px ${c.glow}44`,
+  };
+}
+
+function getDefaultTileColors(c: any, ctx: any) {
+  return {
+    background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
+    border: `1px solid ${c.border}55`,
+  };
+}
+
 // ── Mode config ───────────────────────────────────────────────────────────────
 export const GravityDropMode: GameModeConfig = {
   id: 'gravityDrop',
@@ -308,108 +412,17 @@ export const GravityDropMode: GameModeConfig = {
 
     getColors(tile, ctx) {
       const d = getData(tile);
-      if (!d) {
-        return ctx.theme === 'light'
-          ? { background: '#f3f4f6', border: '1px solid #d1d5db' }
-          : { background: '#0d0d1a', border: '1px solid #1a1a2e' };
-      }
+      if (!d) return getEmptyTileColors(ctx);
+
+      if (d.special === 'bomb') return getBombTileColors(d, ctx);
+      if (d.special === 'star') return getStarTileColors(d, ctx);
+      if (d.special === 'lock') return getLockTileColors(ctx);
 
       const colors = getValColors(ctx.theme);
-
-      if (d.special === 'bomb') {
-        const bombStyles = d.inChain
-          ? {
-              light: {
-                background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
-                border: '2px solid #dc2626',
-                boxShadow: '0 0 18px rgba(220,38,38,0.5)',
-              },
-              dark: {
-                background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
-                border: '2px solid #ef4444',
-                boxShadow: '0 0 18px #ef4444aa',
-              },
-            }
-          : {
-              light: {
-                background: 'linear-gradient(145deg, #fee2e2, #fecaca)',
-                border: '1px solid rgba(220,38,38,0.3)',
-                boxShadow: undefined,
-              },
-              dark: {
-                background: 'linear-gradient(145deg, #1a0a0a, #0d0010)',
-                border: '1px solid #ef444455',
-                boxShadow: undefined,
-              },
-            };
-        return bombStyles[ctx.theme];
-      }
-
-      if (d.special === 'star') {
-        const starStyles = d.inChain
-          ? {
-              light: {
-                background: 'linear-gradient(145deg, #fef3c7, #fde047)',
-                border: '2px solid #ca8a04',
-                boxShadow: '0 0 18px rgba(202,138,4,0.5)',
-              },
-              dark: {
-                background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
-                border: '2px solid #fbbf24',
-                boxShadow: '0 0 18px #fbbf24aa',
-              },
-            }
-          : {
-              light: {
-                background: 'linear-gradient(145deg, #fef3c7, #fde047)',
-                border: '1px solid rgba(202,138,4,0.3)',
-                boxShadow: undefined,
-              },
-              dark: {
-                background: 'linear-gradient(145deg, #2e2a00, #1a1600)',
-                border: '1px solid #fbbf2455',
-                boxShadow: undefined,
-              },
-            };
-        return starStyles[ctx.theme];
-      }
-
-      if (d.special === 'lock') {
-        return ctx.theme === 'light'
-          ? {
-              background: 'linear-gradient(145deg, #e5e7eb, #d1d5db)',
-              border: '2px solid #6b7280',
-              boxShadow: undefined,
-            }
-          : {
-              background: 'linear-gradient(145deg, #1a1a1a, #0d0d0d)',
-              border: '2px solid #4b5563',
-              boxShadow: undefined,
-            };
-      }
-
       const c = colors[d.value] ?? colors[1];
-
-      if (d.inChain) {
-        return {
-          background: `linear-gradient(145deg, ${c.border}33, ${c.bg})`,
-          border: `2px solid ${c.border}`,
-          boxShadow: `0 0 16px ${c.glow}`,
-        };
-      }
-
-      if (ctx.isHint) {
-        return {
-          background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
-          border: `2px solid ${c.border}88`,
-          boxShadow: `0 0 10px ${c.glow}44`,
-        };
-      }
-
-      return {
-        background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
-        border: `1px solid ${c.border}55`,
-      };
+      if (d.inChain) return getChainTileColors(c);
+      if (ctx.isHint) return getHintTileColors(c, ctx);
+      return getDefaultTileColors(c, ctx);
     },
 
     getSymbol(tile) {

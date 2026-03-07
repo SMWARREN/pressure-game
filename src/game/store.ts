@@ -202,7 +202,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       const { seenTutorials } = get();
       // Check if in test/harness mode (E2E tests with ?levelId=X)
       const isTestMode =
-        globalThis.window !== undefined && new URLSearchParams(globalThis.location.search).has('levelId');
+        globalThis.window !== undefined &&
+        new URLSearchParams(globalThis.location.search).has('levelId');
       const alreadySeen = seenTutorials.includes(modeId) || isTestMode;
       set({
         currentModeId: modeId,

@@ -8,7 +8,8 @@ export interface LoadingSpinnerProps {
 export function LoadingSpinner({ size = 24, color = '#6366f1' }: LoadingSpinnerProps) {
   // Hide spinner in test mode (E2E tests with ?levelId=X)
   const isTestMode =
-    globalThis.window !== undefined && new URLSearchParams(globalThis.location.search).has('levelId');
+    globalThis.window !== undefined &&
+    new URLSearchParams(globalThis.location.search).has('levelId');
   if (isTestMode) {
     return null;
   }
