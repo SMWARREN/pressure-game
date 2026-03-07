@@ -27,7 +27,7 @@ export interface PersistenceBackend {
  */
 export class LocalStorageBackend implements PersistenceBackend {
   getItem(key: string): string | null {
-    if (typeof globalThis.window === 'undefined') return null;
+    if (globalThis.window === undefined) return null;
 
     try {
       const value = localStorage.getItem(key);
@@ -42,7 +42,7 @@ export class LocalStorageBackend implements PersistenceBackend {
   }
 
   setItem(key: string, value: string): void {
-    if (typeof globalThis.window === 'undefined') return;
+    if (globalThis.window === undefined) return;
 
     try {
       localStorage.setItem(key, value);
@@ -55,7 +55,7 @@ export class LocalStorageBackend implements PersistenceBackend {
   }
 
   removeItem(key: string): void {
-    if (typeof globalThis.window === 'undefined') return;
+    if (globalThis.window === undefined) return;
 
     try {
       localStorage.removeItem(key);
@@ -371,7 +371,7 @@ export class SyncingBackend implements PersistenceBackend {
     }, 30000);
 
     // Also sync when coming back online
-    if (typeof globalThis.window !== 'undefined') {
+    if (globalThis.window !== undefined) {
       globalThis.addEventListener('online', () => {
         // Sync changes and pull fresh data
         this.syncChanges();
