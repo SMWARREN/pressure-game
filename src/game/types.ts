@@ -256,7 +256,6 @@ export interface GameActions {
   undoMove: () => void;
   advanceWalls: () => void;
   tickTimer: () => void;
-  tickCompressionTimer: () => void;
   triggerShake: () => void;
   goToMenu: () => void;
   completeTutorial: () => void;

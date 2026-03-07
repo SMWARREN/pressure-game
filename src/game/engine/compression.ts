@@ -25,31 +25,29 @@ function shouldCrushAtPosition(
   const distFromLeft = x;
   const distFromRight = gridCols - 1 - x;
 
-  // Direction predicates: check if tile is within crush zone based on direction
-  const directionalChecks: Record<CompressionDirection, boolean> = {
-    none: false,
-    all: Math.min(distFromTop, distFromBottom, distFromLeft, distFromRight) < wallOffset,
-    top: distFromTop < wallOffset,
-    bottom: distFromBottom < wallOffset,
-    left: distFromLeft < wallOffset,
-    right: distFromRight < wallOffset,
-    'top-bottom': distFromTop < wallOffset || distFromBottom < wallOffset,
-    'left-right': distFromLeft < wallOffset || distFromRight < wallOffset,
-    'top-left': distFromTop < wallOffset || distFromLeft < wallOffset,
-    'top-right': distFromTop < wallOffset || distFromRight < wallOffset,
-    'bottom-left': distFromBottom < wallOffset || distFromLeft < wallOffset,
-    'bottom-right': distFromBottom < wallOffset || distFromRight < wallOffset,
-    'top-left-right':
-      distFromTop < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset,
-    'bottom-left-right':
-      distFromBottom < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset,
-    'left-top-bottom':
-      distFromLeft < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset,
-    'right-top-bottom':
-      distFromRight < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset,
-  };
-
-  return directionalChecks[direction];
+  switch (direction) {
+    case 'all':
+      return Math.min(distFromTop, distFromBottom, distFromLeft, distFromRight) < wallOffset;
+    case 'top': return distFromTop < wallOffset;
+    case 'bottom': return distFromBottom < wallOffset;
+    case 'left': return distFromLeft < wallOffset;
+    case 'right': return distFromRight < wallOffset;
+    case 'top-bottom': return distFromTop < wallOffset || distFromBottom < wallOffset;
+    case 'left-right': return distFromLeft < wallOffset || distFromRight < wallOffset;
+    case 'top-left': return distFromTop < wallOffset || distFromLeft < wallOffset;
+    case 'top-right': return distFromTop < wallOffset || distFromRight < wallOffset;
+    case 'bottom-left': return distFromBottom < wallOffset || distFromLeft < wallOffset;
+    case 'bottom-right': return distFromBottom < wallOffset || distFromRight < wallOffset;
+    case 'top-left-right':
+      return distFromTop < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset;
+    case 'bottom-left-right':
+      return distFromBottom < wallOffset || distFromLeft < wallOffset || distFromRight < wallOffset;
+    case 'left-top-bottom':
+      return distFromLeft < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset;
+    case 'right-top-bottom':
+      return distFromRight < wallOffset || distFromTop < wallOffset || distFromBottom < wallOffset;
+    default: return false;
+  }
 }
 
 /**

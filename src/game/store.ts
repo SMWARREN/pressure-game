@@ -38,15 +38,6 @@ function getEngine(): PressureEngine {
   return engine;
 }
 
-function getOrCreateEngine(): PressureEngine {
-  if (!engine) {
-    console.error('[store] ❌ Engine is null when accessing getOrCreateEngine()');
-    console.error('[store] Did LoadingScreen appear? Did GameEngineProvider initialize?');
-    throw new Error('Engine not initialized');
-  }
-  return engine;
-}
-
 /**
  * Get engine for modules that may not throw if unavailable (like unlimited.ts during init)
  */
@@ -245,7 +236,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     },
 
     loadLevel: (level: Level) => {
-      const eng = getOrCreateEngine();
+      const eng = getEngine();
       eng.clearTimers();
       const levelState = eng.getInitialLevelState(level);
       // Save the world so returning to menu goes back to the same world
@@ -267,7 +258,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       if (!currentLevel) return;
       if (status === 'playing' || status === 'won' || status === 'lost') return;
 
-      const eng = getOrCreateEngine();
+      const eng = getEngine();
 
       // Clear any existing timers before starting a new game
       eng.clearTimers();
@@ -464,11 +455,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
       if (updates) {
         set(updates);
       }
-    },
-
-    // Legacy alias — tickTimer now handles compression
-    tickCompressionTimer: () => {
-      // No-op, replaced by tickTimer
     },
 
     triggerShake: () => {

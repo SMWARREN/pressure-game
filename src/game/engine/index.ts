@@ -628,8 +628,8 @@ export class PressureEngine implements IPressureEngine {
       // Save highscore to API (in background)
       // Score is calculated server-side based on mode and level difficulty
       // Replay will be saved by GameEngineProvider when statsEngine emits the game_end event
-      saveHighscore(s.currentModeId, level.id, s.moves, s.elapsedSeconds).catch(
-        (err) => console.warn('Failed to save highscore to API:', err)
+      saveHighscore(s.currentModeId, level.id, s.moves, s.elapsedSeconds).catch((err) =>
+        console.warn('Failed to save highscore to API:', err)
       );
 
       // Check achievements after winning

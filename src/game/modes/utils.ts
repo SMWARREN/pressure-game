@@ -170,9 +170,10 @@ export function getConnectedTilesFast(tiles: Tile[], goals: Position[]): Set<str
 
   // BFS from first goal - only traverse connected tiles
   const queue: string[] = [`${goals[0].x},${goals[0].y}`];
+  let head = 0;
 
-  while (queue.length > 0) {
-    const key = queue.shift()!;
+  while (head < queue.length) {
+    const key = queue[head++];
     if (visited.has(key)) continue;
     visited.add(key);
 
@@ -257,12 +258,11 @@ export function rotateTileTap(x: number, y: number, tiles: Tile[]) {
   const tile = tiles.find((t) => t.x === x && t.y === y);
   if (!tile?.canRotate) return null;
 
-  const newTiles = tiles.map((t) => {
+  return tiles.map((t) => {
     if (t.x === x && t.y === y) {
       return { ...t, connections: rotateConnections(t.connections, 1), justRotated: true };
     }
-    return { ...t, justRotated: false };
+    if (t.justRotated) return { ...t, justRotated: false };
+    return t;
   });
-
-  return newTiles;
 }
