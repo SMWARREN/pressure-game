@@ -26,9 +26,8 @@ export default function GameBoard() {
     wallsJustAdvanced,
     compressionActive,
     currentModeId,
-    tap,
-    undo,
-    reset,
+    tapTile,
+    resetLevel,
   } = useGameStore(
     useShallow((state) => ({
       tiles: state.tiles,
@@ -40,9 +39,8 @@ export default function GameBoard() {
       wallsJustAdvanced: state.wallsJustAdvanced,
       compressionActive: state.compressionActive,
       currentModeId: state.currentModeId,
-      tap: state.tap,
-      undo: state.undo,
-      reset: state.reset,
+      tapTile: state.tapTile,
+      restartLevel: state.restartLevel,
     }))
   );
 
@@ -51,8 +49,9 @@ export default function GameBoard() {
     const availableWidth = width - 20; // padding
     const availableHeight = height * 0.5; // roughly half screen for game grid
 
-    const cols = currentLevel?.grid.cols || 5;
-    const rows = currentLevel?.grid.rows || 6;
+    const gridSize = currentLevel?.gridSize || 5;
+    const cols = gridSize;
+    const rows = gridSize;
 
     const tileSize = Math.min(
       availableWidth / cols,
@@ -68,8 +67,8 @@ export default function GameBoard() {
   }, [width, height, currentLevel]);
 
   const handleTileTap = useCallback((x: number, y: number) => {
-    tap(x, y);
-  }, [tap]);
+    tapTile(x, y);
+  }, [tapTile]);
 
   if (!currentLevel) {
     return null;
@@ -102,8 +101,7 @@ export default function GameBoard() {
       {/* Game Controls Footer */}
       <GameControls
         status={status}
-        onUndo={undo}
-        onReset={reset}
+        onReset={restartLevel}
       />
     </View>
   );

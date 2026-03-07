@@ -35,7 +35,7 @@ function GameGridComponent({
   const tileMap = useMemo(() => {
     const map = new Map<string, Tile>();
     tiles.forEach((tile) => {
-      map.set(`${tile.position.x},${tile.position.y}`, tile);
+      map.set(`${tile.x},${tile.y}`, tile);
     });
     return map;
   }, [tiles]);

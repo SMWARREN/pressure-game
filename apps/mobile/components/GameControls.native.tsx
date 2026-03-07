@@ -3,35 +3,19 @@ import { View, Pressable, Text } from 'react-native';
 
 interface GameControlsProps {
   readonly status: string;
-  readonly onUndo: () => void;
   readonly onReset: () => void;
 }
 
 /**
  * GameControls (Mobile/React Native)
- * Control buttons: Undo, Reset, Menu
+ * Control buttons: Reset, Menu
  */
 export default function GameControls({
   status,
-  onUndo,
   onReset,
 }: GameControlsProps) {
-  const isGameActive = status === 'playing';
-
   return (
     <View style={styles.container}>
-      <Pressable
-        onPress={onUndo}
-        disabled={!isGameActive}
-        style={({ pressed }) => [
-          styles.button,
-          !isGameActive && styles.disabled,
-          pressed && styles.pressed,
-        ]}
-      >
-        <Text style={styles.buttonText}>↶ Undo</Text>
-      </Pressable>
-
       <Pressable
         onPress={onReset}
         style={({ pressed }) => [

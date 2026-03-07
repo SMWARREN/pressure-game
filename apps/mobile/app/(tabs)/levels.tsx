@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, ScrollView, Pressable, Text } from 'react-native';
 import { useGameStore } from '@/game/store';
-import { LEVELS } from '@/game/levels';
+import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
+import type { Level } from '@/game/types';
 
 /**
  * Levels Screen
@@ -14,8 +15,8 @@ export default function LevelsScreen() {
   }));
 
   const levelGroups = useMemo(() => {
-    const groups: Record<number, typeof LEVELS> = {};
-    LEVELS.forEach((level) => {
+    const groups: Record<number, Level[]> = {};
+    CLASSIC_LEVELS.forEach((level) => {
       const world = level.world || 1;
       if (!groups[world]) groups[world] = [];
       groups[world].push(level);
@@ -23,8 +24,8 @@ export default function LevelsScreen() {
     return groups;
   }, []);
 
-  const handleLevelSelect = (levelId: number) => {
-    loadLevel(levelId);
+  const handleLevelSelect = (level: Level) => {
+    loadLevel(level);
   };
 
   const isLevelCompleted = (levelId: number) => {
@@ -39,10 +40,10 @@ export default function LevelsScreen() {
             <Text style={styles.worldTitle}>World {world}</Text>
 
             <View style={styles.levelGrid}>
-              {worldLevels.map((level) => (
+              {worldLevels.map((level: Level) => (
                 <Pressable
                   key={`level-${level.id}`}
-                  onPress={() => handleLevelSelect(level.id)}
+                  onPress={() => handleLevelSelect(level)}
                   style={({ pressed }) => [
                     styles.levelButton,
                     isLevelCompleted(level.id) && styles.completedLevel,

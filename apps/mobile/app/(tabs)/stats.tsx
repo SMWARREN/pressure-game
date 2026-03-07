@@ -8,7 +8,7 @@ import { useGameStore } from '@/game/store';
  */
 export default function StatsScreen() {
   const stats = useGameStore((state) => ({
-    totalScore: state.bestScores?.reduce((sum, score) => sum + (score || 0), 0) || 0,
+    totalScore: state.score || 0,
     completedLevels: state.completedLevels.length,
     moves: state.moves,
   }));

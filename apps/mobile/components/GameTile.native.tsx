@@ -33,16 +33,13 @@ function GameTileComponent({
   // Get tile colors based on tile type
   const getTileColor = () => {
     if (tile.isGoalNode) return '#ef4444';
-    if (tile.isWall) return '#374151';
     if (tile.isDecoy) return '#9ca3af';
     return '#1f2937';
   };
 
   // Get border color based on connection status
   const getBorderColor = () => {
-    if (tile.connectedToGoal) return '#10b981';
-    if (tile.isConnected) return '#3b82f6';
-    return '#4b5563';
+    return tile.connections.length > 0 ? '#3b82f6' : '#4b5563';
   };
 
   const tileStyle = {
@@ -74,11 +71,6 @@ function GameTileComponent({
           <Text style={styles.tileText}>{displayValue}</Text>
         )}
       </View>
-
-      {/* Wall visualization */}
-      {tile.isWall && (
-        <View style={styles.wallIndicator} />
-      )}
 
       {/* Goal node glow */}
       {tile.isGoalNode && (
