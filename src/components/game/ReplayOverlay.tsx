@@ -182,17 +182,21 @@ function PlaybackControls({
       <button
         onClick={onPlayPause}
         style={{
-          ...ctrlBtn,
           width: 54,
           height: 54,
           borderRadius: 14,
           fontSize: 22,
           background: playing
-            ? 'rgba(165,180,252,0.12)'
+            ? 'rgba(99,102,241,0.25)'
             : 'linear-gradient(135deg, #6366f1, #4f46e5)',
-          border: playing ? '1px solid #6366f160' : 'none',
+          border: playing ? `1px solid ${colors.status.info}` : 'none',
           color: '#fff',
-          boxShadow: playing ? 'none' : '0 4px 16px rgba(99,102,241,0.35)',
+          boxShadow: playing ? 'none' : '0 4px 16px rgba(99,102,241,0.4)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
         }}
         title={playing ? 'Pause' : 'Play'}
       >
