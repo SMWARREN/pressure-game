@@ -3,6 +3,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { getLeaderboard } from '@/game/api/leaderboards';
 import { StarField } from './game/StarField';
 import ProfileScreen from './ProfileScreen';
+import { SyncStatusIndicator } from './game/SyncStatusIndicator';
 
 export interface LeaderboardScreenProps {
   readonly onBack: () => void;
@@ -133,8 +134,13 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               width: 44,
               height: 44,
               flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-          />
+          >
+            <SyncStatusIndicator />
+          </div>
         </div>
       </header>
 
@@ -314,6 +320,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
+                      color: colors.text.primary,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
