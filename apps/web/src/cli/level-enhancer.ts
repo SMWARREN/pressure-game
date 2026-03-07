@@ -3,8 +3,8 @@
 // Uses existing BFS solver from the engine - no logic duplication.
 // Run with: npm run enhance [options]
 
-import type { Level, Tile, Position, Direction } from '../game/types';
-import { getSolution, verifyLevel, generateLevel } from '../game/levels';
+import type { Level, Tile, Position, Direction } from '@/game/types';
+import { getSolution, verifyLevel, generateLevel } from '@/game/levels';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,8 +28,8 @@ const colors = {
 };
 
 // Import all level sets
-import { CLASSIC_LEVELS } from '../game/modes/classic/levels';
-import { ZEN_LEVELS_SET_2 } from '../game/modes/zen/levels';
+import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
+import { ZEN_LEVELS_SET_2 } from '@/game/modes/zen/levels';
 
 // All level collections for analysis
 // READ-ONLY sets (verified working, don't modify)

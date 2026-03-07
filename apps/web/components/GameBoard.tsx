@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { RGBA_COLORS } from '@/utils/constants';
 import TutorialScreen from './TutorialScreen';
 import { useWalkthrough } from './WalkthroughOverlay';
-import { getModeById } from '../game/modes';
+import { getModeById } from '@/game/modes';
 import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
 import type { GameEndEvent } from '@/game/stats/types';

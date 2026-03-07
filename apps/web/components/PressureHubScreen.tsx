@@ -3,11 +3,11 @@
 
 import { useEffect } from 'react';
 import { useTheme } from '@/hooks/useTheme';
-import { useGameStore } from '../game/store';
+import { useGameStore } from '@/game/store';
 import { ensureHubStyles } from './hubs/HubStyles';
 import { PressureModeInfo } from './hubs/HubTypes';
 import { PressureGamePreview } from './pressure/PressureGamePreview';
-import { getModeById } from '../game/modes';
+import { getModeById } from '@/game/modes';
 
 const CLASSIC_INFO: PressureModeInfo = {
   description: 'The original pipe puzzle — connect all nodes before time runs out!',

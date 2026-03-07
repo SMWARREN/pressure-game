@@ -1,7 +1,7 @@
 // PRESSURE - Outbreak Mode Walkthrough
 // Virus containment puzzle tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const OUTBREAK_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'outbreak',

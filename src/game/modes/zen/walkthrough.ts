@@ -1,7 +1,7 @@
 // PRESSURE - Zen Mode Walkthrough
 // Relaxed, no pressure mode tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const ZEN_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'zen',

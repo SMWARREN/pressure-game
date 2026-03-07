@@ -3,9 +3,9 @@
 // shows its own tailored tutorial when first played.
 
 import { useState } from 'react';
-import { useGameStore } from '../game/store';
-import { getModeById } from '../game/modes';
-import { TutorialStep, TutorialDemoType } from '../game/types';
+import { useGameStore } from '@/game/store';
+import { getModeById } from '@/game/modes';
+import { TutorialStep, TutorialDemoType } from '@/game/types';
 import { getStepBackground } from './game/GameTileUtils';
 import { RGBA_COLORS } from '@/utils/constants';
 

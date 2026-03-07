@@ -8,13 +8,13 @@ import { getModeById } from '@/game/modes';
 import { ReplayEngine } from '@/game/stats/replay';
 import { useStats } from '@/game/contexts';
 import { getUnlimitedHighScores } from '@/game/unlimited';
-import { StarField } from '../game/StarField';
+import { StarField } from '@/components/game/StarField';
 import ModeSelectorModal from '../ModeSelectorModal';
 import StatsScreen from '../StatsScreen';
 import AchievementsScreen from '../AchievementsScreen';
 import LeaderboardScreen from '../LeaderboardScreen';
 import ProfileScreen from '../ProfileScreen';
-import ReplayOverlay from '../game/ReplayOverlay';
+import ReplayOverlay from '@/components/game/ReplayOverlay';
 import { SettingsPanel } from '../modals/SettingsPanel';
 import { LevelGeneratorPanel } from '../modals/LevelGeneratorPanel';
 import {

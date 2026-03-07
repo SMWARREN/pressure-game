@@ -3,7 +3,7 @@ import { Level } from '@/game/types';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
 import { generateLevel, verifyLevel } from '@/game/levels';
-import { LoadingSpinner } from '../game/LoadingSpinner';
+import { LoadingSpinner } from '@/components/game/LoadingSpinner';
 import { btnPrimary } from '../overlays/Overlay';
 import { useTheme } from '@/hooks/useTheme';
 

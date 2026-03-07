@@ -1,7 +1,7 @@
 // PRESSURE - Mirror Forge Mode Walkthrough
 // Symmetry puzzle tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const MIRROR_FORGE_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'mirror_forge',

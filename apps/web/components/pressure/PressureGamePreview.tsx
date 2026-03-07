@@ -5,7 +5,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Level } from '@/game/types';
-import GameGrid from '../game/GameGrid';
+import GameGrid from '@/components/game/GameGrid';
 import { getSolution } from '@/game/levels';
 
 interface PressureGamePreviewProps {

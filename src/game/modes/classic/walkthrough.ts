@@ -1,7 +1,7 @@
 // PRESSURE - Classic Mode Walkthrough
 // Step-by-step guide for the first level.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const CLASSIC_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'classic',

@@ -1,7 +1,7 @@
 // PRESSURE - Voltage Mode Walkthrough
 // Step-by-step guide for the first level (901 - First Charge).
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 // Level 901: 5x5 grid of regular cells, target score 150, 3 discharges allowed
 // All cells start at charge 0 and charge up over time

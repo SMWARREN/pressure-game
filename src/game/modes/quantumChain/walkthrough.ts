@@ -1,7 +1,7 @@
 // PRESSURE - Quantum Chain Mode Walkthrough
 // Math chain puzzle tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const QUANTUM_CHAIN_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'quantum_chain',

@@ -1,7 +1,7 @@
 // PRESSURE - Shopping Spree Mode Walkthrough
 // Price matching puzzle tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const SHOPPING_SPREE_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'shopping_spree',

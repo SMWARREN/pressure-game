@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { GameProviders } from '@/game/GameProviders';
-import GameBoard from './components/GameBoard';
-import TestHarness from './components/testing/TestHarness';
-import InstallPrompt from './components/InstallPrompt';
-import { AchievementToastContainer } from './components/AchievementToast';
+import GameBoard from '@/components/GameBoard';
+import TestHarness from '@/components/testing/TestHarness';
+import InstallPrompt from '@/components/InstallPrompt';
+import { AchievementToastContainer } from '@/components/AchievementToast';
 
 function LoadingScreen() {
   return (

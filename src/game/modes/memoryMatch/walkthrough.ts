@@ -1,7 +1,7 @@
 // PRESSURE - Memory Match Mode Walkthrough
 // Memory card game tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const MEMORY_MATCH_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'memory_match',

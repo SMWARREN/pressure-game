@@ -1,7 +1,7 @@
 // PRESSURE - Laser Relay Mode Walkthrough
 // Step-by-step guide for the first level (801 - First Light).
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 // Level 801 grid (5x5):
 // Row 0: . . T . .   (target at x=2, y=0)

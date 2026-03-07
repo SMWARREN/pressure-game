@@ -7,7 +7,7 @@
 //   3. Register in modes/index.ts
 
 import { Tile, Position, GameState, Level } from '../types';
-import { WalkthroughConfig } from '../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from './walkthroughTypes';
 
 export type WallCompressionSetting = 'always' | 'never' | 'optional';
 

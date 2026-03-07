@@ -5,9 +5,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateWorld, type WorldConfig } from '../game/levels/procedural';
-import { CLASSIC_LEVELS } from '../game/modes/classic/levels';
-import { STREAM_EDITED_LEVEL, RIPPLE_EDITED_LEVEL } from '../game/modes/zen/levels';
+import { generateWorld, type WorldConfig } from '@/game/levels/procedural';
+import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
+import { STREAM_EDITED_LEVEL, RIPPLE_EDITED_LEVEL } from '@/game/modes/zen/levels';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -2,9 +2,9 @@
 // Solves all levels across all game modes using the engine.
 // Run with: npm run solve [options]
 
-import type { Level, Tile, Position, Direction } from '../game/types';
-import { createCompressionSystem } from '../game/engine/compression';
-import { generateLevel } from '../game/levels';
+import type { Level, Tile, Position, Direction } from '@/game/types';
+import { createCompressionSystem } from '@/game/engine/compression';
+import { generateLevel } from '@/game/levels';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,8 +14,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Import all level sets
-import { CLASSIC_LEVELS } from '../game/modes/classic/levels';
-import { PRESSURE_LEVELS } from '../game/modes/shared/levels';
+import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
+import { PRESSURE_LEVELS } from '@/game/modes/shared/levels';
 
 // ANSI color codes for terminal output
 const colors = {

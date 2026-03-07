@@ -2,8 +2,8 @@
 // Uses Iterative Deepening DFS for memory efficiency
 // Run with: npx tsx src/cli/solver.ts
 
-import type { Level, Tile, Position, Direction } from '../game/types';
-import { CLASSIC_LEVELS } from '../game/modes/classic/levels';
+import type { Level, Tile, Position, Direction } from '@/game/types';
+import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
 
 // ANSI color codes for terminal output
 const colors = {

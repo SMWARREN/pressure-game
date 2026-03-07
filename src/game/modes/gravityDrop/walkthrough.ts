@@ -1,7 +1,7 @@
 // PRESSURE - Gravity Drop Mode Walkthrough
 // Physics-based puzzle tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const GRAVITY_DROP_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'gravity_drop',

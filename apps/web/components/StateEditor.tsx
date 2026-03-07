@@ -4,7 +4,7 @@
 // Includes replay/step-through debugging similar to ReplayOverlay.
 
 import React, { useEffect } from 'react';
-import { useGameStore } from '../game/store';
+import { useGameStore } from '@/game/store';
 import { usePresetManagement } from './hooks/useStateEditorLogic';
 import { StateEditorContent } from './StateEditorContent';
 

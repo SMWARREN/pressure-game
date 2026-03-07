@@ -4,15 +4,15 @@
 
 import { useState, useMemo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
-import { useGameStore } from '../game/store';
-import { MODE_GROUPS } from '../game/modes/index';
-import { CandyMode } from '../game/modes/candy/index';
-import { ShoppingSpreeMode } from '../game/modes/shoppingSpree/index';
-import { GemBlastMode } from '../game/modes/gemBlast/index';
+import { useGameStore } from '@/game/store';
+import { MODE_GROUPS } from '@/game/modes/index';
+import { CandyMode } from '@/game/modes/candy/index';
+import { ShoppingSpreeMode } from '@/game/modes/shoppingSpree/index';
+import { GemBlastMode } from '@/game/modes/gemBlast/index';
 import { ArcadeColumn, ArcadeModeDef } from './arcade/ArcadeColumn';
 import { ArcadeModeInfo } from './hubs/HubTypes';
 import { ensureHubStyles } from './hubs/HubStyles';
-import { ENABLED_MODE_IDS } from '../config/features';
+import { ENABLED_MODE_IDS } from '@/config/features';
 
 // ── Mode metadata & symbol sets ────────────────────────────────────────────────
 

@@ -3,45 +3,14 @@
 // Highlights tiles and shows instructions during actual gameplay.
 
 import { useState, useEffect, useCallback } from 'react';
-import { useGameStore } from '../game/store';
+import { useGameStore } from '@/game/store';
 import { useEngine } from '@/game/contexts/GameEngineProvider';
 import { getGapValue, getPaddingValue, getStepBackground } from './game/GameTileUtils';
 import { RGBA_COLORS } from '@/utils/constants';
+import { WalkthroughStep, WalkthroughConfig } from '@/game/modes/walkthroughTypes';
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   WALKTHROUGH STEP TYPE
-═══════════════════════════════════════════════════════════════════════════ */
-
-export interface WalkthroughStep {
-  /** Unique identifier for this step */
-  id: string;
-  /** Target tile position to highlight (optional) */
-  targetTile?: { x: number; y: number };
-  /** Instruction text to display */
-  instruction: string;
-  /** Optional title */
-  title?: string;
-  /** Position of the tooltip relative to target */
-  position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
-  /** Condition to check before advancing (optional) */
-  advanceOn?: 'tap' | 'rotate' | 'connect' | 'score' | 'manual';
-  /** Optional: only show when this condition is met */
-  showWhen?: (state: {
-    moves: number;
-    score: number;
-    tiles: unknown[];
-    modeState?: Record<string, unknown>;
-  }) => boolean;
-}
-
-export interface WalkthroughConfig {
-  /** Mode ID this walkthrough applies to */
-  modeId: string;
-  /** Level ID this walkthrough is for (usually first level) */
-  levelId: number;
-  /** Steps in the walkthrough */
-  steps: WalkthroughStep[];
-}
+// Re-export types for backward compatibility
+export type { WalkthroughStep, WalkthroughConfig } from '@/game/modes/walkthroughTypes';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    WALKTHROUGH OVERLAY COMPONENT

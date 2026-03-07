@@ -1,7 +1,7 @@
 // PRESSURE - Fuse Mode Walkthrough
 // Step-by-step guide for the first level (1001 - The Fuse).
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 // Level 1001 grid (5x5):
 // Row 0: . . . . .

@@ -2,10 +2,10 @@
 // Tests game boards using the actual PressureEngine.
 // Run with: npm run test:game [options] [level.json]
 
-import type { Level, Tile, Position, Direction, GameState } from '../game/types';
+import type { Level, Tile, Position, Direction, GameState } from '@/game/types';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { createCompressionSystem } from '../game/engine/compression';
+import { createCompressionSystem } from '@/game/engine/compression';
 
 // ANSI color codes for terminal output
 const colors = {

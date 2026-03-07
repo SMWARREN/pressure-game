@@ -1,7 +1,7 @@
 // PRESSURE - Candy Mode Walkthrough
 // Match-3 style gameplay tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const CANDY_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'candy',

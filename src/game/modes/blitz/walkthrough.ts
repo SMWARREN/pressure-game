@@ -1,7 +1,7 @@
 // PRESSURE - Blitz Mode Walkthrough
 // Fast-paced timed mode tutorial.
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const BLITZ_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'blitz',

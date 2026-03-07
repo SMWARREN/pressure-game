@@ -5,9 +5,9 @@
 // When a new mode is selected that hasn't been seen before,
 // the store automatically routes to that mode's tutorial.
 
-import { useGameStore } from '../game/store';
-import { GAME_MODES, MODE_GROUPS } from '../game/modes';
-import type { GameModeConfig } from '../game/types';
+import { useGameStore } from '@/game/store';
+import { GAME_MODES, MODE_GROUPS } from '@/game/modes';
+import type { GameModeConfig } from '@/game/types';
 import { Toggle } from './modals/Toggle';
 import { ModeCard } from './modals/ModeCard';
 import { GroupHeader } from './modals/GroupHeader';

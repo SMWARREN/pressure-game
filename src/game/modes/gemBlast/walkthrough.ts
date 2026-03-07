@@ -1,6 +1,6 @@
 // GEM BLAST MODE — Walkthrough Configuration
 
-import { WalkthroughConfig } from '../../../components/WalkthroughOverlay';
+import { WalkthroughConfig } from '../walkthroughTypes';
 
 export const GEM_BLAST_WALKTHROUGH: WalkthroughConfig = {
   modeId: 'gemBlast',

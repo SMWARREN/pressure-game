@@ -3,9 +3,9 @@
 // Uses the same GameGrid/GameTile components as the main game for consistent visuals
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { Level, Tile, Position, Direction, TileType } from '../game/types';
-import { verifyLevel } from '../game/levels';
-import { GAME_MODES } from '../game/modes';
+import { Level, Tile, Position, Direction, TileType } from '@/game/types';
+import { verifyLevel } from '@/game/levels';
+import { GAME_MODES } from '@/game/modes';
 import GameGrid from './game/GameGrid';
 import { getGapValue, getPaddingValue } from './game/GameTileUtils';
 

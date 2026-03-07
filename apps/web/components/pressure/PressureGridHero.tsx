@@ -1,6 +1,6 @@
 // Pressure game grid hero - shows actual grid with tiles and advancing walls
 import { useEffect, useRef, useState } from 'react';
-import { Tile } from '../../game/types';
+import { Tile } from '@/game/types';
 
 function createDemoGrid(): Tile[] {
   const tiles: Tile[] = [];
