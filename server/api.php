@@ -151,6 +151,7 @@ class Database {
       throw new Exception('Failed to create replays table: ' . $this->conn->error);
     }
 
+    $sql = "
       CREATE TABLE IF NOT EXISTS achievements (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id VARCHAR(255) NOT NULL,
