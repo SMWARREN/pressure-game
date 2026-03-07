@@ -145,76 +145,87 @@ function processCascades(
   return { tiles: remaining, totalScore, cascadeLevel };
 }
 
-// ── Gem color palette (theme-aware) ───────────────────────────────────────────
+// ── Gem color palette (consolidated dark/light variants) ─────────────────────
 
-const GEM_COLORS_DARK: Record<string, TileColors> = {
+type ThemedGemColor = { dark: TileColors; light: TileColors };
+
+const GEM_SYMBOL_COLORS: Record<string, ThemedGemColor> = {
   '💎': {
-    background: '#062d35',
-    border: '2px solid #06b6d4',
-    boxShadow: '0 0 10px rgba(6,182,212,0.6)',
+    dark: {
+      background: '#062d35',
+      border: '2px solid #06b6d4',
+      boxShadow: '0 0 10px rgba(6,182,212,0.6)',
+    },
+    light: {
+      background: '#cffafe',
+      border: '2px solid #0369a1',
+      boxShadow: '0 0 10px rgba(3,105,161,0.4)',
+    },
   },
   '💍': {
-    background: '#2d2500',
-    border: '2px solid #d4af37',
-    boxShadow: '0 0 10px rgba(212,175,55,0.6)',
+    dark: {
+      background: '#2d2500',
+      border: '2px solid #d4af37',
+      boxShadow: '0 0 10px rgba(212,175,55,0.6)',
+    },
+    light: {
+      background: '#fef3c7',
+      border: '2px solid #b45309',
+      boxShadow: '0 0 10px rgba(180,83,9,0.4)',
+    },
   },
   '🔮': {
-    background: '#1a0a2d',
-    border: '2px solid #8b5cf6',
-    boxShadow: '0 0 10px rgba(139,92,246,0.6)',
+    dark: {
+      background: '#1a0a2d',
+      border: '2px solid #8b5cf6',
+      boxShadow: '0 0 10px rgba(139,92,246,0.6)',
+    },
+    light: {
+      background: '#f3e8ff',
+      border: '2px solid #7c3aed',
+      boxShadow: '0 0 10px rgba(124,58,237,0.4)',
+    },
   },
   '🟣': {
-    background: '#1a082d',
-    border: '2px solid #a855f7',
-    boxShadow: '0 0 10px rgba(168,85,247,0.6)',
+    dark: {
+      background: '#1a082d',
+      border: '2px solid #a855f7',
+      boxShadow: '0 0 10px rgba(168,85,247,0.6)',
+    },
+    light: {
+      background: '#f3e8ff',
+      border: '2px solid #9333ea',
+      boxShadow: '0 0 10px rgba(147,51,234,0.4)',
+    },
   },
   '🔵': {
-    background: '#062040',
-    border: '2px solid #3b82f6',
-    boxShadow: '0 0 10px rgba(59,130,246,0.6)',
+    dark: {
+      background: '#062040',
+      border: '2px solid #3b82f6',
+      boxShadow: '0 0 10px rgba(59,130,246,0.6)',
+    },
+    light: {
+      background: '#dbeafe',
+      border: '2px solid #1e40af',
+      boxShadow: '0 0 10px rgba(30,64,175,0.4)',
+    },
   },
   '💥': {
-    background: '#2d1400',
-    border: '2px solid #f97316',
-    boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
-  },
-};
-
-const GEM_COLORS_LIGHT: Record<string, TileColors> = {
-  '💎': {
-    background: '#cffafe',
-    border: '2px solid #0369a1',
-    boxShadow: '0 0 10px rgba(3,105,161,0.4)',
-  },
-  '💍': {
-    background: '#fef3c7',
-    border: '2px solid #b45309',
-    boxShadow: '0 0 10px rgba(180,83,9,0.4)',
-  },
-  '🔮': {
-    background: '#f3e8ff',
-    border: '2px solid #7c3aed',
-    boxShadow: '0 0 10px rgba(124,58,237,0.4)',
-  },
-  '🟣': {
-    background: '#f3e8ff',
-    border: '2px solid #9333ea',
-    boxShadow: '0 0 10px rgba(147,51,234,0.4)',
-  },
-  '🔵': {
-    background: '#dbeafe',
-    border: '2px solid #1e40af',
-    boxShadow: '0 0 10px rgba(30,64,175,0.4)',
-  },
-  '💥': {
-    background: '#fed7aa',
-    border: '2px solid #d97706',
-    boxShadow: '0 0 22px rgba(217,119,6,0.6), 0 0 8px rgba(217,119,6,0.3)',
+    dark: {
+      background: '#2d1400',
+      border: '2px solid #f97316',
+      boxShadow: '0 0 22px rgba(249,115,22,0.9), 0 0 8px rgba(255,255,255,0.3)',
+    },
+    light: {
+      background: '#fed7aa',
+      border: '2px solid #d97706',
+      boxShadow: '0 0 22px rgba(217,119,6,0.6), 0 0 8px rgba(217,119,6,0.3)',
+    },
   },
 };
 
 function getGemColors(theme: 'light' | 'dark'): Record<string, TileColors> {
-  return theme === 'light' ? GEM_COLORS_LIGHT : GEM_COLORS_DARK;
+  return Object.fromEntries(Object.entries(GEM_SYMBOL_COLORS).map(([symbol, colors]) => [symbol, colors[theme]]));
 }
 
 // ── Gravity + refill ──────────────────────────────────────────────────────────

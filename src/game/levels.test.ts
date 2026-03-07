@@ -30,7 +30,7 @@ describe('Game Levels', () => {
             type: 'node' as const,
             x: 0,
             y: 0,
-            connections: ['up'] as const[],
+            connections: ['up' as const],
             canRotate: false,
             isGoalNode: true,
           },
@@ -39,7 +39,7 @@ describe('Game Levels', () => {
             type: 'node' as const,
             x: 2,
             y: 2,
-            connections: ['down'] as const[],
+            connections: ['down' as const],
             canRotate: false,
             isGoalNode: true,
           },
@@ -116,13 +116,13 @@ describe('Game Levels', () => {
     it('all classic levels should be solvable', () => {
       for (const level of CLASSIC_LEVELS) {
         const result = verifyLevel(level);
-        expect(result.solvable).toBe(true, `Level ${level.name} (${level.id}) should be solvable`);
+        expect(result.solvable).toBe(true);
       }
     });
 
     it('all classic levels should have goal nodes', () => {
       for (const level of CLASSIC_LEVELS) {
-        expect(level.goalNodes.length).toBeGreaterThanOrEqual(2, `Level ${level.name} should have at least 2 goal nodes`);
+        expect(level.goalNodes.length).toBeGreaterThanOrEqual(2);
       }
     });
 

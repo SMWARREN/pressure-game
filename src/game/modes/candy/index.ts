@@ -132,44 +132,60 @@ function getFrozenTileMaxCount(timeLeft: number): number {
   return 0;
 }
 
-// ── Per-symbol color palette (theme-aware) ────────────────────────────────────
+// ── Per-symbol color palette (consolidated dark/light variants) ──────────────
 
-const CANDY_COLORS_DARK: Record<string, { bg: string; border: string; glow: string }> = {
-  // Base symbols
-  '🍎': { bg: '#2d0808', border: '#ef4444', glow: 'rgba(239,68,68,0.5)' },
-  '🍊': { bg: '#2d1800', border: '#f97316', glow: 'rgba(249,115,22,0.5)' },
-  '🍋': { bg: '#2d2600', border: '#eab308', glow: 'rgba(234,179,8,0.5)' },
-  '🫐': { bg: '#0f0f2d', border: '#6366f1', glow: 'rgba(99,102,241,0.5)' },
-  '🍓': { bg: '#2d0818', border: '#ec4899', glow: 'rgba(236,72,153,0.5)' },
-  // Bonus symbols — unlocked mid-game via 5+ combos
-  '🍇': { bg: '#1a0f2d', border: '#8b5cf6', glow: 'rgba(139,92,246,0.5)' },
-  '🥝': { bg: '#0f2d0f', border: '#22c55e', glow: 'rgba(34,197,94,0.5)' },
-  '🍒': { bg: '#2d0505', border: '#dc2626', glow: 'rgba(220,38,38,0.5)' },
-  '🥭': { bg: '#2d1f00', border: '#f59e0b', glow: 'rgba(245,158,11,0.5)' },
-  '🍑': { bg: '#2d1408', border: '#fb923c', glow: 'rgba(251,146,60,0.5)' },
-  '🍍': { bg: '#2d2800', border: '#fde047', glow: 'rgba(253,224,71,0.5)' },
+type SymbolColor = { bg: string; border: string; glow: string };
+type ThemedColor = { dark: SymbolColor; light: SymbolColor };
+
+const CANDY_SYMBOL_COLORS: Record<string, ThemedColor> = {
+  '🍎': {
+    dark: { bg: '#2d0808', border: '#ef4444', glow: 'rgba(239,68,68,0.5)' },
+    light: { bg: '#fce4e4', border: '#dc2626', glow: 'rgba(220,38,38,0.3)' },
+  },
+  '🍊': {
+    dark: { bg: '#2d1800', border: '#f97316', glow: 'rgba(249,115,22,0.5)' },
+    light: { bg: '#fed8b1', border: '#d97706', glow: 'rgba(217,119,6,0.3)' },
+  },
+  '🍋': {
+    dark: { bg: '#2d2600', border: '#eab308', glow: 'rgba(234,179,8,0.5)' },
+    light: { bg: '#fef08a', border: '#ca8a04', glow: 'rgba(202,138,4,0.3)' },
+  },
+  '🫐': {
+    dark: { bg: '#0f0f2d', border: '#6366f1', glow: 'rgba(99,102,241,0.5)' },
+    light: { bg: '#e0e7ff', border: '#4f46e5', glow: 'rgba(79,70,229,0.3)' },
+  },
+  '🍓': {
+    dark: { bg: '#2d0818', border: '#ec4899', glow: 'rgba(236,72,153,0.5)' },
+    light: { bg: '#fbced5', border: '#be185d', glow: 'rgba(190,24,93,0.3)' },
+  },
+  '🍇': {
+    dark: { bg: '#1a0f2d', border: '#8b5cf6', glow: 'rgba(139,92,246,0.5)' },
+    light: { bg: '#ede9fe', border: '#7c3aed', glow: 'rgba(124,58,237,0.3)' },
+  },
+  '🥝': {
+    dark: { bg: '#0f2d0f', border: '#22c55e', glow: 'rgba(34,197,94,0.5)' },
+    light: { bg: '#dcfce7', border: '#16a34a', glow: 'rgba(22,163,74,0.3)' },
+  },
+  '🍒': {
+    dark: { bg: '#2d0505', border: '#dc2626', glow: 'rgba(220,38,38,0.5)' },
+    light: { bg: '#fee2e2', border: '#b91c1c', glow: 'rgba(185,28,28,0.3)' },
+  },
+  '🥭': {
+    dark: { bg: '#2d1f00', border: '#f59e0b', glow: 'rgba(245,158,11,0.5)' },
+    light: { bg: '#fef3c7', border: '#92400e', glow: 'rgba(146,64,14,0.3)' },
+  },
+  '🍑': {
+    dark: { bg: '#2d1408', border: '#fb923c', glow: 'rgba(251,146,60,0.5)' },
+    light: { bg: '#fed7aa', border: '#c2410c', glow: 'rgba(194,65,12,0.3)' },
+  },
+  '🍍': {
+    dark: { bg: '#2d2800', border: '#fde047', glow: 'rgba(253,224,71,0.5)' },
+    light: { bg: '#fef9e7', border: '#b45309', glow: 'rgba(180,83,9,0.3)' },
+  },
 };
 
-const CANDY_COLORS_LIGHT: Record<string, { bg: string; border: string; glow: string }> = {
-  // Base symbols — adjusted for light background
-  '🍎': { bg: '#fce4e4', border: '#dc2626', glow: 'rgba(220,38,38,0.3)' },
-  '🍊': { bg: '#fed8b1', border: '#d97706', glow: 'rgba(217,119,6,0.3)' },
-  '🍋': { bg: '#fef08a', border: '#ca8a04', glow: 'rgba(202,138,4,0.3)' },
-  '🫐': { bg: '#e0e7ff', border: '#4f46e5', glow: 'rgba(79,70,229,0.3)' },
-  '🍓': { bg: '#fbced5', border: '#be185d', glow: 'rgba(190,24,93,0.3)' },
-  // Bonus symbols
-  '🍇': { bg: '#ede9fe', border: '#7c3aed', glow: 'rgba(124,58,237,0.3)' },
-  '🥝': { bg: '#dcfce7', border: '#16a34a', glow: 'rgba(22,163,74,0.3)' },
-  '🍒': { bg: '#fee2e2', border: '#b91c1c', glow: 'rgba(185,28,28,0.3)' },
-  '🥭': { bg: '#fef3c7', border: '#92400e', glow: 'rgba(146,64,14,0.3)' },
-  '🍑': { bg: '#fed7aa', border: '#c2410c', glow: 'rgba(194,65,12,0.3)' },
-  '🍍': { bg: '#fef9e7', border: '#b45309', glow: 'rgba(180,83,9,0.3)' },
-};
-
-function getCandyColors(
-  theme: 'light' | 'dark'
-): Record<string, { bg: string; border: string; glow: string }> {
-  return theme === 'light' ? CANDY_COLORS_LIGHT : CANDY_COLORS_DARK;
+function getCandyColors(theme: 'light' | 'dark'): Record<string, SymbolColor> {
+  return Object.fromEntries(Object.entries(CANDY_SYMBOL_COLORS).map(([symbol, colors]) => [symbol, colors[theme]]));
 }
 
 // Color helpers for tile states (extracted to reduce complexity)
