@@ -44,19 +44,39 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-local-*
+
+# IDE & Editor
 .claude
-.z-ai-config
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs & Cache
+local-*
 dev.log
 test
 prompt
 server.log
-# Skills directory
-/skills/pressure-game
-/pressure-game
+
+# Build & Artifacts
 dist
 dist/
-/.scannerwork
-test-results
-playwright-report
 dev-dist
+build/
+
+# Testing
+test-results/
+playwright-report/
+coverage/
+*.log
+
+# SonarQube
+.scannerwork/
+*.sonarqube
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
