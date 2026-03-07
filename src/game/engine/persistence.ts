@@ -13,6 +13,7 @@ import { LocalStorageBackend } from './backends';
 const DEFAULT_PERSISTED: PersistedState = {
   completedLevels: [],
   bestMoves: {},
+  bestTimes: {},
   showTutorial: true,
   generatedLevels: [],
   currentModeId: 'classic',
@@ -48,6 +49,7 @@ export class PersistenceSystem {
       return {
         completedLevels: p.completedLevels || [],
         bestMoves: p.bestMoves || {},
+        bestTimes: p.bestTimes || {},
         showTutorial: p.showTutorial !== false,
         generatedLevels: p.generatedLevels || [],
         currentModeId: p.currentModeId || DEFAULT_PERSISTED.currentModeId,
@@ -82,6 +84,7 @@ export class PersistenceSystem {
     return {
       completedLevels: state.completedLevels,
       bestMoves: state.bestMoves,
+      bestTimes: state.bestTimes || {},
       showTutorial: state.showTutorial,
       generatedLevels: state.generatedLevels,
       currentModeId: state.currentModeId,

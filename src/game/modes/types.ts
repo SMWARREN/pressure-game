@@ -17,27 +17,27 @@ export type WallCompressionSetting = 'always' | 'never' | 'optional';
  */
 export interface ModeColorContext {
   // UI Colors
-  primary: string;           // Primary mode color
-  secondary: string;         // Secondary accent
-  background: string;        // Mode background
-  border: string;           // Border color
+  primary: string; // Primary mode color
+  secondary: string; // Secondary accent
+  background: string; // Mode background
+  border: string; // Border color
 
   // Tile Colors
-  tileDefault: string;      // Default tile background
-  tileBorder: string;       // Tile border
-  tileActive: string;       // Active/selected tile
+  tileDefault: string; // Default tile background
+  tileBorder: string; // Tile border
+  tileActive: string; // Active/selected tile
 
   // Status Colors
-  success: string;          // Win/success state
-  danger: string;           // Danger/loss state
-  warning: string;          // Warning state
-  info: string;            // Info/neutral state
+  success: string; // Win/success state
+  danger: string; // Danger/loss state
+  warning: string; // Warning state
+  info: string; // Info/neutral state
 
   // Specific State Colors
-  nodeGlow: string;        // Goal node highlight
-  pathActive: string;      // Active path color
-  wallColor: string;       // Wall color
-  crushed: string;         // Crushed tile color
+  nodeGlow: string; // Goal node highlight
+  pathActive: string; // Active path color
+  wallColor: string; // Wall color
+  crushed: string; // Crushed tile color
 
   // Transparent variants (for backgrounds, overlays)
   transparent: {

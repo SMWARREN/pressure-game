@@ -5,8 +5,9 @@ import { StatsEngine } from '@/game/stats/engine';
 import { AchievementEngine } from '@/game/achievements/engine';
 import { LocalStorageStatsBackend } from '@/game/stats/backends/localStorage';
 import { getModeById } from '@/game/modes';
-import type { StatsBackend } from '@/game/stats/types';
+import type { StatsBackend, GameEndEvent } from '@/game/stats/types';
 import { SyncingBackend, MySQLBackend } from '@/game/engine/persistence';
+import { saveReplay } from '@/game/api/leaderboards';
 import { STORAGE_KEYS } from '@/utils/constants';
 
 interface GameEngineContextType {
@@ -125,6 +126,15 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
   const backend = statsBackend ?? new LocalStorageStatsBackend();
   const statsEngine = new StatsEngine(backend);
   statsEngine.start();
+
+  // Wire up replay saving when games end
+  statsEngine.setOnGameEnd((event: GameEndEvent) => {
+    if (event.outcome === 'won') {
+      saveReplay(event.modeId, event.levelId, event.moveLog as any, event.score).catch((err) =>
+        console.warn('[GameEngineProvider] Failed to save replay:', err)
+      );
+    }
+  });
 
   const achievementEngine = new AchievementEngine();
 

@@ -48,7 +48,7 @@ export const DIRECTIONS = {
   RIGHT: 'right',
 } as const;
 
-export type Direction = typeof DIRECTIONS[keyof typeof DIRECTIONS];
+export type Direction = (typeof DIRECTIONS)[keyof typeof DIRECTIONS];
 
 // ─── Tile Types ──────────────────────────────────────────────────────────────
 
@@ -122,7 +122,7 @@ export const RGBA_COLORS = {
   TRANSPARENT_WHITE_02: 'rgba(255,255,255,0.02)',
   TRANSPARENT_WHITE_04: 'rgba(255,255,255,0.04)',
   TRANSPARENT_WHITE_08: 'rgba(255,255,255,0.08)',
-  
+
   RED_ERROR: 'rgba(239,68,68,0.5)',
   RED_BG: 'rgba(239,68,68,0.2)',
   AMBER_WARNING: 'rgba(245,158,11,0.4)',
@@ -133,7 +133,7 @@ export const RGBA_COLORS = {
   PURPLE_ACCENT: 'rgba(168,85,247,0.2)',
   INDIGO_BORDER: 'rgba(99,102,241,0.3)',
   RED_DANGER: 'rgba(252,165,165,0.5)',
-  
+
   DARK_FOOTER: 'rgba(6,6,15,0.85)',
   DARK_OVERLAY: 'rgba(10,10,20,0.95)',
   DARK_TOOLBAR: 'rgba(6,6,15,0.95)',

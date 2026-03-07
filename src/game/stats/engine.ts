@@ -14,6 +14,7 @@ export class StatsEngine {
   private unsubscribe: (() => void) | null = null;
   private pendingMoveLog: MoveRecord[] = [];
   private gameStartMs = 0;
+  private gameEndCallback: ((event: GameEndEvent) => void) | null = null;
 
   constructor(backend: StatsBackend) {
     this.backend = backend;
@@ -26,6 +27,11 @@ export class StatsEngine {
 
   getBackend(): StatsBackend {
     return this.backend;
+  }
+
+  /** Set callback for game end events */
+  setOnGameEnd(cb: (event: GameEndEvent) => void): void {
+    this.gameEndCallback = cb;
   }
 
   /** Wire into the store. Call once at app startup. Idempotent. */
@@ -67,7 +73,7 @@ export class StatsEngine {
 
     // playing → won
     if (prev.status === 'playing' && state.status === 'won') {
-      this.emit({
+      const event = {
         ...base,
         type: 'game_end',
         outcome: 'won',
@@ -76,12 +82,14 @@ export class StatsEngine {
         score: state.score,
         lossReason: null,
         moveLog: [...this.pendingMoveLog],
-      } satisfies GameEndEvent);
+      } satisfies GameEndEvent;
+      this.emit(event);
+      this.gameEndCallback?.(event);
     }
 
     // playing → lost
     if (prev.status === 'playing' && state.status === 'lost') {
-      this.emit({
+      const event = {
         ...base,
         type: 'game_end',
         outcome: 'lost',
@@ -90,7 +98,9 @@ export class StatsEngine {
         score: state.score,
         lossReason: state.lossReason,
         moveLog: [...this.pendingMoveLog],
-      } satisfies GameEndEvent);
+      } satisfies GameEndEvent;
+      this.emit(event);
+      this.gameEndCallback?.(event);
     }
 
     // Detect new tap: moves increased and lastRotatedPos changed

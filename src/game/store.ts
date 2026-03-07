@@ -100,7 +100,12 @@ function buildEditorExitState(): EditorState {
  * Handle restoring tiles and level after editor mode exit.
  */
 function restoreEditorState(
-  savedState: { tiles: Tile[]; goalNodes: Position[]; gridSize: number; wasPlaying?: boolean } | null,
+  savedState: {
+    tiles: Tile[];
+    goalNodes: Position[];
+    gridSize: number;
+    wasPlaying?: boolean;
+  } | null,
   currentLevel: Level | null,
   wasPlaying: boolean,
   status: string
@@ -161,6 +166,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     status: 'menu',
     completedLevels: [],
     bestMoves: {},
+    bestTimes: {},
     history: [],
     lastRotatedPos: null,
     showTutorial: false,

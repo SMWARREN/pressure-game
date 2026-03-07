@@ -85,10 +85,14 @@ function LeaderboardRow({
         minWidth: 'unset',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = isTopThree ? `${rankColor}20` : RGBA_COLORS.TRANSPARENT_WHITE_04;
+        e.currentTarget.style.background = isTopThree
+          ? `${rankColor}20`
+          : RGBA_COLORS.TRANSPARENT_WHITE_04;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = isTopThree ? `${rankColor}10` : RGBA_COLORS.TRANSPARENT_WHITE_02;
+        e.currentTarget.style.background = isTopThree
+          ? `${rankColor}10`
+          : RGBA_COLORS.TRANSPARENT_WHITE_02;
       }}
     >
       <div
@@ -305,7 +309,8 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               padding: '8px 12px',
               borderRadius: 8,
               border: `1px solid ${selectedMode === mode.id ? mode.color : colors.border.primary}`,
-              background: selectedMode === mode.id ? `${mode.color}20` : RGBA_COLORS.TRANSPARENT_WHITE_02,
+              background:
+                selectedMode === mode.id ? `${mode.color}20` : RGBA_COLORS.TRANSPARENT_WHITE_02,
               color: selectedMode === mode.id ? mode.color : colors.text.primary,
               cursor: 'pointer',
               fontSize: 12,

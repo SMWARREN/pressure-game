@@ -2,8 +2,14 @@
  * Achievement Engine - Manages achievement state, progress, and unlocking
  */
 
-import { Achievement, AchievementProgress, AchievementState, SessionStats, DEFAULT_ACHIEVEMENTS } from './types';
-import { unlockAchievement } from '../api/leaderboards';
+import {
+  Achievement,
+  AchievementProgress,
+  AchievementState,
+  SessionStats,
+  DEFAULT_ACHIEVEMENTS,
+} from './types';
+import { unlockAchievement, updateUserStats } from '../api/leaderboards';
 import { getModeById } from '../modes';
 import { STORAGE_KEYS } from '@/utils/constants';
 
@@ -298,6 +304,16 @@ class AchievementEngine {
     }
 
     this.updatePerfectTracking(stats);
+
+    // Sync stats to server (fire and forget)
+    updateUserStats({
+      maxCombo: this.state.stats.maxCombo,
+      wallsSurvived: this.state.stats.totalWallsSurvived,
+      noResetStreak: this.state.stats.noResetStreak,
+      speedLevels: this.state.stats.speedLevels,
+      perfectLevels: this.state.stats.perfectLevels,
+      daysPlayed: this.state.stats.totalDaysPlayed,
+    }).catch(console.warn);
   }
 
   /**

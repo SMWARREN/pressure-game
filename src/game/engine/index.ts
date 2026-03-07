@@ -18,7 +18,7 @@ import type { AchievementEngine } from '../achievements/engine';
 import type { GameState, Level, Tile } from '../types';
 import { getModeById } from '../modes';
 import { getConnectedTiles } from '../modes/utils';
-import { saveHighscore, saveReplay } from '../api/leaderboards';
+import { saveHighscore } from '../api/leaderboards';
 
 // Re-export types and systems
 export * from './types';
@@ -516,6 +516,7 @@ export class PressureEngine implements IPressureEngine {
       status: needsTutorial ? 'tutorial' : 'menu',
       completedLevels: saved.completedLevels,
       bestMoves: saved.bestMoves,
+      bestTimes: saved.bestTimes,
       history: [],
       lastRotatedPos: null,
       showTutorial: saved.showTutorial,
@@ -595,15 +596,24 @@ export class PressureEngine implements IPressureEngine {
       const level = s.currentLevel!;
       const newCompleted = [...new Set([...s.completedLevels, level.id])];
       const newBest = { ...s.bestMoves };
+      const newBestTimes = { ...s.bestTimes };
       const bestKey = `${s.currentModeId}:${level.id}`;
+
+      // Update best moves
       if (!newBest[bestKey] || s.moves < newBest[bestKey]) {
         newBest[bestKey] = s.moves;
+      }
+
+      // Update best times
+      if (!newBestTimes[bestKey] || s.elapsedSeconds < newBestTimes[bestKey]) {
+        newBestTimes[bestKey] = s.elapsedSeconds;
       }
 
       this.persist({
         ...s,
         completedLevels: newCompleted,
         bestMoves: newBest,
+        bestTimes: newBestTimes,
         showTutorial: false,
       });
 
@@ -611,17 +621,15 @@ export class PressureEngine implements IPressureEngine {
         status: 'won',
         completedLevels: newCompleted,
         bestMoves: newBest,
+        bestTimes: newBestTimes,
         _winCheckPending: false,
       });
 
-      // Save highscore and replay to API (in background)
-      saveHighscore(s.currentModeId, level.id, s.moves).catch((err) =>
-        console.warn('Failed to save highscore to API:', err)
-      );
-
-      // Save replay (currently saves with empty moveLog - will be populated by stats engine)
-      saveReplay(s.currentModeId, level.id, [], s.moves).catch((err) =>
-        console.warn('Failed to save replay to API:', err)
+      // Save highscore to API (in background)
+      // Score is calculated server-side based on mode and level difficulty
+      // Replay will be saved by GameEngineProvider when statsEngine emits the game_end event
+      saveHighscore(s.currentModeId, level.id, s.moves, s.elapsedSeconds).catch(
+        (err) => console.warn('Failed to save highscore to API:', err)
       );
 
       // Check achievements after winning

@@ -31,7 +31,13 @@ interface UserProfile {
     totalScore?: number;
     levelsCompleted?: number;
   };
-  achievements?: Array<{ id: string; name?: string; icon?: string; unlockedAt?: string; [key: string]: unknown }>;
+  achievements?: Array<{
+    id: string;
+    name?: string;
+    icon?: string;
+    unlockedAt?: string;
+    [key: string]: unknown;
+  }>;
   wins?: Array<{
     user_id: string;
     mode: string;
@@ -95,7 +101,10 @@ const API_URL = getApiBaseUrl();
 /**
  * Generic fetch helper for API calls
  */
-async function fetchFromApi<T = Record<string, unknown>>(url: string, allow404 = false): Promise<T | null> {
+async function fetchFromApi<T = Record<string, unknown>>(
+  url: string,
+  allow404 = false
+): Promise<T | null> {
   try {
     const response = await robustFetch(url);
 
@@ -117,7 +126,11 @@ async function fetchFromApi<T = Record<string, unknown>>(url: string, allow404 =
 /**
  * Wrapper for POST/PUT requests with error handling
  */
-async function fetchWithBody(url: string, method: 'POST' | 'PUT', body: Record<string, unknown>): Promise<boolean> {
+async function fetchWithBody(
+  url: string,
+  method: 'POST' | 'PUT',
+  body: Record<string, unknown>
+): Promise<boolean> {
   try {
     const response = await robustFetch(url, {
       method,
@@ -139,11 +152,13 @@ async function fetchWithBody(url: string, method: 'POST' | 'PUT', body: Record<s
 
 /**
  * Save a highscore to the API
+ * Score is calculated server-side based on mode and level difficulty
  */
 export async function saveHighscore(
   mode: string,
   levelId: number,
-  score: number
+  moves: number,
+  time: number
 ): Promise<boolean> {
   if (!API_URL) {
     console.warn('[Leaderboard] API URL not configured');
@@ -152,9 +167,9 @@ export async function saveHighscore(
 
   const userId = getUserId();
   const url = `${API_URL}${API_PATHS.HIGHSCORE(userId, mode, levelId)}`;
-  const success = await fetchWithBody(url, 'POST', { score });
+  const success = await fetchWithBody(url, 'POST', { moves, time });
   if (success) {
-    console.log(`[Leaderboard] Saved score ${score} for ${mode} level ${levelId}`);
+    console.log(`[Leaderboard] Saved highscore for ${mode} level ${levelId}`);
   }
   return success;
 }
@@ -189,7 +204,10 @@ export async function unlockAchievement(achievementId: string): Promise<boolean>
 /**
  * Get leaderboard for a mode
  */
-export async function getLeaderboard(mode: string, limit: number = 100): Promise<LeaderboardEntry[]> {
+export async function getLeaderboard(
+  mode: string,
+  limit: number = 100
+): Promise<LeaderboardEntry[]> {
   if (!API_URL) {
     console.warn('[Leaderboard] API URL not configured');
     return [];
@@ -251,6 +269,31 @@ export async function getAchievementStats(limit: number = 100): Promise<Achievem
 }
 
 /**
+ * Update user stats (performance metrics)
+ */
+export async function updateUserStats(stats: {
+  maxCombo?: number;
+  wallsSurvived?: number;
+  noResetStreak?: number;
+  speedLevels?: number;
+  perfectLevels?: number;
+  daysPlayed?: number;
+}): Promise<boolean> {
+  if (!API_URL) {
+    console.warn('[Profile] API URL not configured');
+    return false;
+  }
+
+  const userId = getUserId();
+  const url = `${API_URL}/api/profile/${userId}/stats`;
+  const success = await fetchWithBody(url, 'POST', stats);
+  if (success) {
+    console.log('[Profile] Updated user stats');
+  }
+  return success;
+}
+
+/**
  * Get user profile
  */
 export async function getUserProfile(userId?: string): Promise<UserProfile | null> {
@@ -284,14 +327,20 @@ export async function updateUserProfile(username: string, userId?: string): Prom
 /**
  * Get user wins (game history)
  */
-export async function getUserWins(userId?: string, limit: number = 50): Promise<LeaderboardEntry[]> {
+export async function getUserWins(
+  userId?: string,
+  limit: number = 50
+): Promise<LeaderboardEntry[]> {
   if (!API_URL) {
     console.warn('[Profile] API URL not configured');
     return [];
   }
 
   const id = userId || getUserId();
-  const result = await fetchFromApi<any[]>(`${API_URL}${API_PATHS.PROFILE_WINS(id)}?limit=${limit}`, true);
+  const result = await fetchFromApi<any[]>(
+    `${API_URL}${API_PATHS.PROFILE_WINS(id)}?limit=${limit}`,
+    true
+  );
   return (Array.isArray(result) ? result : null) || [];
 }
 
@@ -321,7 +370,11 @@ export async function saveReplay(
 /**
  * Get replay data for a specific game
  */
-export async function getReplay(userId: string, mode: string, levelId: number): Promise<ReplayData | null> {
+export async function getReplay(
+  userId: string,
+  mode: string,
+  levelId: number
+): Promise<ReplayData | null> {
   if (!API_URL) {
     console.warn('[Replay] API URL not configured');
     return null;
@@ -348,7 +401,9 @@ export async function getReplay(userId: string, mode: string, levelId: number): 
 /**
  * Get complete user profile (profile + achievements + wins + rankings) in one call
  */
-export async function getCompleteUserProfile(userId?: string): Promise<(UserProfile & { rankings: Record<string, number> }) | null> {
+export async function getCompleteUserProfile(
+  userId?: string
+): Promise<(UserProfile & { rankings: Record<string, number> }) | null> {
   if (!API_URL) {
     console.warn('[Profile] API URL not configured');
     return null;

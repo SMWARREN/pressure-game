@@ -16,7 +16,14 @@
 //   ⭐ Star bonus: +50 pts per star used in a chain
 //   💣 Bomb clear: +100 pts per column tile cleared
 
-import { GameModeConfig, TapResult, WinResult, LossResult, TileRenderContext, TileColors } from '../types';
+import {
+  GameModeConfig,
+  TapResult,
+  WinResult,
+  LossResult,
+  TileRenderContext,
+  TileColors,
+} from '../types';
 import { Tile } from '../../types';
 import {
   GRAVITY_LEVELS,
@@ -368,7 +375,10 @@ function getChainTileColors(c: { bg: string; border: string; glow: string }): Ti
   };
 }
 
-function getHintTileColors(c: { bg: string; border: string; glow: string }, ctx: TileRenderContext): TileColors {
+function getHintTileColors(
+  c: { bg: string; border: string; glow: string },
+  ctx: TileRenderContext
+): TileColors {
   return {
     background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
     border: `2px solid ${c.border}88`,
@@ -376,7 +386,10 @@ function getHintTileColors(c: { bg: string; border: string; glow: string }, ctx:
   };
 }
 
-function getDefaultTileColors(c: { bg: string; border: string; glow: string }, ctx: TileRenderContext): TileColors {
+function getDefaultTileColors(
+  c: { bg: string; border: string; glow: string },
+  ctx: TileRenderContext
+): TileColors {
   return {
     background: `linear-gradient(145deg, ${c.bg}, ${ctx.theme === 'light' ? '#f0f0f0' : '#080812'})`,
     border: `1px solid ${c.border}55`,

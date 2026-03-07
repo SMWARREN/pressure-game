@@ -14,6 +14,11 @@ interface UserStats {
   username?: string;
   totalScore: number;
   levelsCompleted: number;
+  maxCombo?: number;
+  wallsSurvived?: number;
+  noResetStreak?: number;
+  speedLevels?: number;
+  perfectLevels?: number;
   achievements: Array<{ id: string; name: string; icon: string; unlockedAt: string }>;
   rankings: Record<string, number>; // mode -> rank
   wins: Array<{
@@ -63,6 +68,11 @@ export default function ProfileScreen({
           username: completeProfile.profile?.username || userId,
           totalScore: completeProfile.profile?.totalScore || 0,
           levelsCompleted: completeProfile.profile?.levelsCompleted || 0,
+          maxCombo: (completeProfile.profile as any)?.max_combo || 0,
+          wallsSurvived: (completeProfile.profile as any)?.total_walls_survived || 0,
+          noResetStreak: (completeProfile.profile as any)?.no_reset_streak || 0,
+          speedLevels: (completeProfile.profile as any)?.speed_levels || 0,
+          perfectLevels: (completeProfile.profile as any)?.perfect_levels || 0,
           achievements: (completeProfile.achievements as UserStats['achievements']) || [],
           rankings: completeProfile.rankings || {},
           wins: (completeProfile.wins as UserStats['wins']) || [],
@@ -241,6 +251,110 @@ export default function ProfileScreen({
           </div>
         </div>
 
+        {/* Performance Stats */}
+        {(userStats.maxCombo ||
+          userStats.wallsSurvived ||
+          userStats.noResetStreak ||
+          userStats.speedLevels ||
+          userStats.perfectLevels) && (
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: colors.text.tertiary,
+                marginBottom: 8,
+              }}
+            >
+              PERFORMANCE
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 8,
+              }}
+            >
+              {userStats.maxCombo !== undefined && userStats.maxCombo > 0 && (
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    background: colors.bg.secondary,
+                    borderRadius: 6,
+                    border: `1px solid ${colors.border.primary}`,
+                  }}
+                >
+                  <div style={{ fontSize: 9, color: colors.text.tertiary }}>Max Combo</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#f97316' }}>
+                    {userStats.maxCombo}
+                  </div>
+                </div>
+              )}
+              {userStats.wallsSurvived !== undefined && userStats.wallsSurvived > 0 && (
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    background: colors.bg.secondary,
+                    borderRadius: 6,
+                    border: `1px solid ${colors.border.primary}`,
+                  }}
+                >
+                  <div style={{ fontSize: 9, color: colors.text.tertiary }}>Walls Survived</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#ef4444' }}>
+                    {userStats.wallsSurvived}
+                  </div>
+                </div>
+              )}
+              {userStats.speedLevels !== undefined && userStats.speedLevels > 0 && (
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    background: colors.bg.secondary,
+                    borderRadius: 6,
+                    border: `1px solid ${colors.border.primary}`,
+                  }}
+                >
+                  <div style={{ fontSize: 9, color: colors.text.tertiary }}>Speed Runs</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#06b6d4' }}>
+                    {userStats.speedLevels}
+                  </div>
+                </div>
+              )}
+              {userStats.perfectLevels !== undefined && userStats.perfectLevels > 0 && (
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    background: colors.bg.secondary,
+                    borderRadius: 6,
+                    border: `1px solid ${colors.border.primary}`,
+                  }}
+                >
+                  <div style={{ fontSize: 9, color: colors.text.tertiary }}>Perfect Levels</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#10b981' }}>
+                    {userStats.perfectLevels}
+                  </div>
+                </div>
+              )}
+              {userStats.noResetStreak !== undefined && userStats.noResetStreak > 0 && (
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    background: colors.bg.secondary,
+                    borderRadius: 6,
+                    border: `1px solid ${colors.border.primary}`,
+                    gridColumn: 'span 2',
+                  }}
+                >
+                  <div style={{ fontSize: 9, color: colors.text.tertiary }}>No-Reset Streak</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#8b5cf6' }}>
+                    {userStats.noResetStreak}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Rankings */}
         <div>
           <div
@@ -377,7 +491,25 @@ export default function ProfileScreen({
                       <div style={{ fontSize: 12, fontWeight: 700, color: modeColor }}>
                         {win.score}
                       </div>
-                      {onWatchReplay && <div style={{ fontSize: 14, opacity: 0.6 }}>▶</div>}
+                      {onWatchReplay && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 32,
+                            height: 32,
+                            borderRadius: 6,
+                            background: modeColor,
+                            color: 'white',
+                            fontSize: 16,
+                            fontWeight: 600,
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          ▶
+                        </div>
+                      )}
                     </div>
                   </button>
                 );

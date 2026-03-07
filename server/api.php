@@ -49,6 +49,42 @@ $DB_USER = getEnvVar('MYSQL_USER', 'saintsea_pressure');
 $DB_PASS = getEnvVar('MYSQL_PASSWORD', 'pressurepressure');
 $DB_NAME = getEnvVar('MYSQL_DATABASE', 'saintsea_pressure-engine');
 
+// ─── LEVEL CONFIGURATION & SCORING ─────────────────────────────────────
+
+// Define all levels with their difficulty types
+$LEVELS = [
+  1 => 'easy', 2 => 'easy', 3 => 'easy',
+  4 => 'medium', 5 => 'medium', 6 => 'medium', 7 => 'medium',
+  8 => 'hard', 9 => 'hard', 10 => 'hard'
+];
+
+// Mode-specific score multipliers by difficulty
+$SCORE_MULTIPLIERS = [
+  'classic' => ['easy' => 1.0, 'medium' => 1.5, 'hard' => 2.0],
+  'blitz' => ['easy' => 2.0, 'medium' => 3.0, 'hard' => 4.0],
+  'zen' => ['easy' => 0.5, 'medium' => 1.0, 'hard' => 2.0],
+];
+
+// Calculate score based on mode, moves, time, and level difficulty
+function calculateScore($mode, $moves, $time, $levelId) {
+  global $LEVELS, $SCORE_MULTIPLIERS;
+
+  $difficulty = $LEVELS[$levelId] ?? 'medium';
+  $multiplier = $SCORE_MULTIPLIERS[$mode][$difficulty] ?? 1.0;
+
+  $baseScore = match($mode) {
+    'classic' => 10000 - ($moves + $time),
+    'blitz' => 10000 - $time,
+    'zen' => 10000 - $moves,
+    default => 1000
+  };
+
+  $finalScore = max(0, (int)($baseScore * $multiplier));
+  error_log("calculateScore: mode=$mode, moves=$moves, time=$time, levelId=$levelId, difficulty=$difficulty, multiplier=$multiplier, baseScore=$baseScore, finalScore=$finalScore");
+
+  return $finalScore;
+}
+
 // Database Connection
 class Database {
   private $conn;
@@ -80,8 +116,38 @@ class Database {
   }
 
   private function initTable() {
+    // Ensure highscores table exists first
+    $sql = "
+      CREATE TABLE IF NOT EXISTS highscores (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        mode VARCHAR(50) NOT NULL,
+        level_id INT NOT NULL,
+        score INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_score (user_id, mode, level_id),
+        INDEX idx_mode_score (mode, score DESC),
+        INDEX idx_user (user_id),
+        INDEX idx_level (mode, level_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create highscores table: ' . $this->conn->error);
+    }
+
+    // Add missing columns to highscores table (migrations)
+    $this->addColumnIfNotExists('highscores', 'best_moves', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('highscores', 'best_time', 'FLOAT DEFAULT 0');
+
     // Add missing columns to user_profiles table (migrations)
     $this->addColumnIfNotExists('user_profiles', 'total_moves', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'max_combo', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'total_walls_survived', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'no_reset_streak', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'speed_levels', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'perfect_levels', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'total_days_played', 'INT DEFAULT 0');
 
     // Game data persistence table
     $sql = "
@@ -124,26 +190,7 @@ class Database {
       throw new Exception('Failed to create user_profiles table: ' . $this->conn->error);
     }
 
-    // Highscores table
-    $sql = "
-      CREATE TABLE IF NOT EXISTS highscores (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL,
-        mode VARCHAR(50) NOT NULL,
-        level_id INT NOT NULL,
-        score INT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_score (user_id, mode, level_id),
-        INDEX idx_mode_score (mode, score DESC),
-        INDEX idx_user (user_id),
-        INDEX idx_level (mode, level_id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    ";
-
-    if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create highscores table: ' . $this->conn->error);
-    }
+    // Highscores table already created above in addColumnIfNotExists section
 
     // Achievements table
     $sql = "
@@ -257,26 +304,53 @@ class Database {
 
   // ─── Highscores ──────────────────────────────────────────────────────
 
-  public function saveHighscore($userId, $mode, $levelId, $score) {
-    $stmt = $this->conn->prepare(
-      'INSERT INTO highscores (user_id, mode, level_id, score)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-       score = IF(VALUES(score) > score, VALUES(score), score),
-       updated_at = CURRENT_TIMESTAMP'
-    );
+  public function saveHighscore($userId, $mode, $levelId, $moves = null, $time = null) {
+    error_log("saveHighscore called: userId=$userId, mode=$mode, levelId=$levelId, moves=$moves, time=$time");
+
+    // Ensure user profile exists first
+    $this->ensureUserProfile($userId);
+
+    // Convert and validate inputs
+    $bestMoves = $moves !== null ? intval($moves) : 0;
+    $bestTime = $time !== null ? floatval($time) : 0.0;
+
+    // Calculate score based on mode and level difficulty
+    $score = calculateScore($mode, $bestMoves, $bestTime, $levelId);
+
+    error_log("Converted values: bestMoves=$bestMoves, bestTime=$bestTime, calculatedScore=$score");
+
+    $sql = 'INSERT INTO highscores (user_id, mode, level_id, score, best_moves, best_time)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            score = VALUES(score),
+            best_moves = VALUES(best_moves),
+            best_time = VALUES(best_time)';
+
+    error_log("SQL: $sql");
+
+    $stmt = $this->conn->prepare($sql);
+
     if (!$stmt) {
+      error_log("Prepare failed: " . $this->conn->error);
       throw new Exception('Prepare failed: ' . $this->conn->error);
     }
 
-    $stmt->bind_param('ssii', $userId, $mode, $levelId, $score);
-    $success = $stmt->execute();
-    $stmt->close();
+    error_log("Prepare succeeded, binding params");
 
-    // Update user profile stats (aggregate from highscores and achievements)
-    if ($success) {
-      $this->updateUserProfileStats($userId);
+    $stmt->bind_param('ssiiid', $userId, $mode, $levelId, $score, $bestMoves, $bestTime);
+
+    error_log("Bind succeeded, executing");
+
+    $success = $stmt->execute();
+
+    if (!$success) {
+      error_log("Execute failed: " . $this->conn->error);
+      throw new Exception('Execute failed: ' . $this->conn->error);
     }
+
+    error_log("Execute succeeded");
+
+    $stmt->close();
 
     return $success;
   }
@@ -300,12 +374,25 @@ class Database {
     $stats = $result->fetch_assoc();
     $stmt->close();
 
+    error_log("updateUserProfileStats for $userId: raw stats = " . json_encode($stats));
     $levelsCompleted = intval($stats['levels_completed'] ?? 0);
     $totalScore = intval($stats['total_score'] ?? 0);
+    error_log("updateUserProfileStats: levels=$levelsCompleted, score=$totalScore");
 
-    // Calculate total moves from replays
+    // If query returned nothing or zeros, something is wrong - log the highscores for this user
+    if ($totalScore === 0) {
+      $checkStmt = $this->conn->prepare('SELECT COUNT(*) as count, SUM(score) as total FROM highscores WHERE user_id = ?');
+      $checkStmt->bind_param('s', $userId);
+      $checkStmt->execute();
+      $checkResult = $checkStmt->get_result();
+      $checkStats = $checkResult->fetch_assoc();
+      $checkStmt->close();
+      error_log("DEBUG: Highscores for $userId: " . json_encode($checkStats));
+    }
+
+    // Calculate total moves from best_moves in highscores
     $stmt = $this->conn->prepare(
-      'SELECT SUM(JSON_LENGTH(moves)) as total_moves FROM replays WHERE user_id = ?'
+      'SELECT SUM(best_moves) as total_moves FROM highscores WHERE user_id = ?'
     );
     if (!$stmt) {
       throw new Exception('Prepare failed: ' . $this->conn->error);
@@ -345,7 +432,7 @@ class Database {
       throw new Exception('Prepare failed: ' . $this->conn->error);
     }
 
-    $stmt->bind_param('iiis', $totalScore, $totalMoves, $levelsCompleted, $achievementsCount, $userId);
+    $stmt->bind_param('iiiis', $totalScore, $totalMoves, $levelsCompleted, $achievementsCount, $userId);
     $stmt->execute();
     $stmt->close();
   }
@@ -378,13 +465,14 @@ class Database {
       return $leaderboard;
     }
 
-    // Otherwise, return mode-specific leaderboard
+    // Otherwise, return mode-specific leaderboard (one entry per user, their best score in this mode)
     $stmt = $this->conn->prepare(
-      'SELECT h.user_id, h.score, h.created_at, COALESCE(up.username, h.user_id) as username
+      'SELECT h.user_id, MAX(h.score) as score, MAX(h.created_at) as created_at, COALESCE(up.username, h.user_id) as username, COALESCE(up.total_score, 0) as total_score
        FROM highscores h
        LEFT JOIN user_profiles up ON h.user_id = up.user_id
        WHERE h.mode = ?
-       ORDER BY h.score DESC
+       GROUP BY h.user_id
+       ORDER BY score DESC
        LIMIT ?'
     );
     if (!$stmt) {
@@ -534,7 +622,7 @@ class Database {
 
   public function getUserProfile($userId) {
     $stmt = $this->conn->prepare(
-      'SELECT user_id, username, total_score, total_moves, achievements_count, levels_completed, created_at FROM user_profiles WHERE user_id = ?'
+      'SELECT user_id, username, total_score, total_moves, achievements_count, levels_completed, max_combo, total_walls_survived, no_reset_streak, speed_levels, perfect_levels, total_days_played, created_at FROM user_profiles WHERE user_id = ?'
     );
     if (!$stmt) {
       throw new Exception('Prepare failed: ' . $this->conn->error);
@@ -618,6 +706,56 @@ class Database {
     return $success;
   }
 
+  public function updateUserStats($userId, $maxCombo = null, $wallsSurvived = null, $noResetStreak = null, $speedLevels = null, $perfectLevels = null, $daysPlayed = null) {
+    // Ensure profile exists
+    $this->ensureUserProfile($userId);
+
+    // Update each stat individually to avoid dynamic bind_param issues
+    if ($maxCombo !== null) {
+      $stmt = $this->conn->prepare('UPDATE user_profiles SET max_combo = GREATEST(IFNULL(max_combo, 0), ?), updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+      $stmt->bind_param('is', $maxCombo, $userId);
+      $stmt->execute();
+      $stmt->close();
+    }
+
+    if ($wallsSurvived !== null) {
+      $stmt = $this->conn->prepare('UPDATE user_profiles SET total_walls_survived = GREATEST(IFNULL(total_walls_survived, 0), ?), updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+      $stmt->bind_param('is', $wallsSurvived, $userId);
+      $stmt->execute();
+      $stmt->close();
+    }
+
+    if ($noResetStreak !== null) {
+      $stmt = $this->conn->prepare('UPDATE user_profiles SET no_reset_streak = GREATEST(IFNULL(no_reset_streak, 0), ?), updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+      $stmt->bind_param('is', $noResetStreak, $userId);
+      $stmt->execute();
+      $stmt->close();
+    }
+
+    if ($speedLevels !== null) {
+      $stmt = $this->conn->prepare('UPDATE user_profiles SET speed_levels = GREATEST(IFNULL(speed_levels, 0), ?), updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+      $stmt->bind_param('is', $speedLevels, $userId);
+      $stmt->execute();
+      $stmt->close();
+    }
+
+    if ($perfectLevels !== null) {
+      $stmt = $this->conn->prepare('UPDATE user_profiles SET perfect_levels = GREATEST(IFNULL(perfect_levels, 0), ?), updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+      $stmt->bind_param('is', $perfectLevels, $userId);
+      $stmt->execute();
+      $stmt->close();
+    }
+
+    if ($daysPlayed !== null) {
+      $stmt = $this->conn->prepare('UPDATE user_profiles SET total_days_played = GREATEST(IFNULL(total_days_played, 0), ?), updated_at = CURRENT_TIMESTAMP WHERE user_id = ?');
+      $stmt->bind_param('is', $daysPlayed, $userId);
+      $stmt->execute();
+      $stmt->close();
+    }
+
+    return true;
+  }
+
   public function getReplay($userId, $mode, $levelId) {
     $stmt = $this->conn->prepare(
       'SELECT user_id, mode, level_id, moves, score, created_at
@@ -639,6 +777,107 @@ class Database {
     }
 
     return $row;
+  }
+
+  // ─── Debug Endpoints ──────────────────────────────────────────────
+
+  public function getSchemaInfo() {
+    $tables = [];
+
+    // Get all tables
+    $result = $this->conn->query("SHOW TABLES");
+    if (!$result) {
+      throw new Exception('Failed to list tables: ' . $this->conn->error);
+    }
+
+    while ($row = $result->fetch_row()) {
+      $tableName = $row[0];
+      $columns = [];
+
+      // Get all columns for this table
+      $colResult = $this->conn->query("SHOW COLUMNS FROM `$tableName`");
+      if ($colResult) {
+        while ($colRow = $colResult->fetch_assoc()) {
+          $columns[] = [
+            'name' => $colRow['Field'],
+            'type' => $colRow['Type'],
+            'null' => $colRow['Null'],
+            'key' => $colRow['Key'],
+            'default' => $colRow['Default'],
+            'extra' => $colRow['Extra'],
+          ];
+        }
+      }
+
+      // Get row count
+      $countResult = $this->conn->query("SELECT COUNT(*) as cnt FROM `$tableName`");
+      $countRow = $countResult->fetch_assoc();
+      $rowCount = intval($countRow['cnt']);
+
+      $tables[$tableName] = [
+        'row_count' => $rowCount,
+        'columns' => $columns,
+      ];
+    }
+
+    return $tables;
+  }
+
+  public function cleanupTestData($userId) {
+    if (empty($userId)) {
+      throw new Exception('userId is required for cleanup');
+    }
+
+    $deleted = [
+      'highscores' => 0,
+      'replays' => 0,
+      'user_profiles' => 0,
+      'achievements' => 0,
+      'game_data' => 0,
+    ];
+
+    // Delete test data for specific user only
+    $stmt = $this->conn->prepare('DELETE FROM highscores WHERE user_id = ?');
+    if ($stmt) {
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $deleted['highscores'] = $this->conn->affected_rows;
+      $stmt->close();
+    }
+
+    $stmt = $this->conn->prepare('DELETE FROM replays WHERE user_id = ?');
+    if ($stmt) {
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $deleted['replays'] = $this->conn->affected_rows;
+      $stmt->close();
+    }
+
+    $stmt = $this->conn->prepare('DELETE FROM achievements WHERE user_id = ?');
+    if ($stmt) {
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $deleted['achievements'] = $this->conn->affected_rows;
+      $stmt->close();
+    }
+
+    $stmt = $this->conn->prepare('DELETE FROM game_data WHERE user_id = ?');
+    if ($stmt) {
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $deleted['game_data'] = $this->conn->affected_rows;
+      $stmt->close();
+    }
+
+    $stmt = $this->conn->prepare('DELETE FROM user_profiles WHERE user_id = ?');
+    if ($stmt) {
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $deleted['user_profiles'] = $this->conn->affected_rows;
+      $stmt->close();
+    }
+
+    return $deleted;
   }
 
   public function close() {
@@ -837,21 +1076,31 @@ try {
     }
 
     $body = json_decode(file_get_contents('php://input'), true);
-    $score = $body['score'] ?? null;
+    $moves = $body['moves'] ?? null;
+    $time = $body['time'] ?? null;
 
-    if ($score === null) {
+    // Moves and time are required for score calculation
+    if ($moves === null || $time === null) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing score']);
+      echo json_encode(['error' => 'Missing moves or time']);
       $db->close();
       exit;
     }
 
-    if ($db->saveHighscore($userId, $mode, $levelId, intval($score))) {
-      http_response_code(200);
-      echo json_encode(['success' => true]);
-    } else {
+    try {
+      if ($db->saveHighscore($userId, $mode, $levelId, intval($moves), floatval($time))) {
+        // Update user profile with aggregated stats
+        $db->updateUserProfileStats($userId);
+
+        http_response_code(200);
+        echo json_encode(['success' => true]);
+      } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to save highscore']);
+      }
+    } catch (Exception $e) {
       http_response_code(500);
-      echo json_encode(['error' => 'Failed to save highscore']);
+      echo json_encode(['error' => 'Highscore save error: ' . $e->getMessage()]);
     }
     $db->close();
     exit;
@@ -1002,6 +1251,43 @@ try {
     exit;
   }
 
+  // Update user stats: POST /api/profile/{userId}/stats
+  if (count($routeParts) === 3 && $routeParts[0] === 'profile' && $routeParts[2] === 'stats' && $method === 'POST') {
+    $userId = $routeParts[1];
+
+    if (empty($userId)) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing userId']);
+      $db->close();
+      exit;
+    }
+
+    $body = json_decode(file_get_contents('php://input'), true);
+
+    try {
+      if ($db->updateUserStats(
+        $userId,
+        $body['maxCombo'] ?? null,
+        $body['wallsSurvived'] ?? null,
+        $body['noResetStreak'] ?? null,
+        $body['speedLevels'] ?? null,
+        $body['perfectLevels'] ?? null,
+        $body['daysPlayed'] ?? null
+      )) {
+        http_response_code(200);
+        echo json_encode(['success' => true]);
+      } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to update stats']);
+      }
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => 'Stats update error: ' . $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
   // Get complete user profile with achievements and wins: GET /api/profile/{userId}/full
   if (count($routeParts) === 3 && $routeParts[0] === 'profile' && $routeParts[2] === 'full' && $method === 'GET') {
     $userId = $routeParts[1];
@@ -1089,6 +1375,57 @@ try {
     }
     $db->close();
     exit;
+  }
+
+  // ─── Debug Endpoints ──────────────────────────────────────────────
+
+  // Get database schema info: GET /api/debug/schema
+  if (count($routeParts) === 2 && $routeParts[0] === 'debug' && $routeParts[1] === 'schema' && $method === 'GET') {
+    try {
+      $schemaInfo = $db->getSchemaInfo();
+      http_response_code(200);
+      echo json_encode([
+        'database' => $DB_NAME,
+        'tables' => $schemaInfo,
+      ]);
+      $db->close();
+      exit;
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+      $db->close();
+      exit;
+    }
+  }
+
+  // Clean up test data for user: DELETE /api/debug/cleanup/{userId}
+  if (count($routeParts) === 3 && $routeParts[0] === 'debug' && $routeParts[1] === 'cleanup' && $method === 'DELETE') {
+    $userId = $routeParts[2];
+
+    if (empty($userId)) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing userId']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $deleted = $db->cleanupTestData($userId);
+      http_response_code(200);
+      echo json_encode([
+        'status' => 'success',
+        'message' => "Test data cleaned up for user: $userId",
+        'user_id' => $userId,
+        'deleted' => $deleted,
+      ]);
+      $db->close();
+      exit;
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+      $db->close();
+      exit;
+    }
   }
 
   // Route not found
