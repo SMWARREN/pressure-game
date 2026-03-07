@@ -25,8 +25,7 @@ export interface FeatureIndicatorsProps {
 }
 
 export function FeatureIndicators({ currentLevel, onShowFeatureInfo }: FeatureIndicatorsProps) {
-  const hasFeatures =
-    currentLevel.features && Object.values(currentLevel.features).includes(true);
+  const hasFeatures = currentLevel.features && Object.values(currentLevel.features).includes(true);
 
   if (!hasFeatures) return null;
 

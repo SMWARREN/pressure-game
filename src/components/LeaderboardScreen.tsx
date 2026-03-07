@@ -392,7 +392,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               }}
             >
               <span style={{ fontSize: 20, marginRight: 8 }}>🔄</span>
-              Retry
+              <span>Retry</span>
             </button>
           </div>
         )}
