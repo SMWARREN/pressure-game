@@ -15,6 +15,21 @@
 
 import { GameModeConfig } from './types';
 import { ENABLED_MODE_IDS } from '@/config/features';
+export { ClassicMode } from './classic/index';
+export { ZenMode } from './zen/index';
+export { BlitzMode } from './blitz/index';
+export { CandyMode } from './candy/index';
+export { QuantumChainMode } from './quantumChain/index';
+export { ShoppingSpreeMode } from './shoppingSpree/index';
+export { OutbreakMode } from './outbreak/index';
+export { MemoryMatchMode } from './memoryMatch/index';
+export { GravityDropMode } from './gravityDrop/index';
+export { MirrorForgeMode } from './mirrorForge/index';
+export { LaserRelayMode } from './laserRelay/index';
+export { VoltageMode } from './voltage/index';
+export { FuseMode } from './fuse/index';
+export { GemBlastMode } from './gemBlast/index';
+
 import { ClassicMode } from './classic/index';
 import { ZenMode } from './zen/index';
 import { BlitzMode } from './blitz/index';
@@ -108,16 +123,5 @@ export function getModeById(id: string): GameModeConfig {
   return ALL_MODES.find((m) => m.id === id) ?? ClassicMode;
 }
 
-export {
-  ClassicMode,
-  ZenMode,
-  BlitzMode,
-  CandyMode,
-  QuantumChainMode,
-  ShoppingSpreeMode,
-  MemoryMatchMode,
-  GravityDropMode,
-  MirrorForgeMode,
-};
 // Export type from local modes/types (not from ../types which re-exports this)
 export type { GameModeConfig } from './types';

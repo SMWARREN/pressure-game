@@ -319,7 +319,7 @@ export class SyncingBackend implements PersistenceBackend {
     }
 
     // Generate new UUID for anonymous user
-    const newUserId = `user_${Math.random().toString(36).substr(2, 9)}`;
+    const newUserId = `user_${Math.random().toString(36).slice(2, 11)}`;
     localStorage.setItem('pressure_user_id', newUserId);
     return newUserId;
   }

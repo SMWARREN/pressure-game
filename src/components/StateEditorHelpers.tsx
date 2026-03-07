@@ -61,7 +61,7 @@ export function shouldShowNoTileMessage(selectedTile: any): boolean {
 }
 
 export function getConnectionCountLabel(count: number): string {
-  return `${count} connection${count !== 1 ? 's' : ''}`;
+  return `${count} connection${count === 1 ? '' : 's'}`;
 }
 
 export function getCompressionStatusLabel(
@@ -92,7 +92,7 @@ export function shouldEnableDebugStepForwardButton(
 }
 
 export function getPresetCountMessage(presets: any[]): string {
-  return `${presets.length} preset${presets.length !== 1 ? 's' : ''}`;
+  return `${presets.length} preset${presets.length === 1 ? '' : 's'}`;
 }
 
 export function shouldShowDeletePresetButton(presets: any[], selectedPresetName: string): boolean {

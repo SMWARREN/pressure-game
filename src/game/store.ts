@@ -6,8 +6,8 @@ import { create } from 'zustand';
 import { GameState, GameActions, Level, Direction, Tile } from './types';
 import { getModeById } from './modes';
 import type { TapResult } from './modes/types';
-import { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
-import type { PressureEngine, SoundEffect } from './engine';
+export { checkConnected, getConnectedTiles, createTileMap } from './modes/utils';
+export type { PressureEngine, SoundEffect } from './engine';
 import {
   UNDO_DELAY_MS,
   HISTORY_TRIM_DELAY_MS,
@@ -15,8 +15,7 @@ import {
 } from './constants/timings';
 import { GRID_SIZE_MIN, GRID_SIZE_MAX } from './constants/grid';
 
-// Re-export utilities so existing imports don't break
-export { checkConnected, getConnectedTiles, createTileMap };
+import type { PressureEngine } from './engine';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ENGINE INSTANCE
@@ -1019,6 +1018,3 @@ export function destroyGameStore() {
     console.warn('Error destroying Zustand store:', e);
   }
 }
-
-// Export type helpers
-export type { PressureEngine, SoundEffect };

@@ -10,7 +10,7 @@
 import type { GameModeConfig, TapResult, WinResult, LossResult, TileColors } from '../types';
 import type { Tile } from '../../types';
 import { pickRandom, isEmpty, isNotEmpty } from '@/utils/conditionalStyles';
-import { GEM_LEVELS, GEM_WORLDS, GEM_SYMBOLS, BLAST_GEM, generateGrid } from './levels';
+import { GEM_LEVELS, GEM_WORLDS, GEM_SYMBOLS, BLAST_GEM } from './levels';
 import { GEM_BLAST_TUTORIAL_STEPS } from './tutorial';
 import { renderGemBlastDemo } from './demo';
 import { GEM_BLAST_WALKTHROUGH } from './walkthrough';
@@ -490,5 +490,5 @@ export const GemBlastMode: GameModeConfig = {
 };
 
 // Re-export for use in ArcadeHubScreen
-export { generateGrid, GEM_SYMBOLS };
+export { generateGrid, GEM_SYMBOLS } from './levels';
 export { seededRandom } from '../seedUtils';
