@@ -28,18 +28,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   exit;
 }
 
-// Load environment variables
+// Load environment variables from .env file
 $env = [];
 if (file_exists('.env')) {
-  $env = parse_ini_file('.env', true) ?: [];
+  // Parse .env file without sections (false parameter)
+  $env = parse_ini_file('.env', false) ?: [];
+}
+
+// Helper function to get env value from .env or system env
+function getEnvVar($key, $default = null) {
+  global $env;
+  // Try .env file first, then system environment, then default
+  return $env[$key] ?? getenv($key) ?: $default;
 }
 
 // Database Configuration
-$DB_HOST = $env['MYSQL_HOST'] ?? 'localhost';
-$DB_PORT = $env['MYSQL_PORT'] ?? 3306;
-$DB_USER = $env['MYSQL_USER'] ?? 'saintsea_pressure';
-$DB_PASS = $env['MYSQL_PASSWORD'] ?? 'pressurepressure';
-$DB_NAME = $env['MYSQL_DATABASE'] ?? 'saintsea_pressure-engine';
+$DB_HOST = getEnvVar('MYSQL_HOST', 'localhost');
+$DB_PORT = (int)getEnvVar('MYSQL_PORT', 3306);
+$DB_USER = getEnvVar('MYSQL_USER', 'saintsea_pressure');
+$DB_PASS = getEnvVar('MYSQL_PASSWORD', 'pressurepressure');
+$DB_NAME = getEnvVar('MYSQL_DATABASE', 'saintsea_pressure-engine');
 
 // Database Connection
 class Database {
