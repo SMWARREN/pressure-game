@@ -280,7 +280,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               zIndex: 200,
             }}
           >
-            <ProfileScreen />
+            <ProfileScreen userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
           </div>
         )}
 

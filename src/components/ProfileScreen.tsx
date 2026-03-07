@@ -17,9 +17,15 @@ interface UserStats {
   rankings: Record<string, number>; // mode -> rank
 }
 
-export default function ProfileScreen() {
+interface ProfileScreenProps {
+  userId?: string;
+  onClose?: () => void;
+}
+
+export default function ProfileScreen({ userId: propUserId, onClose }: ProfileScreenProps) {
   const { colors } = useTheme();
-  const closeProfile = useGameStore((s) => s.closeArcadeHub); // reuse close action
+  const closeArcadeHub = useGameStore((s) => s.closeArcadeHub);
+  const closeProfile = onClose || closeArcadeHub;
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +34,7 @@ export default function ProfileScreen() {
     const loadProfile = async () => {
       try {
         setLoading(true);
-        const userId = localStorage.getItem('pressure_user_id') || 'anonymous';
+        const userId = propUserId || localStorage.getItem('pressure_user_id') || 'anonymous';
 
         // Fetch user profile
         const profile = await getUserProfile(userId);
@@ -67,7 +73,7 @@ export default function ProfileScreen() {
     };
 
     loadProfile();
-  }, []);
+  }, [propUserId]);
 
   if (loading) {
     return (
