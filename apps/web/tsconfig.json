@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2021",
     "useDefineForClassFields": true,
-    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2021",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -17,14 +21,32 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/game/*": ["../../src/game/*"],
-      "@/utils/*": ["../../src/utils/*"],
-      "@/config/*": ["../../src/config/*"],
-      "@/shared/*": ["../../src/*"],
-      "@/components/*": ["./components/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/game/*": [
+        "../../src/game/*"
+      ],
+      "@/utils/*": [
+        "../../src/utils/*"
+      ],
+      "@/config/*": [
+        "../../src/config/*"
+      ],
+      "@/shared/*": [
+        "../../src/*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

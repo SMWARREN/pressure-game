@@ -9,6 +9,8 @@
     "apps/mobile"
   ],
   "scripts": {
+    "start": "./start-dev.sh",
+    "dev": "./start-dev.sh",
     "web:dev": "cd apps/web && npm run dev",
     "web:build": "cd apps/web && npm run build",
     "web:preview": "cd apps/web && npm run preview",
@@ -19,7 +21,6 @@
     "mobile:preview:ios": "cd apps/mobile && expo start --ios",
     "mobile:preview:android": "cd apps/mobile && expo start --android",
     "mobile:test": "cd apps/mobile && npm test",
-    "dev": "npm run web:dev",
     "build": "npm run web:build && npm run mobile:build",
     "test": "npm run web:test",
     "test:all": "npm run web:test && npm run mobile:test",
