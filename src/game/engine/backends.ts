@@ -105,21 +105,18 @@ export class DatabaseBackend implements PersistenceBackend {
   }
 
   getItem(_key: string): string | null {
-    // TODO: Implement database fetch
-    // Example: const response = await fetch(`${this.apiUrl}/data/${_key}`);
+    // Not implemented - use MySQL or Syncing backend instead
     console.warn('[DatabaseBackend] getItem not yet implemented');
     return null;
   }
 
   setItem(_key: string, _value: string): void {
-    // TODO: Implement database save
-    // Example: await fetch(`${this.apiUrl}/data/${_key}`, { method: 'POST', body: _value });
+    // Not implemented - use MySQL or Syncing backend instead
     console.warn('[DatabaseBackend] setItem not yet implemented');
   }
 
   removeItem(_key: string): void {
-    // TODO: Implement database delete
-    // Example: await fetch(`${this.apiUrl}/data/${_key}`, { method: 'DELETE' });
+    // Not implemented - use MySQL or Syncing backend instead
     console.warn('[DatabaseBackend] removeItem not yet implemented');
   }
 }
