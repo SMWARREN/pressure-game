@@ -553,51 +553,7 @@ function generateSimpleFallback(gridSize: number, difficulty: string): Level {
     hard: { compressionDelay: 4000, movePadding: 1 },
   }[difficulty as DifficultyLevel] ?? { compressionDelay: 6000, movePadding: 2 };
 
-  const wallTiles: Tile[] = [];
-  for (let i = 0; i < gridSize; i++) {
-    wallTiles.push(
-      {
-        id: `wall-${i}-0`,
-        type: 'wall',
-        x: i,
-        y: 0,
-        connections: [],
-        isGoalNode: false,
-        canRotate: false,
-      },
-      {
-        id: `wall-${i}-${gridSize - 1}`,
-        type: 'wall',
-        x: i,
-        y: gridSize - 1,
-        connections: [],
-        isGoalNode: false,
-        canRotate: false,
-      }
-    );
-    if (i > 0 && i < gridSize - 1) {
-      wallTiles.push(
-        {
-          id: `wall-0-${i}`,
-          type: 'wall',
-          x: 0,
-          y: i,
-          connections: [],
-          isGoalNode: false,
-          canRotate: false,
-        },
-        {
-          id: `wall-${gridSize - 1}-${i}`,
-          type: 'wall',
-          x: gridSize - 1,
-          y: i,
-          connections: [],
-          isGoalNode: false,
-          canRotate: false,
-        }
-      );
-    }
-  }
+  const wallTiles = createWallTiles(gridSize);
 
   // Start with vertical pipe (needs to be rotated horizontal to connect)
   const tiles: Tile[] = [
