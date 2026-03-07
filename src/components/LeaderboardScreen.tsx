@@ -3,8 +3,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { getLeaderboard } from '@/game/api/leaderboards';
 import { StarField } from './game/StarField';
 import ProfileScreen from './ProfileScreen';
+import ReplayOverlay from './game/ReplayOverlay';
 import { SyncStatusIndicator } from './game/SyncStatusIndicator';
 import { RGBA_COLORS, GAME_MODES } from '@/utils/constants';
+import { ReplayEngine } from '@/game/stats/replay';
+import type { GameEndEvent } from '@/game/stats/types';
 
 export interface LeaderboardScreenProps {
   readonly onBack: () => void;
@@ -166,6 +169,7 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [replayEvent, setReplayEvent] = useState<GameEndEvent | null>(null);
 
   // Fetch leaderboard when mode changes
   useEffect(() => {
@@ -411,7 +415,26 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
               zIndex: 200,
             }}
           >
-            <ProfileScreen userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+            <ProfileScreen
+              userId={selectedUserId}
+              onClose={() => setSelectedUserId(null)}
+              onWatchReplay={(moveLog, mode, levelId) => {
+                setSelectedUserId(null);
+                setReplayEvent({
+                  type: 'game_end',
+                  ts: Date.now(),
+                  modeId: mode,
+                  levelId,
+                  sessionId: 'preview',
+                  outcome: 'won',
+                  score: 0,
+                  moves: moveLog.length,
+                  elapsedSeconds: 0,
+                  moveLog: moveLog,
+                  lossReason: null,
+                });
+              }}
+            />
           </div>
         )}
 
@@ -429,6 +452,21 @@ export default function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
             />
           ))}
       </div>
+
+      {/* ── REPLAY OVERLAY ─────────────────────────────────────── */}
+      {replayEvent &&
+        (() => {
+          const level = ReplayEngine.findLevel(replayEvent.levelId);
+          if (!level) return null;
+          const engine = new ReplayEngine(replayEvent, level);
+          return (
+            <ReplayOverlay
+              event={replayEvent}
+              engine={engine}
+              onClose={() => setReplayEvent(null)}
+            />
+          );
+        })()}
     </div>
   );
 }
