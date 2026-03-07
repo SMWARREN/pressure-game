@@ -96,11 +96,13 @@ class Database {
         user_id VARCHAR(255) UNIQUE NOT NULL,
         username VARCHAR(100),
         total_score INT DEFAULT 0,
+        total_moves INT DEFAULT 0,
         achievements_count INT DEFAULT 0,
         levels_completed INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_total_score (total_score DESC),
+        INDEX idx_total_moves (total_moves ASC),
         INDEX idx_achievements (achievements_count DESC)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
@@ -288,6 +290,22 @@ class Database {
     $levelsCompleted = intval($stats['levels_completed'] ?? 0);
     $totalScore = intval($stats['total_score'] ?? 0);
 
+    // Calculate total moves from replays
+    $stmt = $this->conn->prepare(
+      'SELECT SUM(JSON_LENGTH(moves)) as total_moves FROM replays WHERE user_id = ?'
+    );
+    if (!$stmt) {
+      throw new Exception('Prepare failed: ' . $this->conn->error);
+    }
+
+    $stmt->bind_param('s', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $moveStats = $result->fetch_assoc();
+    $stmt->close();
+
+    $totalMoves = intval($moveStats['total_moves'] ?? 0);
+
     // Count achievements
     $stmt = $this->conn->prepare(
       'SELECT COUNT(*) as achievement_count FROM achievements WHERE user_id = ?'
@@ -307,19 +325,47 @@ class Database {
     // Update user profile
     $stmt = $this->conn->prepare(
       'UPDATE user_profiles
-       SET total_score = ?, levels_completed = ?, achievements_count = ?, updated_at = CURRENT_TIMESTAMP
+       SET total_score = ?, total_moves = ?, levels_completed = ?, achievements_count = ?, updated_at = CURRENT_TIMESTAMP
        WHERE user_id = ?'
     );
     if (!$stmt) {
       throw new Exception('Prepare failed: ' . $this->conn->error);
     }
 
-    $stmt->bind_param('iis', $totalScore, $levelsCompleted, $achievementsCount, $userId);
+    $stmt->bind_param('iiis', $totalScore, $totalMoves, $levelsCompleted, $achievementsCount, $userId);
     $stmt->execute();
     $stmt->close();
   }
 
   public function getLeaderboard($mode, $limit = 100) {
+    // If mode is 'global', return global leaderboard sorted by total_score DESC, then total_moves ASC
+    if ($mode === 'global') {
+      $stmt = $this->conn->prepare(
+        'SELECT user_id, username, total_score, total_moves, achievements_count, levels_completed, created_at
+         FROM user_profiles
+         WHERE total_score > 0
+         ORDER BY total_score DESC, total_moves ASC
+         LIMIT ?'
+      );
+      if (!$stmt) {
+        throw new Exception('Prepare failed: ' . $this->conn->error);
+      }
+
+      $stmt->bind_param('i', $limit);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $stmt->close();
+
+      $leaderboard = [];
+      $rank = 1;
+      while ($row = $result->fetch_assoc()) {
+        $leaderboard[] = array_merge($row, ['rank' => $rank++]);
+      }
+
+      return $leaderboard;
+    }
+
+    // Otherwise, return mode-specific leaderboard
     $stmt = $this->conn->prepare(
       'SELECT h.user_id, h.score, h.created_at, COALESCE(up.username, h.user_id) as username
        FROM highscores h
@@ -475,7 +521,7 @@ class Database {
 
   public function getUserProfile($userId) {
     $stmt = $this->conn->prepare(
-      'SELECT user_id, username, total_score, achievements_count, levels_completed, created_at FROM user_profiles WHERE user_id = ?'
+      'SELECT user_id, username, total_score, total_moves, achievements_count, levels_completed, created_at FROM user_profiles WHERE user_id = ?'
     );
     if (!$stmt) {
       throw new Exception('Prepare failed: ' . $this->conn->error);
