@@ -8,6 +8,7 @@ export interface SettingsPanelProps {
   readonly onShowStats: () => void;
   readonly onShowAchievements: () => void;
   readonly onShowLeaderboard: () => void;
+  readonly onShowProfile: () => void;
   readonly onHowToPlay: () => void;
   readonly onRewatchWalkthrough: () => void;
   readonly hasWalkthrough: boolean;
@@ -21,6 +22,7 @@ export function SettingsPanel({
   onShowStats,
   onShowAchievements,
   onShowLeaderboard,
+  onShowProfile,
   onHowToPlay,
   onRewatchWalkthrough,
   hasWalkthrough,
@@ -207,7 +209,10 @@ export function SettingsPanel({
 
         {/* Leaderboards row */}
         <button
-          onClick={onShowLeaderboard}
+          onClick={() => {
+            onShowLeaderboard();
+            onClose();
+          }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -225,6 +230,34 @@ export function SettingsPanel({
             <div style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>Leaderboards</div>
             <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
               View global rankings
+            </div>
+          </div>
+          <span style={{ fontSize: 14, color: colors.text.tertiary }}>›</span>
+        </button>
+
+        {/* Profile row */}
+        <button
+          onClick={() => {
+            onShowProfile();
+            onClose();
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '14px 16px',
+            borderRadius: 14,
+            border: `1px solid ${colors.border.primary}`,
+            background: colors.bg.tertiary,
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <span style={{ fontSize: 20 }}>👤</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>My Profile</div>
+            <div style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
+              View your stats & achievements
             </div>
           </div>
           <span style={{ fontSize: 14, color: colors.text.tertiary }}>›</span>
