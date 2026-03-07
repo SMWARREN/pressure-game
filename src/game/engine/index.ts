@@ -630,8 +630,8 @@ export class PressureEngine implements IPressureEngine {
   private checkAchievementsOnWin(state: GameState, level: Level): void {
     if (!this.achievementEngine) return;
 
-    // Calculate stats for achievements
-    const levelsCompleted = state.completedLevels.length + 1; // +1 for current level
+    // We just completed 1 level (not a cumulative count)
+    const levelsCompleted = 1;
 
     // Check if this was a speedrun (under 10 seconds)
     const speedruns = state.elapsedSeconds < 10 ? 1 : 0;
@@ -648,7 +648,7 @@ export class PressureEngine implements IPressureEngine {
     // Check for perfect level (no undo used = history empty or minimal)
     const perfectLevel = state.history.length === 0 || state.moves === 1;
 
-    this.achievementEngine.checkAchievements({
+    const newlyEarned = this.achievementEngine.checkAchievements({
       levelsCompleted,
       movesUnderPar,
       speedruns,
@@ -662,6 +662,10 @@ export class PressureEngine implements IPressureEngine {
       speedLevel,
       perfectLevel,
     });
+
+    if (newlyEarned.length > 0) {
+      console.log('[Achievements] Newly earned:', newlyEarned);
+    }
 
     // Check for "First Try" achievement
     this.achievementEngine.checkFirstTryAchievement(currentModeId, level.id);

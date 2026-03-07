@@ -42,6 +42,7 @@ class AchievementEngine {
     // Load state from storage
     this.state = this.loadState();
     this.loadLevelAttempts();
+    console.log('[AchievementEngine] Initialized with', this.achievements.size, 'achievements');
   }
 
   private loadState(): AchievementState {
