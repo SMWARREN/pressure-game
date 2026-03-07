@@ -880,6 +880,17 @@ class Database {
     return $deleted;
   }
 
+  public function resetDatabase() {
+    // Drop all tables
+    $tables = ['highscores', 'game_data', 'user_profiles', 'replays', 'achievements'];
+    foreach ($tables as $table) {
+      $this->conn->query("DROP TABLE IF EXISTS $table");
+    }
+    // Recreate tables
+    $this->initTable();
+    return true;
+  }
+
   public function close() {
     $this->conn->close();
   }
@@ -1423,6 +1434,25 @@ try {
     } catch (Exception $e) {
       http_response_code(500);
       echo json_encode(['error' => $e->getMessage()]);
+      $db->close();
+      exit;
+    }
+  }
+
+  // Reset database: POST /api/debug/reset
+  if (count($routeParts) === 2 && $routeParts[0] === 'debug' && $routeParts[1] === 'reset' && $method === 'POST') {
+    try {
+      $db->resetDatabase();
+      http_response_code(200);
+      echo json_encode([
+        'status' => 'success',
+        'message' => 'Database reset successfully. All tables dropped and recreated.',
+      ]);
+      $db->close();
+      exit;
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => 'Database reset failed: ' . $e->getMessage()]);
       $db->close();
       exit;
     }
