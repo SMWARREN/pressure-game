@@ -320,6 +320,10 @@ class Database {
     $this->addColumnIfNotExists('user_profiles', 'speed_levels', 'INT DEFAULT 0');
     $this->addColumnIfNotExists('user_profiles', 'perfect_levels', 'INT DEFAULT 0');
     $this->addColumnIfNotExists('user_profiles', 'total_days_played', 'INT DEFAULT 0');
+
+    // Add missing columns to replays table (migrations)
+    $this->addColumnIfNotExists('replays', 'moves_json', 'JSON');
+    $this->addColumnIfNotExists('replays', 'recorded_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
   }
 
   public function getItem($userId, $key) {
@@ -1010,21 +1014,15 @@ if ($apiIndex === false) {
   $apiIndex = array_search('api.php', $pathParts);
 }
 
-// Health check at root (direct hit to api.php or /api)
+// If no 'api' or 'api.php' found, check if this is a direct hit to api.php
 if ($apiIndex === false) {
-  if (empty($pathParts)) {
-    http_response_code(200);
-    echo json_encode([
-      'status' => 'ok',
-      'time' => date('c'),
-      'database' => 'connected',
-    ]);
-    $db->close();
-    exit;
-  }
-
-  http_response_code(404);
-  echo json_encode(['error' => 'Route not found', 'pathParts' => $pathParts, 'apiIndex' => $apiIndex]);
+  // Health check at root (direct hit to api.php)
+  http_response_code(200);
+  echo json_encode([
+    'status' => 'ok',
+    'time' => date('c'),
+    'database' => 'connected',
+  ]);
   $db->close();
   exit;
 }
@@ -1272,8 +1270,8 @@ try {
     exit;
   }
 
-  // Get all achievements stats: GET /api/achievements
-  if (count($routeParts) === 1 && $routeParts[0] === 'achievements' && $method === 'GET') {
+  // Get all achievements stats: GET /api/achievements (legacy, no user_id param)
+  if (count($routeParts) === 1 && $routeParts[0] === 'achievements' && $method === 'GET' && !isset($_GET['user_id'])) {
     $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 100;
     $achievements = $db->getAllAchievements($limit);
     http_response_code(200);
@@ -1687,6 +1685,273 @@ try {
       $stmt->close();
 
       echo json_encode($leaderboard);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // GET /api/users?id=... - Get user profile
+  if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'users') {
+    $userId = $_GET['id'] ?? null;
+    if (!$userId) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing user ID']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $stmt = $db->conn->prepare('SELECT id, username, created_at FROM users WHERE id = ?');
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $user = $result->fetch_assoc();
+      $stmt->close();
+
+      if (!$user) {
+        http_response_code(404);
+        echo json_encode(['error' => 'User not found']);
+        $db->close();
+        exit;
+      }
+
+      $stmt = $db->conn->prepare('SELECT * FROM user_stats WHERE user_id = ?');
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $stats = $result->fetch_assoc();
+      $stmt->close();
+
+      echo json_encode([
+        'user' => $user,
+        'stats' => $stats ?: []
+      ]);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // POST /api/achievements/{id} - Unlock achievement
+  if ($method === 'POST' && count($routeParts) === 2 && $routeParts[0] === 'achievements') {
+    $userId = $_GET['user_id'] ?? null;
+    $achievementId = $routeParts[1];
+
+    if (!$userId) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing user_id']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $stmt = $db->conn->prepare(
+        'INSERT IGNORE INTO user_achievements (user_id, achievement_id) VALUES (?, ?)'
+      );
+      $stmt->bind_param('ss', $userId, $achievementId);
+      $stmt->execute();
+      $stmt->close();
+
+      http_response_code(201);
+      echo json_encode(['success' => true, 'message' => 'Achievement unlocked']);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // GET /api/achievements?user_id=... - Get user achievements
+  if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'achievements') {
+    $userId = $_GET['user_id'] ?? null;
+    $limit = (int)($_GET['limit'] ?? 100);
+
+    if (!$userId) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing user_id']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $stmt = $db->conn->prepare(
+        'SELECT * FROM user_achievements WHERE user_id = ? ORDER BY unlocked_at DESC LIMIT ?'
+      );
+      $stmt->bind_param('si', $userId, $limit);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $achievements = $result->fetch_all(MYSQLI_ASSOC);
+      $stmt->close();
+
+      echo json_encode($achievements);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // POST /api/stats - Update user stats
+  if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'stats') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $data['user_id'] ?? null;
+
+    if (!$userId) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing user_id']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $stmt = $db->conn->prepare('INSERT IGNORE INTO users (id) VALUES (?)');
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $stmt->close();
+
+      $stmt = $db->conn->prepare('INSERT IGNORE INTO user_stats (user_id) VALUES (?)');
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $stmt->close();
+
+      $updates = [];
+      $params = [];
+      $types = '';
+      foreach (['total_levels_completed', 'total_score', 'max_combo', 'total_walls_survived',
+                'no_reset_streak', 'speed_levels', 'perfect_levels', 'total_hours_played'] as $field) {
+        if (isset($data[$field])) {
+          $updates[] = "{$field} = ?";
+          $params[] = $data[$field];
+          $types .= 'i';
+        }
+      }
+
+      if (empty($updates)) {
+        echo json_encode(['success' => true, 'message' => 'No updates']);
+        $db->close();
+        exit;
+      }
+
+      $params[] = $userId;
+      $types .= 's';
+      $sql = 'UPDATE user_stats SET ' . implode(', ', $updates) . ' WHERE user_id = ?';
+      $stmt = $db->conn->prepare($sql);
+      $stmt->bind_param($types, ...$params);
+      $stmt->execute();
+      $stmt->close();
+
+      http_response_code(200);
+      echo json_encode(['success' => true, 'message' => 'Stats updated']);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // GET /api/stats?user_id=... - Get user stats
+  if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'stats') {
+    $userId = $_GET['user_id'] ?? null;
+
+    if (!$userId) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing user_id']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $stmt = $db->conn->prepare('SELECT * FROM user_stats WHERE user_id = ?');
+      $stmt->bind_param('s', $userId);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $stats = $result->fetch_assoc();
+      $stmt->close();
+
+      echo json_encode($stats ?: []);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // POST /api/replays - Save replay
+  if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'replays') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $data['user_id'] ?? null;
+    $mode = $data['mode'] ?? null;
+    $levelId = $data['level_id'] ?? null;
+    $moves = $data['moves'] ?? [];
+    $score = $data['score'] ?? null;
+
+    if (!$userId || !$mode || $levelId === null) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing required fields']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $movesJson = json_encode($moves);
+      $stmt = $db->conn->prepare(
+        'INSERT INTO replays (user_id, mode, level_id, moves_json, score)
+         VALUES (?, ?, ?, ?, ?)'
+      );
+      $stmt->bind_param('ssisi', $userId, $mode, $levelId, $movesJson, $score);
+      $stmt->execute();
+      $replayId = $db->conn->insert_id;
+      $stmt->close();
+
+      http_response_code(201);
+      echo json_encode(['success' => true, 'id' => $replayId]);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['error' => $e->getMessage()]);
+    }
+    $db->close();
+    exit;
+  }
+
+  // GET /api/replays?user_id=...&mode=...&level_id=... - Get replay
+  if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'replays') {
+    $userId = $_GET['user_id'] ?? null;
+    $mode = $_GET['mode'] ?? null;
+    $levelId = $_GET['level_id'] ?? null;
+
+    if (!$userId || !$mode || $levelId === null) {
+      http_response_code(400);
+      echo json_encode(['error' => 'Missing required parameters']);
+      $db->close();
+      exit;
+    }
+
+    try {
+      $stmt = $db->conn->prepare(
+        'SELECT moves_json as moves, score FROM replays
+         WHERE user_id = ? AND mode = ? AND level_id = ?
+         ORDER BY recorded_at DESC LIMIT 1'
+      );
+      $stmt->bind_param('ssi', $userId, $mode, $levelId);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $replay = $result->fetch_assoc();
+      $stmt->close();
+
+      if ($replay) {
+        $replay['moves'] = json_decode($replay['moves'], true);
+      }
+
+      echo json_encode($replay ?: null);
     } catch (Exception $e) {
       http_response_code(500);
       echo json_encode(['error' => $e->getMessage()]);

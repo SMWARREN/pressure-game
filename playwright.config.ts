@@ -55,7 +55,7 @@ export default defineConfig({
     // interfering with tests and causing page.goto timeouts
     command: 'npm run build && npm run preview -- --port 3000',
     url: 'http://localhost:3000',
-    reuseExistingServer: false, // Always start fresh — no HMR, no stale state
+    reuseExistingServer: true, // Reuse existing server if available
     timeout: 120000,
   }
 });

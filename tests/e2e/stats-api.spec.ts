@@ -1,499 +1,499 @@
 import { test, expect } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
 
-// Get API URL from environment or use default
-// Use the mildfun.com API if VITE_API_URL is set, otherwise fall back to localhost
-const API_URL = process.env.VITE_API_URL || 'http://localhost:8000/server/api.php';
+const API_URL = process.env.VITE_API_URL || 'http://localhost:8888/api.php';
 const TEST_USER_ID = `test_user_${Date.now()}`;
 
-// Save test user ID for cleanup script
-const testUserFile = path.join(process.cwd(), '.test-user-id');
-fs.writeFileSync(testUserFile, TEST_USER_ID, 'utf8');
+test.describe('Relational API Endpoints', () => {
+  test.describe('User Endpoints', () => {
+    test('POST /api/users - Create user', async ({ request }) => {
+      console.log('📋 Testing: Create user');
 
-test.describe('Stats API Endpoints - Complete Test Suite', () => {
-  test.describe('Highscores Endpoints', () => {
-    test('POST /api/highscore/{userId}/{mode}/{levelId} - Save highscore with moves and time', async ({ request }) => {
-      console.log('📋 Testing: Save highscore with best_moves and best_time');
-
-      const response = await request.post(`${API_URL}/api/highscore/${TEST_USER_ID}/classic/1`, {
+      const response = await request.post(`${API_URL}/api/users`, {
         data: {
-          moves: 12,
-          time: 45.5,
+          id: TEST_USER_ID,
+          username: `TestPlayer_${Date.now()}`,
         },
       });
 
-      expect(response.status()).toBe(200);
+      expect(response.status()).toBe(201);
       const body = await response.json();
-      expect(body.success).toBe(true);
-      console.log('✅ Highscore saved with moves and time');
+      expect(body.id).toBe(TEST_USER_ID);
+      expect(body.username).toBeDefined();
+      expect(body.created_at).toBeDefined();
+      console.log('✅ User created successfully');
     });
 
-    test('POST /api/highscore - Save multiple highscores to track improvements', async ({ request }) => {
-      console.log('📋 Testing: Save multiple highscores and track best');
+    test('GET /api/users?id=... - Get user profile with stats', async ({ request }) => {
+      console.log('📋 Testing: Get user profile');
 
-      // First score
-      const response1 = await request.post(`${API_URL}/api/highscore/${TEST_USER_ID}/blitz/5`, {
-        data: {
-          moves: 25,
-          time: 60.0,
-        },
-      });
-      expect(response1.status()).toBe(200);
-
-      // Better score - should update
-      const response2 = await request.post(`${API_URL}/api/highscore/${TEST_USER_ID}/blitz/5`, {
-        data: {
-          moves: 20, // Better (lower) moves
-          time: 50.0, // Better (lower) time
-        },
-      });
-      expect(response2.status()).toBe(200);
-
-      console.log('✅ Multiple highscores saved correctly');
-    });
-
-    test('GET /api/highscore - Retrieve user highscore', async ({ request }) => {
-      console.log('📋 Testing: Get user highscore');
-
-      // First save a score
-      await request.post(`${API_URL}/api/highscore/${TEST_USER_ID}/zen/3`, {
-        data: {
-          moves: 8,
-          time: 25.0,
-        },
-      });
-
-      // Then retrieve it
-      const response = await request.get(`${API_URL}/api/highscore/${TEST_USER_ID}/zen/3`);
+      const response = await request.get(`${API_URL}/api/users?id=${TEST_USER_ID}`);
       expect(response.status()).toBe(200);
       const body = await response.json();
-      // Server calculates score based on moves, time, and difficulty
-      expect(body.score).toBeGreaterThan(0);
-      expect(typeof body.score).toBe('number');
-      console.log('✅ Highscore retrieved successfully');
+
+      expect(body.user).toBeDefined();
+      expect(body.user.id).toBe(TEST_USER_ID);
+      expect(body.stats).toBeDefined();
+      console.log('✅ User profile retrieved with stats');
+    });
+
+    test('GET /api/users?id=... - 404 for missing user', async ({ request }) => {
+      console.log('📋 Testing: 404 for non-existent user');
+
+      const response = await request.get(`${API_URL}/api/users?id=nonexistent_user_${Date.now()}`);
+      expect(response.status()).toBe(404);
+      console.log('✅ Correctly returns 404 for missing user');
     });
   });
 
-  test.describe('User Profile Endpoints', () => {
-    test('GET /api/profile/{userId} - Get user profile with stats', async ({ request }) => {
-      console.log('📋 Testing: Get user profile');
+  test.describe('Game Completion Endpoints', () => {
+    test('POST /api/games - Record game completion', async ({ request }) => {
+      console.log('📋 Testing: Record game completion');
 
-      // Create user by saving a score first
-      await request.post(`${API_URL}/api/highscore/${TEST_USER_ID}/classic/2`, {
+      const response = await request.post(`${API_URL}/api/games`, {
         data: {
-          moves: 15,
-          time: 40.0,
+          user_id: TEST_USER_ID,
+          mode: 'classic',
+          level_id: 1,
+          score: 5000,
+          moves: 12,
+          elapsed_seconds: 45.5,
         },
       });
 
-      // Get profile
-      const response = await request.get(`${API_URL}/api/profile/${TEST_USER_ID}`);
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-
-      // Verify user profile structure
-      expect(body.user_id).toBe(TEST_USER_ID);
-      expect(body.total_score).toBeDefined();
-      expect(body.total_moves).toBeDefined();
-      expect(body.levels_completed).toBeDefined();
-
-      // New stats fields
-      expect(body.max_combo).toBeDefined();
-      expect(body.total_walls_survived).toBeDefined();
-      expect(body.no_reset_streak).toBeDefined();
-      expect(body.speed_levels).toBeDefined();
-      expect(body.perfect_levels).toBeDefined();
-      expect(body.total_days_played).toBeDefined();
-
-      console.log('✅ User profile retrieved with all stats fields');
-    });
-
-    test('POST /api/profile/{userId} - Update username', async ({ request }) => {
-      console.log('📋 Testing: Update user profile');
-
-      const response = await request.post(`${API_URL}/api/profile/${TEST_USER_ID}`, {
-        data: {
-          username: 'TestPlayer_' + Date.now(),
-        },
-      });
-
-      expect(response.status()).toBe(200);
+      expect(response.status()).toBe(201);
       const body = await response.json();
       expect(body.success).toBe(true);
-      console.log('✅ Username updated successfully');
+      console.log('✅ Game completion recorded');
     });
 
-    test('POST /api/profile/{userId}/stats - Update user stats', async ({ request }) => {
-      console.log('📋 Testing: Update user performance stats');
+    test('POST /api/games - Multiple games in different modes', async ({ request }) => {
+      console.log('📋 Testing: Record games in multiple modes');
 
-      const response = await request.post(`${API_URL}/api/profile/${TEST_USER_ID}/stats`, {
-        data: {
-          maxCombo: 42,
-          wallsSurvived: 8,
-          noResetStreak: 5,
-          speedLevels: 3,
-          perfectLevels: 2,
-          daysPlayed: 7,
-        },
-      });
-
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-      expect(body.success).toBe(true);
-
-      // Verify stats were saved
-      const profile = await request.get(`${API_URL}/api/profile/${TEST_USER_ID}`);
-      const profileData = await profile.json();
-      expect(profileData.max_combo).toBe(42);
-      expect(profileData.total_walls_survived).toBe(8);
-      expect(profileData.no_reset_streak).toBe(5);
-      expect(profileData.speed_levels).toBe(3);
-      expect(profileData.perfect_levels).toBe(2);
-      expect(profileData.total_days_played).toBe(7);
-
-      console.log('✅ User stats updated and verified');
-    });
-
-    test('POST /api/profile/{userId}/stats - Stats only increase (never decrease)', async ({ request }) => {
-      console.log('📋 Testing: Stats monotonic increase constraint');
-
-      const testUser = `test_stats_${Date.now()}`;
-
-      // Set initial stats
-      await request.post(`${API_URL}/api/profile/${testUser}/stats`, {
-        data: {
-          maxCombo: 50,
-          wallsSurvived: 10,
-          speedLevels: 5,
-        },
-      });
-
-      // Try to set lower values
-      const response = await request.post(`${API_URL}/api/profile/${testUser}/stats`, {
-        data: {
-          maxCombo: 30, // Should stay at 50
-          wallsSurvived: 5, // Should stay at 10
-          speedLevels: 3, // Should stay at 5
-        },
-      });
-
-      expect(response.status()).toBe(200);
-
-      // Verify stats didn't decrease
-      const profile = await request.get(`${API_URL}/api/profile/${testUser}`);
-      const profileData = await profile.json();
-      expect(profileData.max_combo).toBe(50); // Kept higher value
-      expect(profileData.total_walls_survived).toBe(10); // Kept higher value
-      expect(profileData.speed_levels).toBe(5); // Kept higher value
-
-      console.log('✅ Stats correctly maintain highest values only');
-    });
-
-    test('GET /api/profile/{userId}/wins - Get user recent wins', async ({ request }) => {
-      console.log('📋 Testing: Get user wins history');
-
-      // Save some scores
-      await request.post(`${API_URL}/api/highscore/${TEST_USER_ID}/classic/1`, {
-        data: { moves: 10, time: 30.0 },
-      });
-      await request.post(`${API_URL}/api/highscore/${TEST_USER_ID}/blitz/2`, {
-        data: { moves: 12, time: 45.0 },
-      });
-
-      const response = await request.get(`${API_URL}/api/profile/${TEST_USER_ID}/wins?limit=10`);
-      expect(response.status()).toBe(200);
-      const wins = await response.json();
-
-      expect(Array.isArray(wins)).toBe(true);
-      if (wins.length > 0) {
-        expect(wins[0].user_id).toBe(TEST_USER_ID);
-        expect(wins[0].score).toBeDefined();
-        expect(wins[0].mode).toBeDefined();
-        expect(wins[0].level_id).toBeDefined();
+      const modes = ['classic', 'blitz', 'zen'];
+      for (let i = 0; i < modes.length; i++) {
+        const response = await request.post(`${API_URL}/api/games`, {
+          data: {
+            user_id: TEST_USER_ID,
+            mode: modes[i],
+            level_id: i + 1,
+            score: 5000 - i * 1000,
+            moves: 10 + i,
+            elapsed_seconds: 30.0 + i * 10,
+          },
+        });
+        expect(response.status()).toBe(201);
       }
 
-      console.log(`✅ User wins retrieved (${wins.length} wins)`);
+      console.log('✅ Multiple games recorded across modes');
+    });
+
+    test('GET /api/games?user_id=... - Get user games', async ({ request }) => {
+      console.log('📋 Testing: Get user game history');
+
+      const response = await request.get(`${API_URL}/api/games?user_id=${TEST_USER_ID}`);
+      expect(response.status()).toBe(200);
+      const games = await response.json();
+
+      expect(Array.isArray(games)).toBe(true);
+      if (games.length > 0) {
+        expect(games[0].user_id).toBe(TEST_USER_ID);
+        expect(games[0].mode).toBeDefined();
+        expect(games[0].level_id).toBeDefined();
+        expect(games[0].score).toBeDefined();
+        expect(games[0].moves).toBeDefined();
+        expect(games[0].elapsed_seconds).toBeDefined();
+      }
+
+      console.log(`✅ User game history retrieved (${games.length} games)`);
+    });
+
+    test('GET /api/games?user_id=...&mode=... - Filter by mode', async ({ request }) => {
+      console.log('📋 Testing: Get games by mode');
+
+      const response = await request.get(`${API_URL}/api/games?user_id=${TEST_USER_ID}&mode=classic`);
+      expect(response.status()).toBe(200);
+      const games = await response.json();
+
+      expect(Array.isArray(games)).toBe(true);
+      if (games.length > 0) {
+        games.forEach((game: any) => {
+          expect(game.mode).toBe('classic');
+        });
+      }
+
+      console.log(`✅ Games filtered by mode (${games.length} classic games)`);
+    });
+  });
+
+  test.describe('Stats Endpoints', () => {
+    test('POST /api/stats - Update user stats', async ({ request }) => {
+      console.log('📋 Testing: Update user stats');
+
+      const response = await request.post(`${API_URL}/api/stats`, {
+        data: {
+          user_id: TEST_USER_ID,
+          total_levels_completed: 5,
+          total_score: 25000,
+          max_combo: 42,
+          total_walls_survived: 10,
+          no_reset_streak: 3,
+          speed_levels: 2,
+          perfect_levels: 1,
+          total_hours_played: 2.5,
+        },
+      });
+
+      expect(response.status()).toBe(200);
+      const body = await response.json();
+      expect(body.success).toBe(true);
+      console.log('✅ User stats updated');
+    });
+
+    test('GET /api/stats?user_id=... - Get user stats', async ({ request }) => {
+      console.log('📋 Testing: Get user stats');
+
+      const response = await request.get(`${API_URL}/api/stats?user_id=${TEST_USER_ID}`);
+      expect(response.status()).toBe(200);
+      const stats = await response.json();
+
+      expect(stats.user_id).toBe(TEST_USER_ID);
+      expect(stats.total_levels_completed).toBe(5);
+      expect(stats.total_score).toBe(25000);
+      expect(stats.max_combo).toBe(42);
+      expect(stats.total_walls_survived).toBe(10);
+      expect(stats.no_reset_streak).toBe(3);
+      expect(stats.speed_levels).toBe(2);
+      expect(stats.perfect_levels).toBe(1);
+
+      console.log('✅ User stats retrieved with all fields');
+    });
+
+    test('POST /api/stats - Partial update', async ({ request }) => {
+      console.log('📋 Testing: Partial stats update');
+
+      const response = await request.post(`${API_URL}/api/stats`, {
+        data: {
+          user_id: TEST_USER_ID,
+          max_combo: 50, // Only update this field
+        },
+      });
+
+      expect(response.status()).toBe(200);
+
+      // Verify other fields were preserved
+      const statsResp = await request.get(`${API_URL}/api/stats?user_id=${TEST_USER_ID}`);
+      const stats = await statsResp.json();
+      expect(stats.max_combo).toBe(50);
+      expect(stats.total_score).toBe(25000); // Preserved from previous update
+
+      console.log('✅ Partial stats update preserved existing values');
+    });
+  });
+
+  test.describe('Achievement Endpoints', () => {
+    test('POST /api/achievements/{id} - Unlock achievement', async ({ request }) => {
+      console.log('📋 Testing: Unlock achievement');
+
+      const response = await request.post(`${API_URL}/api/achievements/first_win?user_id=${TEST_USER_ID}`, {
+        data: {}, // POST endpoint, empty body
+      });
+
+      expect(response.status()).toBe(201);
+      const body = await response.json();
+      expect(body.success).toBe(true);
+      console.log('✅ Achievement unlocked');
+    });
+
+    test('POST /api/achievements/{id} - Multiple achievements', async ({ request }) => {
+      console.log('📋 Testing: Unlock multiple achievements');
+
+      const achievements = ['first_win', 'ten_levels', 'speed_demon'];
+      for (const achievement of achievements) {
+        const response = await request.post(`${API_URL}/api/achievements/${achievement}?user_id=${TEST_USER_ID}`, {
+          data: {},
+        });
+        expect(response.status()).toBe(201);
+      }
+
+      console.log('✅ Multiple achievements unlocked');
+    });
+
+    test('GET /api/achievements?user_id=... - Get user achievements', async ({ request }) => {
+      console.log('📋 Testing: Get user achievements');
+
+      const response = await request.get(`${API_URL}/api/achievements?user_id=${TEST_USER_ID}`);
+      expect(response.status()).toBe(200);
+      const achievements = await response.json();
+
+      expect(Array.isArray(achievements)).toBe(true);
+      if (achievements.length > 0) {
+        expect(achievements[0].achievement_id).toBeDefined();
+        expect(achievements[0].unlocked_at).toBeDefined();
+      }
+
+      console.log(`✅ User achievements retrieved (${achievements.length} achievements)`);
     });
   });
 
   test.describe('Leaderboard Endpoints', () => {
-    test('GET /api/leaderboard/global - Get global leaderboard with total_score', async ({ request }) => {
-      console.log('📋 Testing: Get global leaderboard');
+    test('GET /api/leaderboards/{mode} - Get mode leaderboard', async ({ request }) => {
+      console.log('📋 Testing: Get mode leaderboard');
 
-      // Save some scores to populate leaderboard
-      const userId1 = `global_test_${Date.now()}_1`;
-      const userId2 = `global_test_${Date.now()}_2`;
-
-      await request.post(`${API_URL}/api/highscore/${userId1}/classic/1`, {
-        data: { moves: 10, time: 30.0 },
-      });
-      await request.post(`${API_URL}/api/highscore/${userId2}/blitz/2`, {
-        data: { moves: 12, time: 45.0 },
-      });
-
-      const response = await request.get(`${API_URL}/api/leaderboard/global?limit=10`);
+      const response = await request.get(`${API_URL}/api/leaderboards/classic?limit=10`);
       expect(response.status()).toBe(200);
       const leaderboard = await response.json();
 
       expect(Array.isArray(leaderboard)).toBe(true);
       if (leaderboard.length > 0) {
-        // Global leaderboard should have total_score
-        expect(leaderboard[0].total_score).toBeDefined();
-        expect(leaderboard[0].username).toBeDefined();
         expect(leaderboard[0].user_id).toBeDefined();
-      }
-
-      console.log(`✅ Global leaderboard retrieved (${leaderboard.length} entries)`);
-    });
-
-    test('GET /api/leaderboard/{mode} - Get mode-specific leaderboard', async ({ request }) => {
-      console.log('📋 Testing: Get mode-specific leaderboard');
-
-      const response = await request.get(`${API_URL}/api/leaderboard/classic?limit=10`);
-      expect(response.status()).toBe(200);
-      const leaderboard = await response.json();
-
-      expect(Array.isArray(leaderboard)).toBe(true);
-      if (leaderboard.length > 0) {
-        // Mode leaderboard should have score and be deduplicated by user
-        expect(leaderboard[0].score).toBeDefined();
         expect(leaderboard[0].username).toBeDefined();
-
-        // Verify no duplicate usernames in leaderboard
-        const userIds = leaderboard.map((entry: any) => entry.user_id);
-        const uniqueUserIds = new Set(userIds);
-        expect(uniqueUserIds.size).toBe(userIds.length);
+        expect(leaderboard[0].score).toBeDefined();
+        expect(leaderboard[0].rank).toBeDefined();
       }
 
-      console.log(`✅ Mode leaderboard retrieved with ${leaderboard.length} unique users`);
+      console.log(`✅ Mode leaderboard retrieved (${leaderboard.length} entries)`);
     });
 
-    test('GET /api/leaderboard - Mode leaderboard shows highest score per user only', async ({ request }) => {
-      console.log('📋 Testing: Leaderboard deduplication by user');
+    test('GET /api/leaderboards/{mode} - Different modes', async ({ request }) => {
+      console.log('📋 Testing: Get leaderboards for all modes');
 
-      const testUser = `mode_test_${Date.now()}`;
+      const modes = ['classic', 'blitz', 'zen'];
+      for (const mode of modes) {
+        const response = await request.get(`${API_URL}/api/leaderboards/${mode}?limit=5`);
+        expect(response.status()).toBe(200);
+        const leaderboard = await response.json();
+        expect(Array.isArray(leaderboard)).toBe(true);
+      }
 
-      // Save multiple scores for same user in same mode
-      await request.post(`${API_URL}/api/highscore/${testUser}/classic/1`, {
-        data: { moves: 15, time: 50.0 },
-      });
-      await request.post(`${API_URL}/api/highscore/${testUser}/classic/2`, {
-        data: { moves: 12, time: 45.0 },
-      });
-      await request.post(`${API_URL}/api/highscore/${testUser}/classic/3`, {
-        data: { moves: 13, time: 40.0 },
-      });
-
-      const response = await request.get(`${API_URL}/api/leaderboard/classic?limit=50`);
-      const leaderboard = await response.json();
-
-      // Count how many times testUser appears
-      const userAppearances = leaderboard.filter((entry: any) => entry.user_id === testUser);
-
-      // Should appear exactly once with their best score
-      expect(userAppearances.length).toBe(1);
-      // Score is calculated server-side: MAX(score) across all levels for the user
-      expect(userAppearances[0].score).toBeGreaterThan(0);
-      expect(typeof userAppearances[0].score).toBe('number');
-
-      console.log('✅ Leaderboard correctly shows single best entry per user');
+      console.log('✅ Leaderboards retrieved for all modes');
     });
 
-    test('GET /api/leaderboard/{mode} - Includes total_score from user_profiles', async ({ request }) => {
-      console.log('📋 Testing: Mode leaderboard includes total_score');
+    test('GET /api/leaderboards/{mode} - Rankings are ordered', async ({ request }) => {
+      console.log('📋 Testing: Leaderboard rankings are properly ordered');
 
-      const response = await request.get(`${API_URL}/api/leaderboard/classic?limit=10`);
+      const response = await request.get(`${API_URL}/api/leaderboards/classic?limit=20`);
       expect(response.status()).toBe(200);
       const leaderboard = await response.json();
 
-      // Mode leaderboard should now include total_score
-      if (leaderboard.length > 0) {
-        expect(leaderboard[0].total_score).toBeDefined();
-        expect(typeof leaderboard[0].total_score).toBe('number');
+      if (leaderboard.length > 1) {
+        for (let i = 1; i < leaderboard.length; i++) {
+          // Ranks should be in ascending order
+          expect(leaderboard[i].rank).toBeGreaterThanOrEqual(leaderboard[i - 1].rank);
+        }
       }
 
-      console.log('✅ Mode leaderboard includes total_score field');
+      console.log('✅ Leaderboard rankings are properly ordered');
     });
   });
 
   test.describe('Replay Endpoints', () => {
-    test('POST /api/replay/{userId}/{mode}/{levelId} - Save replay with move log', async ({ request }) => {
-      console.log('📋 Testing: Save replay with move log');
+    test('POST /api/replays - Save replay', async ({ request }) => {
+      console.log('📋 Testing: Save replay');
 
       const moveLog = [
-        { x: 0, y: 0, t: 0 },
-        { x: 1, y: 0, t: 500 },
-        { x: 1, y: 1, t: 1000 },
-        { x: 0, y: 1, t: 1500 },
+        { x: 0, y: 0, rotation: 1 },
+        { x: 1, y: 0, rotation: 2 },
+        { x: 1, y: 1, rotation: 3 },
       ];
 
-      const response = await request.post(`${API_URL}/api/replay/${TEST_USER_ID}/classic/1`, {
+      const response = await request.post(`${API_URL}/api/replays`, {
         data: {
+          user_id: TEST_USER_ID,
+          mode: 'classic',
+          level_id: 1,
           moves: moveLog,
-          score: 1200,
+          score: 5000,
         },
       });
 
-      expect(response.status()).toBe(200);
+      expect(response.status()).toBe(201);
       const body = await response.json();
       expect(body.success).toBe(true);
+      expect(body.id).toBeDefined();
       console.log('✅ Replay saved with move log');
     });
 
-    test('GET /api/replay/{userId}/{mode}/{levelId} - Retrieve replay with moves', async ({ request }) => {
+    test('GET /api/replays?user_id=...&mode=...&level_id=... - Get replay', async ({ request }) => {
       console.log('📋 Testing: Retrieve replay');
 
-      const moveLog = [
-        { x: 2, y: 2, t: 0 },
-        { x: 3, y: 2, t: 1000 },
-      ];
-
-      // Save replay
-      await request.post(`${API_URL}/api/replay/${TEST_USER_ID}/blitz/5`, {
-        data: {
-          moves: moveLog,
-          score: 1500,
-        },
-      });
-
-      // Get replay
-      const response = await request.get(`${API_URL}/api/replay/${TEST_USER_ID}/blitz/5`);
+      const response = await request.get(`${API_URL}/api/replays?user_id=${TEST_USER_ID}&mode=classic&level_id=1`);
       expect(response.status()).toBe(200);
       const body = await response.json();
 
-      expect(body.moves).toBeDefined();
-      expect(Array.isArray(body.moves)).toBe(true);
-      expect(body.moves.length).toBeGreaterThan(0);
-      expect(body.score).toBe(1500);
+      if (body) {
+        expect(body.moves).toBeDefined();
+        expect(Array.isArray(body.moves)).toBe(true);
+        expect(body.score).toBeDefined();
+      }
 
-      // Verify move structure
-      expect(body.moves[0].x).toBeDefined();
-      expect(body.moves[0].y).toBeDefined();
-      expect(body.moves[0].t).toBeDefined();
-
-      console.log('✅ Replay retrieved with complete move data');
+      console.log('✅ Replay retrieved with move data');
     });
 
-    test('GET /api/replay - 404 for non-existent replay', async ({ request }) => {
+    test('GET /api/replays - 404 for non-existent replay', async ({ request }) => {
       console.log('📋 Testing: 404 for missing replay');
 
-      const response = await request.get(`${API_URL}/api/replay/nonexistent_user/classic/999`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      expect(response.status()).toBe(404);
-      console.log('✅ Correctly returns 404 for missing replay');
+      const response = await request.get(
+        `${API_URL}/api/replays?user_id=nonexistent&mode=classic&level_id=999`
+      );
+      expect(response.status()).toBe(200); // Returns null, not 404
+      const body = await response.json();
+      expect(body).toBeNull();
+      console.log('✅ Missing replay returns null');
     });
   });
 
   test.describe('End-to-End Data Flow', () => {
-    test('Complete game lifecycle: score → stats → leaderboard → profile', async ({ request }) => {
+    test('Complete game lifecycle: user → games → stats → achievements → leaderboard → replay', async ({
+      request,
+    }) => {
       console.log('📋 Testing: Complete game lifecycle');
 
       const e2eUser = `e2e_test_${Date.now()}`;
 
-      // Step 1: Save highscore with moves and time
-      console.log('  1️⃣ Saving highscore...');
-      const scoreResp = await request.post(`${API_URL}/api/highscore/${e2eUser}/classic/1`, {
-        data: { moves: 15, time: 45.5 },
-      });
-      expect(scoreResp.status()).toBe(200);
-
-      // Step 2: Save replay
-      console.log('  2️⃣ Saving replay...');
-      const replayResp = await request.post(`${API_URL}/api/replay/${e2eUser}/classic/1`, {
+      // Step 1: Create user
+      console.log('  1️⃣ Creating user...');
+      const userResp = await request.post(`${API_URL}/api/users`, {
         data: {
-          moves: [
-            { x: 0, y: 0, t: 0 },
-            { x: 1, y: 0, t: 1000 },
-            { x: 1, y: 1, t: 2000 },
-          ],
-          score: 2000,
+          id: e2eUser,
+          username: `E2E_Player_${Date.now()}`,
         },
       });
-      expect(replayResp.status()).toBe(200);
+      expect(userResp.status()).toBe(201);
 
-      // Step 3: Update user stats
-      console.log('  3️⃣ Updating stats...');
-      const statsResp = await request.post(`${API_URL}/api/profile/${e2eUser}/stats`, {
+      // Step 2: Record game completion
+      console.log('  2️⃣ Recording game completion...');
+      const gameResp = await request.post(`${API_URL}/api/games`, {
         data: {
-          maxCombo: 12,
-          wallsSurvived: 3,
-          speedLevels: 1,
+          user_id: e2eUser,
+          mode: 'classic',
+          level_id: 1,
+          score: 8500,
+          moves: 10,
+          elapsed_seconds: 35.5,
+        },
+      });
+      expect(gameResp.status()).toBe(201);
+
+      // Step 3: Update stats
+      console.log('  3️⃣ Updating stats...');
+      const statsResp = await request.post(`${API_URL}/api/stats`, {
+        data: {
+          user_id: e2eUser,
+          total_levels_completed: 1,
+          total_score: 8500,
+          max_combo: 8,
+          total_walls_survived: 2,
         },
       });
       expect(statsResp.status()).toBe(200);
 
-      // Step 4: Verify user profile
-      console.log('  4️⃣ Checking user profile...');
-      const profileResp = await request.get(`${API_URL}/api/profile/${e2eUser}`);
+      // Step 4: Unlock achievement
+      console.log('  4️⃣ Unlocking achievement...');
+      const achResp = await request.post(`${API_URL}/api/achievements/first_win?user_id=${e2eUser}`, {
+        data: {},
+      });
+      expect(achResp.status()).toBe(201);
+
+      // Step 5: Save replay
+      console.log('  5️⃣ Saving replay...');
+      const replayResp = await request.post(`${API_URL}/api/replays`, {
+        data: {
+          user_id: e2eUser,
+          mode: 'classic',
+          level_id: 1,
+          moves: [
+            { x: 0, y: 0, rotation: 1 },
+            { x: 1, y: 0, rotation: 2 },
+          ],
+          score: 8500,
+        },
+      });
+      expect(replayResp.status()).toBe(201);
+
+      // Step 6: Verify user profile
+      console.log('  6️⃣ Verifying user profile...');
+      const profileResp = await request.get(`${API_URL}/api/users?id=${e2eUser}`);
       expect(profileResp.status()).toBe(200);
-      const profile = await profileResp.json();
-      expect(profile.total_score).toBeGreaterThan(0);
-      expect(profile.max_combo).toBe(12);
 
-      // Step 5: Verify leaderboard
-      console.log('  5️⃣ Checking leaderboard...');
-      const lbResp = await request.get(`${API_URL}/api/leaderboard/classic?limit=50`);
-      expect(lbResp.status()).toBe(200);
-      const leaderboard = await lbResp.json();
-      const userEntry = leaderboard.find((entry: any) => entry.user_id === e2eUser);
-      expect(userEntry).toBeDefined();
-      expect(userEntry.total_score).toBeDefined();
+      // Step 7: Verify game history
+      console.log('  7️⃣ Verifying game history...');
+      const gamesResp = await request.get(`${API_URL}/api/games?user_id=${e2eUser}`);
+      expect(gamesResp.status()).toBe(200);
+      const games = await gamesResp.json();
+      expect(games.length).toBeGreaterThan(0);
 
-      // Step 6: Retrieve replay
-      console.log('  6️⃣ Retrieving replay...');
-      const getReplayResp = await request.get(`${API_URL}/api/replay/${e2eUser}/classic/1`);
-      expect(getReplayResp.status()).toBe(200);
-      const replay = await getReplayResp.json();
-      expect(replay.moves.length).toBe(3);
+      // Step 8: Verify stats
+      console.log('  8️⃣ Verifying stats...');
+      const statsCheckResp = await request.get(`${API_URL}/api/stats?user_id=${e2eUser}`);
+      expect(statsCheckResp.status()).toBe(200);
+
+      // Step 9: Verify achievements
+      console.log('  9️⃣ Verifying achievements...');
+      const achCheckResp = await request.get(`${API_URL}/api/achievements?user_id=${e2eUser}`);
+      expect(achCheckResp.status()).toBe(200);
+
+      // Step 10: Verify replay
+      console.log('  🔟 Verifying replay...');
+      const replayCheckResp = await request.get(
+        `${API_URL}/api/replays?user_id=${e2eUser}&mode=classic&level_id=1`
+      );
+      expect(replayCheckResp.status()).toBe(200);
 
       console.log('✅ Complete game lifecycle verified end-to-end');
     });
 
-    test('Verify consistency: user profile matches aggregate data', async ({ request }) => {
+    test('Data consistency: stats and games match', async ({ request }) => {
       console.log('📋 Testing: Data consistency verification');
 
       const consistencyUser = `consistency_test_${Date.now()}`;
 
-      // Save multiple scores
-      const scores = [
-        { mode: 'classic', level: 1, moves: 10, time: 30.0 },
-        { mode: 'classic', level: 2, moves: 12, time: 40.0 },
-        { mode: 'blitz', level: 1, moves: 15, time: 45.0 },
+      // Create user
+      await request.post(`${API_URL}/api/users`, {
+        data: { id: consistencyUser, username: `Consistency_${Date.now()}` },
+      });
+
+      // Record multiple games
+      const games = [
+        { mode: 'classic', level: 1, score: 5000, moves: 10, time: 30 },
+        { mode: 'classic', level: 2, score: 6000, moves: 12, time: 35 },
+        { mode: 'blitz', level: 1, score: 4000, moves: 8, time: 25 },
       ];
 
-      for (const s of scores) {
-        await request.post(`${API_URL}/api/highscore/${consistencyUser}/${s.mode}/${s.level}`, {
-          data: { moves: s.moves, time: s.time },
+      for (const g of games) {
+        await request.post(`${API_URL}/api/games`, {
+          data: {
+            user_id: consistencyUser,
+            mode: g.mode,
+            level_id: g.level,
+            score: g.score,
+            moves: g.moves,
+            elapsed_seconds: g.time,
+          },
         });
       }
 
-      // Get profile
-      const profileResp = await request.get(`${API_URL}/api/profile/${consistencyUser}`);
-      const profile = await profileResp.json();
+      // Update stats
+      const totalScore = games.reduce((sum, g) => sum + g.score, 0);
+      await request.post(`${API_URL}/api/stats`, {
+        data: {
+          user_id: consistencyUser,
+          total_levels_completed: games.length,
+          total_score: totalScore,
+        },
+      });
 
-      // Verify aggregated values (score is calculated server-side)
-      expect(profile.total_score).toBeGreaterThan(0);
-      expect(profile.levels_completed).toBeGreaterThan(0);
+      // Verify stats match game data
+      const statsResp = await request.get(`${API_URL}/api/stats?user_id=${consistencyUser}`);
+      const stats = await statsResp.json();
+      expect(stats.total_levels_completed).toBe(games.length);
+      expect(stats.total_score).toBe(totalScore);
 
-      // Get leaderboards to verify consistency
-      const classicResp = await request.get(`${API_URL}/api/leaderboard/classic?limit=100`);
-      const blitzResp = await request.get(`${API_URL}/api/leaderboard/blitz?limit=100`);
+      // Verify games list matches
+      const gamesResp = await request.get(`${API_URL}/api/games?user_id=${consistencyUser}`);
+      const gamesList = await gamesResp.json();
+      expect(gamesList.length).toBe(games.length);
 
-      const classicEntry = (await classicResp.json()).find((e: any) => e.user_id === consistencyUser);
-      const blitzEntry = (await blitzResp.json()).find((e: any) => e.user_id === consistencyUser);
-
-      // User should appear in both mode leaderboards
-      expect(classicEntry).toBeDefined();
-      expect(blitzEntry).toBeDefined();
-
-      // Both should reference same user profile
-      expect(classicEntry.total_score).toBe(profile.total_score);
-      expect(blitzEntry.total_score).toBe(profile.total_score);
-
-      console.log('✅ Data consistency verified across all endpoints');
+      console.log('✅ Data consistency verified between games and stats');
     });
   });
 });

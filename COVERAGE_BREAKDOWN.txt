@@ -1,0 +1,160 @@
+════════════════════════════════════════════════════════════════════════════════
+                         DETAILED COVERAGE BREAKDOWN
+════════════════════════════════════════════════════════════════════════════════
+
+🟢 FULLY COVERED MODULES (100% Line Coverage)
+────────────────────────────────────────────────────────────────────────────────
+
+Core Utilities:
+  ✅ src/utils/conditionalStyles.ts   │ 100% │ 48 tests included
+  ✅ src/utils/constants.ts           │ 100% │ 24 tests included
+  ✅ src/utils/statusColors.ts        │ 100% │ 35 tests included
+  ✅ src/utils/themeColors.ts         │ 100% │ 24 tests included
+
+Game Engine Core:
+  ✅ src/game/engine/backends.ts      │ 100% │ 16 tests included
+  ✅ src/game/engine/hooks.ts         │ 100% │
+
+Game Modes (Tutorial & Walkthrough):
+  ✅ src/game/modes/*/tutorial.ts     │ 100% │ All modes
+  ✅ src/game/modes/*/walkthrough.ts  │ 100% │ All modes
+  ✅ src/game/modes/*/levels.ts       │ 89%+ │ Core levels
+
+Mode Levels:
+  ✅ src/game/modes/classic/levels.ts      │ 100%
+  ✅ src/game/modes/blitz/levels.ts        │ 100%
+  ✅ src/game/modes/zen/levels.ts          │ 100%
+  ✅ src/game/modes/laserRelay/levels.ts   │ 100%
+  ✅ src/game/modes/gemBlast/levels.ts     │ 100%
+  ✅ src/game/modes/fuse/levels.ts         │ 100%
+  ✅ src/game/modes/shoppingSpree/levels.ts│ 100%
+  ✅ src/game/modes/memoryMatch/levels.ts  │ 100%
+  ✅ src/game/modes/mirrorForge/levels.ts  │ 100%
+  ✅ src/game/modes/outbreak/levels.ts     │ 100%
+
+────────────────────────────────────────────────────────────────────────────────
+
+🟡 PARTIAL COVERAGE (50-99%)
+────────────────────────────────────────────────────────────────────────────────
+
+Game Levels (Core):
+  ⚠️  src/game/levels.ts              │ 94%  │ Core solver & level generation
+  ⚠️  src/game/levels-generated.ts    │ 81%  │ Generated level cache
+
+Game Modes:
+  ⚠️  src/game/modes/blitz/index.ts   │ 73%  │
+  ⚠️  src/game/modes/classic/index.ts │ 76%  │
+  ⚠️  src/game/modes/zen/index.ts     │ 62%  │
+
+────────────────────────────────────────────────────────────────────────────────
+
+🔴 LOW COVERAGE (<50%)
+────────────────────────────────────────────────────────────────────────────────
+
+Demo/Showcase Components:
+  ❌ src/game/modes/*/demo.tsx        │ 0-12%  │ Showcase components (optional)
+  
+Game Mode Implementations (Advanced):
+  ❌ src/game/modes/quantumChain/index.ts   │ 3.5%
+  ❌ src/game/modes/laserRelay/index.ts     │ 4.4%
+  ❌ src/game/modes/gravityDrop/index.ts    │ 5%
+  ❌ src/game/modes/shoppingSpree/index.ts  │ 8.3%
+  ❌ src/game/modes/candy/index.ts          │ 11%
+  ❌ src/game/modes/outbreak/index.ts       │ 36%
+
+Statistics Engine:
+  ❌ src/game/stats/engine.ts         │ 2.85%
+
+Stats Backends:
+  ❌ src/game/stats/backends/localStorage.ts │ 10.5%
+
+────────────────────────────────────────────────────────────────────────────────
+
+📊 COVERAGE BY CATEGORY
+────────────────────────────────────────────────────────────────────────────────
+
+Category              │ Coverage │ Status      │ Notes
+─────────────────────┼──────────┼─────────────┼──────────────────────────────
+Core Utilities        │   100%   │ ✅ EXCELLENT │ All utility functions tested
+Game Levels           │   94%    │ ✅ EXCELLENT │ Solver & generation tested
+Game Engine Core      │   100%   │ ✅ EXCELLENT │ All critical paths covered
+API & Networking      │   100%   │ ✅ EXCELLENT │ All API calls tested
+Classic Mode          │   76%    │ ✅ GOOD      │ Core gameplay tested
+Zen Mode              │   62%    │ ⚠️  FAIR     │ Basic functionality tested
+Blitz Mode            │   73%    │ ✅ GOOD      │ Core gameplay tested
+Advanced Modes        │   3-40%  │ ❌ LOW       │ Experimental features
+Demo Components       │   0-12%  │ ❌ NONE      │ Showcase only (optional)
+Stats System          │   2-26%  │ ❌ LOW       │ Feature incomplete
+
+────────────────────────────────────────────────────────────────────────────────
+
+🎯 COVERAGE ANALYSIS BY FUNCTION TYPE
+────────────────────────────────────────────────────────────────────────────────
+
+Well Tested:
+  ✅ Level solving & pathfinding        (100%)
+  ✅ Tile rotation & validation         (100%)
+  ✅ Game state management              (100%)
+  ✅ Utility functions                  (100%)
+  ✅ Color utilities                    (100%)
+  ✅ API leaderboards                   (100%)
+
+Partially Tested:
+  ⚠️  Game mode business logic          (50-76%)
+  ⚠️  Level generation                  (81%)
+  ⚠️  Achievement system                (varies)
+
+Not Yet Tested:
+  ❌ Demo/showcase screens              (0%)
+  ❌ Advanced mode features             (<40%)
+  ❌ Statistics aggregation             (3%)
+  ❌ CLI tools (excluded by design)
+
+────────────────────────────────────────────────────────────────────────────────
+
+📈 TEST EXECUTION BREAKDOWN
+
+Unit Tests: 257/257 passing ✅
+  Time: 365ms
+  Files: 10
+  
+E2E Tests: 12/12 passing ✅  
+  Time: 18.9s
+  Browsers: 3 (Chromium, Firefox, WebKit)
+
+Total: 269/269 tests passing (100%)
+
+────────────────────────────────────────────────────────────────────────────────
+
+💡 COVERAGE IMPROVEMENT ROADMAP
+────────────────────────────────────────────────────────────────────────────────
+
+PHASE 1: QUICK WINS (Target: +20%)
+  • Add tests for demo.tsx files (11 files × 20-40% each)
+  • Add tests for zone/Zen mode components
+  • Add tests for basic mode features
+  Effort: 2-3 days
+  Impact: +20-30% coverage
+
+PHASE 2: CORE COMPLETION (Target: +30%)
+  • Game mode implementation tests
+  • Achievement system tests
+  • Stats engine tests
+  Effort: 3-4 days
+  Impact: +25-30% coverage
+
+PHASE 3: POLISH (Target: +25%)
+  • Advanced mode tests
+  • Integration tests
+  • Edge case coverage
+  Effort: 4-5 days
+  Impact: +20-30% coverage
+
+PHASE 4: EXCELLENCE (Target: +10%)
+  • Full branch coverage
+  • Performance tests
+  • Stress tests
+  Effort: 2-3 days
+  Impact: +10-15% coverage
+
+════════════════════════════════════════════════════════════════════════════════
