@@ -128,7 +128,8 @@ export function renderFixedElements(props: any) {
           position: 'fixed',
           top: 'max(12px, env(safe-area-inset-top))',
           right: 12,
-          zIndex: 1000,
+          zIndex: 9999,
+          pointerEvents: 'none',
         }}
       >
         <SyncStatusIndicator />
