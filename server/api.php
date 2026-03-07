@@ -116,6 +116,120 @@ class Database {
   }
 
   private function initTable() {
+    // ─── NEW RELATIONAL SCHEMA (v2) ────────────────────────────────────────
+
+    // Users table - core user profiles
+    $sql = "
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(64) PRIMARY KEY,
+        username VARCHAR(255) UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create users table: ' . $this->conn->error);
+    }
+
+    // Game completions - scores, moves, times
+    $sql = "
+      CREATE TABLE IF NOT EXISTS game_completions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        mode VARCHAR(50) NOT NULL,
+        level_id INT NOT NULL,
+        score INT,
+        moves INT,
+        elapsed_seconds FLOAT,
+        completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_level (user_id, mode, level_id),
+        INDEX idx_user (user_id),
+        INDEX idx_mode (mode),
+        INDEX idx_score (score DESC)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create game_completions table: ' . $this->conn->error);
+    }
+
+    // User achievements - unlocked achievements
+    $sql = "
+      CREATE TABLE IF NOT EXISTS user_achievements (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        achievement_id VARCHAR(100) NOT NULL,
+        unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_achievement (user_id, achievement_id),
+        INDEX idx_user (user_id),
+        INDEX idx_achievement (achievement_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create user_achievements table: ' . $this->conn->error);
+    }
+
+    // User stats - aggregate performance metrics
+    $sql = "
+      CREATE TABLE IF NOT EXISTS user_stats (
+        user_id VARCHAR(64) PRIMARY KEY,
+        total_levels_completed INT DEFAULT 0,
+        total_score INT DEFAULT 0,
+        max_combo INT DEFAULT 0,
+        total_walls_survived INT DEFAULT 0,
+        no_reset_streak INT DEFAULT 0,
+        speed_levels INT DEFAULT 0,
+        perfect_levels INT DEFAULT 0,
+        total_hours_played FLOAT DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create user_stats table: ' . $this->conn->error);
+    }
+
+    // Replays - game move history
+    $sql = "
+      CREATE TABLE IF NOT EXISTS replays (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        mode VARCHAR(50) NOT NULL,
+        level_id INT NOT NULL,
+        moves_json JSON NOT NULL,
+        score INT,
+        recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_user_mode_level (user_id, mode, level_id),
+        INDEX idx_recorded (recorded_at DESC)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create replays table: ' . $this->conn->error);
+    }
+
+    // Leaderboard cache - materialized rankings
+    $sql = "
+      CREATE TABLE IF NOT EXISTS leaderboard_cache (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        mode VARCHAR(50) NOT NULL,
+        user_id VARCHAR(64) NOT NULL,
+        username VARCHAR(255),
+        score INT,
+        rank INT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_mode_user (mode, user_id),
+        INDEX idx_mode_rank (mode, rank),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    if (!$this->conn->query($sql)) {
+      throw new Exception('Failed to create leaderboard_cache table: ' . $this->conn->error);
+    }
+
+    // ─── LEGACY TABLES (backward compatibility) ────────────────────────────
+
     // Ensure highscores table exists first
     $sql = "
       CREATE TABLE IF NOT EXISTS highscores (
@@ -136,7 +250,7 @@ class Database {
       throw new Exception('Failed to create highscores table: ' . $this->conn->error);
     }
 
-    // Game data persistence table
+    // Game data persistence table (legacy key-value storage)
     $sql = "
       CREATE TABLE IF NOT EXISTS game_data (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -155,7 +269,7 @@ class Database {
       throw new Exception('Failed to create game_data table: ' . $this->conn->error);
     }
 
-    // User profiles table
+    // User profiles table (legacy)
     $sql = "
       CREATE TABLE IF NOT EXISTS user_profiles (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -177,29 +291,7 @@ class Database {
       throw new Exception('Failed to create user_profiles table: ' . $this->conn->error);
     }
 
-    // Highscores table already created above in addColumnIfNotExists section
-
-    // Achievements table
-    $sql = "
-      CREATE TABLE IF NOT EXISTS replays (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL,
-        mode VARCHAR(50) NOT NULL,
-        level_id INT NOT NULL,
-        moves LONGTEXT NOT NULL,
-        score INT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_replay (user_id, mode, level_id),
-        INDEX idx_mode (mode),
-        INDEX idx_user (user_id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ";
-
-    if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create replays table: ' . $this->conn->error);
-    }
-
+    // Legacy achievements table
     $sql = "
       CREATE TABLE IF NOT EXISTS achievements (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1454,6 +1546,22 @@ try {
       http_response_code(500);
       echo json_encode(['error' => 'Database reset failed: ' . $e->getMessage()]);
       $db->close();
+      exit;
+    }
+  }
+
+  // ─── INCLUDE NEW RELATIONAL API ENDPOINTS ────────────────────────────────
+  // If legacy endpoints didn't handle this route, try the new relational endpoints
+  // This provides both backward compatibility and new features
+  if (file_exists(__DIR__ . '/api-endpoints.php')) {
+    // Use a buffer to catch the new endpoints output
+    ob_start();
+    include __DIR__ . '/api-endpoints.php';
+    $output = ob_get_clean();
+
+    // If new endpoints produced output, send it; otherwise fall through to 404
+    if (!empty($output)) {
+      echo $output;
       exit;
     }
   }
