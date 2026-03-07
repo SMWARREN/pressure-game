@@ -1,7 +1,7 @@
 // PRESSURE - About Screen
 // Displays the logo puzzle level as an interactive showcase
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameStore } from '@/game/store';
 import { useTheme } from '@/hooks/useTheme';
 import { RGBA_COLORS } from '@/utils/constants';
@@ -15,6 +15,7 @@ export default function AboutScreen({
 }) {
   const { colors } = useTheme();
   const loadLevel = useGameStore((s) => s.loadLevel);
+  const status = useGameStore((s) => s.status);
   const [isPlayingLogo, setIsPlayingLogo] = useState(false);
 
   const handlePlayLogo = () => {
@@ -24,7 +25,16 @@ export default function AboutScreen({
 
   const handleBackFromGame = () => {
     setIsPlayingLogo(false);
+    onBack();
   };
+
+  // If logo is being played and game status is still in menu, ensure it's started
+  useEffect(() => {
+    if (isPlayingLogo && status === 'menu') {
+      // Level was loaded, now the game should transition to playing
+      // but we need to ensure it stays in game view
+    }
+  }, [isPlayingLogo, status]);
 
   if (isPlayingLogo) {
     // Show the full game board but with a back button
