@@ -5250,42 +5250,56 @@ export const CLASSIC_LEVELS: Level[] = [
 // LOGO LEVELS - Two-tier system
 // ═══════════════════════════════════════════════════════════════════════════
 
-// PUBLIC: 4x4 Compact logo for About page & marketing
+// PUBLIC: 3x3 playable area with wall border for About page & marketing
 export const PRESSURE_LOGO_LEVEL: Level = {
   id: 999,
   name: 'Pressure',
   world: 0,
-  gridSize: 4,
+  gridSize: 5,
   tiles: [
-    // Border frame
+    // Top border (row 0)
     { id: 'w-0-0', type: 'wall', x: 0, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-1-0', type: 'wall', x: 1, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-2-0', type: 'wall', x: 2, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-3-0', type: 'wall', x: 3, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-0-3', type: 'wall', x: 0, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-1-3', type: 'wall', x: 1, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-2-3', type: 'wall', x: 2, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-3-3', type: 'wall', x: 3, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-4-0', type: 'wall', x: 4, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+
+    // Bottom border (row 4)
+    { id: 'w-0-4', type: 'wall', x: 0, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-1-4', type: 'wall', x: 1, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-2-4', type: 'wall', x: 2, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-3-4', type: 'wall', x: 3, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-4-4', type: 'wall', x: 4, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+
+    // Left border (col 0)
     { id: 'w-0-1', type: 'wall', x: 0, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-3-1', type: 'wall', x: 3, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-0-2', type: 'wall', x: 0, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
-    { id: 'w-3-2', type: 'wall', x: 3, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-0-3', type: 'wall', x: 0, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
-    // Goal nodes - 3 strategic connections
-    { id: 'g-1-1', type: 'path', x: 1, y: 1, connections: ['up', 'down'] as Direction[], isGoalNode: true, canRotate: false },
-    { id: 'g-2-1', type: 'path', x: 2, y: 1, connections: ['left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
-    { id: 'g-1-2', type: 'path', x: 1, y: 2, connections: ['up', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+    // Right border (col 4)
+    { id: 'w-4-1', type: 'wall', x: 4, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-4-2', type: 'wall', x: 4, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-4-3', type: 'wall', x: 4, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
-    // Puzzle pipes to connect
-    { id: 'p-2-2', type: 'path', x: 2, y: 2, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    // 3x3 playable area (rows 1-3, cols 1-3)
+    // Goal nodes - 3 strategic positions
+    { id: 'g-1-1', type: 'path', x: 1, y: 1, connections: ['right'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-3-1', type: 'path', x: 3, y: 1, connections: ['left'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-2-3', type: 'path', x: 2, y: 3, connections: ['up'] as Direction[], isGoalNode: true, canRotate: false },
+
+    // Puzzle pipes to rotate and connect
+    { id: 'p-2-1', type: 'path', x: 2, y: 1, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-2-2', type: 'path', x: 2, y: 2, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-1-2', type: 'path', x: 1, y: 2, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-2', type: 'path', x: 3, y: 2, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
   ],
   compressionDelay: Infinity,
-  maxMoves: 10,
+  maxMoves: 15,
   compressionEnabled: false,
   goalNodes: [
     { x: 1, y: 1 },
-    { x: 2, y: 1 },
-    { x: 1, y: 2 },
+    { x: 3, y: 1 },
+    { x: 2, y: 3 },
   ],
 };
 
