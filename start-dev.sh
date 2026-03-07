@@ -6,6 +6,12 @@ set -e
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Setup .env.local for development
+cat > "$PROJECT_DIR/apps/web/.env.local" << 'ENVEOF'
+VITE_API_URL=http://localhost:8000/api.php
+VITE_PERSISTENCE_BACKEND=syncing
+ENVEOF
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
