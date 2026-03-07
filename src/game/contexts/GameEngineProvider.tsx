@@ -49,6 +49,14 @@ function getUserId(): string {
 }
 
 /**
+ * Construct API base URL by removing /api.php suffix (no trailing slash)
+ */
+function getApiBaseUrl(viteUrl: string): string {
+  if (!viteUrl) return '';
+  return viteUrl.replace('/api.php', '').replace(/\/$/, '');
+}
+
+/**
  * Create engines - this function is called during render
  * but the engines are only created once due to module-level tracking.
  */
@@ -64,7 +72,8 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
 
   // Configure persistence backend from environment
   const backendType = import.meta.env.VITE_PERSISTENCE_BACKEND || 'localStorage';
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const viteApiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = getApiBaseUrl(viteApiUrl);
 
   let persistenceBackend = undefined;
 
