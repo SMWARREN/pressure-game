@@ -5246,6 +5246,129 @@ export const CLASSIC_LEVELS: Level[] = [
   },
 ];
 
-export function getLevelsByWorld(world: number): Level[] {
-  return CLASSIC_LEVELS.filter((l) => l.world === world);
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// LOGO LEVELS - Two-tier system
+// ═══════════════════════════════════════════════════════════════════════════
+
+// PUBLIC: 4x4 Compact logo for About page & marketing
+export const PRESSURE_LOGO_LEVEL: Level = {
+  id: 999,
+  name: 'Pressure',
+  world: 0,
+  gridSize: 4,
+  tiles: [
+    // Border frame
+    { id: 'w-0-0', type: 'wall', x: 0, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-1-0', type: 'wall', x: 1, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-2-0', type: 'wall', x: 2, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-3-0', type: 'wall', x: 3, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-0-3', type: 'wall', x: 0, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-1-3', type: 'wall', x: 1, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-2-3', type: 'wall', x: 2, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-3-3', type: 'wall', x: 3, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-0-1', type: 'wall', x: 0, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-3-1', type: 'wall', x: 3, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-0-2', type: 'wall', x: 0, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'w-3-2', type: 'wall', x: 3, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+
+    // Goal nodes - 3 strategic connections
+    { id: 'g-1-1', type: 'straight', x: 1, y: 1, connections: ['up', 'down'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-2-1', type: 'straight', x: 2, y: 1, connections: ['left', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'g-1-2', type: 'corner', x: 1, y: 2, connections: ['up', 'right'] as Direction[], isGoalNode: true, canRotate: false },
+
+    // Puzzle pipes to connect
+    { id: 'p-2-2', type: 'corner', x: 2, y: 2, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+  ],
+  wallCompression: 'never',
+  description: 'The iconic Pressure logo - a compact puzzle showcasing the game.',
+};
+
+// SECRET: 10x10 "P" shaped level - Unlocked by achievement
+export const PRESSURE_LOGO_SECRET_LEVEL: Level = {
+  id: 998,
+  name: 'The Pressure Secret',
+  world: 0,
+  gridSize: 10,
+  tiles: [
+    // Border walls (top row y=0)
+    { id: 'wall-0-0', type: 'wall', x: 0, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-0', type: 'wall', x: 1, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-2-0', type: 'wall', x: 2, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-3-0', type: 'wall', x: 3, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-4-0', type: 'wall', x: 4, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-5-0', type: 'wall', x: 5, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-6-0', type: 'wall', x: 6, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-0', type: 'wall', x: 7, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-0', type: 'wall', x: 8, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-0', type: 'wall', x: 9, y: 0, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Border walls (bottom row y=9)
+    { id: 'wall-0-9', type: 'wall', x: 0, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-9', type: 'wall', x: 1, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-2-9', type: 'wall', x: 2, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-3-9', type: 'wall', x: 3, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-4-9', type: 'wall', x: 4, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-5-9', type: 'wall', x: 5, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-6-9', type: 'wall', x: 6, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-9', type: 'wall', x: 7, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-9', type: 'wall', x: 8, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-9', type: 'wall', x: 9, y: 9, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Border walls (left column x=0)
+    { id: 'wall-0-1', type: 'wall', x: 0, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-0-2', type: 'wall', x: 0, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-0-3', type: 'wall', x: 0, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-0-4', type: 'wall', x: 0, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-0-5', type: 'wall', x: 0, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-0-6', type: 'wall', x: 0, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-0-7', type: 'wall', x: 0, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-0-8', type: 'wall', x: 0, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Border walls (right column x=9)
+    { id: 'wall-9-1', type: 'wall', x: 9, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-2', type: 'wall', x: 9, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-3', type: 'wall', x: 9, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-4', type: 'wall', x: 9, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-5', type: 'wall', x: 9, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-6', type: 'wall', x: 9, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-7', type: 'wall', x: 9, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-9-8', type: 'wall', x: 9, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Extra walls to frame the "P" shape (column x=1)
+    { id: 'wall-1-1', type: 'wall', x: 1, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-2', type: 'wall', x: 1, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-3', type: 'wall', x: 1, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-4', type: 'wall', x: 1, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-5', type: 'wall', x: 1, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-6', type: 'wall', x: 1, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-7', type: 'wall', x: 1, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-1-8', type: 'wall', x: 1, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Extra walls for right side of P loop (column x=7)
+    { id: 'wall-7-1', type: 'wall', x: 7, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-2', type: 'wall', x: 7, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-3', type: 'wall', x: 7, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-4', type: 'wall', x: 7, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-5', type: 'wall', x: 7, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Extra walls for right side below loop
+    { id: 'wall-7-6', type: 'wall', x: 7, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-7', type: 'wall', x: 7, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-7-8', type: 'wall', x: 7, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Extra walls for top-right area
+    { id: 'wall-8-1', type: 'wall', x: 8, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-2', type: 'wall', x: 8, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-3', type: 'wall', x: 8, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-4', type: 'wall', x: 8, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-5', type: 'wall', x: 8, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-6', type: 'wall', x: 8, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-7', type: 'wall', x: 8, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-8-8', type: 'wall', x: 8, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Extra walls for middle area inside P
+    { id: 'wall-4-6', type: 'wall', x: 4, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-5-6', type: 'wall', x: 5, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-6-6', type: 'wall', x: 6, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-4-7', type: 'wall', x: 4, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-5-7', type: 'wall', x: 5, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-6-7', type: 'wall', x: 6, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-3-6', type: 'wall', x: 3, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-3-7', type: 'wall', x: 3, y: 7, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    // Extra walls for bottom area
+    { id: 'wall-3-8', type: 'wall', x: 3, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-4-8', type: 'wall', x: 4, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-5-8', type: 'wall', x: 5, y: 8, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'wall-6-8', type: 'wall', x: 6, y: 8, connections: [] as Direction[], isGoal
