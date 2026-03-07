@@ -27,6 +27,7 @@ import { FUSE_LEVELS, FUSE_WORLDS } from './levels';
 import { FUSE_TUTORIAL_STEPS } from './tutorial';
 import { renderFuseDemo } from './demo';
 import { FUSE_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -324,4 +325,6 @@ export const FuseMode: GameModeConfig = {
 
   statsLabels: { moves: 'FUSES' },
   statsDisplay: [{ type: 'moves' }],
+
+  getColorContext: () => getModeColorPalette('fuse'),
 };

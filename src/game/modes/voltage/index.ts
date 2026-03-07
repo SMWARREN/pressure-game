@@ -19,6 +19,7 @@ import { VOLTAGE_LEVELS, VOLTAGE_WORLDS } from './levels';
 import { VOLTAGE_TUTORIAL_STEPS } from './tutorial';
 import { renderVoltageDemo } from './demo';
 import { VOLTAGE_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Charge constants ──────────────────────────────────────────────────────────
 
@@ -210,4 +211,6 @@ export const VoltageMode: GameModeConfig = {
 
   statsLabels: { moves: 'DISCHARGES' },
   statsDisplay: [{ type: 'score' }, { type: 'moves' }],
+
+  getColorContext: () => getModeColorPalette('voltage'),
 };

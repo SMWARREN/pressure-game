@@ -29,6 +29,7 @@ import { QUANTUM_CHAIN_LEVELS } from './levels';
 import { QUANTUM_CHAIN_TUTORIAL_STEPS } from './tutorial';
 import { renderQuantumChainDemo } from './demo';
 import { QUANTUM_CHAIN_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Mode State Interface ─────────────────────────────────────────────────────
 
@@ -516,4 +517,6 @@ export const QuantumChainMode: GameModeConfig = {
 
     return null;
   },
+
+  getColorContext: () => getModeColorPalette('quantum_chain'),
 };

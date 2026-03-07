@@ -35,6 +35,7 @@ import { WILDCARD_SYMBOL, isWildcard, makeWildcardTile, getWildcardColors } from
 import { BOMB_SYMBOL, isBomb, makeBombTile, applyBombExplosion, getBombColors } from '../bombAddon';
 import { updateCombo, resetCombo, comboNotification, type ComboState } from '../comboChainAddon';
 import { tickRain } from '../rainAddon';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Mode State for Flash Sales, Cart, Thief & Symbol Unlock ──────────────────
 
@@ -928,4 +929,6 @@ export const ShoppingSpreeMode: GameModeConfig = {
 
   statsLabels: { moves: 'TAPS' },
   statsDisplay: [{ type: 'score' }, { type: 'moves' }],
+
+  getColorContext: () => getModeColorPalette('shoppingSpree'),
 };

@@ -31,6 +31,7 @@ import { WILDCARD_SYMBOL, isWildcard, makeWildcardTile, getWildcardColors } from
 import { BOMB_SYMBOL, isBomb, makeBombTile, applyBombExplosion, getBombColors } from '../bombAddon';
 import { updateCombo, resetCombo, comboNotification, type ComboState } from '../comboChainAddon';
 import { tickRain } from '../rainAddon';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Group finding ────────────────────────────────────────────────────────────
 // Uses shared groupFinder.ts for DFS-based connected group detection
@@ -630,4 +631,6 @@ export const CandyMode: GameModeConfig = {
   statsLabels: { moves: 'TAPS' },
   statsDisplay: [{ type: 'score' }, { type: 'moves' }],
   walkthrough: CANDY_WALKTHROUGH,
+
+  getColorContext: () => getModeColorPalette('candy'),
 };

@@ -9,6 +9,7 @@ import { PRESSURE_LEVELS } from '../shared/levels';
 import { CLASSIC_TUTORIAL_STEPS } from './tutorial';
 import { renderClassicDemo } from './demo';
 import { CLASSIC_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 export const CLASSIC_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
@@ -59,4 +60,6 @@ export const ClassicMode: GameModeConfig = {
   },
   statsDisplay: [{ type: 'moves' }, { type: 'compressionBar' }, { type: 'countdown' }],
   walkthrough: CLASSIC_WALKTHROUGH,
+
+  getColorContext: () => getModeColorPalette('classic'),
 };

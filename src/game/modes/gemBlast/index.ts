@@ -16,6 +16,7 @@ import { renderGemBlastDemo } from './demo';
 import { GEM_BLAST_WALKTHROUGH } from './walkthrough';
 import { findGroup, findAllGroups } from '../arcadeShared';
 import { reshuffleTiles, hasValidGroup } from '../arcadeUtils';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Helper functions ──────────────────────────────────────────────────────────
 
@@ -487,6 +488,8 @@ export const GemBlastMode: GameModeConfig = {
 
   statsLabels: { moves: 'TAPS' },
   statsDisplay: [{ type: 'score' }, { type: 'moves' }],
+
+  getColorContext: () => getModeColorPalette('gemBlast'),
 };
 
 // Re-export for use in ArcadeHubScreen

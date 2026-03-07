@@ -7,6 +7,7 @@ import { PRESSURE_LEVELS } from '../shared/levels';
 import { ZEN_TUTORIAL_STEPS } from './tutorial';
 import { renderZenDemo } from './demo';
 import { ZEN_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 export const ZEN_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
@@ -50,4 +51,6 @@ export const ZenMode: GameModeConfig = {
   // Zen mode has no walls, no timer - just show moves
   statsDisplay: [{ type: 'moves' }],
   walkthrough: ZEN_WALKTHROUGH,
+
+  getColorContext: () => getModeColorPalette('zen'),
 };

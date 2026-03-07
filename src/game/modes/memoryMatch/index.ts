@@ -24,6 +24,7 @@ import { MEMORY_LEVELS, MEMORY_WORLDS, MemoryTileData } from './levels';
 import { MEMORY_TUTORIAL_STEPS } from './tutorial';
 import { renderMemoryMatchDemo } from './demo';
 import { MEMORY_MATCH_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Colours ───────────────────────────────────────────────────────────────────
 const ACCENT = '#818cf8'; // indigo — primary brand colour for this mode
@@ -369,4 +370,6 @@ export const MemoryMatchMode: GameModeConfig = {
   tutorialSteps: MEMORY_TUTORIAL_STEPS,
   renderDemo: renderMemoryMatchDemo,
   walkthrough: MEMORY_MATCH_WALKTHROUGH,
+
+  getColorContext: () => getModeColorPalette('memoryMatch'),
 };

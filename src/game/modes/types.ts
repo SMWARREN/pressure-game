@@ -11,6 +11,45 @@ import { WalkthroughConfig } from '../../components/WalkthroughOverlay';
 
 export type WallCompressionSetting = 'always' | 'never' | 'optional';
 
+/**
+ * Color context - each game mode defines its own colors.
+ * The engine and views are dumb; they just use whatever colors the mode provides.
+ */
+export interface ModeColorContext {
+  // UI Colors
+  primary: string;           // Primary mode color
+  secondary: string;         // Secondary accent
+  background: string;        // Mode background
+  border: string;           // Border color
+
+  // Tile Colors
+  tileDefault: string;      // Default tile background
+  tileBorder: string;       // Tile border
+  tileActive: string;       // Active/selected tile
+
+  // Status Colors
+  success: string;          // Win/success state
+  danger: string;           // Danger/loss state
+  warning: string;          // Warning state
+  info: string;            // Info/neutral state
+
+  // Specific State Colors
+  nodeGlow: string;        // Goal node highlight
+  pathActive: string;      // Active path color
+  wallColor: string;       // Wall color
+  crushed: string;         // Crushed tile color
+
+  // Transparent variants (for backgrounds, overlays)
+  transparent: {
+    white01: string;
+    white02: string;
+    white04: string;
+    black30: string;
+    black50: string;
+    black60: string;
+  };
+}
+
 export interface TapResult {
   readonly tiles: Tile[];
   readonly valid: boolean;
@@ -286,6 +325,13 @@ export interface GameModeConfig {
    * Return a partial GameState update or null for no change.
    */
   onTick?: (state: GameState, modeState?: Record<string, unknown>) => Partial<GameState> | null;
+
+  /**
+   * Get the color context for this mode.
+   * Each mode completely defines its own colors.
+   * Views and engine ask the mode for colors, never use global constants.
+   */
+  getColorContext: () => ModeColorContext;
 
   /** Whether this mode supports the undo mechanic. Default: true */
   supportsUndo?: boolean;

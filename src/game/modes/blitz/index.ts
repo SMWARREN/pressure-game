@@ -8,6 +8,7 @@ import { Tile } from '../../types';
 import { BLITZ_TUTORIAL_STEPS } from './tutorial';
 import { renderBlitzDemo } from './demo';
 import { BLITZ_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 export const BLITZ_WORLDS = [
   { id: 1, name: 'Ignite', tagline: 'Warm up', color: '#fb923c', icon: '◈' },
@@ -60,4 +61,6 @@ export const BlitzMode: GameModeConfig = {
   // Blitz has walls but no move limit - show taps, compression bar, and countdown
   statsDisplay: [{ type: 'moves' }, { type: 'compressionBar' }, { type: 'countdown' }],
   walkthrough: BLITZ_WALKTHROUGH,
+
+  getColorContext: () => getModeColorPalette('blitz'),
 };

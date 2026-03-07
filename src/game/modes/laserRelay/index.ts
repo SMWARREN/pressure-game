@@ -20,6 +20,7 @@ import { LASER_LEVELS, LASER_WORLDS } from './levels';
 import { LASER_TUTORIAL_STEPS } from './tutorial';
 import { renderLaserDemo } from './demo';
 import { LASER_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Mirror reflection tables ──────────────────────────────────────────────────
 
@@ -597,4 +598,6 @@ export const LaserRelayMode: GameModeConfig = {
 
   statsLabels: { moves: 'ROTATIONS' },
   statsDisplay: [{ type: 'moves' }],
+
+  getColorContext: () => getModeColorPalette('laserRelay'),
 };

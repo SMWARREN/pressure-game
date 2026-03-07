@@ -26,6 +26,7 @@ import {
 import { OUTBREAK_TUTORIAL_STEPS } from './tutorial';
 import { renderOutbreakDemo } from './demo';
 import { OUTBREAK_WALKTHROUGH } from './walkthrough';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Per-tile display data ─────────────────────────────────────────────────────
 
@@ -310,4 +311,6 @@ export const OutbreakMode: GameModeConfig = {
   tutorialSteps: OUTBREAK_TUTORIAL_STEPS,
   renderDemo: renderOutbreakDemo,
   walkthrough: OUTBREAK_WALKTHROUGH,
+
+  getColorContext: () => getModeColorPalette('outbreak'),
 };

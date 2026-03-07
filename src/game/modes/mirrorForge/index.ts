@@ -28,6 +28,7 @@ import { MIRROR_TUTORIAL_STEPS } from './tutorial';
 import { renderMirrorForgeDemo } from './demo';
 import { MIRROR_FORGE_WALKTHROUGH } from './walkthrough';
 import { checkConnected } from '../utils';
+import { getModeColorPalette } from '../modeColorFactory';
 
 // ── Rotate one tile's connections by 1 step CW ───────────────────────────────
 type Dir = 'up' | 'right' | 'down' | 'left';
@@ -214,4 +215,6 @@ export const MirrorForgeMode: GameModeConfig = {
   tutorialSteps: MIRROR_TUTORIAL_STEPS,
   renderDemo: renderMirrorForgeDemo,
   walkthrough: MIRROR_FORGE_WALKTHROUGH,
+
+  getColorContext: () => getModeColorPalette('mirrorForge'),
 };
