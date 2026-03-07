@@ -69,7 +69,20 @@ class Database {
     }
   }
 
+  private function addColumnIfNotExists($table, $column, $definition) {
+    $result = $this->conn->query("SHOW COLUMNS FROM $table LIKE '$column'");
+    if ($result && $result->num_rows === 0) {
+      $sql = "ALTER TABLE $table ADD COLUMN $column $definition";
+      if (!$this->conn->query($sql)) {
+        throw new Exception("Failed to add $column to $table: " . $this->conn->error);
+      }
+    }
+  }
+
   private function initTable() {
+    // Add missing columns to user_profiles table (migrations)
+    $this->addColumnIfNotExists('user_profiles', 'total_moves', 'INT DEFAULT 0');
+
     // Game data persistence table
     $sql = "
       CREATE TABLE IF NOT EXISTS game_data (
