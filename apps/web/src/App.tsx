@@ -78,10 +78,8 @@ function App() {
   return (
     <>
       <GameProviders onEngineReady={() => setEngineReady(true)}>
-        {engineReady ? <AppContent /> :
-          <LoadingScreen />}
+        {engineReady ? <AppContent /> : <LoadingScreen />}
       </GameProviders>
-      {/* Show loading screen overlay until engine is ready */}
     </>
   );
 }
