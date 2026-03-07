@@ -136,19 +136,6 @@ class Database {
       throw new Exception('Failed to create highscores table: ' . $this->conn->error);
     }
 
-    // Add missing columns to highscores table (migrations)
-    $this->addColumnIfNotExists('highscores', 'best_moves', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('highscores', 'best_time', 'FLOAT DEFAULT 0');
-
-    // Add missing columns to user_profiles table (migrations)
-    $this->addColumnIfNotExists('user_profiles', 'total_moves', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'max_combo', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'total_walls_survived', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'no_reset_streak', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'speed_levels', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'perfect_levels', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'total_days_played', 'INT DEFAULT 0');
-
     // Game data persistence table
     $sql = "
       CREATE TABLE IF NOT EXISTS game_data (
@@ -228,6 +215,19 @@ class Database {
     if (!$this->conn->query($sql)) {
       throw new Exception('Failed to create achievements table: ' . $this->conn->error);
     }
+
+    // Add missing columns to highscores table (migrations)
+    $this->addColumnIfNotExists('highscores', 'best_moves', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('highscores', 'best_time', 'FLOAT DEFAULT 0');
+
+    // Add missing columns to user_profiles table (migrations)
+    $this->addColumnIfNotExists('user_profiles', 'total_moves', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'max_combo', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'total_walls_survived', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'no_reset_streak', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'speed_levels', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'perfect_levels', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'total_days_played', 'INT DEFAULT 0');
   }
 
   public function getItem($userId, $key) {
