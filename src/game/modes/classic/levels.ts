@@ -5319,10 +5319,13 @@ export const PRESSURE_LOGO_LEVEL: Level = {
     { id: 'd-3-6', type: 'path', x: 3, y: 6, connections: ['up', 'right'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
   ],
   compressionDelay: Infinity,
-  maxMoves: 5,
+  maxMoves: 10,
   compressionEnabled: false,
   goalNodes: [
+    { x: 3, y: 1 },
     { x: 3, y: 2 },
+    { x: 4, y: 2 },
+    { x: 2, y: 4 },
   ],
 };
 
