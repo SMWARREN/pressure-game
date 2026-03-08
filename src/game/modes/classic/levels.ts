@@ -5307,6 +5307,16 @@ export const PRESSURE_LOGO_LEVEL: Level = {
 
     // Stem bottom (row 5)
     { id: 'p-2-5', type: 'path', x: 2, y: 5, connections: ['up'] as Direction[], isGoalNode: false, canRotate: true },
+
+    // Decoy tiles to make it fun
+    { id: 'd-1-1', type: 'path', x: 1, y: 1, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
+    { id: 'd-5-1', type: 'path', x: 5, y: 1, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
+    { id: 'd-6-2', type: 'path', x: 6, y: 2, connections: ['down', 'left'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
+    { id: 'd-5-3', type: 'path', x: 5, y: 3, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
+    { id: 'd-4-4', type: 'path', x: 4, y: 4, connections: ['left', 'right'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
+    { id: 'd-1-5', type: 'path', x: 1, y: 5, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
+    { id: 'd-6-5', type: 'path', x: 6, y: 5, connections: ['left', 'up'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
+    { id: 'd-3-6', type: 'path', x: 3, y: 6, connections: ['up', 'right'] as Direction[], isGoalNode: false, canRotate: true, isDecoy: true },
   ],
   compressionDelay: Infinity,
   maxMoves: 5,
