@@ -9,10 +9,10 @@
     "apps/mobile"
   ],
   "scripts": {
-    "start": "./start-dev.sh",
-    "dev": "./start-dev.sh",
-    "prod": "./start-prod.sh",
-    "build:prod": "./start-prod.sh",
+    "start": "./scripts/start-dev.sh",
+    "dev": "./scripts/start-dev.sh",
+    "prod": "./scripts/start-prod.sh",
+    "build:prod": "./scripts/start-prod.sh",
     "web:dev": "cd apps/web && npm run dev",
     "web:build": "cd apps/web && npm run build",
     "web:preview": "cd apps/web && npm run preview",
@@ -20,8 +20,8 @@
     "web:test": "cd apps/web && npm test",
     "mobile:start": "cd apps/mobile && expo start",
     "mobile:build": "cd apps/mobile && eas build",
-    "mobile:preview:ios": "cd apps/mobile && expo start --ios",
-    "mobile:preview:android": "cd apps/mobile && expo start --android",
+    "mobile:preview:ios": "./scripts/ios-preview.sh",
+    "mobile:preview:android": "./scripts/android-preview.sh",
     "mobile:test": "cd apps/mobile && npm test",
     "build": "npm run web:build && npm run mobile:build",
     "test": "npm run web:test",
@@ -32,6 +32,8 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "zustand": "^4.5.5"
   }
 }
