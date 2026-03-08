@@ -16,7 +16,6 @@ export default function AboutScreen({
   const { colors } = useTheme();
   const loadLevel = useGameStore((s) => s.loadLevel);
   const pauseGame = useGameStore((s) => s.pauseGame);
-  const currentLevel = useGameStore((s) => s.currentLevel);
 
   // Load and pause the logo level on mount
   useEffect(() => {
@@ -29,68 +28,117 @@ export default function AboutScreen({
   }, [loadLevel, pauseGame]);
 
   return (
-    <div style={{ position: 'fixed', inset: 0 }}>
-      {/* Full game board with logo level paused for display */}
-      <GameBoard />
-
-      {/* Back button */}
-      <button
-        onClick={onBack}
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* Header - styled like menu header */}
+      <header
         style={{
-          position: 'fixed',
-          top: 'max(16px, env(safe-area-inset-top))',
-          left: 16,
-          zIndex: 100,
-          width: 44,
-          height: 44,
-          borderRadius: 12,
-          border: `1px solid ${colors.border.primary}`,
-          background: RGBA_COLORS.TRANSPARENT_WHITE_02,
-          color: colors.text.tertiary,
-          cursor: 'pointer',
+          width: '100%',
+          flexShrink: 0,
+          zIndex: 101,
+          position: 'relative',
+          borderBottom: `1px solid ${colors.border.primary}`,
+          background: colors.game.footer,
+          backdropFilter: 'blur(12px)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 20,
-          transition: 'all 0.15s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = RGBA_COLORS.TRANSPARENT_WHITE_02;
+          padding: 'max(16px, env(safe-area-inset-top)) 20px 14px',
         }}
       >
-        ‹
-      </button>
-
-      {/* Info panel */}
-      {currentLevel?.id === 999 && (
         <div
           style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: `linear-gradient(180deg, rgba(0,0,0,0) 0%, ${colors.game.footer} 100%)`,
-            padding: '32px 20px max(20px, env(safe-area-inset-bottom))',
-            textAlign: 'center',
-            backdropFilter: 'blur(12px)',
-            zIndex: 99,
+            display: 'flex',
+            width: '100%',
+            alignItems: 'center',
+            gap: 12,
+            marginBottom: 8,
           }}
         >
-          <p
+          <button
+            onClick={onBack}
             style={{
-              fontSize: 12,
+              width: 44,
+              height: 44,
+              borderRadius: 12,
+              border: `1px solid ${colors.border.primary}`,
+              background: RGBA_COLORS.TRANSPARENT_WHITE_02,
               color: colors.text.tertiary,
-              margin: 0,
-              letterSpacing: '0.05em',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 20,
+              transition: 'all 0.15s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = RGBA_COLORS.TRANSPARENT_WHITE_02;
             }}
           >
-            The Pressure Logo Puzzle • Zen Mode (No Time Pressure)
-          </p>
+            ‹
+          </button>
+          <div>
+            <h1
+              style={{
+                fontSize: 20,
+                fontWeight: 900,
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                margin: 0,
+                background: 'linear-gradient(135deg, #c4b5fd 0%, #818cf8 40%, #6366f1 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              About
+            </h1>
+            <p
+              style={{
+                fontSize: 10,
+                color: colors.text.tertiary,
+                letterSpacing: '0.05em',
+                margin: '2px 0 0 0',
+              }}
+            >
+              The Pressure Logo Puzzle
+            </p>
+          </div>
         </div>
-      )}
+      </header>
+
+      {/* Game board fills remaining space */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <GameBoard />
+      </div>
+
+      {/* Info panel at bottom */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: `linear-gradient(180deg, rgba(0,0,0,0) 0%, ${colors.game.footer} 100%)`,
+          padding: '32px 20px max(20px, env(safe-area-inset-bottom))',
+          textAlign: 'center',
+          backdropFilter: 'blur(12px)',
+          zIndex: 99,
+        }}
+      >
+        <p
+          style={{
+            fontSize: 12,
+            color: colors.text.tertiary,
+            margin: 0,
+            letterSpacing: '0.05em',
+          }}
+        >
+          Zen Mode • No Time Pressure • Solve the P
+        </p>
+      </div>
     </div>
   );
 }
