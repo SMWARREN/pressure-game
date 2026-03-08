@@ -5287,36 +5287,49 @@ export const PRESSURE_LOGO_LEVEL: Level = {
     { id: 'w-7-5', type: 'wall', x: 7, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
     { id: 'w-7-6', type: 'wall', x: 7, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
 
-    // P-shape with one tile rotated/scrambled (6x6 playable area, rows 1-6, cols 1-6)
+    // P-shape with 4 scrambled tiles (rotated for unsolved puzzle)
     // Top of P (row 1)
     { id: 'p-2-1', type: 'path', x: 2, y: 1, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'p-3-1', type: 'path', x: 3, y: 1, connections: ['left', 'right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'p-3-1', type: 'path', x: 3, y: 1, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
     { id: 'p-4-1', type: 'path', x: 4, y: 1, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
 
     // Middle P (row 2)
     { id: 'p-2-2', type: 'path', x: 2, y: 2, connections: ['up', 'right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'g-3-2', type: 'path', x: 3, y: 2, connections: ['left', 'down'] as Direction[], isGoalNode: true, canRotate: false },
-    { id: 'p-4-2', type: 'path', x: 4, y: 2, connections: ['up'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'g-3-2', type: 'node', x: 3, y: 2, connections: ['down'] as Direction[], isGoalNode: true, canRotate: false },
+    { id: 'p-4-2', type: 'path', x: 4, y: 2, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
 
     // Bottom of P bump (row 3)
     { id: 'p-2-3', type: 'path', x: 2, y: 3, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'p-3-3', type: 'path', x: 3, y: 3, connections: ['up'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'g-3-3', type: 'node', x: 3, y: 3, connections: ['up'] as Direction[], isGoalNode: true, canRotate: false },
 
     // Stem top (row 4)
     { id: 'p-2-4', type: 'path', x: 2, y: 4, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'g-3-4', type: 'node', x: 3, y: 4, connections: ['left'] as Direction[], isGoalNode: true, canRotate: false },
 
     // Stem bottom (row 5)
     { id: 'p-2-5', type: 'path', x: 2, y: 5, connections: ['up'] as Direction[], isGoalNode: false, canRotate: true },
+    { id: 'g-3-5', type: 'node', x: 3, y: 5, connections: ['right'] as Direction[], isGoalNode: true, canRotate: false },
 
-    // Extra puzzle tiles to make it more complex
-    { id: 'd-1-1', type: 'path', x: 1, y: 1, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'd-5-1', type: 'path', x: 5, y: 1, connections: ['left', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'd-6-2', type: 'path', x: 6, y: 2, connections: ['down', 'left'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'd-5-3', type: 'path', x: 5, y: 3, connections: ['up', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'd-4-4', type: 'path', x: 4, y: 4, connections: ['left', 'right'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'd-1-5', type: 'path', x: 1, y: 5, connections: ['right', 'down'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'd-6-5', type: 'path', x: 6, y: 5, connections: ['left', 'up'] as Direction[], isGoalNode: false, canRotate: true },
-    { id: 'd-3-6', type: 'path', x: 3, y: 6, connections: ['up', 'right'] as Direction[], isGoalNode: false, canRotate: true },
+    // Empty blocks around P for spacing
+    { id: 'e-1-1', type: 'empty', x: 1, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-1-2', type: 'empty', x: 1, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-1-3', type: 'empty', x: 1, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-1-4', type: 'empty', x: 1, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-1-5', type: 'empty', x: 1, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-5-1', type: 'empty', x: 5, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-5-2', type: 'empty', x: 5, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-5-3', type: 'empty', x: 5, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-5-4', type: 'empty', x: 5, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-5-5', type: 'empty', x: 5, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-4-5', type: 'empty', x: 4, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-4-6', type: 'empty', x: 4, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-2-6', type: 'empty', x: 2, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-6-1', type: 'empty', x: 6, y: 1, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-6-2', type: 'empty', x: 6, y: 2, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-6-3', type: 'empty', x: 6, y: 3, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-6-4', type: 'empty', x: 6, y: 4, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-6-5', type: 'empty', x: 6, y: 5, connections: [] as Direction[], isGoalNode: false, canRotate: false },
+    { id: 'e-6-6', type: 'empty', x: 6, y: 6, connections: [] as Direction[], isGoalNode: false, canRotate: false },
   ],
   compressionDelay: Infinity,
   maxMoves: 10,
