@@ -23,14 +23,27 @@ export default function LevelSelector({ onLevelSelect, onClose }: LevelSelectorP
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <AppHeader
-        title="Select Level"
-        onLeftPress={onClose}
-        leftIcon="←"
-        showLeft={!!onClose}
-        showRight={false}
-      />
+      {/* Custom Header with PRESSURE branding */}
+      <View style={styles.header}>
+        {onClose ? (
+          <Pressable
+            onPress={onClose}
+            style={styles.backButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.backIcon}>←</Text>
+          </Pressable>
+        ) : (
+          <View style={styles.backPlaceholder} />
+        )}
+
+        <View style={styles.titleContainer}>
+          <Text style={styles.pressureTitle}>PRESSURE</Text>
+          <Text style={styles.selectSubtitle}>Select Level</Text>
+        </View>
+
+        <View style={styles.backPlaceholder} />
+      </View>
 
       {/* Scrollable Content */}
       <ScrollView style={styles.content}>
@@ -92,6 +105,58 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#06060f',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#12122a',
+    backgroundColor: 'rgba(6, 6, 15, 0.85)',
+    marginBottom: 12,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#12122a',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  backIcon: {
+    fontSize: 16,
+    color: '#3a3a55',
+    fontWeight: '600',
+  },
+  backPlaceholder: {
+    width: 44,
+    height: 44,
+    flexShrink: 0,
+  },
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 0,
+    paddingHorizontal: 8,
+  },
+  pressureTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    color: '#ec4899',
+    marginBottom: 4,
+  },
+  selectSubtitle: {
+    fontSize: 11,
+    color: '#888',
+    letterSpacing: 0.5,
+    fontWeight: '500',
   },
   content: {
     flex: 1,
