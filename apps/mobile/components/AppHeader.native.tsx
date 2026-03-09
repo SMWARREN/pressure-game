@@ -4,29 +4,33 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 interface AppHeaderProps {
   title?: string;
   subtitle?: string;
-  onMenuPress?: () => void;
-  onRestartPress?: () => void;
-  showMenu?: boolean;
-  showRestart?: boolean;
+  onLeftPress?: () => void;
+  onRightPress?: () => void;
+  leftIcon?: string;
+  rightIcon?: string;
+  showLeft?: boolean;
+  showRight?: boolean;
 }
 
 export default function AppHeader({
   title = 'PRESSURE',
   subtitle,
-  onMenuPress,
-  onRestartPress,
-  showMenu = true,
-  showRestart = true,
+  onLeftPress,
+  onRightPress,
+  leftIcon = '←',
+  rightIcon = '↺',
+  showLeft = true,
+  showRight = false,
 }: AppHeaderProps) {
   return (
     <View style={styles.header}>
-      {showMenu ? (
+      {showLeft ? (
         <Pressable
-          onPress={onMenuPress}
+          onPress={onLeftPress}
           style={styles.iconButton}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.iconText}>←</Text>
+          <Text style={styles.iconText}>{leftIcon}</Text>
         </Pressable>
       ) : (
         <View style={styles.iconPlaceholder} />
@@ -38,13 +42,13 @@ export default function AppHeader({
       </View>
 
       <View style={styles.rightButtons}>
-        {showRestart ? (
+        {showRight ? (
           <Pressable
-            onPress={onRestartPress}
+            onPress={onRightPress}
             style={styles.iconButton}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.iconText}>↺</Text>
+            <Text style={styles.iconText}>{rightIcon}</Text>
           </Pressable>
         ) : (
           <View style={styles.iconPlaceholder} />
