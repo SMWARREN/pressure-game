@@ -26,24 +26,30 @@ npm run generate:pressure   # Generate procedural levels
 
 ```
 pressure-game/
-├── src/                    # Frontend source code (React)
-│   ├── components/        # React components
-│   ├── game/             # Game engine & logic
-│   ├── utils/            # Utility functions & constants
-│   └── hooks/            # React custom hooks
-├── docs/                 # Documentation
-│   ├── ADDING_A_MODE.md       # How to add new game modes
-│   ├── PERSISTENCE_BACKENDS.md # Database integration guide
-│   ├── SECURITY.md            # Security best practices
-│   └── ...
-├── server/               # Backend files
-│   ├── api.php          # PHP/MySQL API server
-│   ├── api-init.php     # Database initialization
-│   └── server.example.js # Node.js alternative server
-├── tests/                # Test suite (Playwright)
-├── public/               # Static assets
-├── CLAUDE.md             # Project guidelines
-└── .env.example          # Environment template
+├── src/                           # Shared game logic
+│   ├── game/                     # Game engine, modes, types
+│   ├── utils/                    # Constants, utilities
+│   └── hooks/                    # React custom hooks
+├── apps/
+│   ├── web/                      # React web app (Vite)
+│   │   ├── src/                 # Web-specific components
+│   │   └── components/          # Game UI components
+│   └── mobile/                   # React Native app (Expo)
+│       ├── app/                 # Expo Router navigation
+│       └── components/          # Mobile UI components
+├── docs/                         # Organized documentation
+│   ├── INDEX.md                 # Documentation index
+│   ├── setup/                   # Setup & configuration
+│   ├── development/             # Development guides
+│   ├── deployment/              # Deployment & operations
+│   ├── architecture/            # Architecture & design
+│   ├── testing/                 # Testing guides
+│   └── mobile/                  # Mobile development
+├── server/                       # PHP/MySQL backend (optional)
+├── tests/                        # E2E tests (Playwright)
+├── CLAUDE.md                     # Project guidelines for Claude Code
+├── README.md                     # Project overview
+└── package.json                  # Root monorepo configuration
 ```
 
 ## 🛠️ Tech Stack
@@ -57,14 +63,14 @@ pressure-game/
 
 ## 📚 Documentation
 
-All documentation is in the `/docs` folder:
+**Start here:** [📖 **Docs Index** - Complete documentation guide](docs/INDEX.md)
 
-- **[ADDING_A_MODE.md](docs/ADDING_A_MODE.md)** - Create custom game modes
-- **[PERSISTENCE_BACKENDS.md](docs/PERSISTENCE_BACKENDS.md)** - Database setup
-- **[SETUP_PHP_SERVER.md](docs/SETUP_PHP_SERVER.md)** - Deploy PHP backend
-- **[QUICKSTART_MYSQL.md](docs/QUICKSTART_MYSQL.md)** - MySQL setup (5 min)
-- **[SECURITY.md](docs/SECURITY.md)** - Security guidelines
-- **[ROADMAP.md](docs/ROADMAP.md)** - Future plans
+### Quick Links
+- **[Setup](docs/setup/)** - MySQL, PHP server, mobile dev environment
+- **[Development](docs/development/)** - Adding modes, color system, architecture
+- **[Mobile](docs/mobile/)** - Expo, iOS simulator, React Native setup
+- **[Deployment](docs/deployment/)** - Production deployment, database migration
+- **[Testing](docs/testing/)** - API testing, quality assurance
 
 ## 🖥️ Server Setup
 
