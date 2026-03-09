@@ -4,9 +4,12 @@
  */
 
 import { robustFetch } from '@/game/engine/backends';
-import { getUserId } from '@/game/contexts/GameEngineProvider';
+import { getUserId } from '@/game/utils/userId';
 
-const VITE_API_URL = import.meta.env.VITE_API_URL || '';
+const VITE_API_URL =
+  (typeof process !== 'undefined' && process.env.VITE_API_URL) ||
+  ((globalThis as any).__VITE_API_URL) ||
+  '';
 
 /** Leaderboard entry with user and score info */
 interface LeaderboardEntry {

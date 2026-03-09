@@ -14,15 +14,15 @@ import {
   getCompleteUserProfile,
 } from './leaderboards';
 import * as backends from '@/game/engine/backends';
-import * as provider from '@/game/contexts/GameEngineProvider';
+import * as userId from '@/game/utils/userId';
 
 vi.mock('@/game/engine/backends');
-vi.mock('@/game/contexts/GameEngineProvider');
+vi.mock('@/game/utils/userId');
 
 describe('Leaderboards API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(provider.getUserId).mockReturnValue('test-user-123');
+    vi.mocked(userId.getUserId).mockReturnValue('test-user-123');
   });
 
   describe('saveHighscore', () => {

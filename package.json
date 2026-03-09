@@ -24,11 +24,19 @@
     "mobile:preview:android": "./scripts/android-preview.sh",
     "mobile:test": "cd apps/mobile && npm test",
     "build": "npm run web:build && npm run mobile:build",
-    "test": "npm run web:test",
-    "test:all": "npm run web:test && npm run mobile:test",
-    "lint": "npm run web:lint"
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:web": "cd apps/web && npm test",
+    "test:all": "npm run test && npm run test:web && npm run mobile:test",
+    "lint": "npm run web:lint",
+    "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
+    "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
+    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src,apps/web/src,apps/mobile -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqa_e56f52c82739bec98200273e808d261b644332ea -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/dist/**,**/.next/**,**/build/**,**/.expo/**,**/coverage/**,**/cli/**",
+    "sonar:clean": "npm run sonar:stop && npm run sonar:start"
   },
   "devDependencies": {
+    "sonarqube-scanner": "^4.3.4",
     "typescript": "^5.7.2"
   },
   "dependencies": {

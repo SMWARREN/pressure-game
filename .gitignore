@@ -80,3 +80,4 @@ coverage/
 .DS_Store
 .AppleDouble
 .LSOverride
+apps/web/tests/screenshots

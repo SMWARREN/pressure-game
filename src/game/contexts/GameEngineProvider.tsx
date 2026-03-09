@@ -8,7 +8,10 @@ import { getModeById } from '@/game/modes';
 import type { StatsBackend, GameEndEvent } from '@/game/stats/types';
 import { SyncingBackend, MySQLBackend } from '@/game/engine/persistence';
 import { saveReplay } from '@/game/api/leaderboards';
-import { STORAGE_KEYS } from '@/utils/constants';
+import { getUserId } from '@/game/utils/userId';
+
+// Re-export for backwards compatibility
+export { getUserId };
 
 interface GameEngineContextType {
   readonly pressureEngine: PressureEngine;
@@ -28,28 +31,6 @@ interface GameEngineProviderProps {
 // In StrictMode, the useState initializer runs twice, but we only want to create engines once
 let enginesCreated = false;
 let enginesInstance: GameEngineContextType | null = null;
-
-/**
- * Get or generate user ID for database persistence
- * Exported so API clients can use the same user ID
- */
-export function getUserId(): string {
-  const envUserId = import.meta.env.VITE_USER_ID;
-  if (envUserId) {
-    return envUserId;
-  }
-
-  // Check localStorage for existing user ID
-  const storedUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
-  if (storedUserId) {
-    return storedUserId;
-  }
-
-  // Generate new UUID for anonymous user
-  const newUserId = `user_${Math.random().toString(36).slice(2, 11)}`;
-  localStorage.setItem(STORAGE_KEYS.USER_ID, newUserId);
-  return newUserId;
-}
 
 /**
  * Construct API base URL by removing /api.php suffix (no trailing slash)
