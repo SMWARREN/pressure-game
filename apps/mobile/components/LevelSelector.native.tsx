@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, FlatList } from 'react-n
 import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
 import { useGameStore } from '@/game/store';
 import AppHeader from './AppHeader.native';
+import PressureLogo from './PressureLogo';
 import type { Level } from '@/game/types';
 
 interface LevelSelectorProps {
@@ -38,7 +39,7 @@ export default function LevelSelector({ onLevelSelect, onClose }: LevelSelectorP
         )}
 
         <View style={styles.titleContainer}>
-          <Text style={styles.pressureTitle}>PRESSURE</Text>
+          <PressureLogo size={24} />
         </View>
 
         <View style={styles.backPlaceholder} />
@@ -143,12 +144,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 0,
     paddingHorizontal: 8,
-  },
-  pressureTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: -0.8,
-    color: '#6366f1',
   },
   content: {
     flex: 1,
