@@ -4,8 +4,8 @@ import { Tile, TileRenderer } from '@/game/types';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
 import GameGrid from './GameGrid.native';
-import GameControls from './GameControls.native';
-import GameStats from './GameStats.native';
+import AppHeader from './AppHeader.native';
+import AppFooter from './AppFooter.native';
 
 /**
  * GameBoard (Mobile/React Native)
@@ -28,6 +28,11 @@ export default function GameBoard() {
     currentModeId,
     tapTile,
     restartLevel,
+    goToMenu,
+    pauseGame,
+    resumeGame,
+    isPaused,
+    elapsedSeconds,
   } = useGameStore(
     useShallow((state) => ({
       tiles: state.tiles,
@@ -41,6 +46,11 @@ export default function GameBoard() {
       currentModeId: state.currentModeId,
       tapTile: state.tapTile,
       restartLevel: state.restartLevel,
+      goToMenu: state.goToMenu,
+      pauseGame: state.pauseGame,
+      resumeGame: state.resumeGame,
+      isPaused: state.isPaused,
+      elapsedSeconds: state.elapsedSeconds,
     }))
   );
 
@@ -74,13 +84,24 @@ export default function GameBoard() {
     return null;
   }
 
+  const handlePausePress = useCallback(() => {
+    if (isPaused) {
+      resumeGame();
+    } else {
+      pauseGame();
+    }
+  }, [isPaused, pauseGame, resumeGame]);
+
   return (
     <View style={styles.container}>
-      {/* Game Stats Header */}
-      <GameStats
-        moves={moves}
-        score={score}
-        status={status}
+      {/* App Header */}
+      <AppHeader
+        title={currentLevel?.name || 'PRESSURE'}
+        subtitle={`LEVEL ${currentLevel?.id || 1}`}
+        onMenuPress={goToMenu}
+        onRestartPress={restartLevel}
+        showMenu={true}
+        showRestart={true}
       />
 
       {/* Game Grid */}
@@ -98,10 +119,15 @@ export default function GameBoard() {
         />
       </View>
 
-      {/* Game Controls Footer */}
-      <GameControls
-        status={status}
-        onReset={restartLevel}
+      {/* App Footer */}
+      <AppFooter
+        onPausePress={handlePausePress}
+        isPaused={isPaused}
+        movesDisplay={`Moves: ${moves}`}
+        scoreDisplay={`Score: ${score}`}
+        timeDisplay={`Time: ${Math.floor(elapsedSeconds)}s`}
+        showUndo={false}
+        showHint={false}
       />
     </View>
   );
