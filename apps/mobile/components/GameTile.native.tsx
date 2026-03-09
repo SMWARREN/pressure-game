@@ -3,7 +3,7 @@ import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Tile } from '@/game/types';
 
 interface GameTileProps {
-  readonly tile: Tile;
+  readonly tile?: Tile;
   readonly size: number;
   readonly gap: number;
   readonly wallOffset: number;
@@ -30,15 +30,36 @@ function GameTileComponent({
     onTap();
   }, [onTap]);
 
+  // Handle empty tile
+  if (!tile) {
+    return (
+      <View
+        style={{
+          width: size,
+          height: size,
+          marginRight: gap,
+          marginBottom: gap,
+          backgroundColor: '#0a0a14',
+          borderColor: '#12122a',
+          borderWidth: 1,
+          borderRadius: size * 0.1,
+        }}
+      />
+    );
+  }
+
   // Get tile colors based on tile type
   const getTileColor = () => {
     if (tile.isGoalNode) return '#ef4444';
     if (tile.isDecoy) return '#9ca3af';
+    if (tile.type === 'wall') return '#1a1a2e';
+    if (tile.type === 'crushed') return '#0f0f1a';
     return '#1f2937';
   };
 
   // Get border color based on connection status
   const getBorderColor = () => {
+    if (tile.type === 'wall') return '#12122a';
     return tile.connections.length > 0 ? '#3b82f6' : '#4b5563';
   };
 
@@ -49,7 +70,7 @@ function GameTileComponent({
     marginBottom: gap,
     backgroundColor: getTileColor(),
     borderColor: getBorderColor(),
-    borderWidth: 2,
+    borderWidth: tile.type === 'wall' ? 1 : 2,
     borderRadius: size * 0.1,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
@@ -62,6 +83,7 @@ function GameTileComponent({
     <Pressable
       onPress={handlePress}
       style={[tileStyle, styles.pressable]}
+      disabled={!tile.canRotate && tile.type === 'empty'}
     >
       <View style={styles.content}>
         {displayValue ? (

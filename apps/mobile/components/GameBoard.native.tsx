@@ -110,6 +110,7 @@ export default function GameBoard() {
           wallOffset={wallOffset}
           wallsJustAdvanced={wallsJustAdvanced}
           compressionActive={compressionActive}
+          compressionDirection={currentLevel?.compressionDirection ?? 'all'}
           onTileTap={handleTileTap}
         />
       </View>
