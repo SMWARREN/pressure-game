@@ -1,16 +1,15 @@
 import React, { useMemo, useCallback } from 'react';
-import { View, Dimensions, GestureResponderEvent } from 'react-native';
-import { Tile, TileRenderer } from '@/game/types';
+import { View, Dimensions, Text, StyleSheet, Pressable } from 'react-native';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
 import GameGrid from './GameGrid.native';
-import AppHeader from './AppHeader.native';
-import AppFooter from './AppFooter.native';
+import type { Tile } from '@/game/types';
 
 /**
  * GameBoard (Mobile/React Native)
  * Main container for the game UI on mobile
- * Handles layout, state management, and touch interactions
+ * Matches web structure: header > stats > game grid
+ * Navigation is handled by MainScreen parent component
  */
 export default function GameBoard() {
   const { width, height } = Dimensions.get('window');
@@ -28,10 +27,6 @@ export default function GameBoard() {
     currentModeId,
     tapTile,
     restartLevel,
-    goToMenu,
-    pauseGame,
-    resumeGame,
-    isPaused,
     elapsedSeconds,
   } = useGameStore(
     useShallow((state) => ({
@@ -46,10 +41,6 @@ export default function GameBoard() {
       currentModeId: state.currentModeId,
       tapTile: state.tapTile,
       restartLevel: state.restartLevel,
-      goToMenu: state.goToMenu,
-      pauseGame: state.pauseGame,
-      resumeGame: state.resumeGame,
-      isPaused: state.isPaused,
       elapsedSeconds: state.elapsedSeconds,
     }))
   );
@@ -84,27 +75,29 @@ export default function GameBoard() {
     return null;
   }
 
-  const handlePausePress = useCallback(() => {
-    if (isPaused) {
-      resumeGame();
-    } else {
-      pauseGame();
-    }
-  }, [isPaused, pauseGame, resumeGame]);
-
   return (
     <View style={styles.container}>
-      {/* App Header */}
-      <AppHeader
-        title={currentLevel?.name || 'PRESSURE'}
-        subtitle={`LEVEL ${currentLevel?.id || 1}`}
-        onLeftPress={goToMenu}
-        onRightPress={restartLevel}
-        leftIcon="←"
-        rightIcon="↺"
-        showLeft={true}
-        showRight={true}
-      />
+      {/* Header showing level info */}
+      <View style={styles.header}>
+        <Text style={styles.levelTitle}>{currentLevel?.name || 'PRESSURE'}</Text>
+        <Text style={styles.levelSubtitle}>LEVEL {currentLevel?.id || 1}</Text>
+      </View>
+
+      {/* Stats row showing moves and score */}
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Moves</Text>
+          <Text style={styles.statValue}>{moves}</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Score</Text>
+          <Text style={styles.statValue}>{score}</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Time</Text>
+          <Text style={styles.statValue}>{Math.floor(elapsedSeconds)}s</Text>
+        </View>
+      </View>
 
       {/* Game Grid */}
       <View style={styles.gridContainer}>
@@ -121,25 +114,76 @@ export default function GameBoard() {
         />
       </View>
 
-      {/* App Footer */}
-      <AppFooter
-        onSettingsPress={goToMenu}
-        onLevelSelectorPress={goToMenu}
-      />
+      {/* Reset button */}
+      <Pressable style={styles.resetButton} onPress={restartLevel}>
+        <Text style={styles.resetButtonText}>↺ Restart</Text>
+      </Pressable>
     </View>
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#06060f',
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  levelTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: -0.5,
+  },
+  levelSubtitle: {
+    fontSize: 10,
+    color: '#a0aec0',
+    letterSpacing: 1.5,
+    marginTop: 2,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#a0aec0',
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+    marginTop: 2,
   },
   gridContainer: {
     flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    marginVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-};
+  resetButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#12122a',
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  resetButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6366f1',
+  },
+});
