@@ -13,6 +13,7 @@ export default function PressureLogo({ size }: PressureLogoProps) {
   return (
     <div
       style={{
+        fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: 'clamp(2rem, 10vw, 3.5rem)',
         fontWeight: '900',
         letterSpacing: '-0.06em',
