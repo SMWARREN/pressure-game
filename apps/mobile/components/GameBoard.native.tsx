@@ -98,10 +98,12 @@ export default function GameBoard() {
       <AppHeader
         title={currentLevel?.name || 'PRESSURE'}
         subtitle={`LEVEL ${currentLevel?.id || 1}`}
-        onMenuPress={goToMenu}
-        onRestartPress={restartLevel}
-        showMenu={true}
-        showRestart={true}
+        onLeftPress={goToMenu}
+        onRightPress={restartLevel}
+        leftIcon="←"
+        rightIcon="↺"
+        showLeft={true}
+        showRight={true}
       />
 
       {/* Game Grid */}
@@ -121,13 +123,8 @@ export default function GameBoard() {
 
       {/* App Footer */}
       <AppFooter
-        onPausePress={handlePausePress}
-        isPaused={isPaused}
-        movesDisplay={`Moves: ${moves}`}
-        scoreDisplay={`Score: ${score}`}
-        timeDisplay={`Time: ${Math.floor(elapsedSeconds)}s`}
-        showUndo={false}
-        showHint={false}
+        onSettingsPress={goToMenu}
+        onLevelSelectorPress={goToMenu}
       />
     </View>
   );

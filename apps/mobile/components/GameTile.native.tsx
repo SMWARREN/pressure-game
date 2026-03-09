@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react';
-import { Pressable, View, Text } from 'react-native';
+import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Tile } from '@/game/types';
 
 interface GameTileProps {
@@ -61,15 +61,12 @@ function GameTileComponent({
   return (
     <Pressable
       onPress={handlePress}
-      style={({ pressed }) => [
-        tileStyle,
-        pressed && styles.pressed,
-      ]}
+      style={[tileStyle, styles.pressable]}
     >
       <View style={styles.content}>
-        {displayValue && (
-          <Text style={styles.tileText}>{displayValue}</Text>
-        )}
+        {displayValue ? (
+          <Text style={styles.tileText}>{String(displayValue)}</Text>
+        ) : null}
       </View>
 
       {/* Goal node glow */}
@@ -80,22 +77,23 @@ function GameTileComponent({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
+  pressable: {},
   pressed: {
     opacity: 0.8,
   },
   content: {
     flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tileText: {
     fontSize: 14,
-    fontWeight: 'bold' as const,
+    fontWeight: '700',
     color: '#fff',
   },
   wallIndicator: {
-    position: 'absolute' as const,
+    position: 'absolute',
     bottom: 2,
     right: 2,
     width: 4,
@@ -104,7 +102,7 @@ const styles = {
     borderRadius: 2,
   },
   goalGlow: {
-    position: 'absolute' as const,
+    position: 'absolute',
     top: 2,
     left: 2,
     width: 4,
@@ -112,6 +110,6 @@ const styles = {
     backgroundColor: '#fbbf24',
     borderRadius: 2,
   },
-};
+});
 
 export default memo(GameTileComponent);

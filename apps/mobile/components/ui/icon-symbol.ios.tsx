@@ -1,4 +1,4 @@
-import { Text, StyleProp, ViewStyle } from 'react-native';
+import { Text, StyleProp, TextStyle } from 'react-native';
 
 const iconMap: Record<string, string> = {
   home: '🏠',
@@ -17,7 +17,7 @@ export function IconSymbol({
   name: string;
   size?: number;
   color: string;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<TextStyle>;
 }) {
   const icon = iconMap[name] || '•';
   return (

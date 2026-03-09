@@ -1,4 +1,3 @@
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ExpoRoot } from 'expo-router';
 
 export function App() {
