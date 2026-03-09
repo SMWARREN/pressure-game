@@ -45,39 +45,36 @@ export default function GameBoard() {
     }))
   );
 
-  // Calculate responsive tile size based on device dimensions (matches web logic)
+  // Calculate responsive tile size based on device dimensions
   const gridSize = useMemo(() => {
     const gridSize = currentLevel?.gridSize || 5;
     const cols = gridSize;
     const rows = gridSize;
-
-    // Reserved space for header, stats, and button (similar to web)
-    const reserved = 180;
     const maxDim = Math.max(cols, rows);
 
-    // Compute gap and padding based on grid size (matches web)
-    let gap = 4;
-    let padding = 10;
-    if (maxDim >= 9) {
-      gap = 2;
-      padding = 4;
-    } else if (maxDim > 5) {
-      gap = 3;
+    // Compute gap and padding based on grid size
+    let gap = 2;
+    let padding = 4;
+    if (maxDim <= 5) {
+      gap = 4;
       padding = 8;
+    } else if (maxDim <= 7) {
+      gap = 3;
+      padding = 6;
     }
 
-    // Calculate available space for the game grid
-    const availableWidth = width - 24; // horizontal padding
-    const availableHeight = height - reserved; // leave space for header/stats/button
+    // Use roughly 80% of available width for the grid
+    const gridWidth = (width * 0.8);
+    const gridHeight = (height * 0.6); // Use 60% of height for grid
 
     // Calculate tile size to fit available space
     const tileSizeByW = Math.floor(
-      (availableWidth - padding * 2 - gap * (cols - 1)) / cols
+      (gridWidth - padding * 2 - gap * Math.max(0, cols - 1)) / cols
     );
     const tileSizeByH = Math.floor(
-      (availableHeight - padding * 2 - gap * (rows - 1)) / rows
+      (gridHeight - padding * 2 - gap * Math.max(0, rows - 1)) / rows
     );
-    const tileSize = Math.max(1, Math.min(tileSizeByW, tileSizeByH));
+    const tileSize = Math.max(20, Math.min(tileSizeByW, tileSizeByH));
 
     return {
       tileSize,
