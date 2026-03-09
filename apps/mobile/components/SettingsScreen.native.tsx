@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
 import { useGameStore } from '@/game/store';
+import AppHeader from './AppHeader.native';
 
-export default function SettingsScreen() {
+interface SettingsScreenProps {
+  onClose?: () => void;
+}
+
+export default function SettingsScreen({ onClose }: SettingsScreenProps) {
   const { animationsEnabled, toggleAnimations } = useGameStore((state) => ({
     animationsEnabled: state.animationsEnabled,
     toggleAnimations: state.toggleAnimations,
@@ -12,68 +17,75 @@ export default function SettingsScreen() {
   const [hapticFeedback, setHapticFeedback] = useState(true);
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-      </View>
+      <AppHeader
+        title="Settings"
+        onLeftPress={onClose}
+        leftIcon="←"
+        showLeft={true}
+        showRight={false}
+      />
 
-      {/* Game Settings Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Game</Text>
-        <SettingRow
-          label="Animations"
-          description="Enable tile and particle animations"
-          value={animationsEnabled}
-          onToggle={toggleAnimations}
-        />
-        <SettingRow
-          label="Sound"
-          description="Play audio effects"
-          value={soundEnabled}
-          onToggle={setSoundEnabled}
-        />
-        <SettingRow
-          label="Haptic Feedback"
-          description="Vibration on tile tap"
-          value={hapticFeedback}
-          onToggle={setHapticFeedback}
-        />
-      </View>
-
-      {/* Data Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data</Text>
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Text style={styles.settingLabel}>Clear Progress</Text>
-            <Text style={styles.settingDesc}>Reset all game data</Text>
-          </View>
-          <Pressable style={styles.dangerButton}>
-            <Text style={styles.dangerButtonText}>Clear</Text>
-          </Pressable>
+      {/* Scrollable Content */}
+      <ScrollView style={styles.content}>
+        {/* Game Settings Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Game</Text>
+          <SettingRow
+            label="Animations"
+            description="Enable tile and particle animations"
+            value={animationsEnabled}
+            onToggle={toggleAnimations}
+          />
+          <SettingRow
+            label="Sound"
+            description="Play audio effects"
+            value={soundEnabled}
+            onToggle={setSoundEnabled}
+          />
+          <SettingRow
+            label="Haptic Feedback"
+            description="Vibration on tile tap"
+            value={hapticFeedback}
+            onToggle={setHapticFeedback}
+          />
         </View>
-      </View>
 
-      {/* About Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Text style={styles.settingLabel}>Version</Text>
-            <Text style={styles.settingDesc}>1.0.0</Text>
+        {/* Data Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Data</Text>
+          <View style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingLabel}>Clear Progress</Text>
+              <Text style={styles.settingDesc}>Reset all game data</Text>
+            </View>
+            <Pressable style={styles.dangerButton}>
+              <Text style={styles.dangerButtonText}>Clear</Text>
+            </Pressable>
           </View>
         </View>
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Text style={styles.settingLabel}>Credits</Text>
-            <Text style={styles.settingDesc}>Made with ❤️</Text>
+
+        {/* About Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+          <View style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingLabel}>Version</Text>
+              <Text style={styles.settingDesc}>1.0.0</Text>
+            </View>
+          </View>
+          <View style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <Text style={styles.settingLabel}>Credits</Text>
+              <Text style={styles.settingDesc}>Made with ❤️</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.footer} />
-    </ScrollView>
+        <View style={styles.spacer} />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -106,17 +118,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#06060f',
   },
-  header: {
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#12122a',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#fff',
-    letterSpacing: -0.5,
+  content: {
+    flex: 1,
   },
   section: {
     marginTop: 24,
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 12,
   },
-  footer: {
-    height: 40,
+  spacer: {
+    height: 20,
   },
 });

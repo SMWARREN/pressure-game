@@ -2,13 +2,15 @@ import React, { useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, FlatList } from 'react-native';
 import { CLASSIC_LEVELS } from '@/game/modes/classic/levels';
 import { useGameStore } from '@/game/store';
+import AppHeader from './AppHeader.native';
 import type { Level } from '@/game/types';
 
 interface LevelSelectorProps {
   onLevelSelect: (level: Level) => void;
+  onClose?: () => void;
 }
 
-export default function LevelSelector({ onLevelSelect }: LevelSelectorProps) {
+export default function LevelSelector({ onLevelSelect, onClose }: LevelSelectorProps) {
   const modes = [
     {
       id: 'classic',
@@ -20,7 +22,18 @@ export default function LevelSelector({ onLevelSelect }: LevelSelectorProps) {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      {/* Header */}
+      <AppHeader
+        title="Select Level"
+        onLeftPress={onClose}
+        leftIcon="←"
+        showLeft={!!onClose}
+        showRight={false}
+      />
+
+      {/* Scrollable Content */}
+      <ScrollView style={styles.content}>
       {/* Worlds Section */}
       {modes.map((mode) => (
         <View key={mode.id} style={styles.world}>
@@ -69,8 +82,9 @@ export default function LevelSelector({ onLevelSelect }: LevelSelectorProps) {
         </View>
       </View>
 
-      <View style={styles.footer} />
-    </ScrollView>
+      <View style={styles.spacer} />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -78,6 +92,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#06060f',
+  },
+  content: {
+    flex: 1,
     paddingHorizontal: 12,
   },
   world: {
@@ -141,7 +158,7 @@ const styles = StyleSheet.create({
     bottom: -8,
     right: -8,
   },
-  footer: {
-    height: 40,
+  spacer: {
+    height: 20,
   },
 });

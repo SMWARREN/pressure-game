@@ -49,10 +49,7 @@ export default function MainScreen() {
         presentationStyle="formSheet"
         onRequestClose={() => setShowSettings(false)}
       >
-        <SettingsScreen />
-        <View style={styles.modalCloseButton}>
-          {/* Modal will have back button in header */}
-        </View>
+        <SettingsScreen onClose={() => setShowSettings(false)} />
       </Modal>
 
       {/* Level Selector Modal */}
@@ -62,7 +59,7 @@ export default function MainScreen() {
         presentationStyle="formSheet"
         onRequestClose={() => setShowLevelSelector(false)}
       >
-        <LevelSelector onLevelSelect={handleLevelSelect} />
+        <LevelSelector onLevelSelect={handleLevelSelect} onClose={() => setShowLevelSelector(false)} />
       </Modal>
     </View>
   );

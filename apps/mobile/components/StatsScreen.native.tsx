@@ -1,8 +1,13 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useGameStore } from '@/game/store';
+import AppHeader from './AppHeader.native';
 
-export default function StatsScreen() {
+interface StatsScreenProps {
+  onClose?: () => void;
+}
+
+export default function StatsScreen({ onClose }: StatsScreenProps) {
   // In a real app, you'd fetch these from the store or API
   const stats = {
     totalGames: 42,
@@ -21,11 +26,18 @@ export default function StatsScreen() {
   const winRate = Math.round((stats.gamesWon / stats.totalGames) * 100);
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Statistics</Text>
-      </View>
+      <AppHeader
+        title="Statistics"
+        onLeftPress={onClose}
+        leftIcon="←"
+        showLeft={true}
+        showRight={false}
+      />
+
+      {/* Scrollable Content */}
+      <ScrollView style={styles.content}>
 
       {/* Summary Stats */}
       <View style={styles.summaryGrid}>
@@ -64,8 +76,9 @@ export default function StatsScreen() {
         </View>
       </View>
 
-      <View style={styles.footer} />
-    </ScrollView>
+      <View style={styles.spacer} />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -104,17 +117,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#06060f',
   },
-  header: {
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#12122a',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#fff',
-    letterSpacing: -0.5,
+  content: {
+    flex: 1,
   },
   summaryGrid: {
     flexDirection: 'row',
@@ -213,7 +217,7 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
   },
-  footer: {
-    height: 40,
+  spacer: {
+    height: 20,
   },
 });
