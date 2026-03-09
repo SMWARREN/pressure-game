@@ -38,8 +38,16 @@ export default function LevelSelector({ onLevelSelect, onClose }: LevelSelectorP
         )}
 
         <View style={styles.titleContainer}>
-          <Text style={styles.pressureTitle}>PRESSURE</Text>
-          <Text style={styles.selectSubtitle}>Select Level</Text>
+          <View style={styles.pressureTitleRow}>
+            <Text style={[styles.pressureTitle, { color: '#ec4899' }]}>P</Text>
+            <Text style={[styles.pressureTitle, { color: '#f59e0b' }]}>R</Text>
+            <Text style={[styles.pressureTitle, { color: '#6366f1' }]}>E</Text>
+            <Text style={[styles.pressureTitle, { color: '#10b981' }]}>S</Text>
+            <Text style={[styles.pressureTitle, { color: '#ec4899' }]}>S</Text>
+            <Text style={[styles.pressureTitle, { color: '#f59e0b' }]}>U</Text>
+            <Text style={[styles.pressureTitle, { color: '#6366f1' }]}>R</Text>
+            <Text style={[styles.pressureTitle, { color: '#10b981' }]}>E</Text>
+          </View>
         </View>
 
         <View style={styles.backPlaceholder} />
@@ -145,18 +153,14 @@ const styles = StyleSheet.create({
     minWidth: 0,
     paddingHorizontal: 8,
   },
-  pressureTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: -0.5,
-    color: '#ec4899',
-    marginBottom: 4,
+  pressureTitleRow: {
+    flexDirection: 'row',
+    gap: 2,
   },
-  selectSubtitle: {
-    fontSize: 11,
-    color: '#888',
-    letterSpacing: 0.5,
-    fontWeight: '500',
+  pressureTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.8,
   },
   content: {
     flex: 1,
