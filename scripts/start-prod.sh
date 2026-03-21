@@ -4,7 +4,7 @@
 
 set -e
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Colors
 RED='\033[0;31m'
@@ -108,16 +108,16 @@ echo ""
 echo "Deploy PHP backend files:"
 echo ""
 echo "  Required files:"
-echo "    - server/api.php"
-echo "    - server/.env (with DB credentials)"
-echo "    - server/schema.sql (setup database once)"
+echo "    - apps/server/api.php"
+echo "    - apps/server/.env (with DB credentials)"
+echo "    - apps/server/schema.sql (setup database once)"
 echo ""
 echo "Deploy commands:"
-echo "  scp server/api.php user@host:/var/www/pressure-game/api.php"
-echo "  scp server/.env user@host:/var/www/pressure-game/.env"
+echo "  scp apps/server/api.php user@host:/var/www/pressure-game/api.php"
+echo "  scp apps/server/.env user@host:/var/www/pressure-game/.env"
 echo ""
 echo "Setup database (run once):"
-echo "  mysql -u user -p < server/schema.sql"
+echo "  mysql -u user -p < apps/server/schema.sql"
 echo ""
 echo -e "${BLUE}────────────────────────────────────────────────────────────────${NC}"
 echo ""

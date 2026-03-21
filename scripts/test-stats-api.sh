@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-API_URL="${1:-http://localhost:8000/server/api.php}"
+API_URL="${1:-http://localhost:8000/api.php}"
 TEST_PATTERN="${2:-stats-api}"
 FRONTEND_URL="${TEST_URL:-http://localhost:3000}"
 
@@ -36,8 +36,8 @@ else
     echo ""
     echo "Quick start:"
     echo "  1. Terminal 1: npm run build && npm run preview -- --port 3000"
-    echo "  2. Terminal 2: php -S localhost:8000 (in server directory)"
-    echo "  3. Terminal 3: VITE_API_URL=http://localhost:8000/server/api.php npm run test:e2e"
+    echo "  2. Terminal 2: php -S localhost:8000 (in apps/server directory)"
+    echo "  3. Terminal 3: VITE_API_URL=http://localhost:8000/api.php npm run test:e2e"
     exit 1
 fi
 

@@ -81,3 +81,4 @@ coverage/
 .AppleDouble
 .LSOverride
 apps/web/tests/screenshots
+.expo/ 

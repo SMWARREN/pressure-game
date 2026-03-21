@@ -4,7 +4,7 @@
 
 set -e
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Setup .env.local for development
 cat > "$PROJECT_DIR/apps/web/.env.local" << 'ENVEOF'
@@ -31,7 +31,7 @@ sleep 1
 
 # Start PHP Backend Server
 echo -e "${YELLOW}Starting Backend (PHP)...${NC}"
-cd "$PROJECT_DIR/server"
+cd "$PROJECT_DIR/apps/server"
 php -S localhost:8000 router.php > /tmp/backend.log 2>&1 &
 BACKEND_PID=$!
 echo -e "${GREEN}✅ Backend${NC} running on ${BLUE}localhost:8000${NC} (PID: $BACKEND_PID)"

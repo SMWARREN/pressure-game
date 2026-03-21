@@ -21,8 +21,8 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
+      "@/components/*": [
+        "./components/*"
       ],
       "@/game/*": [
         "../../src/game/*"
@@ -36,8 +36,11 @@
       "@/shared/*": [
         "../../src/*"
       ],
-      "@/components/*": [
-        "./components/*"
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/*": [
+        "./src/*"
       ]
     }
   },

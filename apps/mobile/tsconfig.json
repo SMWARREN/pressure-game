@@ -3,7 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": ["./*"],
+      "@/components/*": ["../web/components/*"],
+      "@/hooks/*": ["../web/src/hooks/*"],
+      "@/*": ["../../src/*"],
       "@/game/*": ["../../src/game/*"],
       "@/utils/*": ["../../src/utils/*"],
       "@/config/*": ["../../src/config/*"],

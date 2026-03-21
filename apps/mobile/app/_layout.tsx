@@ -1,18 +1,11 @@
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-import MainScreen from '../components/MainScreen.native';
-
-export const unstable_settings = {
-  anchor: 'index',
-};
+import PressureApp from '../components/PressureApp';
 
 export default function RootLayout() {
   return (
-    <ThemeProvider value={DarkTheme}>
-      <MainScreen />
-      <StatusBar style="light" />
-    </ThemeProvider>
+    <>
+      <PressureApp style={{ flex: 1 }} />
+      <StatusBar style="light" hidden />
+    </>
   );
 }

@@ -21,6 +21,12 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
+      "@/components/*": [
+        "./apps/web/components/*"
+      ],
+      "@/hooks/*": [
+        "./apps/web/src/hooks/*"
+      ],
       "@/*": [
         "./src/*"
       ],
@@ -48,6 +54,5 @@
     {
       "path": "./apps/mobile"
     }
-  ],
-  "extends": "expo/tsconfig.base"
+  ]
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AppFooterProps {
   onSettingsPress?: () => void;
@@ -10,8 +11,9 @@ export default function AppFooter({
   onSettingsPress,
   onLevelSelectorPress,
 }: AppFooterProps) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.footer}>
+    <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
       {/* Settings Button (Left) */}
       <Pressable
         onPress={onSettingsPress}
