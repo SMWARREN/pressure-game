@@ -54,10 +54,13 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
     performance.mark('engine-create-start');
   }
 
-  // Configure persistence backend from environment
-  const backendType = import.meta.env.VITE_PERSISTENCE_BACKEND || 'localStorage';
-  const viteApiUrl = import.meta.env.VITE_API_URL;
-  const apiUrl = getApiBaseUrl(viteApiUrl);
+  // Configure persistence backend from environment (support both Vite and React Native)
+  const backendType = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PERSISTENCE_BACKEND) ||
+                      process.env.VITE_PERSISTENCE_BACKEND ||
+                      'localStorage';
+  const viteApiUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+                     process.env.VITE_API_URL;
+  const apiUrl = getApiBaseUrl(viteApiUrl || '');
 
   let persistenceBackend = undefined;
 
