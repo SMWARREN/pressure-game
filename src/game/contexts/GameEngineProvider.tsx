@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useGameStore, _setEngineInstance } from '@/game/store';
 import { createPressureEngine, type PressureEngine } from '@/game/engine/index';
+import { createNativeMockEngine } from '@/game/engine/native-mock';
 import { StatsEngine } from '@/game/stats/engine';
 import { AchievementEngine } from '@/game/achievements/engine';
 import { LocalStorageStatsBackend } from '@/game/stats/backends/localStorage';
@@ -41,6 +42,20 @@ function getApiBaseUrl(viteUrl: string): string {
 }
 
 /**
+ * Detect if we're running in React Native environment
+ */
+function isReactNative(): boolean {
+  try {
+    // Check for React Native global objects
+    return typeof navigator !== 'undefined' &&
+           (navigator.product === 'ReactNative' ||
+            typeof global !== 'undefined' && (global as any).__DEV__ !== undefined);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Create engines - this function is called during render
  * but the engines are only created once due to module-level tracking.
  */
@@ -51,34 +66,46 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
   }
 
   if (process.env.NODE_ENV !== 'production') {
-    performance.mark('engine-create-start');
+    try {
+      performance.mark('engine-create-start');
+    } catch {
+      // performance API not available in all environments
+    }
   }
 
-  // Configure persistence backend from environment (support both Vite and React Native)
-  const backendType = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PERSISTENCE_BACKEND) ||
-                      process.env.VITE_PERSISTENCE_BACKEND ||
-                      'localStorage';
-  const viteApiUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
-                     process.env.VITE_API_URL;
-  const apiUrl = getApiBaseUrl(viteApiUrl || '');
+  // Use mock engine for React Native development
+  let pressureEngine: PressureEngine;
 
-  let persistenceBackend = undefined;
+  if (isReactNative()) {
+    pressureEngine = createNativeMockEngine() as PressureEngine;
+    console.log('[🔨 Dev] Using native mock pressure engine for React Native');
+  } else {
+    // Configure persistence backend from environment (support both Vite and React Native)
+    const backendType = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PERSISTENCE_BACKEND) ||
+                        process.env.VITE_PERSISTENCE_BACKEND ||
+                        'localStorage';
+    const viteApiUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+                       process.env.VITE_API_URL;
+    const apiUrl = getApiBaseUrl(viteApiUrl || '');
 
-  if (backendType === 'syncing' && apiUrl) {
-    // Offline-first with sync (recommended)
-    const userId = getUserId();
-    persistenceBackend = new SyncingBackend(apiUrl, userId);
-  } else if (backendType === 'database' && apiUrl) {
-    // Direct database (online only)
-    const userId = getUserId();
-    persistenceBackend = new MySQLBackend(apiUrl, userId);
+    let persistenceBackend = undefined;
+
+    if (backendType === 'syncing' && apiUrl) {
+      // Offline-first with sync (recommended)
+      const userId = getUserId();
+      persistenceBackend = new SyncingBackend(apiUrl, userId);
+    } else if (backendType === 'database' && apiUrl) {
+      // Direct database (online only)
+      const userId = getUserId();
+      persistenceBackend = new MySQLBackend(apiUrl, userId);
+    }
+    // else: use default LocalStorageBackend
+
+    // Create engine with configured backend
+    pressureEngine = createPressureEngine({
+      persistenceBackend,
+    });
   }
-  // else: use default LocalStorageBackend
-
-  // Create engine with configured backend
-  const pressureEngine = createPressureEngine({
-    persistenceBackend,
-  });
 
   if (process.env.NODE_ENV !== 'production') {
     performance.mark('pressure-engine-created');
