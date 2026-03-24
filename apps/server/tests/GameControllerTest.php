@@ -402,4 +402,92 @@ class GameControllerTest extends TestCase
 
         $this->assertTrue($response['success']);
     }
+
+    public function testListGamesFiltersCorrectly(): void
+    {
+        // Create users and multiple games
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user2', 'test2')");
+        $this->db->conn->query(
+            "INSERT INTO game_completions (user_id, mode, level_id, score)
+             VALUES ('user1', 'classic', 1, 9500)"
+        );
+        $this->db->conn->query(
+            "INSERT INTO game_completions (user_id, mode, level_id, score)
+             VALUES ('user1', 'blitz', 1, 8500)"
+        );
+        $this->db->conn->query(
+            "INSERT INTO game_completions (user_id, mode, level_id, score)
+             VALUES ('user2', 'classic', 1, 9000)"
+        );
+
+        $_GET = ['user_id' => 'user1', 'mode' => 'blitz'];
+
+        ob_start();
+        try {
+            (new GameController($this->db))->list();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        // Should only return blitz games for user1
+        $this->assertCount(1, $response);
+        $this->assertSame('blitz', $response[0]['mode']);
+        $this->assertSame('user1', $response[0]['user_id']);
+    }
+
+    public function testCreateMultipleGames(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Create first game
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 1,
+            'score' => 9500
+        ]);
+
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Create second game
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 2,
+            'score' => 8500
+        ]);
+
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // List should return both games
+        $_GET = ['user_id' => 'user1'];
+        ob_start();
+        try {
+            (new GameController($this->db))->list();
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(2, $response);
+    }
 }

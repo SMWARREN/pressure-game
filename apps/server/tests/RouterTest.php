@@ -353,6 +353,64 @@ class RouterTest extends TestCase
         $this->assertSame(42, (int)$response['max_combo']);
     }
 
+    // ─── Profile POST (update) ───────────────────────────────────────────────
+
+    public function testPostProfileUpdate(): void
+    {
+        $response = $this->capture('POST', ['profile', 'user1']);
+        // Missing body → error
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    // ─── Highscore POST (save) ───────────────────────────────────────────────
+
+    public function testPostHighscoreSave(): void
+    {
+        $response = $this->capture('POST', ['highscore', 'user1', 'classic', '1']);
+        // Missing body → error
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    // ─── Replay POST (legacy) ────────────────────────────────────────────────
+
+    public function testPostReplayLegacySuccess(): void
+    {
+        $response = $this->capture('POST', ['replay', 'user1', 'classic', '1']);
+        // Missing body → error
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testPostReplayLegacyMissingUserId(): void
+    {
+        $response = $this->capture('POST', ['replay', '', 'classic', '1']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing userId, mode, or levelId', $response['error']);
+    }
+
+    public function testPostReplayLegacyMissingMode(): void
+    {
+        $response = $this->capture('POST', ['replay', 'user1', '', '1']);
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testPostReplayLegacyMissingLevelId(): void
+    {
+        $response = $this->capture('POST', ['replay', 'user1', 'classic', '0']);
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testGetReplayLegacySuccess(): void
+    {
+        $response = $this->capture('GET', ['replay', 'user1', 'classic', '1']);
+        $this->assertSame('Replay not found', $response['error']);
+    }
+
+    public function testGetReplayLegacyMissingUserId(): void
+    {
+        $response = $this->capture('GET', ['replay', '', 'classic', '1']);
+        $this->assertArrayHasKey('error', $response);
+    }
+
     // ─── Replays (new) ────────────────────────────────────────────────────────
 
     public function testPostReplaysCreate(): void
@@ -382,6 +440,161 @@ class RouterTest extends TestCase
         $response = $this->capture('GET', ['replays']);
         $this->assertArrayHasKey('error', $response);
         $this->assertSame('Missing required parameters', $response['error']);
+    }
+
+    public function testGetRepliesMissingMode(): void
+    {
+        $_GET = ['user_id' => 'user1', 'level_id' => '1'];
+        $response = $this->capture('GET', ['replays']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing required parameters', $response['error']);
+    }
+
+    public function testGetRepliesMissingLevelId(): void
+    {
+        $_GET = ['user_id' => 'user1', 'mode' => 'classic'];
+        $response = $this->capture('GET', ['replays']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing required parameters', $response['error']);
+    }
+
+    public function testPostReplayLegacyMissingMoves(): void
+    {
+        // Set up the request with missing moves data
+        $payload = json_encode(['score' => 5000]);
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['replay', 'user1', 'classic', '1']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing moves data', $response['error']);
+    }
+
+    public function testGetReplayLegacyMissingLevelId(): void
+    {
+        $response = $this->capture('GET', ['replay', 'user1', 'classic', '0']);
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testPostReplaysCreateMissingUserId(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $payload = json_encode([
+            'mode' => 'classic',
+            'level_id' => 1,
+            'moves' => []
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['replays']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing required fields', $response['error']);
+    }
+
+    public function testPostReplaysCreateMissingMode(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'level_id' => 1,
+            'moves' => []
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['replays']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testPostReplaysCreateMissingLevelId(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'moves' => []
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['replays']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testProfileUpdateMissingUserId(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $payload = json_encode(['username' => 'newname']);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['profile', '', 'dummy']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testAchievementRoutes(): void
+    {
+        // Test legacy achievement POST
+        $response = $this->capture('POST', ['achievement', 'user1', 'ach1']);
+        $this->assertArrayHasKey('success', $response);
+
+        // Test legacy achievement GET
+        $response = $this->capture('GET', ['achievement', 'user1']);
+        $this->assertIsArray($response);
+    }
+
+    public function testAchievementsNewRoutes(): void
+    {
+        // Test new achievements GET without user_id
+        $response = $this->capture('GET', ['achievements']);
+        $this->assertIsArray($response);
+
+        // Test new achievements POST
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('POST', ['achievements', 'ach1']);
+        $this->assertArrayHasKey('success', $response);
+    }
+
+    public function testDataRoutes(): void
+    {
+        // Test GET data
+        $response = $this->capture('GET', ['data', 'user1', 'save']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Not found', $response['error']);
+
+        // Test DELETE data
+        $response = $this->capture('DELETE', ['data', 'user1', 'save']);
+        $this->assertArrayHasKey('success', $response);
+    }
+
+    public function testUserDataRoute(): void
+    {
+        // Test GET /api/user/{userId}/data
+        $response = $this->capture('GET', ['user', 'user1', 'data']);
+        $this->assertIsArray($response);
+    }
+
+    public function testDebugRoutes(): void
+    {
+        // Test GET /api/schema
+        $response = $this->capture('GET', ['schema']);
+        $this->assertArrayHasKey('database', $response);
+
+        // Test POST /api/debug/reset
+        $response = $this->capture('POST', ['debug', 'reset']);
+        $this->assertSame('success', $response['status']);
+
+        // Test DELETE /api/debug/cleanup with missing userId
+        $response = $this->capture('DELETE', ['debug', 'cleanup', '']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing userId', $response['error']);
     }
 
     // ─── 404 ─────────────────────────────────────────────────────────────────

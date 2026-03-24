@@ -225,6 +225,41 @@ class ProfileControllerTest extends TestCase
         $this->assertIsArray($response);
     }
 
+    public function testGetProfileMissingUserIdReturnsError(): void
+    {
+        ob_start();
+        try {
+            (new ProfileController($this->db))->get('');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing userId', $response['error']);
+    }
+
+    public function testUpdateProfileWithEmptyUsername(): void
+    {
+        $payload = json_encode(['username' => '']);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new ProfileController($this->db))->update('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing username', $response['error']);
+    }
+
     public function testUpdateStatsMissingUserId(): void
     {
         $payload = json_encode(['maxCombo' => 50]);

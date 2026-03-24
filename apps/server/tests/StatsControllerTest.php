@@ -169,4 +169,111 @@ class StatsControllerTest extends TestCase
         $this->assertSame('user1', $response['user_id']);
         $this->assertSame(42, (int)$response['max_combo']);
     }
+
+    public function testUpdateWithMultipleFields(): void
+    {
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'max_combo' => 50,
+            'total_score' => 10000,
+            'total_levels_completed' => 5
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new StatsController($this->db))->update();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+
+        // Verify all fields were updated
+        $stmt = $this->db->conn->prepare('SELECT max_combo, total_score, total_levels_completed FROM user_stats WHERE user_id = ?');
+        $stmt->bind_param('s', $userId);
+        $userId = 'user1';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertSame(50, (int)$row['max_combo']);
+        $this->assertSame(10000, (int)$row['total_score']);
+        $this->assertSame(5, (int)$row['total_levels_completed']);
+    }
+
+    public function testUpdateWithFloatField(): void
+    {
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'total_hours_played' => 42.5
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new StatsController($this->db))->update();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+
+        // Verify float field was updated
+        $stmt = $this->db->conn->prepare('SELECT total_hours_played FROM user_stats WHERE user_id = ?');
+        $stmt->bind_param('s', $userId);
+        $userId = 'user1';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertSame(42.5, (float)$row['total_hours_played']);
+    }
+
+    public function testUpdateIgnoresUnknownFields(): void
+    {
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'max_combo' => 50,
+            'unknown_field' => 'should_be_ignored'
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new StatsController($this->db))->update();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        // Should succeed and only update max_combo
+        $this->assertTrue($response['success']);
+
+        $stmt = $this->db->conn->prepare('SELECT max_combo FROM user_stats WHERE user_id = ?');
+        $stmt->bind_param('s', $userId);
+        $userId = 'user1';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertSame(50, (int)$row['max_combo']);
+    }
 }

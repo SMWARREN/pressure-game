@@ -194,4 +194,58 @@ class UserControllerTest extends TestCase
         $this->assertArrayHasKey('stats', $response);
         $this->assertIsArray($response['stats']);  // Should be empty array
     }
+
+    public function testCreateWithUsername(): void
+    {
+        $payload = json_encode([
+            'id' => 'user1',
+            'username' => 'alice'
+        ]);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new UserController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertSame('alice', $response['username']);
+
+        // Verify user was created in database
+        $stmt = $this->db->conn->prepare('SELECT username FROM users WHERE id = ?');
+        $stmt->bind_param('s', $userId);
+        $userId = 'user1';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertNotNull($row);
+        $this->assertSame('alice', $row['username']);
+    }
+
+    public function testCreateMissingUsername(): void
+    {
+        $payload = json_encode(['id' => 'user1']);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new UserController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('id', $response);
+        $this->assertSame('user1', $response['id']);
+    }
 }

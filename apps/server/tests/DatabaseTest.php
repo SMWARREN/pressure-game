@@ -492,4 +492,133 @@ class DatabaseTest extends TestCase
 
         $this->assertEmpty($wins);
     }
+
+    public function testGetUserAchievements(): void
+    {
+        $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
+
+        $achievements = $this->db->getUserAchievements('user1');
+
+        $this->assertCount(2, $achievements);
+        $this->assertSame('ach1', $achievements[0]['id']);
+    }
+
+    public function testGetUserAchievementsEmpty(): void
+    {
+        $achievements = $this->db->getUserAchievements('nonexistent_user');
+
+        $this->assertEmpty($achievements);
+    }
+
+    public function testGetAllAchievementsWithDefault(): void
+    {
+        $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
+        $this->db->unlockAchievement('user1', 'ach3');
+
+        $achievements = $this->db->getAllAchievements();
+
+        $this->assertIsArray($achievements);
+    }
+
+    public function testGetAllAchievementsWithLimit(): void
+    {
+        $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
+        $this->db->unlockAchievement('user1', 'ach3');
+
+        $achievements = $this->db->getAllAchievements(2);
+
+        $this->assertIsArray($achievements);
+        $this->assertLessThanOrEqual(2, count($achievements));
+    }
+
+    public function testUpdateUserProfileStatsExistsUser(): void
+    {
+        $this->db->ensureUserProfile('user1');
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user1', 'classic', 1, 8, 20.0, 9000);
+
+        $this->db->updateUserProfileStats('user1');
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertNotNull($profile);
+    }
+
+    public function testUpdateUserProfileStatsNonexistentUser(): void
+    {
+        // Should not throw error for nonexistent user
+        $this->db->updateUserProfileStats('nonexistent');
+
+        $this->assertTrue(true); // Test passes if no exception
+    }
+
+    public function testGetReplayWithData(): void
+    {
+        // Ensure user exists first
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $this->db->saveReplay('user1', 'classic', 1, [1, 2, 3], 9500);
+
+        $replay = $this->db->getReplay('user1', 'classic', 1);
+
+        $this->assertNotNull($replay);
+        $this->assertSame(9500, (int)$replay['score']);
+    }
+
+    public function testSetItemFullCycle(): void
+    {
+        // Test set → get → update → get → delete → get
+        $result = $this->db->setItem('user1', 'key1', 'value1');
+        $this->assertTrue($result);
+
+        $value = $this->db->getItem('user1', 'key1');
+        $this->assertSame('value1', $value);
+
+        $result = $this->db->setItem('user1', 'key1', 'value2');
+        $this->assertTrue($result);
+
+        $value = $this->db->getItem('user1', 'key1');
+        $this->assertSame('value2', $value);
+
+        $result = $this->db->removeItem('user1', 'key1');
+        $this->assertTrue($result);
+
+        $value = $this->db->getItem('user1', 'key1');
+        $this->assertNull($value);
+    }
+
+    public function testGetLeaderboardWithMultipleModes(): void
+    {
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user2', 'classic', 1, 12, 30.0, 9200);
+        $this->db->saveHighscore('user1', 'blitz', 1, 5, 15.0, 8500);
+        $this->db->saveHighscore('user2', 'blitz', 1, 3, 10.0, 8200);
+
+        $classicLeaderboard = $this->db->getLeaderboard('classic', 100);
+        $blitzLeaderboard = $this->db->getLeaderboard('blitz', 100);
+
+        $this->assertCount(2, $classicLeaderboard);
+        $this->assertCount(2, $blitzLeaderboard);
+        $this->assertNotEquals($classicLeaderboard[0]['score'], $blitzLeaderboard[0]['score']);
+    }
+
+    public function testRemoveItemMultipleKeys(): void
+    {
+        $this->db->setItem('user1', 'key1', 'value1');
+        $this->db->setItem('user1', 'key2', 'value2');
+        $this->db->setItem('user1', 'key3', 'value3');
+
+        $this->db->removeItem('user1', 'key1');
+        $this->db->removeItem('user1', 'key2');
+
+        $value1 = $this->db->getItem('user1', 'key1');
+        $value2 = $this->db->getItem('user1', 'key2');
+        $value3 = $this->db->getItem('user1', 'key3');
+
+        $this->assertNull($value1);
+        $this->assertNull($value2);
+        $this->assertSame('value3', $value3);
+    }
 }

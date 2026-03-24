@@ -294,4 +294,86 @@ class HighscoreControllerTest extends TestCase
         $this->assertArrayHasKey('score', $response);
         $this->assertSame(5500, $response['score']);
     }
+
+    public function testSaveAndVerifyHighscore(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $payload = json_encode([
+            'moves' => 10,
+            'time' => 25.5,
+            'score' => 9500
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Verify by getting
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertSame(9500, $response['score']);
+    }
+
+    public function testSaveMultipleModes(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Save classic mode
+        $payload = json_encode(['moves' => 10, 'time' => 25.5, 'score' => 9500]);
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Save zen mode
+        $payload = json_encode(['moves' => 5, 'time' => 15.0, 'score' => 5000]);
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'zen', 1);
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Verify both exist
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+        }
+        $classic = json_decode((string) ob_get_clean(), true);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', 'zen', 1);
+        } catch (\RuntimeException $e) {
+        }
+        $zen = json_decode((string) ob_get_clean(), true);
+
+        $this->assertSame(9500, $classic['score']);
+        $this->assertSame(5000, $zen['score']);
+    }
 }

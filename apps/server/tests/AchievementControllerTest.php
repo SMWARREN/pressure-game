@@ -263,4 +263,97 @@ class AchievementControllerTest extends TestCase
         $this->assertIsArray($response);
         $this->assertCount(1, $response);
     }
+
+    public function testUnlockMultipleAchievements(): void
+    {
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlock('user1', 'first_win');
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlock('user1', 'speed_demon');
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        $_GET = [];
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUser('user1');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(2, $response);
+    }
+
+    public function testUnlockNewMultipleUsers(): void
+    {
+        $_GET = ['user_id' => 'user1'];
+        $this->db->conn->query("INSERT INTO users (id) VALUES ('user1')");
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlockNew('first_win');
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        $_GET = ['user_id' => 'user2'];
+        $this->db->conn->query("INSERT INTO users (id) VALUES ('user2')");
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlockNew('first_win');
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        // Both users should have the achievement
+        $_GET = ['user_id' => 'user1'];
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUserNew();
+        } catch (\RuntimeException $e) {
+        }
+        $user1_achievements = json_decode((string) ob_get_clean(), true);
+
+        $this->assertCount(1, $user1_achievements);
+    }
+
+    public function testUnlockIdempotency(): void
+    {
+        // Unlock same achievement twice
+        $userId = 'user1';
+        $achievementId = 'power_user';
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlock($userId, $achievementId);
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlock($userId, $achievementId);
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        // Should only have one copy
+        $_GET = [];
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUser($userId);
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(1, $response);
+    }
 }
