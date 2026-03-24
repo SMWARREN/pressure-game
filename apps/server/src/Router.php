@@ -15,6 +15,17 @@ use Pressure\Controllers\UserController;
 class Router
 {
     /**
+     * Guard against prepare failures — returns statement or calls jsonResponse with error
+     */
+    private static function guardPrepare(\mysqli_stmt|false $stmt, Database $db): \mysqli_stmt|false
+    {
+        if ($stmt === false) {
+            jsonResponse(500, ['error' => 'Prepare failed: ' . $db->conn->error]);
+        }
+        return $stmt;
+    }
+
+    /**
      * Dispatch the request to the appropriate controller method.
      *
      * @param string   $method     HTTP method (GET, POST, DELETE, …)
@@ -240,13 +251,10 @@ class Router
             $movesJson = json_encode($moves);
             $score     = $score !== null ? (int) $score : 0;
 
-            $stmt = $db->conn->prepare(
+            $stmt = self::guardPrepare($db->conn->prepare(
                 'INSERT INTO replays (user_id, mode, level_id, moves_json, score)
                  VALUES (?, ?, ?, ?, ?)'
-            );
-            if (!$stmt) {
-                jsonResponse(500, ['error' => 'Prepare failed: ' . $db->conn->error]);
-            }
+            ), $db);
             $stmt->bind_param('ssisi', $userId, $mode, $levelId, $movesJson, $score);
             $stmt->execute();
             $replayId = $db->conn->insert_id;
@@ -267,14 +275,11 @@ class Router
 
             $levelId = (int) $levelId;
 
-            $stmt = $db->conn->prepare(
+            $stmt = self::guardPrepare($db->conn->prepare(
                 'SELECT moves_json as moves, score FROM replays
                  WHERE user_id = ? AND mode = ? AND level_id = ?
                  ORDER BY recorded_at DESC LIMIT 1'
-            );
-            if (!$stmt) {
-                jsonResponse(500, ['error' => 'Prepare failed: ' . $db->conn->error]);
-            }
+            ), $db);
             $stmt->bind_param('ssi', $userId, $mode, $levelId);
             $stmt->execute();
             $result = $stmt->get_result();

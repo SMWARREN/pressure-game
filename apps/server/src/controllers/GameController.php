@@ -6,6 +6,8 @@ use Pressure\Database;
 
 class GameController
 {
+    use ControllerHelper;
+
     public function __construct(private Database $db) {}
 
     /** POST /api/games — record game completion */
@@ -28,14 +30,11 @@ class GameController
         $moves   = $moves !== null ? (int) $moves   : null;
         $time    = $time  !== null ? (float) $time  : null;
 
-        $stmt = $this->db->conn->prepare(
+        $stmt = $this->guardPrepare($this->db->conn->prepare(
             'INSERT INTO game_completions (user_id, mode, level_id, score, moves, elapsed_seconds)
              VALUES (?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE score = GREATEST(score, VALUES(score))'
-        );
-        if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
-        }
+        ));
         $stmt->bind_param('ssiiid', $userId, $mode, $levelId, $score, $moves, $time);
         $stmt->execute();
         $stmt->close();
@@ -66,10 +65,7 @@ class GameController
 
         $sql .= ' ORDER BY completed_at DESC LIMIT ' . $limit;
 
-        $stmt = $this->db->conn->prepare($sql);
-        if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
-        }
+        $stmt = $this->guardPrepare($this->db->conn->prepare($sql));
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
         $result = $stmt->get_result();

@@ -6,7 +6,7 @@ use Pressure\Database;
 
 class StatsController
 {
-    private const ERROR_PREPARE_FAILED = 'Prepare failed: ';
+    use ControllerHelper;
 
     public function __construct(private Database $db) {}
 
@@ -21,18 +21,12 @@ class StatsController
         }
 
         // Ensure parent rows exist
-        $stmt = $this->db->conn->prepare('INSERT IGNORE INTO users (id) VALUES (?)');
-        if (!$stmt) {
-            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
-        }
+        $stmt = $this->guardPrepare($this->db->conn->prepare('INSERT IGNORE INTO users (id) VALUES (?)'));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $stmt->close();
 
-        $stmt = $this->db->conn->prepare('INSERT IGNORE INTO user_stats (user_id) VALUES (?)');
-        if (!$stmt) {
-            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
-        }
+        $stmt = $this->guardPrepare($this->db->conn->prepare('INSERT IGNORE INTO user_stats (user_id) VALUES (?)'));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $stmt->close();
@@ -69,10 +63,7 @@ class StatsController
         $types   .= 's';
         $sql      = 'UPDATE user_stats SET ' . implode(', ', $updates) . ' WHERE user_id = ?';
 
-        $stmt = $this->db->conn->prepare($sql);
-        if (!$stmt) {
-            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
-        }
+        $stmt = $this->guardPrepare($this->db->conn->prepare($sql));
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
         $stmt->close();
@@ -89,10 +80,7 @@ class StatsController
             jsonResponse(400, ['error' => 'Missing user_id']);
         }
 
-        $stmt = $this->db->conn->prepare('SELECT * FROM user_stats WHERE user_id = ?');
-        if (!$stmt) {
-            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
-        }
+        $stmt = $this->guardPrepare($this->db->conn->prepare('SELECT * FROM user_stats WHERE user_id = ?'));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $result = $stmt->get_result();

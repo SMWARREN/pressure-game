@@ -6,6 +6,8 @@ use Pressure\Database;
 
 class LeaderboardController
 {
+    use ControllerHelper;
+
     public function __construct(private Database $db) {}
 
     /** GET /api/leaderboard/{mode} — legacy, reads from highscores/user_profiles */
@@ -25,14 +27,11 @@ class LeaderboardController
     {
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 100;
 
-        $stmt = $this->db->conn->prepare(
+        $stmt = $this->guardPrepare($this->db->conn->prepare(
             'SELECT user_id, username, score, `rank`
              FROM leaderboard_cache
              WHERE mode = ? ORDER BY `rank` ASC LIMIT ?'
-        );
-        if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
-        }
+        ));
         $stmt->bind_param('si', $mode, $limit);
         $stmt->execute();
         $result      = $stmt->get_result();

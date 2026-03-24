@@ -6,6 +6,8 @@ use Pressure\Database;
 
 class AchievementController
 {
+    use ControllerHelper;
+
     public function __construct(private Database $db) {}
 
     /** POST /api/achievement/{userId}/{achievementId} — legacy */
@@ -50,12 +52,9 @@ class AchievementController
             jsonResponse(400, ['error' => 'Missing user_id']);
         }
 
-        $stmt = $this->db->conn->prepare(
+        $stmt = $this->guardPrepare($this->db->conn->prepare(
             'INSERT IGNORE INTO user_achievements (user_id, achievement_id) VALUES (?, ?)'
-        );
-        if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
-        }
+        ));
         $stmt->bind_param('ss', $userId, $achievementId);
         $stmt->execute();
         $stmt->close();
@@ -75,13 +74,10 @@ class AchievementController
             jsonResponse(400, ['error' => 'Missing user_id']);
         }
 
-        $stmt = $this->db->conn->prepare(
+        $stmt = $this->guardPrepare($this->db->conn->prepare(
             'SELECT * FROM user_achievements
              WHERE user_id = ? ORDER BY unlocked_at DESC LIMIT ?'
-        );
-        if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
-        }
+        ));
         $stmt->bind_param('si', $userId, $limit);
         $stmt->execute();
         $result       = $stmt->get_result();
