@@ -46,6 +46,7 @@ class AchievementControllerTest extends TestCase
         $response = json_decode((string) $output, true);
 
         $this->assertIsArray($response);
+        $this->assertArrayHasKey('success', $response);
     }
 
     public function testUnlockMissingParams(): void
@@ -93,6 +94,7 @@ class AchievementControllerTest extends TestCase
     public function testGetForUserSuccess(): void
     {
         $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
 
         ob_start();
         try {
@@ -104,12 +106,44 @@ class AchievementControllerTest extends TestCase
         $response = json_decode((string) $output, true);
 
         $this->assertIsArray($response);
+        $this->assertCount(2, $response);
+        $this->assertSame('ach1', $response[0]['id']);
+    }
+
+    public function testGetForUserNoAchievements(): void
+    {
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUser('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertEmpty($response);
+    }
+
+    public function testGetForUserMissingUserId(): void
+    {
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUser('');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
     }
 
     public function testGetAllAchievements(): void
     {
         $this->db->unlockAchievement('user1', 'ach1');
         $this->db->unlockAchievement('user2', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
 
         ob_start();
         try {
@@ -121,5 +155,112 @@ class AchievementControllerTest extends TestCase
         $response = json_decode((string) $output, true);
 
         $this->assertIsArray($response);
+    }
+
+    public function testGetAllAchievementsWithLimit(): void
+    {
+        $_GET = ['limit' => '1'];
+        $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getAll();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertCount(1, $response);
+    }
+
+    public function testUnlockNewSuccess(): void
+    {
+        $_GET = ['user_id' => 'user1'];
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlockNew('ach1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('success', $response);
+    }
+
+    public function testUnlockNewMissingUserId(): void
+    {
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlockNew('ach1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testGetForUserNewSuccess(): void
+    {
+        $_GET = ['user_id' => 'user1'];
+        $this->db->conn->query("INSERT INTO users (id) VALUES ('user1')");
+        $this->db->conn->query("INSERT INTO user_achievements (user_id, achievement_id) VALUES ('user1', 'ach1')");
+        $this->db->conn->query("INSERT INTO user_achievements (user_id, achievement_id) VALUES ('user1', 'ach2')");
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUserNew();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertCount(2, $response);
+    }
+
+    public function testGetForUserNewMissingUserId(): void
+    {
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUserNew();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testGetForUserNewWithLimit(): void
+    {
+        $_GET = ['user_id' => 'user1', 'limit' => '1'];
+        $this->db->conn->query("INSERT INTO users (id) VALUES ('user1')");
+        $this->db->conn->query("INSERT INTO user_achievements (user_id, achievement_id) VALUES ('user1', 'ach1')");
+        $this->db->conn->query("INSERT INTO user_achievements (user_id, achievement_id) VALUES ('user1', 'ach2')");
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUserNew();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertCount(1, $response);
     }
 }
