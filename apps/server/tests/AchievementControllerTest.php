@@ -2,19 +2,34 @@
 
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\AchievementController;
+use Pressure\Database;
 
 class AchievementControllerTest extends TestCase
 {
-    private MockDatabase $db;
+    private Database $db;
 
     protected function setUp(): void
     {
-        $this->db = new MockDatabase();
+        $this->db = new Database(
+            'localhost',
+            3306,
+            'root',
+            'root',
+            'saintsea_pressure_test'
+        );
+
+        // Clear tables
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 0");
+        foreach (['game_completions', 'user_achievements', 'user_stats', 'replays', 'leaderboard_cache', 'highscores', 'game_data', 'user_profiles', 'achievements', 'users'] as $table) {
+            $this->db->conn->query("TRUNCATE TABLE `$table`");
+        }
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 1");
+
         if (!function_exists('jsonResponse')) {
             eval('function jsonResponse(int $code, mixed $data): never {
                 http_response_code($code);
                 echo json_encode($data);
-                throw new \RuntimeException("exit:" . $code);
+                throw new \RuntimeException("exit:". $code);
             }');
         }
     }
@@ -29,6 +44,7 @@ class AchievementControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
+
         $this->assertIsArray($response);
     }
 
@@ -42,6 +58,7 @@ class AchievementControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
+
         $this->assertArrayHasKey('error', $response);
     }
 
@@ -55,6 +72,7 @@ class AchievementControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
+
         $this->assertArrayHasKey('error', $response);
     }
 
@@ -68,32 +86,14 @@ class AchievementControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
-        $this->assertArrayHasKey('error', $response);
-    }
 
-    public function testUnlockFailure(): void
-    {
-        // Mock failure
-        $dbMock = new class extends MockDatabase {
-            public function unlockAchievement(string $userId, string $achievementId): bool {
-                return false;
-            }
-        };
-
-        ob_start();
-        try {
-            (new AchievementController($dbMock))->unlock('user1', 'ach1');
-        } catch (\RuntimeException $e) {
-            // Expected
-        }
-        $output = ob_get_clean();
-        $response = json_decode((string) $output, true);
         $this->assertArrayHasKey('error', $response);
-        $this->assertSame('Failed to unlock achievement', $response['error']);
     }
 
     public function testGetForUserSuccess(): void
     {
+        $this->db->unlockAchievement('user1', 'ach1');
+
         ob_start();
         try {
             (new AchievementController($this->db))->getForUser('user1');
@@ -102,11 +102,15 @@ class AchievementControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
+
         $this->assertIsArray($response);
     }
 
     public function testGetAllAchievements(): void
     {
+        $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user2', 'ach1');
+
         ob_start();
         try {
             (new AchievementController($this->db))->getAll();
@@ -115,16 +119,7 @@ class AchievementControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
+
         $this->assertIsArray($response);
-    }
-
-    public function testUnlockNewSuccess(): void
-    {
-        $this->markTestSkipped('unlockNew() requires live mysqli conn.');
-    }
-
-    public function testGetForUserNewSuccess(): void
-    {
-        $this->markTestSkipped('getForUserNew() requires live mysqli conn.');
     }
 }

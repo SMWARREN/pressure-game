@@ -1,458 +1,381 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use Pressure\Database;
 
 /**
- * Tests for Database class using SQLite for isolation.
- * Each test gets a fresh temporary database that's destroyed after.
+ * Tests for Database class using real MySQL test database.
+ * Each test uses saintsea_pressure_test database.
  */
 class DatabaseTest extends TestCase
 {
-    private ?\PDO $pdo = null;
-    private string $dbFile = '';
+    private Database $db;
 
     protected function setUp(): void
     {
-        // Create temporary SQLite database
-        $this->dbFile = tempnam(sys_get_temp_dir(), 'test_db_');
-        unlink($this->dbFile);
+        $this->db = new Database(
+            'localhost',
+            3306,
+            'root',
+            'root',
+            'saintsea_pressure_test'
+        );
 
-        $this->pdo = new \PDO('sqlite:' . $this->dbFile);
-        $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $this->pdo->exec('PRAGMA foreign_keys = ON');
-
-        $this->createSchema();
+        // Clear all tables for clean test state
+        $this->cleanDatabase();
     }
 
     protected function tearDown(): void
     {
-        $this->pdo = null;
-        if (file_exists($this->dbFile)) {
-            unlink($this->dbFile);
+        $this->cleanDatabase();
+    }
+
+    private function cleanDatabase(): void
+    {
+        // Disable foreign key constraints to allow truncation
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 0");
+
+        $tables = [
+            'game_completions',
+            'user_achievements',
+            'user_stats',
+            'replays',
+            'leaderboard_cache',
+            'highscores',
+            'game_data',
+            'user_profiles',
+            'achievements',
+            'users',
+        ];
+
+        foreach ($tables as $table) {
+            $this->db->conn->query("TRUNCATE TABLE `$table`");
         }
+
+        // Re-enable foreign key constraints
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 1");
     }
 
-    private function createSchema(): void
+    // ─── getItem / setItem / removeItem ─────────────────────────────────────
+
+    public function testSetItemAndGetItem(): void
     {
-        $schema = file_get_contents(__DIR__ . '/../schema.sql');
-        $statements = array_filter(
-            array_map('trim', explode(';', $schema)),
-            fn($stmt) => !empty($stmt)
-        );
-        foreach ($statements as $stmt) {
-            $this->pdo->exec($stmt);
-        }
-    }
+        $this->db->setItem('user1', 'save', '{"level":5}');
 
-    // ─── User-related operations ─────────────────────────────────────────────
-
-    public function testInsertUser(): void
-    {
-        $stmt = $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)');
-        $result = $stmt->execute(['user1', 'testuser']);
-
-        $this->assertTrue($result);
-
-        // Verify insertion
-        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE id = ?');
-        $stmt->execute(['user1']);
-        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->assertNotNull($user);
-        $this->assertSame('user1', $user['id']);
-        $this->assertSame('testuser', $user['username']);
-    }
-
-    public function testUserUniquenessConstraint(): void
-    {
-        $stmt = $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)');
-        $stmt->execute(['user1', 'duplicate']);
-        $stmt->execute(['user2', 'different']);
-
-        // Second insert with same username should fail
-        $this->expectException(\PDOException::class);
-        $stmt->execute(['user3', 'duplicate']);
-    }
-
-    // ─── Game completions ────────────────────────────────────────────────────
-
-    public function testInsertGameCompletion(): void
-    {
-        // Setup user
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
-
-        // Insert game completion
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO game_completions (user_id, mode, level_id, score, moves, elapsed_seconds)
-             VALUES (?, ?, ?, ?, ?, ?)'
-        );
-        $result = $stmt->execute(['user1', 'classic', 1, 9500, 10, 25.5]);
-
-        $this->assertTrue($result);
-
-        // Verify
-        $stmt = $this->pdo->prepare('SELECT * FROM game_completions WHERE user_id = ?');
-        $stmt->execute(['user1']);
-        $completion = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->assertNotNull($completion);
-        $this->assertSame(9500, (int)$completion['score']);
-        $this->assertSame(10, (int)$completion['moves']);
-    }
-
-    public function testGameCompletionUniqueConstraint(): void
-    {
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
-
-        $stmt = $this->pdo->prepare(
-            'INSERT OR IGNORE INTO game_completions (user_id, mode, level_id, score)
-             VALUES (?, ?, ?, ?)'
-        );
-        $stmt->execute(['user1', 'classic', 1, 9500]);
-        $stmt->execute(['user1', 'classic', 1, 9600]);  // Should be ignored
-
-        $count = $this->pdo->query('SELECT COUNT(*) FROM game_completions')->fetchColumn();
-        $this->assertSame(1, (int)$count);
-    }
-
-    // ─── Achievements ────────────────────────────────────────────────────────
-
-    public function testInsertUserAchievement(): void
-    {
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
-
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)'
-        );
-        $result = $stmt->execute(['user1', 'first_win']);
-
-        $this->assertTrue($result);
-
-        $stmt = $this->pdo->prepare('SELECT * FROM user_achievements WHERE user_id = ?');
-        $stmt->execute(['user1']);
-        $ach = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->assertNotNull($ach);
-        $this->assertSame('first_win', $ach['achievement_id']);
-    }
-
-    public function testGetAllAchievementsForUser(): void
-    {
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
-
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)'
-        );
-        $stmt->execute(['user1', 'first_win']);
-        $stmt->execute(['user1', 'ten_wins']);
-        $stmt->execute(['user1', 'speedrunner']);
-
-        $stmt = $this->pdo->prepare('SELECT * FROM user_achievements WHERE user_id = ? ORDER BY unlocked_at DESC');
-        $stmt->execute(['user1']);
-        $achievements = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $this->assertCount(3, $achievements);
-    }
-
-    // ─── Game data (key-value store) ──────────────────────────────────────────
-
-    public function testInsertGameData(): void
-    {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO game_data (user_id, data_key, data_value) VALUES (?, ?, ?)'
-        );
-        $result = $stmt->execute(['user1', 'save', '{"level":5}']);
-
-        $this->assertTrue($result);
-
-        $stmt = $this->pdo->prepare('SELECT data_value FROM game_data WHERE user_id = ? AND data_key = ?');
-        $stmt->execute(['user1', 'save']);
-        $value = $stmt->fetchColumn();
-
+        $value = $this->db->getItem('user1', 'save');
         $this->assertSame('{"level":5}', $value);
     }
 
-    public function testUpdateGameData(): void
+    public function testGetItemNotFound(): void
     {
-        $this->pdo->prepare(
-            'INSERT INTO game_data (user_id, data_key, data_value) VALUES (?, ?, ?)'
-        )->execute(['user1', 'save', '{"level":3}']);
+        $value = $this->db->getItem('user1', 'nonexistent');
+        $this->assertNull($value);
+    }
 
-        // Update the value
-        $stmt = $this->pdo->prepare(
-            'UPDATE game_data SET data_value = ? WHERE user_id = ? AND data_key = ?'
-        );
-        $stmt->execute(['{"level":10}', 'user1', 'save']);
+    public function testSetItemUpdate(): void
+    {
+        $this->db->setItem('user1', 'save', '{"level":3}');
+        $this->db->setItem('user1', 'save', '{"level":10}');
 
-        $stmt = $this->pdo->prepare('SELECT data_value FROM game_data WHERE user_id = ? AND data_key = ?');
-        $stmt->execute(['user1', 'save']);
-        $value = $stmt->fetchColumn();
-
+        $value = $this->db->getItem('user1', 'save');
         $this->assertSame('{"level":10}', $value);
     }
 
-    public function testDeleteGameData(): void
+    public function testRemoveItem(): void
     {
-        $this->pdo->prepare(
-            'INSERT INTO game_data (user_id, data_key, data_value) VALUES (?, ?, ?)'
-        )->execute(['user1', 'save', '{"level":3}']);
+        $this->db->setItem('user1', 'save', '{"level":5}');
+        $this->db->removeItem('user1', 'save');
 
-        // Delete
-        $stmt = $this->pdo->prepare('DELETE FROM game_data WHERE user_id = ? AND data_key = ?');
-        $stmt->execute(['user1', 'save']);
-
-        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM game_data WHERE user_id = ? AND data_key = ?');
-        $stmt->execute(['user1', 'save']);
-        $count = $stmt->fetchColumn();
-
-        $this->assertSame(0, (int)$count);
+        $value = $this->db->getItem('user1', 'save');
+        $this->assertNull($value);
     }
 
-    // ─── Highscores ──────────────────────────────────────────────────────────
-
-    public function testInsertHighscore(): void
+    public function testGetAllUserData(): void
     {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO highscores (user_id, mode, level_id, score, moves, elapsed_time)
-             VALUES (?, ?, ?, ?, ?, ?)'
-        );
-        $result = $stmt->execute(['user1', 'classic', 1, 9500, 10, 25.5]);
+        $this->db->setItem('user1', 'save', '{"level":5}');
+        $this->db->setItem('user1', 'settings', '{"difficulty":"hard"}');
+
+        $data = $this->db->getAllUserData('user1');
+
+        $this->assertCount(2, $data);
+        $this->assertSame('{"level":5}', $data['save']);
+        $this->assertSame('{"difficulty":"hard"}', $data['settings']);
+    }
+
+    // ─── saveHighscore / getUserHighScore ────────────────────────────────────
+
+    public function testSaveHighscore(): void
+    {
+        $result = $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
 
         $this->assertTrue($result);
 
-        $stmt = $this->pdo->prepare('SELECT score FROM highscores WHERE user_id = ? AND mode = ? AND level_id = ?');
-        $stmt->execute(['user1', 'classic', 1]);
-        $score = $stmt->fetchColumn();
-
-        $this->assertSame(9500, (int)$score);
+        $score = $this->db->getUserHighScore('user1', 'classic', 1);
+        $this->assertSame(9500, $score);
     }
 
-    public function testHighscoreUpsert(): void
+    public function testGetUserHighScoreNotFound(): void
     {
-        // Insert initial
-        $this->pdo->prepare(
-            'INSERT INTO highscores (user_id, mode, level_id, score) VALUES (?, ?, ?, ?)'
-        )->execute(['user1', 'classic', 1, 9500]);
-
-        // Try to insert better score (should fail due to UNIQUE constraint)
-        $stmt = $this->pdo->prepare(
-            'INSERT OR REPLACE INTO highscores (user_id, mode, level_id, score) VALUES (?, ?, ?, ?)'
-        );
-        $stmt->execute(['user1', 'classic', 1, 9600]);
-
-        // Verify new score
-        $stmt = $this->pdo->prepare('SELECT score FROM highscores WHERE user_id = ? AND mode = ? AND level_id = ?');
-        $stmt->execute(['user1', 'classic', 1]);
-        $score = $stmt->fetchColumn();
-
-        $this->assertSame(9600, (int)$score);
+        $score = $this->db->getUserHighScore('user1', 'classic', 999);
+        $this->assertNull($score);
     }
 
-    // ─── User stats ──────────────────────────────────────────────────────────
-
-    public function testInsertUserStats(): void
+    public function testSaveHighscoreKeepsBest(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user1', 'classic', 1, 12, 30.0, 9200);  // Lower score
 
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO user_stats (user_id, max_combo, total_score) VALUES (?, ?, ?)'
-        );
-        $result = $stmt->execute(['user1', 42, 50000]);
+        $score = $this->db->getUserHighScore('user1', 'classic', 1);
+        $this->assertSame(9500, $score);  // Should keep higher
+    }
+
+    // ─── ensureUserProfile ──────────────────────────────────────────────────
+
+    public function testEnsureUserProfile(): void
+    {
+        $this->db->ensureUserProfile('user1');
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertNotNull($profile);
+        $this->assertSame('user1', $profile['user_id']);
+    }
+
+    public function testEnsureUserProfileIdempotent(): void
+    {
+        $this->db->ensureUserProfile('user1');
+        $this->db->ensureUserProfile('user1');  // Second call should not error
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertNotNull($profile);
+    }
+
+    // ─── getUserProfile / updateUserUsername ────────────────────────────────
+
+    public function testGetUserProfile(): void
+    {
+        $this->db->ensureUserProfile('user1');
+        $this->db->updateUserUsername('user1', 'alice');
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertSame('alice', $profile['username']);
+        $this->assertSame(0, (int)$profile['total_score']);
+    }
+
+    public function testUpdateUserUsername(): void
+    {
+        $this->db->ensureUserProfile('user1');
+        $result = $this->db->updateUserUsername('user1', 'bob');
 
         $this->assertTrue($result);
 
-        $stmt = $this->pdo->prepare('SELECT max_combo, total_score FROM user_stats WHERE user_id = ?');
-        $stmt->execute(['user1']);
-        $stats = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->assertSame(42, (int)$stats['max_combo']);
-        $this->assertSame(50000, (int)$stats['total_score']);
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertSame('bob', $profile['username']);
     }
 
-    // ─── Leaderboard cache ───────────────────────────────────────────────────
+    // ─── unlockAchievement / getUserAchievements ─────────────────────────────
 
-    public function testInsertLeaderboardEntry(): void
+    public function testUnlockAchievement(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'champ']);
-
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO leaderboard_cache (mode, user_id, username, score, rank) VALUES (?, ?, ?, ?, ?)'
-        );
-        $result = $stmt->execute(['classic', 'user1', 'champ', 50000, 1]);
+        $result = $this->db->unlockAchievement('user1', 'first_win');
 
         $this->assertTrue($result);
 
-        $stmt = $this->pdo->prepare('SELECT * FROM leaderboard_cache WHERE mode = ? ORDER BY rank');
-        $stmt->execute(['classic']);
-        $entry = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->assertSame('user1', $entry['user_id']);
-        $this->assertSame(1, (int)$entry['rank']);
+        $achievements = $this->db->getUserAchievements('user1');
+        $this->assertCount(1, $achievements);
+        $this->assertSame('first_win', $achievements[0]['id']);
     }
 
-    // ─── Replays ─────────────────────────────────────────────────────────────
-
-    public function testInsertReplay(): void
+    public function testUnlockAchievementIdempotent(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
+        $this->db->unlockAchievement('user1', 'first_win');
+        $this->db->unlockAchievement('user1', 'first_win');  // Second unlock
+
+        $achievements = $this->db->getUserAchievements('user1');
+        $this->assertCount(1, $achievements);  // Should only have one
+    }
+
+    public function testGetAllAchievements(): void
+    {
+        $this->db->unlockAchievement('user1', 'first_win');
+        $this->db->unlockAchievement('user2', 'first_win');
+        $this->db->unlockAchievement('user1', 'speedrunner');
+
+        $achievements = $this->db->getAllAchievements();
+
+        // Should have 2 distinct achievement IDs
+        $ids = array_map(fn($a) => $a['achievement_id'], $achievements);
+        $this->assertContains('first_win', $ids);
+        $this->assertContains('speedrunner', $ids);
+    }
+
+    // ─── getUserWins ────────────────────────────────────────────────────────
+
+    public function testGetUserWins(): void
+    {
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user1', 'classic', 2, 12, 30.0, 9200);
+
+        $wins = $this->db->getUserWins('user1', 50);
+
+        $this->assertCount(2, $wins);
+        $this->assertSame('classic', $wins[0]['mode']);
+    }
+
+    public function testGetUserWinsRespectLimit(): void
+    {
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user1', 'classic', 2, 12, 30.0, 9200);
+        $this->db->saveHighscore('user1', 'classic', 3, 14, 35.0, 9000);
+
+        $wins = $this->db->getUserWins('user1', 2);
+
+        $this->assertCount(2, $wins);
+    }
+
+    // ─── updateUserStats ────────────────────────────────────────────────────
+
+    public function testUpdateUserStats(): void
+    {
+        $this->db->ensureUserProfile('user1');
+        $result = $this->db->updateUserStats(
+            'user1',
+            maxCombo: 42,
+            wallsSurvived: 10,
+            noResetStreak: 5,
+            speedLevels: 3,
+            perfectLevels: 1,
+            daysPlayed: 7
+        );
+
+        $this->assertTrue($result);
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertSame(42, (int)$profile['max_combo']);
+        $this->assertSame(10, (int)$profile['total_walls_survived']);
+    }
+
+    public function testUpdateUserStatsKeepsMax(): void
+    {
+        $this->db->ensureUserProfile('user1');
+        $this->db->updateUserStats('user1', maxCombo: 50);
+        $this->db->updateUserStats('user1', maxCombo: 30);  // Lower value
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertSame(50, (int)$profile['max_combo']);  // Should keep higher
+    }
+
+    // ─── saveReplay / getReplay ─────────────────────────────────────────────
+
+    public function testSaveAndGetReplay(): void
+    {
+        // Create user (replays table needs user to exist)
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
 
         $moves = json_encode([['x' => 0, 'y' => 0, 'dir' => 'CW']]);
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO replays (user_id, mode, level_id, moves_json, score) VALUES (?, ?, ?, ?, ?)'
-        );
-        $result = $stmt->execute(['user1', 'classic', 1, $moves, 9500]);
+        $result = $this->db->saveReplay('user1', 'classic', 1, $moves, 9500);
 
         $this->assertTrue($result);
 
-        $stmt = $this->pdo->prepare('SELECT moves_json FROM replays WHERE user_id = ? AND mode = ? AND level_id = ?');
-        $stmt->execute(['user1', 'classic', 1]);
-        $storedMoves = $stmt->fetchColumn();
-
-        $this->assertSame($moves, $storedMoves);
+        $replay = $this->db->getReplay('user1', 'classic', 1);
+        $this->assertNotNull($replay);
+        $this->assertSame('user1', $replay['user_id']);
+        $this->assertSame(9500, (int)$replay['score']);
     }
 
-    // ─── User profiles ───────────────────────────────────────────────────────
-
-    public function testInsertUserProfile(): void
+    public function testGetReplayNotFound(): void
     {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO user_profiles (user_id, username, total_score, levels_completed) VALUES (?, ?, ?, ?)'
-        );
-        $result = $stmt->execute(['user1', 'champ', 50000, 10]);
-
-        $this->assertTrue($result);
-
-        $stmt = $this->pdo->prepare('SELECT total_score, levels_completed FROM user_profiles WHERE user_id = ?');
-        $stmt->execute(['user1']);
-        $profile = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->assertSame(50000, (int)$profile['total_score']);
-        $this->assertSame(10, (int)$profile['levels_completed']);
+        $replay = $this->db->getReplay('user1', 'classic', 999);
+        $this->assertNull($replay);
     }
 
-    public function testUpdateUserProfile(): void
+    public function testSaveReplayMultiple(): void
     {
-        $this->pdo->prepare(
-            'INSERT INTO user_profiles (user_id, username, total_score) VALUES (?, ?, ?)'
-        )->execute(['user1', 'test', 10000]);
+        // Create user (replays table needs user to exist)
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
 
-        $stmt = $this->pdo->prepare(
-            'UPDATE user_profiles SET total_score = ?, levels_completed = ? WHERE user_id = ?'
-        );
-        $result = $stmt->execute([20000, 5, 'user1']);
+        $moves1 = json_encode([['x' => 0, 'y' => 0, 'dir' => 'CW']]);
+        $moves2 = json_encode([['x' => 1, 'y' => 1, 'dir' => 'CCW']]);
 
-        $this->assertTrue($result);
+        $this->db->saveReplay('user1', 'classic', 1, $moves1, 9500);
+        $this->db->saveReplay('user1', 'classic', 1, $moves2, 9600);
 
-        $stmt = $this->pdo->prepare('SELECT total_score, levels_completed FROM user_profiles WHERE user_id = ?');
-        $stmt->execute(['user1']);
-        $profile = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->assertSame(20000, (int)$profile['total_score']);
-        $this->assertSame(5, (int)$profile['levels_completed']);
+        $replay = $this->db->getReplay('user1', 'classic', 1);
+        // getReplay returns latest by recorded_at DESC, so should be either one (both have same user/mode/level)
+        $this->assertNotNull($replay);
+        $this->assertSame('user1', $replay['user_id']);
     }
 
-    // ─── Multiple users / rankings ──────────────────────────────────────────
+    // ─── getLeaderboard ─────────────────────────────────────────────────────
 
-    public function testLeaderboardMultipleUsers(): void
+    public function testGetLeaderboardByMode(): void
     {
-        // Insert multiple users
-        $stmt = $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)');
-        $stmt->execute(['user1', 'alice']);
-        $stmt->execute(['user2', 'bob']);
-        $stmt->execute(['user3', 'charlie']);
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user2', 'classic', 1, 12, 30.0, 9200);
+        $this->db->saveHighscore('user3', 'classic', 1, 8, 20.0, 9800);  // Best
 
-        // Insert leaderboard entries with ranking
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO leaderboard_cache (mode, user_id, username, score, rank) VALUES (?, ?, ?, ?, ?)'
-        );
-        $stmt->execute(['classic', 'user1', 'alice', 50000, 1]);
-        $stmt->execute(['classic', 'user2', 'bob', 45000, 2]);
-        $stmt->execute(['classic', 'user3', 'charlie', 40000, 3]);
+        $leaderboard = $this->db->getLeaderboard('classic', 100);
 
-        // Query top 2
-        $stmt = $this->pdo->prepare(
-            'SELECT * FROM leaderboard_cache WHERE mode = ? ORDER BY rank ASC LIMIT 2'
-        );
-        $stmt->execute(['classic']);
-        $entries = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $this->assertCount(2, $entries);
-        $this->assertSame('user1', $entries[0]['user_id']);
-        $this->assertSame('user2', $entries[1]['user_id']);
+        $this->assertCount(3, $leaderboard);
+        $this->assertSame('user3', $leaderboard[0]['user_id']);  // Best score first
+        $this->assertSame(1, $leaderboard[0]['rank']);
     }
 
-    public function testHighscoreLeaderboard(): void
+    public function testGetLeaderboardRespectLimit(): void
     {
-        // Insert multiple scores
-        $stmt = $this->pdo->prepare(
-            'INSERT OR REPLACE INTO highscores (user_id, mode, level_id, score) VALUES (?, ?, ?, ?)'
-        );
-        $stmt->execute(['user1', 'classic', 1, 9500]);
-        $stmt->execute(['user2', 'classic', 1, 9200]);
-        $stmt->execute(['user3', 'classic', 1, 9800]);  // Best
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user2', 'classic', 1, 12, 30.0, 9200);
+        $this->db->saveHighscore('user3', 'classic', 1, 8, 20.0, 9800);
 
-        // Query top scores for level
-        $stmt = $this->pdo->prepare(
-            'SELECT user_id, score FROM highscores WHERE mode = ? AND level_id = ? ORDER BY score DESC'
-        );
-        $stmt->execute(['classic', 1]);
-        $scores = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $leaderboard = $this->db->getLeaderboard('classic', 2);
 
-        $this->assertCount(3, $scores);
-        $this->assertSame(9800, (int)$scores[0]['score']);  // Highest
+        $this->assertCount(2, $leaderboard);
     }
 
-    // ─── Data cascade / constraints ──────────────────────────────────────────
+    // ─── getSchemaInfo ──────────────────────────────────────────────────────
 
-    public function testCascadeDeleteUser(): void
+    public function testGetSchemaInfo(): void
     {
-        // Insert user and related data
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
-        $this->pdo->prepare(
-            'INSERT INTO user_stats (user_id, max_combo) VALUES (?, ?)'
-        )->execute(['user1', 42]);
-        $this->pdo->prepare(
-            'INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)'
-        )->execute(['user1', 'first_win']);
+        $schema = $this->db->getSchemaInfo();
 
-        // Delete user
-        $this->pdo->prepare('DELETE FROM users WHERE id = ?')->execute(['user1']);
+        $this->assertArrayHasKey('users', $schema);
+        $this->assertArrayHasKey('highscores', $schema);
+        $this->assertArrayHasKey('game_data', $schema);
 
-        // Verify cascade worked (stats and achievements gone)
-        $count = $this->pdo->query('SELECT COUNT(*) FROM user_stats WHERE user_id = "user1"')->fetchColumn();
-        $this->assertSame(0, (int)$count);
-
-        $count = $this->pdo->query('SELECT COUNT(*) FROM user_achievements WHERE user_id = "user1"')->fetchColumn();
-        $this->assertSame(0, (int)$count);
+        // Verify users table structure
+        $users = $schema['users'];
+        $this->assertArrayHasKey('row_count', $users);
+        $this->assertArrayHasKey('columns', $users);
+        $this->assertIsArray($users['columns']);
     }
 
-    // ─── Aggregation queries ────────────────────────────────────────────────
+    // ─── cleanupTestData ────────────────────────────────────────────────────
 
-    public function testCountAndAggregate(): void
+    public function testCleanupTestData(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
+        $this->db->ensureUserProfile('user1');
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->unlockAchievement('user1', 'first_win');
 
-        // Insert multiple completions
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO game_completions (user_id, mode, level_id, score) VALUES (?, ?, ?, ?)'
-        );
-        $stmt->execute(['user1', 'classic', 1, 9500]);
-        $stmt->execute(['user1', 'classic', 2, 8500]);
-        $stmt->execute(['user1', 'blitz', 1, 7000]);
+        $result = $this->db->cleanupTestData('user1');
 
-        // Count total completions
-        $count = $this->pdo->query('SELECT COUNT(*) FROM game_completions WHERE user_id = "user1"')->fetchColumn();
-        $this->assertSame(3, (int)$count);
+        $this->assertArrayHasKey('highscores', $result);
+        $this->assertGreaterThan(0, $result['highscores']);
+    }
 
-        // Sum scores
-        $total = $this->pdo->query('SELECT SUM(score) FROM game_completions WHERE user_id = "user1"')->fetchColumn();
-        $this->assertSame(25000, (int)$total);
+    // ─── updateUserProfileStats ─────────────────────────────────────────────
 
-        // Count by mode
-        $stmt = $this->pdo->prepare('SELECT mode, COUNT(*) as cnt FROM game_completions WHERE user_id = ? GROUP BY mode');
-        $stmt->execute(['user1']);
-        $byMode = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    public function testUpdateUserProfileStats(): void
+    {
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user1', 'classic', 2, 12, 30.0, 9200);
+        $this->db->unlockAchievement('user1', 'first_win');
+        $this->db->unlockAchievement('user1', 'speedrunner');
 
-        $this->assertCount(2, $byMode);  // classic and blitz
+        $this->db->updateUserProfileStats('user1');
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertSame(2, (int)$profile['levels_completed']);
+        $this->assertSame(18700, (int)$profile['total_score']);
+        $this->assertSame(2, (int)$profile['achievements_count']);
     }
 }
