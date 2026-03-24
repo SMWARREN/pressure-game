@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/InputStreamWrapper.php';
+
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\StatsController;
 use Pressure\Database;
@@ -49,10 +51,67 @@ class StatsControllerTest extends TestCase
         $this->assertSame('Missing user_id', $response['error']);
     }
 
-    public function testUpdateSuccessSkipped(): void
+    public function testUpdateSuccess(): void
     {
-        // update() requires php://input stream which is hard to mock in unit tests
-        $this->markTestSkipped('StatsController->update() requires php://input stream.');
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'max_combo' => 42,
+            'total_score' => 5000,
+            'total_levels_completed' => 3
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new StatsController($this->db))->update();
+        } catch (\RuntimeException $e) {
+            // Expected from jsonResponse
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('success', $response);
+        $this->assertTrue($response['success']);
+
+        // Verify stats were updated
+        $stmt = $this->db->conn->prepare('SELECT max_combo, total_score FROM user_stats WHERE user_id = ?');
+        $stmt->bind_param('s', $userId);
+        $userId = 'user1';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertNotNull($row);
+        $this->assertSame(42, (int)$row['max_combo']);
+        $this->assertSame(5000, (int)$row['total_score']);
+    }
+
+    public function testUpdateNoUpdates(): void
+    {
+        // Send user_id with no stat fields
+        $payload = json_encode([
+            'user_id' => 'user1'
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new StatsController($this->db))->update();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('success', $response);
+        $this->assertSame('No updates', $response['message']);
     }
 
     public function testGetMissingUserId(): void

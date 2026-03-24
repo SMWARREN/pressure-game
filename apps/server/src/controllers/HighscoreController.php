@@ -24,22 +24,19 @@ class HighscoreController
             jsonResponse(400, ['error' => 'Missing moves or time']);
         }
 
-        try {
-            if ($this->db->saveHighscore(
-                $userId,
-                $mode,
-                $levelId,
-                (int) $moves,
-                (float) $time,
-                $score !== null ? (int) $score : null
-            )) {
-                $this->db->updateUserProfileStats($userId);
-                jsonResponse(200, ['success' => true]);
-            }
+        if (!$this->db->saveHighscore(
+            $userId,
+            $mode,
+            $levelId,
+            (int) $moves,
+            (float) $time,
+            $score !== null ? (int) $score : null
+        )) {
             jsonResponse(500, ['error' => 'Failed to save highscore']);
-        } catch (\Exception $e) {
-            jsonResponse(500, ['error' => 'Highscore save error: ' . $e->getMessage()]);
         }
+
+        $this->db->updateUserProfileStats($userId);
+        jsonResponse(200, ['success' => true]);
     }
 
     /** GET /api/highscore/{userId}/{mode}/{levelId} */

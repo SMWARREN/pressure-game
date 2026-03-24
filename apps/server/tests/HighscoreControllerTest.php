@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/InputStreamWrapper.php';
+
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\HighscoreController;
 use Pressure\Database;
@@ -151,9 +153,59 @@ class HighscoreControllerTest extends TestCase
         $this->assertArrayHasKey('error', $response);
     }
 
-    public function testSaveSuccessSkipped(): void
+    public function testSaveSuccess(): void
     {
-        // save() requires php://input stream which is hard to mock in unit tests
-        $this->markTestSkipped('HighscoreController->save() requires php://input stream.');
+        // Create user first (foreign key requirement)
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $payload = json_encode([
+            'moves' => 10,
+            'time' => 25.5,
+            'score' => 9500
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected from jsonResponse
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('success', $response);
+        $this->assertTrue($response['success']);
+
+        // Verify highscore was saved
+        $score = $this->db->getUserHighScore('user1', 'classic', 1);
+        $this->assertSame(9500, $score);
+    }
+
+    public function testSaveMissingData(): void
+    {
+        $payload = json_encode([
+            'moves' => 10
+            // missing time
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing moves or time', $response['error']);
     }
 }
