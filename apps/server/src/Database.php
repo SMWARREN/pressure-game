@@ -25,6 +25,17 @@ class Database
         }
     }
 
+    /**
+     * Guard helper for prepare failures - throws exception if prepare fails
+     */
+    private function guardPrepare(\mysqli_stmt|false $stmt): \mysqli_stmt
+    {
+        if ($stmt === false) {
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
+        }
+        return $stmt;
+    }
+
     // ─── Schema ───────────────────────────────────────────────────────────────
 
     private function addColumnIfNotExists(string $table, string $column, string $definition): void
@@ -207,10 +218,7 @@ class Database
 
     public function getItem(string $userId, string $key): ?string
     {
-        $stmt = $this->conn->prepare('SELECT data_value FROM game_data WHERE user_id = ? AND data_key = ?');
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        $stmt = $this->guardPrepare($this->conn->prepare('SELECT data_value FROM game_data WHERE user_id = ? AND data_key = ?'));
         $stmt->bind_param('ss', $userId, $key);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -225,16 +233,13 @@ class Database
 
     public function setItem(string $userId, string $key, string $value): bool
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'INSERT INTO game_data (user_id, data_key, data_value)
              VALUES (?, ?, ?)
              ON DUPLICATE KEY UPDATE
              data_value = VALUES(data_value),
              updated_at = CURRENT_TIMESTAMP'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('sss', $userId, $key, $value);
         $success = $stmt->execute();
         $stmt->close();
@@ -243,10 +248,7 @@ class Database
 
     public function removeItem(string $userId, string $key): bool
     {
-        $stmt = $this->conn->prepare('DELETE FROM game_data WHERE user_id = ? AND data_key = ?');
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        $stmt = $this->guardPrepare($this->conn->prepare('DELETE FROM game_data WHERE user_id = ? AND data_key = ?'));
         $stmt->bind_param('ss', $userId, $key);
         $success = $stmt->execute();
         $stmt->close();
@@ -255,12 +257,9 @@ class Database
 
     public function getAllUserData(string $userId): array
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT data_key, data_value FROM game_data WHERE user_id = ? ORDER BY updated_at DESC'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -306,10 +305,7 @@ class Database
                 best_moves = IF(VALUES(score) >= score, VALUES(best_moves), best_moves),
                 best_time  = IF(VALUES(score) >= score, VALUES(best_time),  best_time)';
 
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        $stmt = $this->guardPrepare($this->conn->prepare($sql));
         $stmt->bind_param('ssiiid', $userId, $mode, $levelId, $finalScore, $moves, $time);
         $success = $stmt->execute();
         if (!$success) {
@@ -321,12 +317,9 @@ class Database
 
     public function getUserHighScore(string $userId, string $mode, int $levelId): ?int
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT score FROM highscores WHERE user_id = ? AND mode = ? AND level_id = ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('ssi', $userId, $mode, $levelId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -341,20 +334,17 @@ class Database
     public function getLeaderboard(string $mode, int $limit = 100): array
     {
         if ($mode === 'global') {
-            $stmt = $this->conn->prepare(
+            $stmt = $this->guardPrepare($this->conn->prepare(
                 'SELECT user_id, username, total_score, total_moves, achievements_count,
                         levels_completed, created_at
                  FROM user_profiles
                  WHERE total_score > 0
                  ORDER BY total_score DESC, total_moves ASC
                  LIMIT ?'
-            );
-            if (!$stmt) {
-                throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-            }
+            ));
             $stmt->bind_param('i', $limit);
         } else {
-            $stmt = $this->conn->prepare(
+            $stmt = $this->guardPrepare($this->conn->prepare(
                 'SELECT h.user_id,
                         MAX(h.score) as score,
                         MAX(h.created_at) as created_at,
@@ -366,10 +356,7 @@ class Database
                  GROUP BY h.user_id
                  ORDER BY score DESC
                  LIMIT ?'
-            );
-            if (!$stmt) {
-                throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-            }
+            ));
             $stmt->bind_param('si', $mode, $limit);
         }
 
@@ -387,13 +374,10 @@ class Database
 
     public function updateUserProfileStats(string $userId): void
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT COUNT(DISTINCT level_id) as levels_completed, SUM(score) as total_score
              FROM highscores WHERE user_id = ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $stats = $stmt->get_result()->fetch_assoc();
@@ -402,39 +386,30 @@ class Database
         $levelsCompleted = (int) ($stats['levels_completed'] ?? 0);
         $totalScore      = (int) ($stats['total_score'] ?? 0);
 
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT SUM(best_moves) as total_moves FROM highscores WHERE user_id = ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $moveStats = $stmt->get_result()->fetch_assoc();
         $stmt->close();
         $totalMoves = (int) ($moveStats['total_moves'] ?? 0);
 
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT COUNT(*) as achievement_count FROM achievements WHERE user_id = ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $achStats = $stmt->get_result()->fetch_assoc();
         $stmt->close();
         $achievementsCount = (int) ($achStats['achievement_count'] ?? 0);
 
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'UPDATE user_profiles
              SET total_score = ?, total_moves = ?, levels_completed = ?,
                  achievements_count = ?, updated_at = CURRENT_TIMESTAMP
              WHERE user_id = ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('iiiis', $totalScore, $totalMoves, $levelsCompleted, $achievementsCount, $userId);
         $stmt->execute();
         $stmt->close();
@@ -444,12 +419,9 @@ class Database
 
     public function unlockAchievement(string $userId, string $achievementId): bool
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'INSERT IGNORE INTO achievements (user_id, achievement_id) VALUES (?, ?)'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('ss', $userId, $achievementId);
         $success = $stmt->execute();
         $stmt->close();
@@ -462,12 +434,9 @@ class Database
 
     public function getUserAchievements(string $userId): array
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT achievement_id, unlocked_at FROM achievements WHERE user_id = ? ORDER BY unlocked_at DESC'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -526,10 +495,7 @@ class Database
 
     public function ensureUserProfile(string $userId): void
     {
-        $stmt = $this->conn->prepare('INSERT IGNORE INTO user_profiles (user_id) VALUES (?)');
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        $stmt = $this->guardPrepare($this->conn->prepare('INSERT IGNORE INTO user_profiles (user_id) VALUES (?)'));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $stmt->close();
@@ -537,15 +503,12 @@ class Database
 
     public function getUserProfile(string $userId): ?array
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT user_id, username, total_score, total_moves, achievements_count,
                     levels_completed, max_combo, total_walls_survived, no_reset_streak,
                     speed_levels, perfect_levels, total_days_played, created_at
              FROM user_profiles WHERE user_id = ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -560,12 +523,9 @@ class Database
     public function updateUserUsername(string $userId, string $username): bool
     {
         $this->ensureUserProfile($userId);
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'UPDATE user_profiles SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('ss', $username, $userId);
         $success = $stmt->execute();
         $stmt->close();
@@ -574,7 +534,7 @@ class Database
 
     public function getUserWins(string $userId, int $limit = 50): array
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT h.user_id, h.mode, h.level_id, h.score, h.created_at,
                     COALESCE(up.username, h.user_id) as username
              FROM highscores h
@@ -582,10 +542,7 @@ class Database
              WHERE h.user_id = ? AND h.score > 0
              ORDER BY h.created_at DESC
              LIMIT ?'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('si', $userId, $limit);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -620,11 +577,11 @@ class Database
 
         foreach ($fields as $col => $val) {
             if ($val !== null) {
-                $stmt = $this->conn->prepare(
+                $stmt = $this->guardPrepare($this->conn->prepare(
                     "UPDATE user_profiles
                      SET `$col` = GREATEST(IFNULL(`$col`, 0), ?), updated_at = CURRENT_TIMESTAMP
                      WHERE user_id = ?"
-                );
+                ));
                 $stmt->bind_param('is', $val, $userId);
                 $stmt->execute();
                 $stmt->close();
@@ -638,17 +595,14 @@ class Database
     public function saveReplay(string $userId, string $mode, int $levelId, mixed $moves, int $score): bool
     {
         $movesJson = is_string($moves) ? $moves : json_encode($moves);
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'INSERT INTO replays (user_id, mode, level_id, moves_json, score)
              VALUES (?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE
              moves_json = VALUES(moves_json),
              score = VALUES(score),
              recorded_at = CURRENT_TIMESTAMP'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('ssisi', $userId, $mode, $levelId, $movesJson, $score);
         $success = $stmt->execute();
         $stmt->close();
@@ -657,15 +611,12 @@ class Database
 
     public function getReplay(string $userId, string $mode, int $levelId): ?array
     {
-        $stmt = $this->conn->prepare(
+        $stmt = $this->guardPrepare($this->conn->prepare(
             'SELECT user_id, mode, level_id, moves_json as moves, score, recorded_at
              FROM replays
              WHERE user_id = ? AND mode = ? AND level_id = ?
              ORDER BY recorded_at DESC LIMIT 1'
-        );
-        if (!$stmt) {
-            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
-        }
+        ));
         $stmt->bind_param('ssi', $userId, $mode, $levelId);
         $stmt->execute();
         $result = $stmt->get_result();
