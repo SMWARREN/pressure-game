@@ -1,0 +1,32 @@
+{
+  "achievements": [
+    {
+      "id": "first_win",
+      "name": "First Win",
+      "description": "Complete your first level",
+      "icon": "🎉",
+      "points": 10
+    },
+    {
+      "id": "speed_runner",
+      "name": "Speed Runner",
+      "description": "Complete 10 levels in blitz mode",
+      "icon": "⚡",
+      "points": 25
+    },
+    {
+      "id": "zen_master",
+      "name": "Zen Master",
+      "description": "Complete 5 levels in zen mode",
+      "icon": "🧘",
+      "points": 20
+    },
+    {
+      "id": "perfect_game",
+      "name": "Perfect Game",
+      "description": "Complete a level without using any undo",
+      "icon": "💯",
+      "points": 15
+    }
+  ]
+}
