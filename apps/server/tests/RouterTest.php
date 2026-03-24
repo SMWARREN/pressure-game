@@ -870,6 +870,113 @@ class RouterTest extends TestCase
         $this->assertIsArray($response);
     }
 
+    public function testHighscoreRoutes(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // POST highscore save
+        $payload = json_encode(['moves' => 10, 'time' => 25.5, 'score' => 9500]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['highscore', 'user1', 'classic', '1']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // GET highscore
+        $response = $this->capture('GET', ['highscore', 'user1', 'classic', '1']);
+        $this->assertArrayHasKey('score', $response);
+    }
+
+    public function testLeaderboardEmptyModes(): void
+    {
+        // Test empty leaderboards for various modes
+        $modes = ['classic', 'blitz', 'zen', 'arcade', 'custom'];
+
+        foreach ($modes as $mode) {
+            // Legacy
+            $response = $this->capture('GET', ['leaderboard', $mode]);
+            $this->assertIsArray($response);
+            $this->assertEmpty($response);
+
+            // New
+            $response = $this->capture('GET', ['leaderboards', $mode]);
+            $this->assertIsArray($response);
+            $this->assertEmpty($response);
+        }
+    }
+
+    public function testDebugEndpoints(): void
+    {
+        // GET /api/debug/schema
+        $response = $this->capture('GET', ['debug', 'schema']);
+        $this->assertArrayHasKey('database', $response);
+        $this->assertArrayHasKey('tables', $response);
+
+        // POST /api/debug/reset
+        $response = $this->capture('POST', ['debug', 'reset']);
+        $this->assertSame('success', $response['status']);
+
+        // DELETE /api/debug/cleanup/{userId}
+        $response = $this->capture('DELETE', ['debug', 'cleanup', 'user1']);
+        $this->assertSame('success', $response['status']);
+    }
+
+    public function testGameAndStatsEndpoints(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // POST games
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 1,
+            'score' => 9500
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['games']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // GET games
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['games']);
+        $this->assertIsArray($response);
+
+        // POST stats
+        $payload = json_encode(['user_id' => 'user1', 'max_combo' => 50]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['stats']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // GET stats
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['stats']);
+        $this->assertIsArray($response);
+    }
+
+    public function testUsersEndpoints(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+
+        // POST users create
+        $payload = json_encode(['id' => 'user1', 'username' => 'alice']);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['users']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('id', $response);
+
+        // GET users retrieve
+        $_GET = ['id' => 'user1'];
+        $response = $this->capture('GET', ['users']);
+        $this->assertArrayHasKey('user', $response);
+    }
+
     // ─── 404 ─────────────────────────────────────────────────────────────────
 
     public function testUnknownRouteReturns404(): void
