@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/InputStreamWrapper.php';
+
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\DataController;
 
@@ -126,6 +128,75 @@ class DataControllerTest extends TestCase
     {
         $response = captureController(fn () => $this->ctrl->delete('', 'key'));
         $this->assertSame('Missing userId or key', $response['error']);
+    }
+
+    // ─── POST /api/data/{userId}/{key} ────────────────────────────────────────
+
+    public function testSetItemSuccess(): void
+    {
+        $this->db->setSuccess = true;
+        $payload = json_encode(['value' => '{"level":5}']);
+        InputStreamWrapper::register($payload);
+
+        $response = captureController(function () {
+            $this->ctrl->set('user1', 'save');
+        });
+        InputStreamWrapper::unregister();
+
+        $this->assertSame(true, $response['success']);
+    }
+
+    public function testSetItemMissingValue(): void
+    {
+        $payload = json_encode([]);
+        InputStreamWrapper::register($payload);
+
+        $response = captureController(function () {
+            $this->ctrl->set('user1', 'save');
+        });
+        InputStreamWrapper::unregister();
+
+        $this->assertSame('Missing value in request body', $response['error']);
+    }
+
+    public function testSetItemMissingUserId(): void
+    {
+        $payload = json_encode(['value' => 'test']);
+        InputStreamWrapper::register($payload);
+
+        $response = captureController(function () {
+            $this->ctrl->set('', 'save');
+        });
+        InputStreamWrapper::unregister();
+
+        $this->assertSame('Missing userId or key', $response['error']);
+    }
+
+    public function testSetItemMissingKey(): void
+    {
+        $payload = json_encode(['value' => 'test']);
+        InputStreamWrapper::register($payload);
+
+        $response = captureController(function () {
+            $this->ctrl->set('user1', '');
+        });
+        InputStreamWrapper::unregister();
+
+        $this->assertSame('Missing userId or key', $response['error']);
+    }
+
+    public function testSetItemDatabaseError(): void
+    {
+        $this->db->setSuccess = false;
+        $payload = json_encode(['value' => 'test']);
+        InputStreamWrapper::register($payload);
+
+        $response = captureController(function () {
+            $this->ctrl->set('user1', 'save');
+        });
+        InputStreamWrapper::unregister();
+
+        $this->assertSame('Failed to save', $response['error']);
     }
 
     // ─── GET /api/user/{userId}/data ──────────────────────────────────────────
