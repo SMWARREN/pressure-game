@@ -107,7 +107,11 @@ class AchievementControllerTest extends TestCase
 
         $this->assertIsArray($response);
         $this->assertCount(2, $response);
-        $this->assertSame('ach1', $response[0]['id']);
+
+        // Verify both achievements are present (order may vary)
+        $ids = array_column($response, 'id');
+        $this->assertContains('ach1', $ids);
+        $this->assertContains('ach2', $ids);
     }
 
     public function testGetForUserNoAchievements(): void
