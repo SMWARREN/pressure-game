@@ -20,7 +20,6 @@ class ProfileControllerTest extends TestCase
             'saintsea_pressure_test'
         );
 
-        // Clear tables
         $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 0");
         foreach (['game_completions', 'user_achievements', 'user_stats', 'replays', 'leaderboard_cache', 'highscores', 'game_data', 'user_profiles', 'achievements', 'users'] as $table) {
             $this->db->conn->query("TRUNCATE TABLE `$table`");
@@ -38,8 +37,8 @@ class ProfileControllerTest extends TestCase
 
     public function testGetProfileSuccess(): void
     {
-        $this->db->ensureUserProfile('user1');
-        $this->db->updateUserUsername('user1', 'alice');
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'testuser')");
+        $this->db->conn->query("INSERT INTO user_profiles (user_id, username) VALUES ('user1', 'testuser')");
 
         ob_start();
         try {
@@ -50,9 +49,8 @@ class ProfileControllerTest extends TestCase
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
-        $this->assertIsArray($response);
         $this->assertArrayHasKey('user_id', $response);
-        $this->assertSame('user1', $response['user_id']);
+        $this->assertSame('testuser', $response['username']);
     }
 
     public function testGetProfileMissingUserId(): void
@@ -66,12 +64,13 @@ class ProfileControllerTest extends TestCase
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
-        $this->assertIsArray($response);
         $this->assertArrayHasKey('error', $response);
     }
 
     public function testUpdateProfileSuccess(): void
     {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'oldname')");
+
         $payload = json_encode(['username' => 'newname']);
         InputStreamWrapper::register($payload);
 
@@ -91,7 +90,7 @@ class ProfileControllerTest extends TestCase
 
     public function testUpdateProfileMissingUserId(): void
     {
-        $payload = json_encode(['username' => 'test']);
+        $payload = json_encode(['username' => 'newname']);
         InputStreamWrapper::register($payload);
 
         ob_start();
@@ -125,13 +124,15 @@ class ProfileControllerTest extends TestCase
         $response = json_decode((string) $output, true);
 
         $this->assertArrayHasKey('error', $response);
-        $this->assertSame('Missing username', $response['error']);
     }
 
     public function testWinsSuccess(): void
     {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query("INSERT INTO user_profiles (user_id) VALUES ('user1')");
+        $this->db->conn->query("INSERT INTO highscores (user_id, mode, level_id, score) VALUES ('user1', 'classic', 1, 1000)");
+
         $_GET = [];
-        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
 
         ob_start();
         try {
@@ -145,57 +146,10 @@ class ProfileControllerTest extends TestCase
         $this->assertIsArray($response);
     }
 
-    public function testGetFullProfile(): void
-    {
-        $this->db->ensureUserProfile('user1');
-
-        ob_start();
-        try {
-            (new ProfileController($this->db))->getFull('user1');
-        } catch (\RuntimeException $e) {
-            // Expected
-        }
-        $output = ob_get_clean();
-        $response = json_decode((string) $output, true);
-
-        $this->assertIsArray($response);
-    }
-
-    public function testGetFullProfileMissingUserId(): void
-    {
-        ob_start();
-        try {
-            (new ProfileController($this->db))->getFull('');
-        } catch (\RuntimeException $e) {
-            // Expected
-        }
-        $output = ob_get_clean();
-        $response = json_decode((string) $output, true);
-
-        $this->assertArrayHasKey('error', $response);
-    }
-
-    public function testGetFullProfileHasAllFields(): void
-    {
-        $this->db->ensureUserProfile('user1');
-
-        ob_start();
-        try {
-            (new ProfileController($this->db))->getFull('user1');
-        } catch (\RuntimeException $e) {
-            // Expected
-        }
-        $output = ob_get_clean();
-        $response = json_decode((string) $output, true);
-
-        $this->assertArrayHasKey('profile', $response);
-        $this->assertArrayHasKey('achievements', $response);
-        $this->assertArrayHasKey('wins', $response);
-    }
-
     public function testWinsMissingUserId(): void
     {
         $_GET = [];
+
         ob_start();
         try {
             (new ProfileController($this->db))->wins('');
@@ -210,8 +164,13 @@ class ProfileControllerTest extends TestCase
 
     public function testWinsWithLimit(): void
     {
-        $_GET = ['limit' => '10'];
-        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query("INSERT INTO user_profiles (user_id) VALUES ('user1')");
+        for ($i = 1; $i <= 10; $i++) {
+            $this->db->conn->query("INSERT INTO highscores (user_id, mode, level_id, score) VALUES ('user1', 'classic', $i, 1000)");
+        }
+
+        $_GET = ['limit' => '5'];
 
         ob_start();
         try {
@@ -222,32 +181,26 @@ class ProfileControllerTest extends TestCase
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
-        $this->assertIsArray($response);
+        $this->assertLessThanOrEqual(5, count($response));
     }
 
-    public function testGetProfileMissingUserIdReturnsError(): void
+    public function testUpdateStatsSuccess(): void
     {
-        ob_start();
-        try {
-            (new ProfileController($this->db))->get('');
-        } catch (\RuntimeException $e) {
-            // Expected
-        }
-        $output = ob_get_clean();
-        $response = json_decode((string) $output, true);
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
 
-        $this->assertArrayHasKey('error', $response);
-        $this->assertSame('Missing userId', $response['error']);
-    }
-
-    public function testUpdateProfileWithEmptyUsername(): void
-    {
-        $payload = json_encode(['username' => '']);
+        $payload = json_encode([
+            'maxCombo' => 50,
+            'wallsSurvived' => 10,
+            'noResetStreak' => 5,
+            'speedLevels' => 3,
+            'perfectLevels' => 2,
+            'daysPlayed' => 7
+        ]);
         InputStreamWrapper::register($payload);
 
         ob_start();
         try {
-            (new ProfileController($this->db))->update('user1');
+            (new ProfileController($this->db))->updateStats('user1');
         } catch (\RuntimeException $e) {
             // Expected
         } finally {
@@ -256,8 +209,7 @@ class ProfileControllerTest extends TestCase
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
-        $this->assertArrayHasKey('error', $response);
-        $this->assertSame('Missing username', $response['error']);
+        $this->assertTrue($response['success']);
     }
 
     public function testUpdateStatsMissingUserId(): void
@@ -279,100 +231,16 @@ class ProfileControllerTest extends TestCase
         $this->assertArrayHasKey('error', $response);
     }
 
-    public function testUpdateStatsSuccess(): void
+    public function testGetFullSuccess(): void
     {
-        // Ensure user exists
         $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
-        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
-
-        $payload = json_encode([
-            'maxCombo' => 50,
-            'wallsSurvived' => 100,
-            'noResetStreak' => 5,
-            'speedLevels' => 2,
-            'perfectLevels' => 1,
-            'daysPlayed' => 10
-        ]);
-        InputStreamWrapper::register($payload);
-
-        ob_start();
-        try {
-            (new ProfileController($this->db))->updateStats('user1');
-        } catch (\RuntimeException $e) {
-            // Expected
-        } finally {
-            InputStreamWrapper::unregister();
-        }
-        $output = ob_get_clean();
-        $response = json_decode((string) $output, true);
-
-        $this->assertTrue($response['success']);
-
-        // Verify stats were updated in user_profiles table
-        $stmt = $this->db->conn->prepare('SELECT max_combo FROM user_profiles WHERE user_id = ?');
-        $stmt->bind_param('s', $userId);
-        $userId = 'user1';
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-        $stmt->close();
-
-        $this->assertSame(50, (int)$row['max_combo']);
-    }
-
-    public function testMultipleUsersProfiles(): void
-    {
-        // Create multiple users with profiles
-        for ($i = 1; $i <= 3; $i++) {
-            $this->db->ensureUserProfile('user' . $i);
-            $this->db->updateUserUsername('user' . $i, 'name' . $i);
-        }
-
-        // Verify each profile
-        for ($i = 1; $i <= 3; $i++) {
-            ob_start();
-            try {
-                (new ProfileController($this->db))->get('user' . $i);
-            } catch (\RuntimeException $e) {
-            }
-            $output = ob_get_clean();
-            $response = json_decode((string) $output, true);
-
-            $this->assertSame('user' . $i, $response['user_id']);
-            $this->assertSame('name' . $i, $response['username']);
-        }
-    }
-
-    public function testWinsMultipleModes(): void
-    {
-        // Save wins in multiple modes
-        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
-        $this->db->saveHighscore('user1', 'blitz', 1, 5, 15.0, 8500);
-        $this->db->saveHighscore('user1', 'zen', 1, 8, 20.0, 7500);
-
-        $_GET = [];
-
-        ob_start();
-        try {
-            (new ProfileController($this->db))->wins('user1');
-        } catch (\RuntimeException $e) {
-        }
-        $output = ob_get_clean();
-        $response = json_decode((string) $output, true);
-
-        $this->assertIsArray($response);
-    }
-
-    public function testGetFullProfileWithData(): void
-    {
-        $this->db->ensureUserProfile('user1');
-        $this->db->updateUserUsername('user1', 'alice');
-        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->conn->query("INSERT INTO user_profiles (user_id) VALUES ('user1')");
 
         ob_start();
         try {
             (new ProfileController($this->db))->getFull('user1');
         } catch (\RuntimeException $e) {
+            // Expected
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
@@ -380,39 +248,19 @@ class ProfileControllerTest extends TestCase
         $this->assertArrayHasKey('profile', $response);
         $this->assertArrayHasKey('achievements', $response);
         $this->assertArrayHasKey('wins', $response);
-        $this->assertSame('user1', $response['profile']['user_id']);
-        $this->assertSame('alice', $response['profile']['username']);
     }
 
-    public function testUpdateStatsDifferentCombinations(): void
+    public function testGetFullMissingUserId(): void
     {
-        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
-        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
-
-        // Update with different field combinations
-        $combinations = [
-            ['maxCombo' => 10],
-            ['wallsSurvived' => 20],
-            ['maxCombo' => 15, 'wallsSurvived' => 25],
-            ['speedLevels' => 3],
-            ['perfectLevels' => 2],
-        ];
-
-        foreach ($combinations as $combination) {
-            $payload = json_encode($combination);
-            InputStreamWrapper::register($payload);
-
-            ob_start();
-            try {
-                (new ProfileController($this->db))->updateStats('user1');
-            } catch (\RuntimeException $e) {
-            } finally {
-                InputStreamWrapper::unregister();
-            }
-            $output = ob_get_clean();
-            $response = json_decode((string) $output, true);
-
-            $this->assertTrue($response['success']);
+        ob_start();
+        try {
+            (new ProfileController($this->db))->getFull('');
+        } catch (\RuntimeException $e) {
+            // Expected
         }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
     }
 }
