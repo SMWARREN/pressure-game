@@ -208,4 +208,90 @@ class HighscoreControllerTest extends TestCase
         $this->assertArrayHasKey('error', $response);
         $this->assertSame('Missing moves or time', $response['error']);
     }
+
+    public function testSaveWithoutScore(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $payload = json_encode([
+            'moves' => 10,
+            'time' => 25.5
+            // score is optional
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+    }
+
+    public function testSaveMultipleTimes(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Save first highscore
+        $payload = json_encode([
+            'moves' => 15,
+            'time' => 30.0,
+            'score' => 8000
+        ]);
+
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'blitz', 2);
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Save better highscore
+        $payload = json_encode([
+            'moves' => 12,
+            'time' => 25.0,
+            'score' => 9000
+        ]);
+
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'blitz', 2);
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Verify best score is kept
+        $score = $this->db->getUserHighScore('user1', 'blitz', 2);
+        $this->assertSame(9000, $score);
+    }
+
+    public function testGetWithValidParams(): void
+    {
+        $this->db->saveHighscore('user1', 'zen', 5, 5, 15.5, 5500);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', 'zen', 5);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('score', $response);
+        $this->assertSame(5500, $response['score']);
+    }
 }

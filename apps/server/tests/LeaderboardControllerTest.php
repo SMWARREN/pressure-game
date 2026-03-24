@@ -189,4 +189,133 @@ class LeaderboardControllerTest extends TestCase
         $this->assertIsArray($response);
         $this->assertCount(3, $response);
     }
+
+    public function testGetLegacyMultipleModes(): void
+    {
+        // Create scores for different modes
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user2', 'classic', 1, 12, 30.0, 9200);
+        $this->db->saveHighscore('user1', 'blitz', 1, 8, 20.0, 8500);
+        $this->db->saveHighscore('user2', 'blitz', 1, 5, 15.0, 8200);
+
+        $_GET = [];
+
+        // Get classic leaderboard
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->getLegacy('classic');
+        } catch (\RuntimeException $e) {
+        }
+        $classic = json_decode((string) ob_get_clean(), true);
+
+        // Get blitz leaderboard
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->getLegacy('blitz');
+        } catch (\RuntimeException $e) {
+        }
+        $blitz = json_decode((string) ob_get_clean(), true);
+
+        $this->assertCount(2, $classic);
+        $this->assertCount(2, $blitz);
+    }
+
+    public function testGetNewMultipleModes(): void
+    {
+        // Create users
+        for ($i = 1; $i <= 3; $i++) {
+            $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user$i', 'user$i')");
+        }
+
+        // Create classic mode leaderboard
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('classic', 'user1', 'user1', 9500, 1)"
+        );
+
+        // Create blitz mode leaderboard
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('blitz', 'user2', 'user2', 8500, 1)"
+        );
+
+        $_GET = [];
+
+        // Test both modes
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->get('classic');
+        } catch (\RuntimeException $e) {
+        }
+        $classic = json_decode((string) ob_get_clean(), true);
+
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->get('blitz');
+        } catch (\RuntimeException $e) {
+        }
+        $blitz = json_decode((string) ob_get_clean(), true);
+
+        $this->assertCount(1, $classic);
+        $this->assertCount(1, $blitz);
+    }
+
+    public function testGetLegacyRanking(): void
+    {
+        // Create scores with specific ranking
+        $this->db->saveHighscore('user1', 'zen', 1, 10, 25.5, 10000);
+        $this->db->saveHighscore('user2', 'zen', 1, 10, 25.5, 9000);
+        $this->db->saveHighscore('user3', 'zen', 1, 10, 25.5, 8000);
+
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->getLegacy('zen');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        // Should return ranked entries
+        $this->assertCount(3, $response);
+        $this->assertArrayHasKey('rank', $response[0]);
+    }
+
+    public function testGetNewRanking(): void
+    {
+        // Create users
+        for ($i = 1; $i <= 3; $i++) {
+            $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user$i', 'user$i')");
+        }
+
+        // Create ranked leaderboard entries
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('classic', 'user1', 'user1', 10000, 1)"
+        );
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('classic', 'user2', 'user2', 9000, 2)"
+        );
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('classic', 'user3', 'user3', 8000, 3)"
+        );
+
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->get('classic');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(3, $response);
+        $this->assertSame(1, (int)$response[0]['rank']);
+        $this->assertSame(2, (int)$response[1]['rank']);
+        $this->assertSame(3, (int)$response[2]['rank']);
+    }
 }

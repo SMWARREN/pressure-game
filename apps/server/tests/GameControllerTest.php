@@ -222,4 +222,184 @@ class GameControllerTest extends TestCase
         $this->assertArrayHasKey('error', $response);
         $this->assertSame('Missing required fields', $response['error']);
     }
+
+    public function testCreateMissingMode(): void
+    {
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'level_id' => 1
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testCreateMissingUserId(): void
+    {
+        $payload = json_encode([
+            'mode' => 'classic',
+            'level_id' => 1
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testCreateWithAllFields(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'blitz',
+            'level_id' => 5,
+            'score' => 8500,
+            'moves' => 12,
+            'elapsed_seconds' => 45.5
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+
+        // Verify all fields were saved
+        $stmt = $this->db->conn->prepare(
+            'SELECT score, moves, elapsed_seconds FROM game_completions
+             WHERE user_id = ? AND level_id = ? AND mode = ?'
+        );
+        $stmt->bind_param('sis', $uid, $lid, $mode);
+        $uid = 'user1';
+        $lid = 5;
+        $mode = 'blitz';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertNotNull($row);
+        $this->assertSame(8500, (int)$row['score']);
+        $this->assertSame(12, (int)$row['moves']);
+    }
+
+    public function testCreateDuplicateUpdatesHighScore(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // First game
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 1,
+            'score' => 5000,
+            'moves' => 20,
+            'elapsed_seconds' => 60.0
+        ]);
+
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Second game with higher score
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 1,
+            'score' => 7000,
+            'moves' => 15,
+            'elapsed_seconds' => 50.0
+        ]);
+
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Verify score was updated to highest
+        $stmt = $this->db->conn->prepare(
+            'SELECT score FROM game_completions WHERE user_id = ? AND level_id = ? AND mode = ?'
+        );
+        $stmt->bind_param('sis', $uid, $lid, $mode);
+        $uid = 'user1';
+        $lid = 1;
+        $mode = 'classic';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertSame(7000, (int)$row['score']);
+    }
+
+    public function testCreateWithoutOptionalFields(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user2', 'test2')");
+
+        $payload = json_encode([
+            'user_id' => 'user2',
+            'mode' => 'zen',
+            'level_id' => 3
+            // No score, moves, or elapsed_seconds
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+    }
 }
