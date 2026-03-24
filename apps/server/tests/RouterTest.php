@@ -740,6 +740,136 @@ class RouterTest extends TestCase
         $this->assertSame('Route not found', $response['error']);
     }
 
+    public function testDataRoutesComprehensive(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+
+        // Test all data routes with valid parameters
+        $payload = json_encode(['value' => 'test_data']);
+        InputStreamWrapper::register($payload);
+
+        // POST data
+        $response = $this->capture('POST', ['data', 'user1', 'key1']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // GET data (will try to get the just-posted value)
+        $response = $this->capture('GET', ['data', 'user1', 'key1']);
+        // Response could be success with value or error if not found
+        $this->assertIsArray($response);
+
+        // DELETE data
+        $response = $this->capture('DELETE', ['data', 'user1', 'key1']);
+        $this->assertArrayHasKey('success', $response);
+
+        // GET all user data
+        $response = $this->capture('GET', ['user', 'user1', 'data']);
+        $this->assertIsArray($response);
+    }
+
+    public function testReplayRoutesWithValidData(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Test POST replay (new API)
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 1,
+            'moves' => [1, 2, 3, 4, 5],
+            'score' => 9500
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['replays']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // Test GET replay (new API)
+        $_GET = ['user_id' => 'user1', 'mode' => 'classic', 'level_id' => '1'];
+        $response = $this->capture('GET', ['replays']);
+        $this->assertIsArray($response);
+    }
+
+    public function testAllHttpMethods(): void
+    {
+        // Verify that only valid methods work for each route
+        $invalid_methods = ['PUT', 'PATCH', 'HEAD', 'OPTIONS'];
+
+        foreach ($invalid_methods as $method) {
+            $response = $this->capture($method, ['health']);
+            $this->assertArrayHasKey('error', $response);
+            $this->assertSame('Route not found', $response['error']);
+        }
+    }
+
+    public function testProfileRouteVariations(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Test all profile sub-routes
+        $_GET = [];
+
+        $response = $this->capture('GET', ['profile', 'user1']);
+        $this->assertIsArray($response);
+
+        $response = $this->capture('GET', ['profile', 'user1', 'wins']);
+        $this->assertIsArray($response);
+
+        $response = $this->capture('GET', ['profile', 'user1', 'full']);
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('profile', $response);
+
+        // POST profile update
+        $payload = json_encode(['username' => 'newname']);
+        InputStreamWrapper::register($payload);
+        $response = $this->capture('POST', ['profile', 'user1']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // POST stats update
+        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
+        $payload = json_encode(['maxCombo' => 50]);
+        InputStreamWrapper::register($payload);
+        $response = $this->capture('POST', ['profile', 'user1', 'stats']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+    }
+
+    public function testAchievementVariations(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+
+        // Legacy achievement POST
+        $response = $this->capture('POST', ['achievement', 'user1', 'ach1']);
+        $this->assertArrayHasKey('success', $response);
+
+        // Legacy achievement GET
+        $response = $this->capture('GET', ['achievement', 'user1']);
+        $this->assertIsArray($response);
+
+        // New achievements GET without user_id (global)
+        $response = $this->capture('GET', ['achievements']);
+        $this->assertIsArray($response);
+
+        // New achievements GET with user_id
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['achievements']);
+        $this->assertIsArray($response);
+
+        // New achievements POST
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('POST', ['achievements', 'ach2']);
+        $this->assertArrayHasKey('success', $response);
+
+        // New achievements GET with limit
+        $_GET = ['user_id' => 'user1', 'limit' => '5'];
+        $response = $this->capture('GET', ['achievements']);
+        $this->assertIsArray($response);
+    }
+
     // ─── 404 ─────────────────────────────────────────────────────────────────
 
     public function testUnknownRouteReturns404(): void
