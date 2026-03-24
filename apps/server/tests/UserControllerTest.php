@@ -3,6 +3,10 @@
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\UserController;
 
+if (!class_exists('MockDatabase')) {
+    require_once __DIR__ . '/RouterTest.php';
+}
+
 class UserControllerTest extends TestCase
 {
     private MockDatabase $db;
@@ -10,6 +14,7 @@ class UserControllerTest extends TestCase
     protected function setUp(): void
     {
         $this->db = new MockDatabase();
+
         if (!function_exists('jsonResponse')) {
             eval('function jsonResponse(int $code, mixed $data): never {
                 http_response_code($code);
@@ -56,6 +61,12 @@ class UserControllerTest extends TestCase
     public function testGetSuccess(): void
     {
         $_GET = ['id' => 'user1'];
+        $this->markTestSkipped('UserController->get() requires live mysqli conn.');
+    }
+
+    public function testGetUserNotFound(): void
+    {
+        $_GET = ['id' => 'nonexistent'];
         $this->markTestSkipped('UserController->get() requires live mysqli conn.');
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1774334913">
-  <project timestamp="1774334913" name="Clover Coverage">
+<coverage generated="1774335121">
+  <project timestamp="1774335121" name="Clover Coverage">
     <package name="Pressure">
       <file name="/Users/saint/Downloads/pressure-game/apps/server/src/AppException.php">
         <class name="Pressure\AppException" namespace="Pressure">

@@ -3,6 +3,10 @@
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\StatsController;
 
+if (!class_exists('MockDatabase')) {
+    require_once __DIR__ . '/RouterTest.php';
+}
+
 class StatsControllerTest extends TestCase
 {
     private MockDatabase $db;
@@ -10,6 +14,7 @@ class StatsControllerTest extends TestCase
     protected function setUp(): void
     {
         $this->db = new MockDatabase();
+
         if (!function_exists('jsonResponse')) {
             eval('function jsonResponse(int $code, mixed $data): never {
                 http_response_code($code);

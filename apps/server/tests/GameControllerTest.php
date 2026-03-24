@@ -3,6 +3,10 @@
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\GameController;
 
+if (!class_exists('MockDatabase')) {
+    require_once __DIR__ . '/RouterTest.php';
+}
+
 class GameControllerTest extends TestCase
 {
     private MockDatabase $db;
@@ -10,6 +14,7 @@ class GameControllerTest extends TestCase
     protected function setUp(): void
     {
         $this->db = new MockDatabase();
+
         if (!function_exists('jsonResponse')) {
             eval('function jsonResponse(int $code, mixed $data): never {
                 http_response_code($code);
@@ -17,11 +22,6 @@ class GameControllerTest extends TestCase
                 throw new \RuntimeException("exit:" . $code);
             }');
         }
-    }
-
-    public function testCreateGameMissingFields(): void
-    {
-        $this->markTestSkipped('GameController->create() requires live mysqli conn.');
     }
 
     public function testListGamesMissingUserId(): void
@@ -42,7 +42,12 @@ class GameControllerTest extends TestCase
     public function testListGamesSuccess(): void
     {
         $_GET = ['user_id' => 'user1', 'limit' => 50];
-        // Skip because list() requires a real mysqli connection
+        $this->markTestSkipped('GameController->list() requires live mysqli conn.');
+    }
+
+    public function testListGamesWithMode(): void
+    {
+        $_GET = ['user_id' => 'user1', 'mode' => 'classic', 'limit' => 50];
         $this->markTestSkipped('GameController->list() requires live mysqli conn.');
     }
 }
