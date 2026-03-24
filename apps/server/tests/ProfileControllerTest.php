@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/InputStreamWrapper.php';
+
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\ProfileController;
 use Pressure\Database;
@@ -70,34 +72,60 @@ class ProfileControllerTest extends TestCase
 
     public function testUpdateProfileSuccess(): void
     {
-        $_POST = ['username' => 'newname'];
+        $payload = json_encode(['username' => 'newname']);
+        InputStreamWrapper::register($payload);
 
         ob_start();
         try {
             (new ProfileController($this->db))->update('user1');
         } catch (\RuntimeException $e) {
             // Expected
+        } finally {
+            InputStreamWrapper::unregister();
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
-        $this->assertIsArray($response);
+        $this->assertTrue($response['success']);
     }
 
     public function testUpdateProfileMissingUserId(): void
     {
-        $_POST = ['username' => 'test'];
+        $payload = json_encode(['username' => 'test']);
+        InputStreamWrapper::register($payload);
 
         ob_start();
         try {
             (new ProfileController($this->db))->update('');
         } catch (\RuntimeException $e) {
             // Expected
+        } finally {
+            InputStreamWrapper::unregister();
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
         $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testUpdateProfileMissingUsername(): void
+    {
+        $payload = json_encode([]);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new ProfileController($this->db))->update('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing username', $response['error']);
     }
 
     public function testWinsSuccess(): void
@@ -199,15 +227,61 @@ class ProfileControllerTest extends TestCase
 
     public function testUpdateStatsMissingUserId(): void
     {
+        $payload = json_encode(['maxCombo' => 50]);
+        InputStreamWrapper::register($payload);
+
         ob_start();
         try {
             (new ProfileController($this->db))->updateStats('');
         } catch (\RuntimeException $e) {
             // Expected
+        } finally {
+            InputStreamWrapper::unregister();
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
         $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testUpdateStatsSuccess(): void
+    {
+        // Ensure user exists
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
+
+        $payload = json_encode([
+            'maxCombo' => 50,
+            'wallsSurvived' => 100,
+            'noResetStreak' => 5,
+            'speedLevels' => 2,
+            'perfectLevels' => 1,
+            'daysPlayed' => 10
+        ]);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new ProfileController($this->db))->updateStats('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+
+        // Verify stats were updated in user_profiles table
+        $stmt = $this->db->conn->prepare('SELECT max_combo FROM user_profiles WHERE user_id = ?');
+        $stmt->bind_param('s', $userId);
+        $userId = 'user1';
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $this->assertSame(50, (int)$row['max_combo']);
     }
 }

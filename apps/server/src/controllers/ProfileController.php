@@ -62,20 +62,16 @@ class ProfileController
 
         $body = json_decode((string) file_get_contents('php://input'), true);
 
-        try {
-            $this->db->updateUserStats(
-                $userId,
-                isset($body['maxCombo'])       ? (int) $body['maxCombo']       : null,
-                isset($body['wallsSurvived'])   ? (int) $body['wallsSurvived']   : null,
-                isset($body['noResetStreak'])   ? (int) $body['noResetStreak']   : null,
-                isset($body['speedLevels'])     ? (int) $body['speedLevels']     : null,
-                isset($body['perfectLevels'])   ? (int) $body['perfectLevels']   : null,
-                isset($body['daysPlayed'])      ? (int) $body['daysPlayed']      : null
-            );
-            jsonResponse(200, ['success' => true]);
-        } catch (\Exception $e) {
-            jsonResponse(500, ['error' => 'Stats update error: ' . $e->getMessage()]);
-        }
+        $this->db->updateUserStats(
+            $userId,
+            isset($body['maxCombo'])       ? (int) $body['maxCombo']       : null,
+            isset($body['wallsSurvived'])   ? (int) $body['wallsSurvived']   : null,
+            isset($body['noResetStreak'])   ? (int) $body['noResetStreak']   : null,
+            isset($body['speedLevels'])     ? (int) $body['speedLevels']     : null,
+            isset($body['perfectLevels'])   ? (int) $body['perfectLevels']   : null,
+            isset($body['daysPlayed'])      ? (int) $body['daysPlayed']      : null
+        );
+        jsonResponse(200, ['success' => true]);
     }
 
     /** GET /api/profile/{userId}/full */
