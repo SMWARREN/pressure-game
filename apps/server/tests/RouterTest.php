@@ -597,6 +597,149 @@ class RouterTest extends TestCase
         $this->assertSame('Missing userId', $response['error']);
     }
 
+    public function testHighscoreSaveRoute(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $payload = json_encode([
+            'moves' => 10,
+            'time' => 25.5,
+            'score' => 9500
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['highscore', 'user1', 'classic', '1']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('success', $response);
+    }
+
+    public function testHighscoreGetRoute(): void
+    {
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+
+        $response = $this->capture('GET', ['highscore', 'user1', 'classic', '1']);
+        $this->assertSame(9500, $response['score']);
+    }
+
+    public function testProfileUpdateRoute(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $payload = json_encode(['username' => 'newname']);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['profile', 'user1']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('success', $response);
+    }
+
+    public function testProfileStatsUpdateRoute(): void
+    {
+        require_once __DIR__ . '/InputStreamWrapper.php';
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
+
+        $payload = json_encode([
+            'maxCombo' => 50,
+            'wallsSurvived' => 100
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['profile', 'user1', 'stats']);
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('success', $response);
+    }
+
+    public function testLeaderboardRoutes(): void
+    {
+        // Test legacy leaderboard
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+
+        $response = $this->capture('GET', ['leaderboard', 'classic']);
+        $this->assertIsArray($response);
+        $this->assertCount(1, $response);
+
+        // Test new leaderboard
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user2', 'bob')");
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('blitz', 'user2', 'bob', 8500, 1)"
+        );
+
+        $response = $this->capture('GET', ['leaderboards', 'blitz']);
+        $this->assertIsArray($response);
+        $this->assertCount(1, $response);
+    }
+
+    public function testGameAndStatsRoutes(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        require_once __DIR__ . '/InputStreamWrapper.php';
+
+        // Create game
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 1,
+            'score' => 9500
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['games']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // List games
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['games']);
+        $this->assertIsArray($response);
+
+        // Create stats
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'max_combo' => 50
+        ]);
+        InputStreamWrapper::register($payload);
+
+        $response = $this->capture('POST', ['stats']);
+        InputStreamWrapper::unregister();
+        $this->assertArrayHasKey('success', $response);
+
+        // Get stats
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['stats']);
+        $this->assertIsArray($response);
+    }
+
+    public function testWrongMethodRoutes(): void
+    {
+        // Wrong method should return 404
+        $response = $this->capture('DELETE', ['leaderboard', 'classic']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Route not found', $response['error']);
+
+        $response = $this->capture('PUT', ['profile', 'user1']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Route not found', $response['error']);
+    }
+
+    public function testWrongPathSegments(): void
+    {
+        // Too many segments
+        $response = $this->capture('GET', ['profile', 'user1', 'extra', 'segments']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Route not found', $response['error']);
+
+        // Too few segments
+        $response = $this->capture('GET', ['profile']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Route not found', $response['error']);
+    }
+
     // ─── 404 ─────────────────────────────────────────────────────────────────
 
     public function testUnknownRouteReturns404(): void

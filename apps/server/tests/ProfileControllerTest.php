@@ -319,4 +319,100 @@ class ProfileControllerTest extends TestCase
 
         $this->assertSame(50, (int)$row['max_combo']);
     }
+
+    public function testMultipleUsersProfiles(): void
+    {
+        // Create multiple users with profiles
+        for ($i = 1; $i <= 3; $i++) {
+            $this->db->ensureUserProfile('user' . $i);
+            $this->db->updateUserUsername('user' . $i, 'name' . $i);
+        }
+
+        // Verify each profile
+        for ($i = 1; $i <= 3; $i++) {
+            ob_start();
+            try {
+                (new ProfileController($this->db))->get('user' . $i);
+            } catch (\RuntimeException $e) {
+            }
+            $output = ob_get_clean();
+            $response = json_decode((string) $output, true);
+
+            $this->assertSame('user' . $i, $response['user_id']);
+            $this->assertSame('name' . $i, $response['username']);
+        }
+    }
+
+    public function testWinsMultipleModes(): void
+    {
+        // Save wins in multiple modes
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->saveHighscore('user1', 'blitz', 1, 5, 15.0, 8500);
+        $this->db->saveHighscore('user1', 'zen', 1, 8, 20.0, 7500);
+
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new ProfileController($this->db))->wins('user1');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+    }
+
+    public function testGetFullProfileWithData(): void
+    {
+        $this->db->ensureUserProfile('user1');
+        $this->db->updateUserUsername('user1', 'alice');
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+
+        ob_start();
+        try {
+            (new ProfileController($this->db))->getFull('user1');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('profile', $response);
+        $this->assertArrayHasKey('achievements', $response);
+        $this->assertArrayHasKey('wins', $response);
+        $this->assertSame('user1', $response['profile']['user_id']);
+        $this->assertSame('alice', $response['profile']['username']);
+    }
+
+    public function testUpdateStatsDifferentCombinations(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
+
+        // Update with different field combinations
+        $combinations = [
+            ['maxCombo' => 10],
+            ['wallsSurvived' => 20],
+            ['maxCombo' => 15, 'wallsSurvived' => 25],
+            ['speedLevels' => 3],
+            ['perfectLevels' => 2],
+        ];
+
+        foreach ($combinations as $combination) {
+            $payload = json_encode($combination);
+            InputStreamWrapper::register($payload);
+
+            ob_start();
+            try {
+                (new ProfileController($this->db))->updateStats('user1');
+            } catch (\RuntimeException $e) {
+            } finally {
+                InputStreamWrapper::unregister();
+            }
+            $output = ob_get_clean();
+            $response = json_decode((string) $output, true);
+
+            $this->assertTrue($response['success']);
+        }
+    }
 }

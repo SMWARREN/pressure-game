@@ -376,4 +376,103 @@ class HighscoreControllerTest extends TestCase
         $this->assertSame(9500, $classic['score']);
         $this->assertSame(5000, $zen['score']);
     }
+
+    public function testSaveAndRetrieveMultipleLevels(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Save scores for multiple levels in same mode
+        for ($level = 1; $level <= 5; $level++) {
+            $payload = json_encode([
+                'moves' => 10 - $level,
+                'time' => 25.0 - ($level * 2),
+                'score' => 10000 - ($level * 500)
+            ]);
+
+            InputStreamWrapper::register($payload);
+            ob_start();
+            try {
+                (new HighscoreController($this->db))->save('user1', 'classic', $level);
+            } catch (\RuntimeException $e) {
+            } finally {
+                InputStreamWrapper::unregister();
+            }
+            ob_get_clean();
+        }
+
+        // Verify all exist with correct scores
+        for ($level = 1; $level <= 5; $level++) {
+            ob_start();
+            try {
+                (new HighscoreController($this->db))->get('user1', 'classic', $level);
+            } catch (\RuntimeException $e) {
+            }
+            $output = ob_get_clean();
+            $response = json_decode((string) $output, true);
+
+            $expected_score = 10000 - ($level * 500);
+            $this->assertSame($expected_score, $response['score']);
+        }
+    }
+
+    public function testGetMultipleUsersHighscores(): void
+    {
+        // Create scores for multiple users
+        for ($i = 1; $i <= 3; $i++) {
+            $this->db->saveHighscore('user' . $i, 'classic', 1, 10, 25.5, 10000 - ($i * 500));
+        }
+
+        // Verify each user's score
+        for ($i = 1; $i <= 3; $i++) {
+            ob_start();
+            try {
+                (new HighscoreController($this->db))->get('user' . $i, 'classic', 1);
+            } catch (\RuntimeException $e) {
+            }
+            $output = ob_get_clean();
+            $response = json_decode((string) $output, true);
+
+            $expected_score = 10000 - ($i * 500);
+            $this->assertSame($expected_score, $response['score']);
+        }
+    }
+
+    public function testSaveWithMinimalData(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $payload = json_encode([
+            'moves' => 0,
+            'time' => 0.0
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+    }
+
+    public function testGetNonexistentLevelMultipleModes(): void
+    {
+        for ($level = 1; $level <= 3; $level++) {
+            ob_start();
+            try {
+                (new HighscoreController($this->db))->get('user1', 'classic', $level);
+            } catch (\RuntimeException $e) {
+            }
+            $output = ob_get_clean();
+            $response = json_decode((string) $output, true);
+
+            $this->assertNull($response['score']);
+        }
+    }
 }
