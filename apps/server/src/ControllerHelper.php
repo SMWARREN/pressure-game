@@ -1,6 +1,6 @@
 <?php
 
-namespace Pressure\Controllers;
+namespace Pressure;
 
 /**
  * Helper trait for controllers to guard against prepare failures

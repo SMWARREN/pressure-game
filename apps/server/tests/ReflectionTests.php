@@ -3,7 +3,7 @@
 require_once __DIR__ . '/TestCase.php';
 
 use Pressure\Database;
-use Pressure\Controllers\ControllerHelper;
+use Pressure\ControllerHelper;
 
 /**
  * Test private methods and error paths using Reflection

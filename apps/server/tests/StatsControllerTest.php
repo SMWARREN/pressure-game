@@ -3,7 +3,7 @@
 require_once __DIR__ . '/InputStreamWrapper.php';
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\StatsController;
+use Pressure\StatsController;
 use Pressure\Database;
 
 class StatsControllerTest extends TestCase

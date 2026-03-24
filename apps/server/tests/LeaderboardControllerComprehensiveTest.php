@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\LeaderboardController;
+use Pressure\LeaderboardController;
 use Pressure\Database;
 
 class LeaderboardControllerComprehensiveTest extends TestCase

@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/TestCase.php';
 
-use Pressure\Controllers\StatsController;
+use Pressure\StatsController;
 
 class StatsControllerRefactoredTest extends TestCase
 {

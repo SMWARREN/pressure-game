@@ -3,7 +3,7 @@
 require_once __DIR__ . '/InputStreamWrapper.php';
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\DataController;
+use Pressure\DataController;
 
 /**
  * Tests for DataController using the MockDatabase defined in RouterTest.php.

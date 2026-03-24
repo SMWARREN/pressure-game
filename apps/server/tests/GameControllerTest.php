@@ -3,7 +3,7 @@
 require_once __DIR__ . '/InputStreamWrapper.php';
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\GameController;
+use Pressure\GameController;
 use Pressure\Database;
 
 class GameControllerTest extends TestCase

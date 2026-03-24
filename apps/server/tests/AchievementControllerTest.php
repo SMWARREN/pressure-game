@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\AchievementController;
+use Pressure\AchievementController;
 use Pressure\Database;
 
 class AchievementControllerTest extends TestCase

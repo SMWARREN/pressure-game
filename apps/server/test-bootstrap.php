@@ -3,10 +3,8 @@
  * Test bootstrap - loads .env.test and autoload
  */
 
-// Start Xdebug coverage collection immediately, before ANY code is loaded
-if (extension_loaded('xdebug') && function_exists('xdebug_start_code_coverage')) {
-    xdebug_start_code_coverage();
-}
+// Let PHPUnit handle Xdebug coverage collection via --coverage-* options
+// Do NOT call xdebug_start_code_coverage() here - PHPUnit will do it at the right time
 
 require_once __DIR__ . '/autoload.php';
 

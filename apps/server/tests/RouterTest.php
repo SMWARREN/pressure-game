@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use Pressure\Router;
 use Pressure\Database;
+use Pressure\Response;
 
 /**
  * Tests that Router::dispatch() resolves the correct controller for each route.
@@ -70,13 +71,21 @@ function dispatchCapture(string $method, array $parts, Database $db): array
         }');
     }
 
+    // Enable Response test mode so it doesn't call exit()
+    Response::reset();
+    Response::setTestMode(true);
+
     ob_start();
     try {
         Router::dispatch($method, $parts, $db);
     } catch (\RuntimeException $e) {
         // swallow the fake-exit exception
     }
-    $output = ob_get_clean();
+    $bufferOutput = ob_get_clean();
+
+    // Response::json() in test mode stores output in Response, not in buffer
+    $output = Response::getTestOutput() ?? $bufferOutput;
+    Response::reset();
     return json_decode((string) $output, true) ?? [];
 }
 

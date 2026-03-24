@@ -3,7 +3,7 @@
 require_once __DIR__ . '/InputStreamWrapper.php';
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\HighscoreController;
+use Pressure\HighscoreController;
 use Pressure\Database;
 
 class HighscoreControllerTest extends TestCase

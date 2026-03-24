@@ -1,9 +1,8 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\HealthController;
+use Pressure\HealthController;
 use Pressure\Database;
-use Pressure\Response;
 
 class HealthControllerTest extends TestCase
 {
@@ -18,27 +17,11 @@ class HealthControllerTest extends TestCase
             'root',
             'saintsea_pressure_test'
         );
-
-        // Enable test mode for Response class
-        Response::reset();
-        Response::setTestMode(true);
-    }
-
-    protected function tearDown(): void
-    {
-        Response::reset();
     }
 
     public function testGetHealthCheck(): void
     {
-        try {
-            (new HealthController($this->db))->get();
-        } catch (\RuntimeException $e) {
-            // Expected - Response::json() throws
-        }
-
-        $output = Response::getTestOutput();
-        $response = json_decode((string) $output, true);
+        $response = (new HealthController($this->db))->get();
 
         $this->assertIsArray($response);
         $this->assertArrayHasKey('status', $response);

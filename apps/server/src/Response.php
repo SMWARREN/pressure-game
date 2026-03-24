@@ -45,17 +45,19 @@ class Response
         if ($instance->testMode) {
             // In test mode, capture output instead of sending headers
             $instance->testOutput = $json;
-            throw new \RuntimeException("exit:" . $code);
+        } else {
+            // In production, send real HTTP response
+            http_response_code($code);
+            echo $json;
         }
 
-        // In production, send real HTTP response
-        http_response_code($code);
-        echo $json;
-        exit(0);
+        // Always throw to comply with 'never' return type
+        throw new \RuntimeException("exit:" . $code);
     }
 
     public static function reset(): void
     {
         self::$instance = null;
+        self::$instance = new self();  // Create fresh instance preserving test mode from next setTestMode call
     }
 }

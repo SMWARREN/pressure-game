@@ -2,8 +2,8 @@
 
 require_once __DIR__ . '/TestCase.php';
 
-use Pressure\Controllers\StatsController;
-use Pressure\Controllers\UserController;
+use Pressure\StatsController;
+use Pressure\UserController;
 
 class ErrorPathTests extends TestCase
 {

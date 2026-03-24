@@ -3,9 +3,9 @@
 require_once __DIR__ . '/InputStreamWrapper.php';
 
 use PHPUnit\Framework\TestCase;
-use Pressure\Controllers\GameController;
-use Pressure\Controllers\HighscoreController;
-use Pressure\Controllers\AchievementController;
+use Pressure\GameController;
+use Pressure\HighscoreController;
+use Pressure\AchievementController;
 use Pressure\Database;
 
 /**
@@ -241,7 +241,7 @@ class EdgeCaseTest extends TestCase
 
         ob_start();
         try {
-            (new \Pressure\Controllers\UserController($this->db))->create();
+            (new \Pressure\UserController($this->db))->create();
         } catch (\RuntimeException $e) {
         } finally {
             InputStreamWrapper::unregister();
@@ -267,7 +267,7 @@ class EdgeCaseTest extends TestCase
 
         ob_start();
         try {
-            (new \Pressure\Controllers\UserController($this->db))->create();
+            (new \Pressure\UserController($this->db))->create();
         } catch (\RuntimeException $e) {
         } finally {
             InputStreamWrapper::unregister();

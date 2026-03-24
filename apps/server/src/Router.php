@@ -2,15 +2,15 @@
 
 namespace Pressure;
 
-use Pressure\Controllers\AchievementController;
-use Pressure\Controllers\DataController;
-use Pressure\Controllers\GameController;
-use Pressure\Controllers\HealthController;
-use Pressure\Controllers\HighscoreController;
-use Pressure\Controllers\LeaderboardController;
-use Pressure\Controllers\ProfileController;
-use Pressure\Controllers\StatsController;
-use Pressure\Controllers\UserController;
+use Pressure\AchievementController;
+use Pressure\DataController;
+use Pressure\GameController;
+use Pressure\HealthController;
+use Pressure\HighscoreController;
+use Pressure\LeaderboardController;
+use Pressure\ProfileController;
+use Pressure\StatsController;
+use Pressure\UserController;
 
 class Router
 {
@@ -23,6 +23,15 @@ class Router
             jsonResponse(500, ['error' => 'Prepare failed: ' . $db->conn->error]);
         }
         return $stmt;
+    }
+
+    /**
+     * Send a successful JSON response with the given data
+     * This is called by dispatch() when a controller returns data
+     */
+    private static function respond(mixed $data, int $code = 200): never
+    {
+        Response::json($code, $data);
     }
 
     /**
@@ -39,7 +48,7 @@ class Router
         // ─── Health ──────────────────────────────────────────────────────────
         // GET /api/health
         if ($method === 'GET' && $n === 1 && $parts[0] === 'health') {
-            (new HealthController($db))->get();
+            self::respond((new HealthController($db))->get());
         }
 
         // ─── Key-Value Data ───────────────────────────────────────────────────

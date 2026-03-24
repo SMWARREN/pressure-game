@@ -1,6 +1,6 @@
 <?php
 
-namespace Pressure\Controllers;
+namespace Pressure;
 
 use Pressure\Database;
 
