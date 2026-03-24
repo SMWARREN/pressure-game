@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/InputStreamWrapper.php';
+
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\UserController;
 use Pressure\Database;
@@ -36,17 +38,83 @@ class UserControllerTest extends TestCase
 
     public function testCreateMissingUserId(): void
     {
+        $payload = json_encode(['username' => 'testuser']);
+        InputStreamWrapper::register($payload);
+
         ob_start();
         try {
             (new UserController($this->db))->create();
         } catch (\RuntimeException $e) {
             // Expected
+        } finally {
+            InputStreamWrapper::unregister();
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
 
         $this->assertArrayHasKey('error', $response);
         $this->assertSame('Missing user ID', $response['error']);
+    }
+
+    public function testCreateSuccess(): void
+    {
+        $payload = json_encode([
+            'id' => 'newuser',
+            'username' => 'newname'
+        ]);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new UserController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('id', $response);
+        $this->assertSame('newuser', $response['id']);
+        $this->assertSame('newname', $response['username']);
+    }
+
+    public function testCreateIdempotent(): void
+    {
+        // Create user once
+        $payload = json_encode([
+            'id' => 'user1',
+            'username' => 'alice'
+        ]);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new UserController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Create same user again (INSERT IGNORE should succeed)
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new UserController($this->db))->create();
+        } catch (\RuntimeException $e) {
+            // Expected
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('id', $response);
+        $this->assertSame('user1', $response['id']);
     }
 
     public function testGetMissingUserId(): void
