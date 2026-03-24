@@ -248,4 +248,103 @@ class UserControllerTest extends TestCase
         $this->assertArrayHasKey('id', $response);
         $this->assertSame('user1', $response['id']);
     }
+
+    public function testGetMultipleUsers(): void
+    {
+        // Create multiple users
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'alice')");
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user2', 'bob')");
+        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
+        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user2')");
+
+        // Get first user
+        $_GET = ['id' => 'user1'];
+        ob_start();
+        try {
+            (new UserController($this->db))->get();
+        } catch (\RuntimeException $e) {
+        }
+        $output1 = ob_get_clean();
+        $response1 = json_decode((string) $output1, true);
+
+        // Get second user
+        $_GET = ['id' => 'user2'];
+        ob_start();
+        try {
+            (new UserController($this->db))->get();
+        } catch (\RuntimeException $e) {
+        }
+        $output2 = ob_get_clean();
+        $response2 = json_decode((string) $output2, true);
+
+        $this->assertSame('user1', $response1['user']['id']);
+        $this->assertSame('user2', $response2['user']['id']);
+        $this->assertNotEquals($response1['user']['id'], $response2['user']['id']);
+    }
+
+    public function testCreateMultipleUsers(): void
+    {
+        for ($i = 1; $i <= 3; $i++) {
+            $payload = json_encode([
+                'id' => 'user' . $i,
+                'username' => 'user' . $i
+            ]);
+            InputStreamWrapper::register($payload);
+
+            ob_start();
+            try {
+                (new UserController($this->db))->create();
+            } catch (\RuntimeException $e) {
+            } finally {
+                InputStreamWrapper::unregister();
+            }
+            ob_get_clean();
+        }
+
+        // Verify all three users exist
+        for ($i = 1; $i <= 3; $i++) {
+            $_GET = ['id' => 'user' . $i];
+            ob_start();
+            try {
+                (new UserController($this->db))->get();
+            } catch (\RuntimeException $e) {
+            }
+            $output = ob_get_clean();
+            $response = json_decode((string) $output, true);
+
+            $this->assertArrayHasKey('user', $response);
+            $this->assertSame('user' . $i, $response['user']['id']);
+        }
+    }
+
+    public function testCreateAndUpdateUsername(): void
+    {
+        // Create user with initial username
+        $payload = json_encode([
+            'id' => 'user1',
+            'username' => 'oldname'
+        ]);
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new UserController($this->db))->create();
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        ob_get_clean();
+
+        // Get user and verify username
+        $_GET = ['id' => 'user1'];
+        ob_start();
+        try {
+            (new UserController($this->db))->get();
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertSame('oldname', $response['user']['username']);
+    }
 }

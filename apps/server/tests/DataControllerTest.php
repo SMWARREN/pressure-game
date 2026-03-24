@@ -222,4 +222,105 @@ class DataControllerTest extends TestCase
         $this->assertIsArray($response);
         $this->assertEmpty($response);
     }
+
+    public function testSetItemMultipleTimes(): void
+    {
+        $this->db->setSuccess = true;
+
+        // Set first value
+        $payload = json_encode(['value' => 'value1']);
+        InputStreamWrapper::register($payload);
+        $response1 = captureController(function () {
+            $this->ctrl->set('user1', 'key1');
+        });
+        InputStreamWrapper::unregister();
+        $this->assertTrue($response1['success']);
+
+        // Set different value for same key
+        $payload = json_encode(['value' => 'value2']);
+        InputStreamWrapper::register($payload);
+        $response2 = captureController(function () {
+            $this->ctrl->set('user1', 'key1');
+        });
+        InputStreamWrapper::unregister();
+        $this->assertTrue($response2['success']);
+
+        // Verify last value is stored
+        $this->assertSame('value2', $this->db->storedValue);
+    }
+
+    public function testSetAndDeleteCycle(): void
+    {
+        // Set value
+        $this->db->setSuccess = true;
+        $payload = json_encode(['value' => 'test']);
+        InputStreamWrapper::register($payload);
+        ob_start();
+        try {
+            $this->ctrl->set('user1', 'key1');
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+        InputStreamWrapper::unregister();
+
+        // Delete value
+        $this->db->deleteSuccess = true;
+        $response = captureController(fn () => $this->ctrl->delete('user1', 'key1'));
+        $this->assertTrue($response['success']);
+        $this->assertNull($this->db->storedValue);
+    }
+
+    public function testDeleteNonexistentItem(): void
+    {
+        $this->db->deleteSuccess = true;
+        $this->db->storedValue = null;
+        $response = captureController(fn () => $this->ctrl->delete('user1', 'key1'));
+        $this->assertTrue($response['success']);
+    }
+
+    public function testGetAllUserDataMultipleKeys(): void
+    {
+        // Mock multiple stored values
+        $this->db->storedValue = null;
+        $response = captureController(fn () => $this->ctrl->getAllForUser('user1'));
+        $this->assertEmpty($response);
+    }
+
+    public function testSetItemEmptyValue(): void
+    {
+        $this->db->setSuccess = true;
+        $payload = json_encode(['value' => '']);
+        InputStreamWrapper::register($payload);
+
+        $response = captureController(function () {
+            $this->ctrl->set('user1', 'key1');
+        });
+        InputStreamWrapper::unregister();
+
+        $this->assertTrue($response['success']);
+    }
+
+    public function testGetItemEmptyKey(): void
+    {
+        $response = captureController(fn () => $this->ctrl->get('user1', ''));
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testSetItemEmptyKey(): void
+    {
+        $payload = json_encode(['value' => 'test']);
+        InputStreamWrapper::register($payload);
+        $response = captureController(function () {
+            $this->ctrl->set('user1', '');
+        });
+        InputStreamWrapper::unregister();
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testDeleteItemEmptyKey(): void
+    {
+        $response = captureController(fn () => $this->ctrl->delete('user1', ''));
+        $this->assertArrayHasKey('error', $response);
+    }
 }

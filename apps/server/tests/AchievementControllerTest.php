@@ -356,4 +356,94 @@ class AchievementControllerTest extends TestCase
 
         $this->assertCount(1, $response);
     }
+
+    public function testGetAllAchievementsNoLimit(): void
+    {
+        // Unlock multiple achievements
+        $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
+        $this->db->unlockAchievement('user2', 'ach1');
+
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getAll();
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+    }
+
+    public function testUnlockNewMissingAchievementId(): void
+    {
+        $_GET = ['user_id' => 'user1'];
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlockNew('');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        // Should handle gracefully
+        $this->assertIsArray($response);
+    }
+
+    public function testUnlockNewIdempotency(): void
+    {
+        $_GET = ['user_id' => 'user1'];
+        $this->db->conn->query("INSERT INTO users (id) VALUES ('user1')");
+
+        // Unlock same achievement twice
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlockNew('ach1');
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlockNew('ach1');
+        } catch (\RuntimeException $e) {
+        }
+        ob_get_clean();
+
+        // Should only have one copy
+        $_GET = ['user_id' => 'user1'];
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUserNew();
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(1, $response);
+    }
+
+    public function testGetForUserMultipleAchievements(): void
+    {
+        // Create multiple achievements for user
+        $this->db->unlockAchievement('user1', 'ach1');
+        $this->db->unlockAchievement('user1', 'ach2');
+        $this->db->unlockAchievement('user1', 'ach3');
+
+        ob_start();
+        try {
+            (new AchievementController($this->db))->getForUser('user1');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(3, $response);
+        foreach ($response as $ach) {
+            $this->assertArrayHasKey('id', $ach);
+        }
+    }
 }

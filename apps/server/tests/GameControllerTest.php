@@ -490,4 +490,140 @@ class GameControllerTest extends TestCase
 
         $this->assertCount(2, $response);
     }
+
+    public function testListGamesMultipleModes(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Create games in multiple modes
+        for ($mode = 0; $mode < 3; $mode++) {
+            $modes = ['classic', 'blitz', 'zen'];
+            $this->db->conn->query(
+                "INSERT INTO game_completions (user_id, mode, level_id, score)
+                 VALUES ('user1', '{$modes[$mode]}', 1, " . (9500 - $mode * 500) . ")"
+            );
+        }
+
+        $_GET = ['user_id' => 'user1'];
+
+        ob_start();
+        try {
+            (new GameController($this->db))->list();
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(3, $response);
+    }
+
+    public function testCreateDifferentModes(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $modes = ['classic', 'blitz', 'zen'];
+        foreach ($modes as $mode) {
+            $payload = json_encode([
+                'user_id' => 'user1',
+                'mode' => $mode,
+                'level_id' => 1,
+                'score' => 9500
+            ]);
+
+            InputStreamWrapper::register($payload);
+            ob_start();
+            try {
+                (new GameController($this->db))->create();
+            } catch (\RuntimeException $e) {
+            } finally {
+                InputStreamWrapper::unregister();
+            }
+            ob_get_clean();
+        }
+
+        // Verify all three modes exist
+        $_GET = ['user_id' => 'user1'];
+        ob_start();
+        try {
+            (new GameController($this->db))->list();
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(3, $response);
+        $modes_found = array_map(fn($g) => $g['mode'], $response);
+        foreach ($modes as $mode) {
+            $this->assertContains($mode, $modes_found);
+        }
+    }
+
+    public function testListWithDifferentLimits(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        // Create 5 games
+        for ($i = 1; $i <= 5; $i++) {
+            $this->db->conn->query(
+                "INSERT INTO game_completions (user_id, mode, level_id, score)
+                 VALUES ('user1', 'classic', $i, " . (9500 - $i * 100) . ")"
+            );
+        }
+
+        // Test with different limits
+        $limits = [1, 2, 5, 10];
+        foreach ($limits as $limit) {
+            $_GET = ['user_id' => 'user1', 'limit' => $limit];
+            ob_start();
+            try {
+                (new GameController($this->db))->list();
+            } catch (\RuntimeException $e) {
+            }
+            $output = ob_get_clean();
+            $response = json_decode((string) $output, true);
+
+            $this->assertLessThanOrEqual($limit, count($response));
+        }
+    }
+
+    public function testCreateWithZeroScore(): void
+    {
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+
+        $payload = json_encode([
+            'user_id' => 'user1',
+            'mode' => 'classic',
+            'level_id' => 1,
+            'score' => 0,
+            'moves' => 10,
+            'elapsed_seconds' => 25.5
+        ]);
+
+        InputStreamWrapper::register($payload);
+
+        ob_start();
+        try {
+            (new GameController($this->db))->create();
+        } catch (\RuntimeException $e) {
+        } finally {
+            InputStreamWrapper::unregister();
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertTrue($response['success']);
+
+        // Verify it was saved
+        $_GET = ['user_id' => 'user1'];
+        ob_start();
+        try {
+            (new GameController($this->db))->list();
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(1, $response);
+        $this->assertSame(0, (int)$response[0]['score']);
+    }
 }

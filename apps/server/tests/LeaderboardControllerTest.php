@@ -318,4 +318,87 @@ class LeaderboardControllerTest extends TestCase
         $this->assertSame(2, (int)$response[1]['rank']);
         $this->assertSame(3, (int)$response[2]['rank']);
     }
+
+    public function testGetLegacyWithScoresAndLimit(): void
+    {
+        // Create 10 highscores
+        for ($i = 1; $i <= 10; $i++) {
+            $this->db->saveHighscore('user' . $i, 'classic', 1, 10, 25.5, 10000 - ($i * 100));
+        }
+
+        $_GET = ['limit' => 5];
+
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->getLegacy('classic');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(5, $response);
+        // Verify they're in descending order by score
+        $this->assertGreaterThan($response[1]['score'], $response[0]['score']);
+    }
+
+    public function testGetNewWithMultipleUsers(): void
+    {
+        // Create 5 users with leaderboard entries
+        for ($i = 1; $i <= 5; $i++) {
+            $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user$i', 'user$i')");
+            $this->db->conn->query(
+                "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+                 VALUES ('classic', 'user$i', 'user$i', " . (10000 - $i * 500) . ", $i)"
+            );
+        }
+
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->get('classic');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertCount(5, $response);
+        foreach ($response as $i => $entry) {
+            $this->assertArrayHasKey('rank', $entry);
+            $this->assertArrayHasKey('user_id', $entry);
+            $this->assertArrayHasKey('score', $entry);
+        }
+    }
+
+    public function testGetLegacyEmptyMode(): void
+    {
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->getLegacy('nonexistent_mode');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertEmpty($response);
+    }
+
+    public function testGetNewEmptyMode(): void
+    {
+        $_GET = [];
+
+        ob_start();
+        try {
+            (new LeaderboardController($this->db))->get('nonexistent_mode');
+        } catch (\RuntimeException $e) {
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertEmpty($response);
+    }
 }
