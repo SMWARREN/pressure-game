@@ -378,4 +378,118 @@ class DatabaseTest extends TestCase
         $this->assertSame(18700, (int)$profile['total_score']);
         $this->assertSame(2, (int)$profile['achievements_count']);
     }
+
+    // ─── resetDatabase / close ──────────────────────────────────────────────
+
+    public function testResetDatabaseClears(): void
+    {
+        // Add some data
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+        $this->db->setItem('user1', 'save', '{"level":5}');
+
+        // Reset should clear most tables
+        $result = $this->db->resetDatabase();
+        $this->assertTrue($result);
+
+        // Verify data is gone
+        $score = $this->db->getUserHighScore('user1', 'classic', 1);
+        $this->assertNull($score);
+    }
+
+
+    // ─── Edge cases and additional coverage ──────────────────────────────────
+
+    public function testGetLeaderboardGlobalMode(): void
+    {
+        // Create multiple users with profiles and scores
+        $this->db->ensureUserProfile('user1');
+        $this->db->updateUserUsername('user1', 'alice');
+        $this->db->ensureUserProfile('user2');
+        $this->db->updateUserUsername('user2', 'bob');
+
+        // Mock updating profile stats with manual INSERT
+        $this->db->conn->query("UPDATE user_profiles SET total_score=100 WHERE user_id='user1'");
+        $this->db->conn->query("UPDATE user_profiles SET total_score=200 WHERE user_id='user2'");
+
+        $leaderboard = $this->db->getLeaderboard('global', 10);
+
+        $this->assertCount(2, $leaderboard);
+        $this->assertSame('user2', $leaderboard[0]['user_id']);  // Higher score first
+    }
+
+    public function testSetItemPartialUpdate(): void
+    {
+        // First set
+        $this->db->setItem('user1', 'key1', 'value1');
+
+        // Set another key for same user
+        $this->db->setItem('user1', 'key2', 'value2');
+
+        // Both should exist
+        $this->assertSame('value1', $this->db->getItem('user1', 'key1'));
+        $this->assertSame('value2', $this->db->getItem('user1', 'key2'));
+    }
+
+    public function testGetAllUserDataOrdered(): void
+    {
+        $this->db->setItem('user1', 'a', 'first');
+        sleep(1);  // Ensure different timestamps
+        $this->db->setItem('user1', 'b', 'second');
+
+        $data = $this->db->getAllUserData('user1');
+
+        $keys = array_keys($data);
+        // Should be ordered by updated_at DESC, so 'b' should come first
+        $this->assertSame('b', $keys[0]);
+        $this->assertSame('a', $keys[1]);
+    }
+
+    public function testRemoveItemNonexistent(): void
+    {
+        $result = $this->db->removeItem('user1', 'nonexistent');
+        // Should return success even if item doesn't exist
+        $this->assertTrue($result);
+    }
+
+    public function testSaveHighscoreWithScore(): void
+    {
+        // Test all parameter combinations
+        $result = $this->db->saveHighscore(
+            'user1',
+            'arcade_mode',
+            1,
+            moves: 0,
+            time: 0.0,
+            score: 12345
+        );
+
+        $this->assertTrue($result);
+
+        $score = $this->db->getUserHighScore('user1', 'arcade_mode', 1);
+        $this->assertSame(12345, $score);
+    }
+
+    public function testUpdateUserStatsPartial(): void
+    {
+        $this->db->ensureUserProfile('user1');
+
+        // Update only some fields
+        $result = $this->db->updateUserStats(
+            'user1',
+            maxCombo: 100,
+            noResetStreak: null  // Not provided
+        );
+
+        $this->assertTrue($result);
+
+        $profile = $this->db->getUserProfile('user1');
+        $this->assertSame(100, (int)$profile['max_combo']);
+    }
+
+    public function testGetUserWinsEmpty(): void
+    {
+        $wins = $this->db->getUserWins('nonexistent_user', 50);
+
+        $this->assertEmpty($wins);
+    }
 }
