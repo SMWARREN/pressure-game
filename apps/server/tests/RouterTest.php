@@ -84,11 +84,25 @@ function dispatchCapture(string $method, array $parts, Database $db): array
 
 class RouterTest extends TestCase
 {
-    private MockDatabase $db;
+    private Database $db;
 
     protected function setUp(): void
     {
-        $this->db = new MockDatabase();
+        // Use real test database
+        $this->db = new Database(
+            'localhost',
+            3306,
+            'root',
+            'root',
+            'saintsea_pressure_test'
+        );
+
+        // Clear tables before each test
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 0");
+        foreach (['game_completions', 'user_achievements', 'user_stats', 'replays', 'leaderboard_cache', 'highscores', 'game_data', 'user_profiles', 'achievements', 'users'] as $table) {
+            $this->db->conn->query("TRUNCATE TABLE `$table`");
+        }
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 1");
 
         // Define jsonResponse() in a way that's testable (throws instead of exit)
         if (!function_exists('jsonResponse')) {
@@ -161,8 +175,21 @@ class RouterTest extends TestCase
 
     public function testGetNewLeaderboard(): void
     {
-        // new-style requires $db->conn to be a mysqli object; skip with note if not
-        $this->markTestSkipped('LeaderboardController->get() requires live mysqli conn.');
+        // Create leaderboard cache entries
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'alice')");
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user2', 'bob')");
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('classic', 'user1', 'alice', 9500, 1)"
+        );
+        $this->db->conn->query(
+            "INSERT INTO leaderboard_cache (mode, user_id, username, score, `rank`)
+             VALUES ('classic', 'user2', 'bob', 9200, 2)"
+        );
+
+        $response = $this->capture('GET', ['leaderboards', 'classic']);
+        $this->assertIsArray($response);
+        $this->assertCount(2, $response);
     }
 
     // ─── Highscores ──────────────────────────────────────────────────────────
@@ -272,7 +299,14 @@ class RouterTest extends TestCase
 
     public function testGetUsersRetrieve(): void
     {
-        $this->markTestSkipped('UserController->get() requires live mysqli conn.');
+        // Create a user
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'testuser')");
+
+        $_GET = ['id' => 'user1'];
+        $response = $this->capture('GET', ['users']);
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('user', $response);
+        $this->assertSame('user1', $response['user']['id']);
     }
 
     // ─── Games (new) ──────────────────────────────────────────────────────────
@@ -285,7 +319,17 @@ class RouterTest extends TestCase
 
     public function testGetGamesList(): void
     {
-        $this->markTestSkipped('GameController->list() requires live mysqli conn.');
+        // Create a user and game completion
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query(
+            "INSERT INTO game_completions (user_id, mode, level_id, score)
+             VALUES ('user1', 'classic', 1, 9500)"
+        );
+
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['games']);
+        $this->assertIsArray($response);
+        $this->assertCount(1, $response);
     }
 
     // ─── Stats (new) ──────────────────────────────────────────────────────────
@@ -298,7 +342,15 @@ class RouterTest extends TestCase
 
     public function testGetStatsRetrieve(): void
     {
-        $this->markTestSkipped('StatsController->get() requires live mysqli conn.');
+        // Create user stats
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query("INSERT INTO user_stats (user_id, max_combo) VALUES ('user1', 42)");
+
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['stats']);
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('max_combo', $response);
+        $this->assertSame(42, (int)$response['max_combo']);
     }
 
     // ─── Replays (new) ────────────────────────────────────────────────────────
@@ -312,7 +364,16 @@ class RouterTest extends TestCase
 
     public function testGetReplaysRetrieve(): void
     {
-        $this->markTestSkipped('Replays->GET requires live mysqli conn.');
+        // Create a user with replay
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'test')");
+        $this->db->conn->query(
+            "INSERT INTO replays (user_id, mode, level_id, moves_json, score)
+             VALUES ('user1', 'classic', 1, '[1,2,3]', 9500)"
+        );
+
+        $_GET = ['user_id' => 'user1'];
+        $response = $this->capture('GET', ['replays']);
+        $this->assertIsArray($response);
     }
 
     public function testGetRepliesMissingUserId(): void
