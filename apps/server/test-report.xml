@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/Users/saint/Downloads/pressure-game/apps/server/phpunit.xml" tests="47" assertions="55" errors="0" failures="0" skipped="1" time="0.006205">
+    <testsuite name="Pressure" tests="47" assertions="55" errors="0" failures="0" skipped="1" time="0.006205">
+      <testsuite name="DataControllerTest" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" tests="9" assertions="12" errors="0" failures="0" skipped="0" time="0.001301">
+        <testcase name="testGetItemReturns404WhenNotFound" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="88" class="DataControllerTest" classname="DataControllerTest" assertions="1" time="0.000474"/>
+        <testcase name="testGetItemReturnsValueWhenFound" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="95" class="DataControllerTest" classname="DataControllerTest" assertions="1" time="0.000106"/>
+        <testcase name="testGetItemReturnsBadRequestForMissingUserId" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="102" class="DataControllerTest" classname="DataControllerTest" assertions="1" time="0.000156"/>
+        <testcase name="testGetItemReturnsBadRequestForMissingKey" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="108" class="DataControllerTest" classname="DataControllerTest" assertions="1" time="0.000105"/>
+        <testcase name="testDeleteItemSucceeds" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="116" class="DataControllerTest" classname="DataControllerTest" assertions="2" time="0.000100"/>
+        <testcase name="testDeleteItemReturnsBadRequestForMissingParams" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="125" class="DataControllerTest" classname="DataControllerTest" assertions="1" time="0.000088"/>
+        <testcase name="testGetAllUserDataReturnsMap" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="133" class="DataControllerTest" classname="DataControllerTest" assertions="2" time="0.000083"/>
+        <testcase name="testGetAllUserDataReturnsBadRequestForMissingUserId" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="141" class="DataControllerTest" classname="DataControllerTest" assertions="1" time="0.000085"/>
+        <testcase name="testGetAllUserDataReturnsEmptyArrayWhenNoData" file="/Users/saint/Downloads/pressure-game/apps/server/tests/DataControllerTest.php" line="147" class="DataControllerTest" classname="DataControllerTest" assertions="2" time="0.000104"/>
+      </testsuite>
+      <testsuite name="HighscoreControllerTest" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" tests="9" assertions="10" errors="0" failures="0" skipped="0" time="0.001460">
+        <testcase name="testGetHighscoreReturnsNullWhenNotFound" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="84" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="2" time="0.000329"/>
+        <testcase name="testGetHighscoreReturnsStoredScore" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="92" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000088"/>
+        <testcase name="testGetHighscoreReturnsBadRequestForMissingUserId" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="99" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000084"/>
+        <testcase name="testGetHighscoreReturnsBadRequestForMissingMode" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="105" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000082"/>
+        <testcase name="testGetHighscoreReturnsBadRequestForZeroLevelId" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="111" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000077"/>
+        <testcase name="testSaveHighscoreSuccess" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="122" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000077"/>
+        <testcase name="testSaveHighscoreReturnsBadRequestForZeroLevelId" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="136" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000082"/>
+        <testcase name="testScoreCalculatorIsUsedWhenNoScoreProvided" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="144" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000553"/>
+        <testcase name="testHighScoreForBlitzLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/HighscoreControllerTest.php" line="153" class="HighscoreControllerTest" classname="HighscoreControllerTest" assertions="1" time="0.000089"/>
+      </testsuite>
+      <testsuite name="RouterTest" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" tests="16" assertions="20" errors="0" failures="0" skipped="1" time="0.002523">
+        <testcase name="testHealthRoute" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="117" class="RouterTest" classname="RouterTest" assertions="3" time="0.000683"/>
+        <testcase name="testGetDataNotFound" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="127" class="RouterTest" classname="RouterTest" assertions="1" time="0.000078"/>
+        <testcase name="testSetDataSuccess" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="133" class="RouterTest" classname="RouterTest" assertions="1" time="0.000095"/>
+        <testcase name="testDeleteDataSuccess" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="142" class="RouterTest" classname="RouterTest" assertions="1" time="0.000073"/>
+        <testcase name="testGetAllUserData" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="148" class="RouterTest" classname="RouterTest" assertions="1" time="0.000070"/>
+        <testcase name="testGetLegacyLeaderboard" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="156" class="RouterTest" classname="RouterTest" assertions="1" time="0.000273"/>
+        <testcase name="testGetNewLeaderboard" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="162" class="RouterTest" classname="RouterTest" assertions="0" time="0.000108">
+          <skipped/>
+        </testcase>
+        <testcase name="testGetHighscore" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="170" class="RouterTest" classname="RouterTest" assertions="2" time="0.000073"/>
+        <testcase name="testGetAllAchievements" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="179" class="RouterTest" classname="RouterTest" assertions="1" time="0.000365"/>
+        <testcase name="testUnlockLegacyAchievement" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="185" class="RouterTest" classname="RouterTest" assertions="1" time="0.000078"/>
+        <testcase name="testGetAchievementsForUser" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="191" class="RouterTest" classname="RouterTest" assertions="1" time="0.000073"/>
+        <testcase name="testGetProfile" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="199" class="RouterTest" classname="RouterTest" assertions="1" time="0.000284"/>
+        <testcase name="testGetProfileWins" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="205" class="RouterTest" classname="RouterTest" assertions="1" time="0.000068"/>
+        <testcase name="testGetProfileFull" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="211" class="RouterTest" classname="RouterTest" assertions="3" time="0.000068"/>
+        <testcase name="testGetReplayNotFound" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="221" class="RouterTest" classname="RouterTest" assertions="1" time="0.000066"/>
+        <testcase name="testUnknownRouteReturns404" file="/Users/saint/Downloads/pressure-game/apps/server/tests/RouterTest.php" line="229" class="RouterTest" classname="RouterTest" assertions="1" time="0.000068"/>
+      </testsuite>
+      <testsuite name="ScoreCalculatorTest" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" tests="13" assertions="13" errors="0" failures="0" skipped="0" time="0.000920">
+        <testcase name="testClassicEasyLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="13" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000069"/>
+        <testcase name="testClassicMediumLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="20" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000079"/>
+        <testcase name="testClassicHardLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="27" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000076"/>
+        <testcase name="testBlitzEasyLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="36" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000063"/>
+        <testcase name="testBlitzMediumLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="43" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000102"/>
+        <testcase name="testBlitzHardLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="49" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000090"/>
+        <testcase name="testZenEasyLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="57" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000074"/>
+        <testcase name="testZenHardLevel" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="64" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000063"/>
+        <testcase name="testUnknownModeReturns1000WithUnknownDifficulty" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="72" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000069"/>
+        <testcase name="testScoreNeverGoesNegative" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="81" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000059"/>
+        <testcase name="testScoreExactlyZero" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="88" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000056"/>
+        <testcase name="testUnknownLevelFallsBackToMediumMultiplier" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="97" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000061"/>
+        <testcase name="testZenWithZeroMovesMaxScore" file="/Users/saint/Downloads/pressure-game/apps/server/tests/ScoreCalculatorTest.php" line="106" class="ScoreCalculatorTest" classname="ScoreCalculatorTest" assertions="1" time="0.000059"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>
