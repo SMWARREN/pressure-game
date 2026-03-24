@@ -2,24 +2,34 @@
 
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\UserController;
-
-if (!class_exists('MockDatabase')) {
-    require_once __DIR__ . '/RouterTest.php';
-}
+use Pressure\Database;
 
 class UserControllerTest extends TestCase
 {
-    private MockDatabase $db;
+    private Database $db;
 
     protected function setUp(): void
     {
-        $this->db = new MockDatabase();
+        $this->db = new Database(
+            'localhost',
+            3306,
+            'root',
+            'root',
+            'saintsea_pressure_test'
+        );
+
+        // Clear tables
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 0");
+        foreach (['game_completions', 'user_achievements', 'user_stats', 'replays', 'leaderboard_cache', 'highscores', 'game_data', 'user_profiles', 'achievements', 'users'] as $table) {
+            $this->db->conn->query("TRUNCATE TABLE `$table`");
+        }
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 1");
 
         if (!function_exists('jsonResponse')) {
             eval('function jsonResponse(int $code, mixed $data): never {
                 http_response_code($code);
                 echo json_encode($data);
-                throw new \RuntimeException("exit:" . $code);
+                throw new \RuntimeException("exit:". $code);
             }');
         }
     }
@@ -34,13 +44,9 @@ class UserControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
+
         $this->assertArrayHasKey('error', $response);
         $this->assertSame('Missing user ID', $response['error']);
-    }
-
-    public function testCreateSuccess(): void
-    {
-        $this->markTestSkipped('UserController->create() requires live mysqli conn.');
     }
 
     public function testGetMissingUserId(): void
@@ -54,19 +60,70 @@ class UserControllerTest extends TestCase
         }
         $output = ob_get_clean();
         $response = json_decode((string) $output, true);
+
         $this->assertArrayHasKey('error', $response);
         $this->assertSame('Missing user ID', $response['error']);
-    }
-
-    public function testGetSuccess(): void
-    {
-        $_GET = ['id' => 'user1'];
-        $this->markTestSkipped('UserController->get() requires live mysqli conn.');
     }
 
     public function testGetUserNotFound(): void
     {
         $_GET = ['id' => 'nonexistent'];
-        $this->markTestSkipped('UserController->get() requires live mysqli conn.');
+        ob_start();
+        try {
+            (new UserController($this->db))->get();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('User not found', $response['error']);
+    }
+
+    public function testGetUserExists(): void
+    {
+        // Create user directly
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user1', 'alice')");
+        $this->db->conn->query("INSERT INTO user_stats (user_id) VALUES ('user1')");
+
+        $_GET = ['id' => 'user1'];
+
+        ob_start();
+        try {
+            (new UserController($this->db))->get();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('user', $response);
+        $this->assertArrayHasKey('stats', $response);
+        $this->assertSame('user1', $response['user']['id']);
+        $this->assertSame('alice', $response['user']['username']);
+    }
+
+    public function testGetUserWithoutStats(): void
+    {
+        // Create user without stats
+        $this->db->conn->query("INSERT INTO users (id, username) VALUES ('user2', 'bob')");
+
+        $_GET = ['id' => 'user2'];
+
+        ob_start();
+        try {
+            (new UserController($this->db))->get();
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('user', $response);
+        $this->assertArrayHasKey('stats', $response);
+        $this->assertIsArray($response['stats']);  // Should be empty array
     }
 }

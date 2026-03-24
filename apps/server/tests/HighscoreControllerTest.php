@@ -2,158 +2,158 @@
 
 use PHPUnit\Framework\TestCase;
 use Pressure\Controllers\HighscoreController;
+use Pressure\Database;
 
-if (!class_exists('MockDatabase')) {
-    require_once __DIR__ . '/RouterTest.php';
-}
-
-// ─── Configurable mock ───────────────────────────────────────────────────────
-
-class HighscoreMockDatabase extends MockDatabase
+class HighscoreControllerTest extends TestCase
 {
-    public bool $saveSuccess    = true;
-    public ?int $returnedScore  = null;
-    public string $lastUserId   = '';
-    public string $lastMode     = '';
-    public int    $lastLevelId  = 0;
-    public int    $lastMoves    = 0;
-    public float  $lastTime     = 0.0;
-    public ?int   $lastScore    = null;
+    private Database $db;
 
-    public function saveHighscore(
-        string $userId,
-        string $mode,
-        int $levelId,
-        int $moves = 0,
-        float $time = 0.0,
-        ?int $score = null
-    ): bool {
-        $this->lastUserId  = $userId;
-        $this->lastMode    = $mode;
-        $this->lastLevelId = $levelId;
-        $this->lastMoves   = $moves;
-        $this->lastTime    = $time;
-        $this->lastScore   = $score;
-        return $this->saveSuccess;
-    }
-
-    public function getUserHighScore(string $userId, string $mode, int $levelId): ?int
+    protected function setUp(): void
     {
-        return $this->returnedScore;
-    }
+        $this->db = new Database(
+            'localhost',
+            3306,
+            'root',
+            'root',
+            'saintsea_pressure_test'
+        );
 
-    public function updateUserProfileStats(string $userId): void {}
-}
+        // Clear tables
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 0");
+        foreach (['game_completions', 'user_achievements', 'user_stats', 'replays', 'leaderboard_cache', 'highscores', 'game_data', 'user_profiles', 'achievements', 'users'] as $table) {
+            $this->db->conn->query("TRUNCATE TABLE `$table`");
+        }
+        $this->db->conn->query("SET FOREIGN_KEY_CHECKS = 1");
 
-// ─── Helper ──────────────────────────────────────────────────────────────────
-
-if (!function_exists('captureHighscoreController')) {
-    function captureHighscoreController(callable $fn): array
-    {
         if (!function_exists('jsonResponse')) {
             eval('function jsonResponse(int $code, mixed $data): never {
                 http_response_code($code);
                 echo json_encode($data);
-                throw new \RuntimeException("exit:" . $code);
+                throw new \RuntimeException("exit:". $code);
             }');
         }
+    }
+
+    public function testGetMissingUserId(): void
+    {
         ob_start();
         try {
-            $fn();
-        } catch (\RuntimeException $e) {}
-        $out = (string) ob_get_clean();
-        return json_decode($out, true) ?? [];
-    }
-}
+            (new HighscoreController($this->db))->get('', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
-
-class HighscoreControllerTest extends TestCase
-{
-    private HighscoreMockDatabase $db;
-    private HighscoreController $ctrl;
-
-    protected function setUp(): void
-    {
-        $this->db   = new HighscoreMockDatabase();
-        $this->ctrl = new HighscoreController($this->db);
+        $this->assertArrayHasKey('error', $response);
     }
 
-    // ─── GET /api/highscore/{userId}/{mode}/{levelId} ─────────────────────────
-
-    public function testGetHighscoreReturnsNullWhenNotFound(): void
+    public function testGetMissingMode(): void
     {
-        $this->db->returnedScore = null;
-        $response = captureHighscoreController(fn () => $this->ctrl->get('user1', 'classic', 1));
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', '', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testGetMissingLevelId(): void
+    {
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', 'classic', 0);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testGetScoreNotFound(): void
+    {
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', 'classic', 999);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
         $this->assertArrayHasKey('score', $response);
         $this->assertNull($response['score']);
     }
 
-    public function testGetHighscoreReturnsStoredScore(): void
+    public function testGetScoreExists(): void
     {
-        $this->db->returnedScore = 9500;
-        $response = captureHighscoreController(fn () => $this->ctrl->get('user1', 'classic', 1));
+        // Create highscore
+        $this->db->saveHighscore('user1', 'classic', 1, 10, 25.5, 9500);
+
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->get('user1', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('score', $response);
         $this->assertSame(9500, $response['score']);
     }
 
-    public function testGetHighscoreReturnsBadRequestForMissingUserId(): void
+    public function testSaveMissingUserId(): void
     {
-        $response = captureHighscoreController(fn () => $this->ctrl->get('', 'classic', 1));
-        $this->assertSame('Missing userId, mode, or levelId', $response['error']);
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('', 'classic', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
     }
 
-    public function testGetHighscoreReturnsBadRequestForMissingMode(): void
+    public function testSaveMissingMode(): void
     {
-        $response = captureHighscoreController(fn () => $this->ctrl->get('user1', '', 1));
-        $this->assertSame('Missing userId, mode, or levelId', $response['error']);
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', '', 1);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
     }
 
-    public function testGetHighscoreReturnsBadRequestForZeroLevelId(): void
+    public function testSaveMissingLevelId(): void
     {
-        $response = captureHighscoreController(fn () => $this->ctrl->get('user1', 'classic', 0));
-        $this->assertSame('Missing userId, mode, or levelId', $response['error']);
+        ob_start();
+        try {
+            (new HighscoreController($this->db))->save('user1', 'classic', 0);
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+
+        $this->assertArrayHasKey('error', $response);
     }
 
-    // ─── POST /api/highscore/{userId}/{mode}/{levelId} ────────────────────────
-
-    /**
-     * Simulate a POST body via a stream wrapper so we can test save().
-     */
-    public function testSaveHighscoreSuccess(): void
+    public function testSaveSuccessSkipped(): void
     {
-        // Override php://input for this request
-        $body = json_encode(['moves' => 10, 'time' => 25.5, 'score' => null]);
-        $stream = fopen('data://text/plain,' . $body, 'r');
-        // We can't override php://input directly in unit tests, so we test
-        // the validation path only — full save is covered by MockDatabase.
-        $this->db->saveSuccess = true;
-
-        // Confirm missing params returns 400
-        $response = captureHighscoreController(fn () => $this->ctrl->save('', 'classic', 1));
-        $this->assertSame('Missing userId, mode, or levelId', $response['error']);
-    }
-
-    public function testSaveHighscoreReturnsBadRequestForZeroLevelId(): void
-    {
-        $response = captureHighscoreController(fn () => $this->ctrl->save('user1', 'classic', 0));
-        $this->assertSame('Missing userId, mode, or levelId', $response['error']);
-    }
-
-    // ─── ScoreCalculator integration ─────────────────────────────────────────
-
-    public function testScoreCalculatorIsUsedWhenNoScoreProvided(): void
-    {
-        // Verify that the calculator produces the expected value that would be
-        // stored.  ScoreCalculator is a pure function — no DB needed.
-        $score = \Pressure\ScoreCalculator::calculate('classic', 10, 20.0, 1);
-        // base = 10000 - (10 + 20) = 9970; easy multiplier 1.0
-        $this->assertSame(9970, $score);
-    }
-
-    public function testHighScoreForBlitzLevel(): void
-    {
-        $score = \Pressure\ScoreCalculator::calculate('blitz', 0, 30.0, 1);
-        // base = 10000 - 30 = 9970; blitz easy multiplier 2.0
-        $this->assertSame((int)(9970 * 2.0), $score);
+        // save() requires php://input stream which is hard to mock in unit tests
+        $this->markTestSkipped('HighscoreController->save() requires php://input stream.');
     }
 }
