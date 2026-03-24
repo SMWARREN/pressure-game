@@ -4,6 +4,7 @@ namespace Pressure;
 
 class Database
 {
+    private const INT_DEFAULT_ZERO = 'INT DEFAULT 0';
     public \mysqli $conn;
 
     public function __construct(string $host, int $port, string $user, string $pass, string $name)
@@ -47,7 +48,7 @@ class Database
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create users table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create users table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS game_completions (
@@ -65,7 +66,7 @@ class Database
                 INDEX idx_mode (mode),
                 INDEX idx_score (score DESC)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create game_completions table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create game_completions table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS user_achievements (
@@ -78,7 +79,7 @@ class Database
                 INDEX idx_user (user_id),
                 INDEX idx_achievement (achievement_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create user_achievements table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create user_achievements table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS user_stats (
@@ -94,7 +95,7 @@ class Database
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create user_stats table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create user_stats table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS replays (
@@ -109,7 +110,7 @@ class Database
                 INDEX idx_user_mode_level (user_id, mode, level_id),
                 INDEX idx_recorded (recorded_at DESC)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create replays table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create replays table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS leaderboard_cache (
@@ -124,7 +125,7 @@ class Database
                 INDEX idx_mode_rank (mode, `rank`),
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create leaderboard_cache table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create leaderboard_cache table: ' . $this->conn->error);
 
         // ─── LEGACY TABLES ───────────────────────────────────────────────────
 
@@ -142,7 +143,7 @@ class Database
                 INDEX idx_user (user_id),
                 INDEX idx_level (mode, level_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create highscores table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create highscores table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS game_data (
@@ -156,7 +157,7 @@ class Database
                 INDEX idx_user_id (user_id),
                 INDEX idx_updated_at (updated_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create game_data table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create game_data table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS user_profiles (
@@ -173,7 +174,7 @@ class Database
                 INDEX idx_total_moves (total_moves ASC),
                 INDEX idx_achievements (achievements_count DESC)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create user_profiles table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create user_profiles table: ' . $this->conn->error);
 
         $this->conn->query("
             CREATE TABLE IF NOT EXISTS achievements (
@@ -185,18 +186,18 @@ class Database
                 INDEX idx_user (user_id),
                 INDEX idx_achievement (achievement_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ") or throw new AppException('Failed to create achievements table: ' . $this->conn->error);
+        ") || throw new AppException('Failed to create achievements table: ' . $this->conn->error);
 
         // Migrations — add columns that may be missing from older installs
-        $this->addColumnIfNotExists('highscores', 'best_moves', 'INT DEFAULT 0');
+        $this->addColumnIfNotExists('highscores', 'best_moves', self::INT_DEFAULT_ZERO);
         $this->addColumnIfNotExists('highscores', 'best_time', 'FLOAT DEFAULT 0');
-        $this->addColumnIfNotExists('user_profiles', 'total_moves', 'INT DEFAULT 0');
-        $this->addColumnIfNotExists('user_profiles', 'max_combo', 'INT DEFAULT 0');
-        $this->addColumnIfNotExists('user_profiles', 'total_walls_survived', 'INT DEFAULT 0');
-        $this->addColumnIfNotExists('user_profiles', 'no_reset_streak', 'INT DEFAULT 0');
-        $this->addColumnIfNotExists('user_profiles', 'speed_levels', 'INT DEFAULT 0');
-        $this->addColumnIfNotExists('user_profiles', 'perfect_levels', 'INT DEFAULT 0');
-        $this->addColumnIfNotExists('user_profiles', 'total_days_played', 'INT DEFAULT 0');
+        $this->addColumnIfNotExists('user_profiles', 'total_moves', self::INT_DEFAULT_ZERO);
+        $this->addColumnIfNotExists('user_profiles', 'max_combo', self::INT_DEFAULT_ZERO);
+        $this->addColumnIfNotExists('user_profiles', 'total_walls_survived', self::INT_DEFAULT_ZERO);
+        $this->addColumnIfNotExists('user_profiles', 'no_reset_streak', self::INT_DEFAULT_ZERO);
+        $this->addColumnIfNotExists('user_profiles', 'speed_levels', self::INT_DEFAULT_ZERO);
+        $this->addColumnIfNotExists('user_profiles', 'perfect_levels', self::INT_DEFAULT_ZERO);
+        $this->addColumnIfNotExists('user_profiles', 'total_days_played', self::INT_DEFAULT_ZERO);
         $this->addColumnIfNotExists('replays', 'moves_json', 'JSON');
         $this->addColumnIfNotExists('replays', 'recorded_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
     }
