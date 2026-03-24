@@ -20,8 +20,6 @@
     "web:test": "cd apps/web && npm test",
     "mobile:start": "cd apps/mobile && expo start",
     "mobile:build": "cd apps/mobile && eas build",
-    "mobile:preview:ios": "./scripts/ios-preview.sh",
-    "mobile:preview:android": "./scripts/android-preview.sh",
     "mobile:test": "cd apps/mobile && npm test",
     "build": "npm run web:build && npm run mobile:build",
     "test": "vitest",
