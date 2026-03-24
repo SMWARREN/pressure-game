@@ -12,5 +12,5 @@ if ($requestPath !== '/' && file_exists(__DIR__ . $requestPath) && !is_dir(__DIR
     return false; // Let PHP serve the file
 }
 
-// Otherwise, route everything to api.php
-require __DIR__ . '/api.php';
+// Otherwise, route everything to index.php
+require_once __DIR__ . '/index.php';

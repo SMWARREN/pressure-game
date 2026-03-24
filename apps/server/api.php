@@ -1,5 +1,7 @@
 <?php
 /**
+ * DEPRECATED: use index.php. Kept for reference.
+ *
  * PRESSURE GAME - PHP Backend Server with MySQL
  *
  * This is a PHP/MySQL server that stores game data.
@@ -15,6 +17,18 @@
  *   - MySQL 5.7+
  *   - mysqli extension enabled
  */
+
+// ─── CUSTOM EXCEPTION ───────────────────────────────────────────────────────
+class AppException extends \RuntimeException {}
+
+// ─── SHARED CONSTANTS ───────────────────────────────────────────────────────
+const INT_DEFAULT_0 = 'INT DEFAULT 0';
+const PREPARE_FAILED = 'Prepare failed: ';
+const ERR_MISSING_USER_KEY = 'Missing userId or key';
+const PHP_INPUT = 'php://input';
+const ERR_MISSING_USER = 'Missing userId';
+const ERR_MISSING_USER_MODE_LEVEL = 'Missing userId, mode, or levelId';
+const ERR_MISSING_USER_ID = 'Missing user_id';
 
 // Enable CORS
 header('Access-Control-Allow-Origin: *');
@@ -94,7 +108,7 @@ class Database {
       $this->conn = new mysqli($host, $user, $pass, $db, $port);
 
       if ($this->conn->connect_error) {
-        throw new Exception('Database connection failed: ' . $this->conn->connect_error);
+        throw new AppException('Database connection failed: ' . $this->conn->connect_error);
       }
 
       $this->conn->set_charset('utf8mb4');
@@ -110,7 +124,7 @@ class Database {
     if ($result && $result->num_rows === 0) {
       $sql = "ALTER TABLE $table ADD COLUMN $column $definition";
       if (!$this->conn->query($sql)) {
-        throw new Exception("Failed to add $column to $table: " . $this->conn->error);
+        throw new AppException("Failed to add $column to $table: " . $this->conn->error);
       }
     }
   }
@@ -128,7 +142,7 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create users table: ' . $this->conn->error);
+      throw new AppException('Failed to create users table: ' . $this->conn->error);
     }
 
     // Game completions - scores, moves, times
@@ -150,7 +164,7 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create game_completions table: ' . $this->conn->error);
+      throw new AppException('Failed to create game_completions table: ' . $this->conn->error);
     }
 
     // User achievements - unlocked achievements
@@ -167,7 +181,7 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create user_achievements table: ' . $this->conn->error);
+      throw new AppException('Failed to create user_achievements table: ' . $this->conn->error);
     }
 
     // User stats - aggregate performance metrics
@@ -187,7 +201,7 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create user_stats table: ' . $this->conn->error);
+      throw new AppException('Failed to create user_stats table: ' . $this->conn->error);
     }
 
     // Replays - game move history
@@ -206,7 +220,7 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create replays table: ' . $this->conn->error);
+      throw new AppException('Failed to create replays table: ' . $this->conn->error);
     }
 
     // Leaderboard cache - materialized rankings
@@ -225,7 +239,7 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create leaderboard_cache table: ' . $this->conn->error);
+      throw new AppException('Failed to create leaderboard_cache table: ' . $this->conn->error);
     }
 
     // ─── LEGACY TABLES (backward compatibility) ────────────────────────────
@@ -247,7 +261,7 @@ class Database {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create highscores table: ' . $this->conn->error);
+      throw new AppException('Failed to create highscores table: ' . $this->conn->error);
     }
 
     // Game data persistence table (legacy key-value storage)
@@ -266,7 +280,7 @@ class Database {
     ";
 
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create game_data table: ' . $this->conn->error);
+      throw new AppException('Failed to create game_data table: ' . $this->conn->error);
     }
 
     // User profiles table (legacy)
@@ -288,7 +302,7 @@ class Database {
     ";
 
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create user_profiles table: ' . $this->conn->error);
+      throw new AppException('Failed to create user_profiles table: ' . $this->conn->error);
     }
 
     // Legacy achievements table
@@ -305,21 +319,21 @@ class Database {
     ";
 
     if (!$this->conn->query($sql)) {
-      throw new Exception('Failed to create achievements table: ' . $this->conn->error);
+      throw new AppException('Failed to create achievements table: ' . $this->conn->error);
     }
 
     // Add missing columns to highscores table (migrations)
-    $this->addColumnIfNotExists('highscores', 'best_moves', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('highscores', 'best_moves', INT_DEFAULT_0);
     $this->addColumnIfNotExists('highscores', 'best_time', 'FLOAT DEFAULT 0');
 
     // Add missing columns to user_profiles table (migrations)
-    $this->addColumnIfNotExists('user_profiles', 'total_moves', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'max_combo', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'total_walls_survived', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'no_reset_streak', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'speed_levels', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'perfect_levels', 'INT DEFAULT 0');
-    $this->addColumnIfNotExists('user_profiles', 'total_days_played', 'INT DEFAULT 0');
+    $this->addColumnIfNotExists('user_profiles', 'total_moves', INT_DEFAULT_0);
+    $this->addColumnIfNotExists('user_profiles', 'max_combo', INT_DEFAULT_0);
+    $this->addColumnIfNotExists('user_profiles', 'total_walls_survived', INT_DEFAULT_0);
+    $this->addColumnIfNotExists('user_profiles', 'no_reset_streak', INT_DEFAULT_0);
+    $this->addColumnIfNotExists('user_profiles', 'speed_levels', INT_DEFAULT_0);
+    $this->addColumnIfNotExists('user_profiles', 'perfect_levels', INT_DEFAULT_0);
+    $this->addColumnIfNotExists('user_profiles', 'total_days_played', INT_DEFAULT_0);
 
     // Add missing columns to replays table (migrations)
     $this->addColumnIfNotExists('replays', 'moves_json', 'JSON');
@@ -329,7 +343,7 @@ class Database {
   public function getItem($userId, $key) {
     $stmt = $this->conn->prepare('SELECT data_value FROM game_data WHERE user_id = ? AND data_key = ?');
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('ss', $userId, $key);
@@ -354,7 +368,7 @@ class Database {
        updated_at = CURRENT_TIMESTAMP'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('sss', $userId, $key, $value);
@@ -367,7 +381,7 @@ class Database {
   public function removeItem($userId, $key) {
     $stmt = $this->conn->prepare('DELETE FROM game_data WHERE user_id = ? AND data_key = ?');
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('ss', $userId, $key);
@@ -382,7 +396,7 @@ class Database {
       'SELECT data_key, data_value FROM game_data WHERE user_id = ? ORDER BY updated_at DESC'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('s', $userId);
@@ -400,54 +414,45 @@ class Database {
 
   // ─── Highscores ──────────────────────────────────────────────────────
 
-  public function saveHighscore($userId, $mode, $levelId, $moves = null, $time = null) {
-    error_log("saveHighscore called: userId=$userId, mode=$mode, levelId=$levelId, moves=$moves, time=$time");
-
+  public function saveHighscore($userId, $mode, $levelId, $moves = null, $time = null, $score = null) {
     // Ensure user profile exists first
     $this->ensureUserProfile($userId);
 
-    // Convert and validate inputs
     $bestMoves = $moves !== null ? intval($moves) : 0;
-    $bestTime = $time !== null ? floatval($time) : 0.0;
+    $bestTime  = $time  !== null ? floatval($time)  : 0.0;
 
-    // Calculate score based on mode and level difficulty
-    $score = calculateScore($mode, $bestMoves, $bestTime, $levelId);
+    // Arcade modes send the real in-game score from the client.
+    // Classic/Blitz/Zen calculate server-side from moves+time.
+    $arcadeModes = ['candy','shoppingSpree','gemBlast','laserRelay','fuseBox',
+                    'outbreak','gravityDrop','mirrorForge','quantumChain',
+                    'memoryMatch','voltageRush'];
+    if ($score !== null && $score > 0) {
+      $finalScore = intval($score);
+    } elseif (in_array($mode, $arcadeModes)) {
+      $finalScore = 0; // no score provided — don't overwrite a real one
+    } else {
+      $finalScore = calculateScore($mode, $bestMoves, $bestTime, $levelId);
+    }
 
-    error_log("Converted values: bestMoves=$bestMoves, bestTime=$bestTime, calculatedScore=$score");
-
+    // For unlimited runs keep only the personal best (GREATEST); for regular
+    // levels also keep the best (moves/time may differ across attempts).
     $sql = 'INSERT INTO highscores (user_id, mode, level_id, score, best_moves, best_time)
             VALUES (?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-            score = VALUES(score),
-            best_moves = VALUES(best_moves),
-            best_time = VALUES(best_time)';
-
-    error_log("SQL: $sql");
+            score      = GREATEST(score, VALUES(score)),
+            best_moves = IF(VALUES(score) >= score, VALUES(best_moves), best_moves),
+            best_time  = IF(VALUES(score) >= score, VALUES(best_time),  best_time)';
 
     $stmt = $this->conn->prepare($sql);
-
     if (!$stmt) {
-      error_log("Prepare failed: " . $this->conn->error);
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
-
-    error_log("Prepare succeeded, binding params");
-
-    $stmt->bind_param('ssiiid', $userId, $mode, $levelId, $score, $bestMoves, $bestTime);
-
-    error_log("Bind succeeded, executing");
-
+    $stmt->bind_param('ssiiid', $userId, $mode, $levelId, $finalScore, $bestMoves, $bestTime);
     $success = $stmt->execute();
-
     if (!$success) {
-      error_log("Execute failed: " . $this->conn->error);
-      throw new Exception('Execute failed: ' . $this->conn->error);
+      throw new AppException('Execute failed: ' . $this->conn->error);
     }
-
-    error_log("Execute succeeded");
-
     $stmt->close();
-
     return $success;
   }
 
@@ -461,7 +466,7 @@ class Database {
        FROM highscores WHERE user_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('s', $userId);
@@ -491,7 +496,7 @@ class Database {
       'SELECT SUM(best_moves) as total_moves FROM highscores WHERE user_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('s', $userId);
@@ -507,7 +512,7 @@ class Database {
       'SELECT COUNT(*) as achievement_count FROM achievements WHERE user_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('s', $userId);
@@ -525,7 +530,7 @@ class Database {
        WHERE user_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('iiiis', $totalScore, $totalMoves, $levelsCompleted, $achievementsCount, $userId);
@@ -544,7 +549,7 @@ class Database {
          LIMIT ?'
       );
       if (!$stmt) {
-        throw new Exception('Prepare failed: ' . $this->conn->error);
+        throw new AppException(PREPARE_FAILED . $this->conn->error);
       }
 
       $stmt->bind_param('i', $limit);
@@ -572,7 +577,7 @@ class Database {
        LIMIT ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('si', $mode, $limit);
@@ -594,7 +599,7 @@ class Database {
       'SELECT score FROM highscores WHERE user_id = ? AND mode = ? AND level_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('ssi', $userId, $mode, $levelId);
@@ -617,7 +622,7 @@ class Database {
       'INSERT IGNORE INTO achievements (user_id, achievement_id) VALUES (?, ?)'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('ss', $userId, $achievementId);
@@ -637,7 +642,7 @@ class Database {
       'SELECT achievement_id, unlocked_at FROM achievements WHERE user_id = ? ORDER BY unlocked_at DESC'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('s', $userId);
@@ -690,7 +695,7 @@ class Database {
     );
 
     if (!$result) {
-      throw new Exception('Query failed: ' . $this->conn->error);
+      throw new AppException('Query failed: ' . $this->conn->error);
     }
 
     $achievements = [];
@@ -708,7 +713,7 @@ class Database {
       'INSERT IGNORE INTO user_profiles (user_id) VALUES (?)'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('s', $userId);
@@ -721,7 +726,7 @@ class Database {
       'SELECT user_id, username, total_score, total_moves, achievements_count, levels_completed, max_combo, total_walls_survived, no_reset_streak, speed_levels, perfect_levels, total_days_played, created_at FROM user_profiles WHERE user_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('s', $userId);
@@ -744,7 +749,7 @@ class Database {
       'UPDATE user_profiles SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('ss', $username, $userId);
@@ -765,7 +770,7 @@ class Database {
        LIMIT ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('si', $userId, $limit);
@@ -792,7 +797,7 @@ class Database {
        updated_at = CURRENT_TIMESTAMP'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('ssiss', $userId, $mode, $levelId, $movesJson, $score);
@@ -859,7 +864,7 @@ class Database {
        WHERE user_id = ? AND mode = ? AND level_id = ?'
     );
     if (!$stmt) {
-      throw new Exception('Prepare failed: ' . $this->conn->error);
+      throw new AppException(PREPARE_FAILED . $this->conn->error);
     }
 
     $stmt->bind_param('ssi', $userId, $mode, $levelId);
@@ -883,7 +888,7 @@ class Database {
     // Get all tables
     $result = $this->conn->query("SHOW TABLES");
     if (!$result) {
-      throw new Exception('Failed to list tables: ' . $this->conn->error);
+      throw new AppException('Failed to list tables: ' . $this->conn->error);
     }
 
     while ($row = $result->fetch_row()) {
@@ -921,7 +926,7 @@ class Database {
 
   public function cleanupTestData($userId) {
     if (empty($userId)) {
-      throw new Exception('userId is required for cleanup');
+      throw new AppException('userId is required for cleanup');
     }
 
     $deleted = [
@@ -1050,7 +1055,7 @@ try {
 
     if (empty($userId) || empty($key)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId or key']);
+      echo json_encode(['error' => ERR_MISSING_USER_KEY]);
       $db->close();
       exit;
     }
@@ -1075,12 +1080,12 @@ try {
 
     if (empty($userId) || empty($key)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId or key']);
+      echo json_encode(['error' => ERR_MISSING_USER_KEY]);
       $db->close();
       exit;
     }
 
-    $body = json_decode(file_get_contents('php://input'), true);
+    $body = json_decode(file_get_contents(PHP_INPUT), true);
     $value = $body['value'] ?? null;
 
     if ($value === null) {
@@ -1108,7 +1113,7 @@ try {
 
     if (empty($userId) || empty($key)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId or key']);
+      echo json_encode(['error' => ERR_MISSING_USER_KEY]);
       $db->close();
       exit;
     }
@@ -1130,7 +1135,7 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
@@ -1171,16 +1176,17 @@ try {
 
     if (empty($userId) || empty($mode) || $levelId === 0) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId, mode, or levelId']);
+      echo json_encode(['error' => ERR_MISSING_USER_MODE_LEVEL]);
       $db->close();
       exit;
     }
 
-    $body = json_decode(file_get_contents('php://input'), true);
-    $moves = $body['moves'] ?? null;
-    $time = $body['time'] ?? null;
+    $body = json_decode(file_get_contents(PHP_INPUT), true);
+    $moves       = $body['moves']        ?? null;
+    $time        = $body['time']         ?? null;
+    $score       = $body['score']        ?? null;
+    $isUnlimited = !empty($body['is_unlimited']);
 
-    // Moves and time are required for score calculation
     if ($moves === null || $time === null) {
       http_response_code(400);
       echo json_encode(['error' => 'Missing moves or time']);
@@ -1189,7 +1195,7 @@ try {
     }
 
     try {
-      if ($db->saveHighscore($userId, $mode, $levelId, intval($moves), floatval($time))) {
+      if ($db->saveHighscore($userId, $mode, $levelId, intval($moves), floatval($time), $score !== null ? intval($score) : null)) {
         // Update user profile with aggregated stats
         $db->updateUserProfileStats($userId);
 
@@ -1215,7 +1221,7 @@ try {
 
     if (empty($userId) || empty($mode) || $levelId === 0) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId, mode, or levelId']);
+      echo json_encode(['error' => ERR_MISSING_USER_MODE_LEVEL]);
       $db->close();
       exit;
     }
@@ -1258,7 +1264,7 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
@@ -1288,7 +1294,7 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
@@ -1307,12 +1313,12 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
 
-    $body = json_decode(file_get_contents('php://input'), true);
+    $body = json_decode(file_get_contents(PHP_INPUT), true);
     $username = $body['username'] ?? null;
 
     if (empty($username)) {
@@ -1339,7 +1345,7 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
@@ -1358,12 +1364,12 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
 
-    $body = json_decode(file_get_contents('php://input'), true);
+    $body = json_decode(file_get_contents(PHP_INPUT), true);
 
     try {
       if ($db->updateUserStats(
@@ -1395,7 +1401,7 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
@@ -1425,12 +1431,12 @@ try {
 
     if (empty($userId) || empty($mode) || $levelId === 0) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId, mode, or levelId']);
+      echo json_encode(['error' => ERR_MISSING_USER_MODE_LEVEL]);
       $db->close();
       exit;
     }
 
-    $body = json_decode(file_get_contents('php://input'), true);
+    $body = json_decode(file_get_contents(PHP_INPUT), true);
     $moves = $body['moves'] ?? null;
     $score = intval($body['score'] ?? 0);
 
@@ -1460,7 +1466,7 @@ try {
 
     if (empty($userId) || empty($mode) || $levelId === 0) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId, mode, or levelId']);
+      echo json_encode(['error' => ERR_MISSING_USER_MODE_LEVEL]);
       $db->close();
       exit;
     }
@@ -1505,7 +1511,7 @@ try {
 
     if (empty($userId)) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing userId']);
+      echo json_encode(['error' => ERR_MISSING_USER]);
       $db->close();
       exit;
     }
@@ -1551,7 +1557,7 @@ try {
   // ─── NEW RELATIONAL API ENDPOINTS ────────────────────────────────────────
   // POST /api/users - Create or get user
   if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'users') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = json_decode(file_get_contents(PHP_INPUT), true);
     $userId = $data['id'] ?? null;
     $username = $data['username'] ?? null;
 
@@ -1587,7 +1593,7 @@ try {
 
   // POST /api/games - Record game completion
   if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'games') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = json_decode(file_get_contents(PHP_INPUT), true);
     $userId = $data['user_id'] ?? null;
     $mode = $data['mode'] ?? null;
     $levelId = $data['level_id'] ?? null;
@@ -1630,7 +1636,7 @@ try {
 
     if (!$userId) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing user_id']);
+      echo json_encode(['error' => ERR_MISSING_USER_ID]);
       $db->close();
       exit;
     }
@@ -1744,7 +1750,7 @@ try {
 
     if (!$userId) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing user_id']);
+      echo json_encode(['error' => ERR_MISSING_USER_ID]);
       $db->close();
       exit;
     }
@@ -1774,7 +1780,7 @@ try {
 
     if (!$userId) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing user_id']);
+      echo json_encode(['error' => ERR_MISSING_USER_ID]);
       $db->close();
       exit;
     }
@@ -1800,12 +1806,12 @@ try {
 
   // POST /api/stats - Update user stats
   if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'stats') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = json_decode(file_get_contents(PHP_INPUT), true);
     $userId = $data['user_id'] ?? null;
 
     if (!$userId) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing user_id']);
+      echo json_encode(['error' => ERR_MISSING_USER_ID]);
       $db->close();
       exit;
     }
@@ -1863,7 +1869,7 @@ try {
 
     if (!$userId) {
       http_response_code(400);
-      echo json_encode(['error' => 'Missing user_id']);
+      echo json_encode(['error' => ERR_MISSING_USER_ID]);
       $db->close();
       exit;
     }
@@ -1887,7 +1893,7 @@ try {
 
   // POST /api/replays - Save replay
   if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'replays') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = json_decode(file_get_contents(PHP_INPUT), true);
     $userId = $data['user_id'] ?? null;
     $mode = $data['mode'] ?? null;
     $levelId = $data['level_id'] ?? null;
@@ -1974,4 +1980,3 @@ try {
 }
 
 $db->close();
-?>

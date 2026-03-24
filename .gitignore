@@ -81,4 +81,9 @@ coverage/
 .AppleDouble
 .LSOverride
 apps/web/tests/screenshots
-.expo/ 
+.expo/
+
+# PHP Server
+apps/server/phpunit.phar
+apps/server/.env
+apps/server/error_log
