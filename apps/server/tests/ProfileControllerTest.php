@@ -146,4 +146,61 @@ class ProfileControllerTest extends TestCase
         $response = json_decode((string) $output, true);
         $this->assertArrayHasKey('error', $response);
     }
+
+    public function testWinsWithLimit(): void
+    {
+        $_GET = ['limit' => '10'];
+        ob_start();
+        try {
+            (new ProfileController($this->db))->wins('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+        $this->assertIsArray($response);
+    }
+
+    public function testUpdateProfileWithoutUsername(): void
+    {
+        // Empty body should fail
+        ob_start();
+        try {
+            (new ProfileController($this->db))->update('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testGetProfileReturnsUserData(): void
+    {
+        ob_start();
+        try {
+            (new ProfileController($this->db))->get('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+        $this->assertArrayHasKey('user_id', $response);
+        $this->assertSame('user1', $response['user_id']);
+    }
+
+    public function testGetFullProfileHasAllFields(): void
+    {
+        ob_start();
+        try {
+            (new ProfileController($this->db))->getFull('user1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+        $this->assertArrayHasKey('profile', $response);
+        $this->assertArrayHasKey('achievements', $response);
+        $this->assertArrayHasKey('wins', $response);
+    }
 }

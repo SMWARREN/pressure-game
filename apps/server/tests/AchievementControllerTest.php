@@ -45,6 +45,53 @@ class AchievementControllerTest extends TestCase
         $this->assertArrayHasKey('error', $response);
     }
 
+    public function testUnlockMissingUserId(): void
+    {
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlock('', 'ach1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testUnlockMissingAchievementId(): void
+    {
+        ob_start();
+        try {
+            (new AchievementController($this->db))->unlock('user1', '');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+        $this->assertArrayHasKey('error', $response);
+    }
+
+    public function testUnlockFailure(): void
+    {
+        // Mock failure
+        $dbMock = new class extends MockDatabase {
+            public function unlockAchievement(string $userId, string $achievementId): bool {
+                return false;
+            }
+        };
+
+        ob_start();
+        try {
+            (new AchievementController($dbMock))->unlock('user1', 'ach1');
+        } catch (\RuntimeException $e) {
+            // Expected
+        }
+        $output = ob_get_clean();
+        $response = json_decode((string) $output, true);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Failed to unlock achievement', $response['error']);
+    }
+
     public function testGetForUserSuccess(): void
     {
         ob_start();
