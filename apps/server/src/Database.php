@@ -696,8 +696,4 @@ class Database
         return true;
     }
 
-    public function close(): void
-    {
-        $this->conn->close();
-    }
 }
