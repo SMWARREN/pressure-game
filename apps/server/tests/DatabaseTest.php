@@ -310,4 +310,149 @@ class DatabaseTest extends TestCase
 
         $this->assertSame($moves, $storedMoves);
     }
+
+    // ─── User profiles ───────────────────────────────────────────────────────
+
+    public function testInsertUserProfile(): void
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO user_profiles (user_id, username, total_score, levels_completed) VALUES (?, ?, ?, ?)'
+        );
+        $result = $stmt->execute(['user1', 'champ', 50000, 10]);
+
+        $this->assertTrue($result);
+
+        $stmt = $this->pdo->prepare('SELECT total_score, levels_completed FROM user_profiles WHERE user_id = ?');
+        $stmt->execute(['user1']);
+        $profile = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        $this->assertSame(50000, (int)$profile['total_score']);
+        $this->assertSame(10, (int)$profile['levels_completed']);
+    }
+
+    public function testUpdateUserProfile(): void
+    {
+        $this->pdo->prepare(
+            'INSERT INTO user_profiles (user_id, username, total_score) VALUES (?, ?, ?)'
+        )->execute(['user1', 'test', 10000]);
+
+        $stmt = $this->pdo->prepare(
+            'UPDATE user_profiles SET total_score = ?, levels_completed = ? WHERE user_id = ?'
+        );
+        $result = $stmt->execute([20000, 5, 'user1']);
+
+        $this->assertTrue($result);
+
+        $stmt = $this->pdo->prepare('SELECT total_score, levels_completed FROM user_profiles WHERE user_id = ?');
+        $stmt->execute(['user1']);
+        $profile = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        $this->assertSame(20000, (int)$profile['total_score']);
+        $this->assertSame(5, (int)$profile['levels_completed']);
+    }
+
+    // ─── Multiple users / rankings ──────────────────────────────────────────
+
+    public function testLeaderboardMultipleUsers(): void
+    {
+        // Insert multiple users
+        $stmt = $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)');
+        $stmt->execute(['user1', 'alice']);
+        $stmt->execute(['user2', 'bob']);
+        $stmt->execute(['user3', 'charlie']);
+
+        // Insert leaderboard entries with ranking
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO leaderboard_cache (mode, user_id, username, score, rank) VALUES (?, ?, ?, ?, ?)'
+        );
+        $stmt->execute(['classic', 'user1', 'alice', 50000, 1]);
+        $stmt->execute(['classic', 'user2', 'bob', 45000, 2]);
+        $stmt->execute(['classic', 'user3', 'charlie', 40000, 3]);
+
+        // Query top 2
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM leaderboard_cache WHERE mode = ? ORDER BY rank ASC LIMIT 2'
+        );
+        $stmt->execute(['classic']);
+        $entries = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->assertCount(2, $entries);
+        $this->assertSame('user1', $entries[0]['user_id']);
+        $this->assertSame('user2', $entries[1]['user_id']);
+    }
+
+    public function testHighscoreLeaderboard(): void
+    {
+        // Insert multiple scores
+        $stmt = $this->pdo->prepare(
+            'INSERT OR REPLACE INTO highscores (user_id, mode, level_id, score) VALUES (?, ?, ?, ?)'
+        );
+        $stmt->execute(['user1', 'classic', 1, 9500]);
+        $stmt->execute(['user2', 'classic', 1, 9200]);
+        $stmt->execute(['user3', 'classic', 1, 9800]);  // Best
+
+        // Query top scores for level
+        $stmt = $this->pdo->prepare(
+            'SELECT user_id, score FROM highscores WHERE mode = ? AND level_id = ? ORDER BY score DESC'
+        );
+        $stmt->execute(['classic', 1]);
+        $scores = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->assertCount(3, $scores);
+        $this->assertSame(9800, (int)$scores[0]['score']);  // Highest
+    }
+
+    // ─── Data cascade / constraints ──────────────────────────────────────────
+
+    public function testCascadeDeleteUser(): void
+    {
+        // Insert user and related data
+        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
+        $this->pdo->prepare(
+            'INSERT INTO user_stats (user_id, max_combo) VALUES (?, ?)'
+        )->execute(['user1', 42]);
+        $this->pdo->prepare(
+            'INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)'
+        )->execute(['user1', 'first_win']);
+
+        // Delete user
+        $this->pdo->prepare('DELETE FROM users WHERE id = ?')->execute(['user1']);
+
+        // Verify cascade worked (stats and achievements gone)
+        $count = $this->pdo->query('SELECT COUNT(*) FROM user_stats WHERE user_id = "user1"')->fetchColumn();
+        $this->assertSame(0, (int)$count);
+
+        $count = $this->pdo->query('SELECT COUNT(*) FROM user_achievements WHERE user_id = "user1"')->fetchColumn();
+        $this->assertSame(0, (int)$count);
+    }
+
+    // ─── Aggregation queries ────────────────────────────────────────────────
+
+    public function testCountAndAggregate(): void
+    {
+        $this->pdo->prepare('INSERT INTO users (id, username) VALUES (?, ?)')->execute(['user1', 'test']);
+
+        // Insert multiple completions
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO game_completions (user_id, mode, level_id, score) VALUES (?, ?, ?, ?)'
+        );
+        $stmt->execute(['user1', 'classic', 1, 9500]);
+        $stmt->execute(['user1', 'classic', 2, 8500]);
+        $stmt->execute(['user1', 'blitz', 1, 7000]);
+
+        // Count total completions
+        $count = $this->pdo->query('SELECT COUNT(*) FROM game_completions WHERE user_id = "user1"')->fetchColumn();
+        $this->assertSame(3, (int)$count);
+
+        // Sum scores
+        $total = $this->pdo->query('SELECT SUM(score) FROM game_completions WHERE user_id = "user1"')->fetchColumn();
+        $this->assertSame(25000, (int)$total);
+
+        // Count by mode
+        $stmt = $this->pdo->prepare('SELECT mode, COUNT(*) as cnt FROM game_completions WHERE user_id = ? GROUP BY mode');
+        $stmt->execute(['user1']);
+        $byMode = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->assertCount(2, $byMode);  // classic and blitz
+    }
 }
