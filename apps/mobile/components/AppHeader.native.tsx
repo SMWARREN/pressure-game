@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface AppHeaderProps {
   title?: string;
@@ -23,7 +24,12 @@ export default function AppHeader({
   showRight = false,
 }: AppHeaderProps) {
   return (
-    <View style={styles.header}>
+    <LinearGradient
+      colors={['#0d0d20', '#06060f']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.header}
+    >
       {showLeft ? (
         <Pressable
           onPress={onLeftPress}
@@ -54,7 +60,7 @@ export default function AppHeader({
           <View style={styles.iconPlaceholder} />
         )}
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -65,8 +71,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#12122a',
-    backgroundColor: 'rgba(6, 6, 15, 0.85)',
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -83,7 +87,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#12122a',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -118,7 +121,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   rightButtons: {
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

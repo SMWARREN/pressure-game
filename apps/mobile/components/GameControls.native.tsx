@@ -10,29 +10,18 @@ interface GameControlsProps {
  * GameControls (Mobile/React Native)
  * Control buttons: Reset, Menu
  */
-export default function GameControls({
-  status,
-  onReset,
-}: GameControlsProps) {
+export default function GameControls({ status, onReset }: GameControlsProps) {
   return (
     <View style={styles.container}>
       <Pressable
         onPress={onReset}
-        style={({ pressed }) => [
-          styles.button,
-          styles.dangerButton,
-          pressed && styles.pressed,
-        ]}
+        style={({ pressed }) => [styles.button, styles.dangerButton, pressed && styles.pressed]}
       >
         <Text style={styles.buttonText}>✕ Reset</Text>
       </Pressable>
 
       <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          styles.primaryButton,
-          pressed && styles.pressed,
-        ]}
+        style={({ pressed }) => [styles.button, styles.primaryButton, pressed && styles.pressed]}
       >
         <Text style={styles.buttonText}>≡ Menu</Text>
       </Pressable>

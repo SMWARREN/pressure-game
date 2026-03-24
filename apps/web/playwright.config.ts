@@ -57,5 +57,5 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: true, // Reuse existing server if available
     timeout: 120000,
-  }
+  },
 });

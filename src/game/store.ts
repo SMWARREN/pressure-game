@@ -158,6 +158,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
     completedLevels: [],
     bestMoves: {},
     bestTimes: {},
+    levelWins: {},
+    levelAttempts: {},
     history: [],
     lastRotatedPos: null,
     showTutorial: false,
@@ -200,10 +202,18 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
 
     setGameMode: (modeId: string) => {
       const { seenTutorials } = get();
-      // Check if in test/harness mode (E2E tests with ?levelId=X)
-      const isTestMode =
-        globalThis.window !== undefined &&
-        new URLSearchParams(globalThis.location.search).has('levelId');
+      // Check if in test/harness mode (E2E tests with ?levelId=X) — web only
+      const isTestMode = (() => {
+        try {
+          return (
+            globalThis.window !== undefined &&
+            typeof globalThis.location?.search === 'string' &&
+            new URLSearchParams(globalThis.location.search).has('levelId')
+          );
+        } catch {
+          return false;
+        }
+      })();
       const alreadySeen = seenTutorials.includes(modeId) || isTestMode;
       set({
         currentModeId: modeId,
@@ -400,7 +410,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => {
           { score: afterWin.score, targetScore: afterWin.currentLevel!.targetScore }
         );
         if (lost) {
-          set({ status: 'lost', lossReason: reason ?? null });
+          const s = get();
+          const lossKey = `${s.currentModeId}:${s.currentLevel!.id}`;
+          set({
+            status: 'lost',
+            lossReason: reason ?? null,
+            levelAttempts: { ...s.levelAttempts, [lossKey]: (s.levelAttempts[lossKey] ?? 0) + 1 },
+          });
           getEngine().stopTimer();
           getEngine().playSound('lose');
         }

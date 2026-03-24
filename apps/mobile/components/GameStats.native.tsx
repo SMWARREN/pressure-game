@@ -52,14 +52,7 @@ export default function GameStats({ moves, score, status }: GameStatsProps) {
 
       <View style={[styles.statItem, { flex: 1 }]}>
         <Text style={styles.label}>Status</Text>
-        <Text
-          style={[
-            styles.value,
-            { color: getStatusColor() },
-          ]}
-        >
-          {getStatusLabel()}
-        </Text>
+        <Text style={[styles.value, { color: getStatusColor() }]}>{getStatusLabel()}</Text>
       </View>
     </View>
   );

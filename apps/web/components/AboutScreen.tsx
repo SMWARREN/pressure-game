@@ -6,26 +6,30 @@ import { useGameStore } from '@/game/store';
 import { useTheme } from '@/hooks/useTheme';
 import { RGBA_COLORS } from '@/utils/constants';
 import { PRESSURE_LOGO_LEVEL } from '@/game/modes/classic/levels';
+import { getModeById } from '@/game/modes';
 import GameBoard from './GameBoard';
 
-export default function AboutScreen({
-  onBack,
-}: {
-  readonly onBack: () => void;
-}) {
+const PRESSURE_SERIES = ['classic', 'blitz', 'zen'];
+
+function getPuzzleName(modeId: string): string {
+  return PRESSURE_SERIES.includes(modeId) ? 'PRESSURE' : getModeById(modeId).name.toUpperCase();
+}
+
+export default function AboutScreen({ onBack }: { readonly onBack: () => void }) {
   const { colors } = useTheme();
   const loadLevel = useGameStore((s) => s.loadLevel);
   const pauseGame = useGameStore((s) => s.pauseGame);
+  const currentModeId = useGameStore((s) => s.currentModeId);
+  const puzzleName = getPuzzleName(currentModeId);
 
-  // Load and pause the logo level on mount
+  // Load and pause the logo level on mount, with mode-specific name
   useEffect(() => {
-    loadLevel(PRESSURE_LOGO_LEVEL);
-    // Small delay to ensure level is loaded before pausing
+    loadLevel({ ...PRESSURE_LOGO_LEVEL, name: puzzleName });
     const timer = setTimeout(() => {
       pauseGame();
     }, 100);
     return () => clearTimeout(timer);
-  }, [loadLevel, pauseGame]);
+  }, [loadLevel, pauseGame, puzzleName]);
 
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column' }}>
@@ -93,7 +97,7 @@ export default function AboutScreen({
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              About
+              {puzzleName}
             </h1>
             <p
               style={{
@@ -103,7 +107,7 @@ export default function AboutScreen({
                 margin: '2px 0 0 0',
               }}
             >
-              The Pressure Logo Puzzle
+              The Logo Puzzle
             </p>
           </div>
         </div>
@@ -136,7 +140,7 @@ export default function AboutScreen({
             letterSpacing: '0.05em',
           }}
         >
-          Zen Mode • No Time Pressure • Solve the P
+          Zen Mode • No Time Pressure • Solve the Puzzle
         </p>
       </div>
     </div>

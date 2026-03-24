@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { useGameStore } from '@/game/store';
 import AppHeader from './AppHeader.native';
 
 interface StatsScreenProps {
@@ -38,45 +37,44 @@ export default function StatsScreen({ onClose }: StatsScreenProps) {
 
       {/* Scrollable Content */}
       <ScrollView style={styles.content}>
-
-      {/* Summary Stats */}
-      <View style={styles.summaryGrid}>
-        <StatCard label="Games Won" value={`${stats.gamesWon}/${stats.totalGames}`} />
-        <StatCard label="Win Rate" value={`${winRate}%`} />
-        <StatCard label="Total Score" value={stats.totalScore.toLocaleString()} />
-        <StatCard label="Best Time" value={`${stats.bestTime}s`} />
-      </View>
-
-      {/* Mode Breakdown */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>By Game Mode</Text>
-        {stats.modes.map((mode) => (
-          <View key={mode.name} style={styles.modeCard}>
-            <View>
-              <Text style={styles.modeName}>{mode.name}</Text>
-              <Text style={styles.modeStats}>
-                {mode.wins} wins • {mode.score} points
-              </Text>
-            </View>
-            <View style={styles.modeScore}>
-              <Text style={styles.modeScoreText}>{mode.score}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Achievements Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Achievements</Text>
-        <View style={styles.achievementGrid}>
-          <AchievementBadge icon="🏆" title="Victory" subtitle="Win 10 games" />
-          <AchievementBadge icon="⚡" title="Speedrun" subtitle="Complete in 30s" />
-          <AchievementBadge icon="🔥" title="Hot Streak" subtitle="Win 5 in a row" />
-          <AchievementBadge icon="💎" title="Collector" subtitle="Earn 5000 points" />
+        {/* Summary Stats */}
+        <View style={styles.summaryGrid}>
+          <StatCard label="Games Won" value={`${stats.gamesWon}/${stats.totalGames}`} />
+          <StatCard label="Win Rate" value={`${winRate}%`} />
+          <StatCard label="Total Score" value={stats.totalScore.toLocaleString()} />
+          <StatCard label="Best Time" value={`${stats.bestTime}s`} />
         </View>
-      </View>
 
-      <View style={styles.spacer} />
+        {/* Mode Breakdown */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>By Game Mode</Text>
+          {stats.modes.map((mode) => (
+            <View key={mode.name} style={styles.modeCard}>
+              <View>
+                <Text style={styles.modeName}>{mode.name}</Text>
+                <Text style={styles.modeStats}>
+                  {mode.wins} wins • {mode.score} points
+                </Text>
+              </View>
+              <View style={styles.modeScore}>
+                <Text style={styles.modeScoreText}>{mode.score}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Achievements Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Achievements</Text>
+          <View style={styles.achievementGrid}>
+            <AchievementBadge icon="🏆" title="Victory" subtitle="Win 10 games" />
+            <AchievementBadge icon="⚡" title="Speedrun" subtitle="Complete in 30s" />
+            <AchievementBadge icon="🔥" title="Hot Streak" subtitle="Win 5 in a row" />
+            <AchievementBadge icon="💎" title="Collector" subtitle="Earn 5000 points" />
+          </View>
+        </View>
+
+        <View style={styles.spacer} />
       </ScrollView>
     </View>
   );

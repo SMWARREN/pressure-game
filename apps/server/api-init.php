@@ -115,8 +115,12 @@ $existing = 0;
 foreach ($tables as $table) {
   if ($conn->query($table['sql'])) {
     // Check if table already existed
-    $result = $conn->query("SELECT COUNT(*) as count FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$DB_NAME' AND TABLE_NAME = '{$table['name']}'");
+    $stmt = $conn->prepare('SELECT COUNT(*) as count FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?');
+    $stmt->bind_param('ss', $DB_NAME, $table['name']);
+    $stmt->execute();
+    $result = $stmt->get_result();
     $row = $result->fetch_assoc();
+    $stmt->close();
 
     if ($row['count'] > 0) {
       echo "✓ Table '{$table['name']}' already exists\n";
@@ -144,4 +148,4 @@ echo "  GET  /api/leaderboard/{mode}               - Get leaderboard\n";
 echo "  POST /api/achievement/{userId}/{id}        - Unlock achievement\n";
 echo "  GET  /api/achievement/{userId}             - Get user achievements\n";
 echo "  GET  /api/profile/{userId}                 - Get user profile\n";
-?>
+

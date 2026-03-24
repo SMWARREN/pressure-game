@@ -31,10 +31,7 @@ export default function TabNavigator({ activeTab, onTabChange }: TabNavigatorPro
         <Pressable
           key={tab.name}
           onPress={() => onTabChange(tab.name)}
-          style={[
-            styles.tab,
-            activeTab === tab.name && styles.tabActive,
-          ]}
+          style={[styles.tab, activeTab === tab.name && styles.tabActive]}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Text style={styles.icon}>{tab.icon}</Text>

@@ -12,6 +12,7 @@ import {
 import { unlockAchievement, updateUserStats } from '../api/leaderboards';
 import { getModeById } from '../modes';
 import { STORAGE_KEYS } from '@/utils/constants';
+import { nativeStorage } from '@/game/utils/storage';
 
 type AchievementSubscriber = () => void;
 
@@ -53,7 +54,7 @@ class AchievementEngine {
 
   private loadState(): AchievementState {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);
+      const saved = nativeStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
@@ -102,7 +103,7 @@ class AchievementEngine {
 
   private saveState(): void {
     try {
-      localStorage.setItem(
+      nativeStorage.setItem(
         STORAGE_KEYS.ACHIEVEMENTS,
         JSON.stringify({
           progress: this.state.progress,
@@ -123,7 +124,7 @@ class AchievementEngine {
 
   private loadLevelAttempts(): void {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.LEVEL_ATTEMPTS);
+      const saved = nativeStorage.getItem(STORAGE_KEYS.LEVEL_ATTEMPTS);
       if (saved) {
         this.levelAttempts = JSON.parse(saved);
       }
@@ -134,7 +135,7 @@ class AchievementEngine {
 
   private saveLevelAttempts(): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.LEVEL_ATTEMPTS, JSON.stringify(this.levelAttempts));
+      nativeStorage.setItem(STORAGE_KEYS.LEVEL_ATTEMPTS, JSON.stringify(this.levelAttempts));
     } catch (e) {
       console.warn('Failed to save level attempts:', e);
     }
@@ -660,7 +661,7 @@ class AchievementEngine {
    */
   getStreakData(): { currentStreak: number; lastPlayDate: string | null } {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.DAILY_STREAK);
+      const saved = nativeStorage.getItem(STORAGE_KEYS.DAILY_STREAK);
       if (saved) {
         return JSON.parse(saved);
       }
@@ -703,7 +704,7 @@ class AchievementEngine {
     // Save updated streak
     const newData = { currentStreak: newStreak, lastPlayDate: today };
     try {
-      localStorage.setItem(STORAGE_KEYS.DAILY_STREAK, JSON.stringify(newData));
+      nativeStorage.setItem(STORAGE_KEYS.DAILY_STREAK, JSON.stringify(newData));
     } catch (e) {
       console.warn('Failed to save streak data:', e);
     }

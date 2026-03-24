@@ -12,66 +12,39 @@ import {
 describe('conditionalStyles utilities', () => {
   describe('selectByCondition', () => {
     it('should return first matching value', () => {
-      const result = selectByCondition(
-        [true, 'first'],
-        [true, 'second'],
-        [true, 'third']
-      );
+      const result = selectByCondition([true, 'first'], [true, 'second'], [true, 'third']);
       expect(result).toBe('first');
     });
 
     it('should return second value when first condition is false', () => {
-      const result = selectByCondition(
-        [false, 'first'],
-        [true, 'second'],
-        [true, 'third']
-      );
+      const result = selectByCondition([false, 'first'], [true, 'second'], [true, 'third']);
       expect(result).toBe('second');
     });
 
     it('should return fallback when no conditions match', () => {
-      const result = selectByCondition(
-        [false, 'first'],
-        [false, 'second'],
-        [true, 'fallback']
-      );
+      const result = selectByCondition([false, 'first'], [false, 'second'], [true, 'fallback']);
       expect(result).toBe('fallback');
     });
 
     it('should handle undefined conditions', () => {
-      const result = selectByCondition(
-        [undefined, 'first'],
-        [true, 'second'],
-        [true, 'fallback']
-      );
+      const result = selectByCondition([undefined, 'first'], [true, 'second'], [true, 'fallback']);
       expect(result).toBe('second');
     });
 
     it('should work with numeric values', () => {
-      const result = selectByCondition(
-        [false, 1],
-        [true, 2],
-        [true, 3]
-      );
+      const result = selectByCondition([false, 1], [true, 2], [true, 3]);
       expect(result).toBe(2);
     });
 
     it('should work with object values', () => {
       const obj1 = { color: 'red' };
       const obj2 = { color: 'blue' };
-      const result = selectByCondition(
-        [false, obj1],
-        [true, obj2]
-      );
+      const result = selectByCondition([false, obj1], [true, obj2]);
       expect(result).toBe(obj2);
     });
 
     it('should return last option as fallback if no conditions match', () => {
-      const result = selectByCondition(
-        [false, 'a'],
-        [false, 'b'],
-        [false, 'c']
-      );
+      const result = selectByCondition([false, 'a'], [false, 'b'], [false, 'c']);
       expect(result).toBe('c');
     });
 
@@ -283,12 +256,12 @@ describe('conditionalStyles utilities', () => {
 
     it('should be opposite of isNotEmpty', () => {
       const arrays = [[], [1], [1, 2, 3]];
-      arrays.forEach(arr => {
+      arrays.forEach((arr) => {
         expect(isEmpty(arr)).toBe(!isNotEmpty(arr));
       });
 
       const sets = [new Set(), new Set([1]), new Set([1, 2])];
-      sets.forEach(set => {
+      sets.forEach((set) => {
         expect(isEmpty(set)).toBe(!isNotEmpty(set));
       });
     });

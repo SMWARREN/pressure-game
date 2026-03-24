@@ -148,7 +148,7 @@ describe('themeColors', () => {
 
   describe('Theme color contrast', () => {
     it('should have primary text and background colors defined', () => {
-      [DARK_THEME, LIGHT_THEME].forEach(theme => {
+      [DARK_THEME, LIGHT_THEME].forEach((theme) => {
         expect(theme.text.primary).toBeDefined();
         expect(theme.bg.primary).toBeDefined();
       });
@@ -171,7 +171,7 @@ describe('themeColors', () => {
 
   describe('Status colors', () => {
     it('should have consistent status colors across themes', () => {
-      ['success', 'error', 'warning', 'info'].forEach(status => {
+      ['success', 'error', 'warning', 'info'].forEach((status) => {
         expect(DARK_THEME.status[status as keyof typeof DARK_THEME.status]).toBeDefined();
         expect(LIGHT_THEME.status[status as keyof typeof LIGHT_THEME.status]).toBeDefined();
       });

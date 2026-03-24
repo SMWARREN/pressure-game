@@ -20,9 +20,5 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
 }) {
   const icon = iconMap[name] || '•';
-  return (
-    <Text style={[{ fontSize: size, color }, style]}>
-      {icon}
-    </Text>
-  );
+  return <Text style={[{ fontSize: size, color }, style]}>{icon}</Text>;
 }

@@ -201,24 +201,20 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.SERVER_PORT || 3001;
 
-async function start() {
-  try {
-    await initDatabase();
+try {
+  await initDatabase();
 
-    app.listen(PORT, () => {
-      console.log(`\n🎮 Pressure Game Server running at http://localhost:${PORT}`);
-      console.log(`📊 MySQL Database: ${process.env.MYSQL_DATABASE}`);
-      console.log(`\nAPI Endpoints:`);
-      console.log(`  GET  /api/data/:userId/:key`);
-      console.log(`  POST /api/data/:userId/:key`);
-      console.log(`  DELETE /api/data/:userId/:key`);
-      console.log(`  GET  /api/user/:userId/data (export all)`);
-      console.log(`  GET  /api/health (health check)\n`);
-    });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
+  app.listen(PORT, () => {
+    console.log(`\n🎮 Pressure Game Server running at http://localhost:${PORT}`);
+    console.log(`📊 MySQL Database: ${process.env.MYSQL_DATABASE}`);
+    console.log(`\nAPI Endpoints:`);
+    console.log(`  GET  /api/data/:userId/:key`);
+    console.log(`  POST /api/data/:userId/:key`);
+    console.log(`  DELETE /api/data/:userId/:key`);
+    console.log(`  GET  /api/user/:userId/data (export all)`);
+    console.log(`  GET  /api/health (health check)\n`);
+  });
+} catch (error) {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
 }
-
-start();

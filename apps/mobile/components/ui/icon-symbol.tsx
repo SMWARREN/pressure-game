@@ -3,8 +3,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconSymbolName = string;
-
 const MAPPING: Record<string, string> = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
@@ -18,7 +16,7 @@ export function IconSymbol({
   color,
   style,
 }: {
-  name: IconSymbolName;
+  name: string;
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;

@@ -76,18 +76,18 @@ export const SHOPPING_WORLDS = [
     icon: '👑',
   },
   {
-    id: 4,
-    name: 'Unlimited',
-    tagline: 'Combos add time — shop forever!',
-    color: '#22c55e',
-    icon: '♾️',
-  },
-  {
     id: 5,
     name: 'Black Friday',
     tagline: 'Wildcards, bombs & combo deals!',
     color: '#dc2626',
     icon: '🔥',
+  },
+  {
+    id: 4,
+    name: 'Unlimited',
+    tagline: 'Combos add time — shop forever!',
+    color: '#22c55e',
+    icon: '♾️',
   },
 ];
 

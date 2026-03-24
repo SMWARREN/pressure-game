@@ -8,7 +8,7 @@ import { STORAGE_KEYS } from '@/utils/constants';
 export function getUserId(): string {
   const envUserId =
     (typeof process !== 'undefined' && process.env.VITE_USER_ID) ||
-    ((globalThis as any).__VITE_USER_ID);
+    (globalThis as any).__VITE_USER_ID;
   if (envUserId) {
     return envUserId;
   }
@@ -16,7 +16,9 @@ export function getUserId(): string {
   // Check localStorage for existing user ID
   try {
     const storedUserId =
-      globalThis.localStorage !== undefined ? globalThis.localStorage.getItem(STORAGE_KEYS.USER_ID) : null;
+      globalThis.localStorage === undefined
+        ? null
+        : globalThis.localStorage.getItem(STORAGE_KEYS.USER_ID);
     if (storedUserId) {
       return storedUserId;
     }

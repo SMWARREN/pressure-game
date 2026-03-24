@@ -75,6 +75,8 @@ export class PersistenceSystem {
         theme: p.theme === 'light' ? 'light' : 'dark',
         lastPlayedLevelId: p.lastPlayedLevelId ?? {},
         editorEnabled: p.editorEnabled ?? false,
+        levelWins: p.levelWins ?? {},
+        levelAttempts: p.levelAttempts ?? {},
       };
     } catch {
       return { ...DEFAULT_PERSISTED };
@@ -88,7 +90,9 @@ export class PersistenceSystem {
     try {
       // Load existing storage to preserve highscores and presets
       const raw = this.backend.getItem(STORAGE_KEY);
-      const storage: ConsolidatedStorage = raw ? JSON.parse(raw) : { save: {}, highscores: {}, editorPresets: [] };
+      const storage: ConsolidatedStorage = raw
+        ? JSON.parse(raw)
+        : { save: {}, highscores: {}, editorPresets: [] };
 
       // Update only the save section
       storage.save = this.buildPayload(state);
@@ -116,6 +120,8 @@ export class PersistenceSystem {
       theme: state.theme,
       lastPlayedLevelId: state.lastPlayedLevelId,
       editorEnabled: state.editor?.enabled ?? false,
+      levelWins: state.levelWins ?? {},
+      levelAttempts: state.levelAttempts ?? {},
     };
   }
 
@@ -221,7 +227,9 @@ export class PersistenceSystem {
   setHighScore(modeId: string, levelId: number, score: number): void {
     try {
       const raw = this.backend.getItem(STORAGE_KEY);
-      const storage: ConsolidatedStorage = raw ? JSON.parse(raw) : { save: DEFAULT_PERSISTED, highscores: {}, editorPresets: [] };
+      const storage: ConsolidatedStorage = raw
+        ? JSON.parse(raw)
+        : { save: DEFAULT_PERSISTED, highscores: {}, editorPresets: [] };
 
       const levelKey = `${modeId}:${levelId}`;
       if (!storage.highscores[levelKey] || score > storage.highscores[levelKey]) {
@@ -256,7 +264,9 @@ export class PersistenceSystem {
   setEditorPresets(presets: unknown[]): void {
     try {
       const raw = this.backend.getItem(STORAGE_KEY);
-      const storage: ConsolidatedStorage = raw ? JSON.parse(raw) : { save: DEFAULT_PERSISTED, highscores: {}, editorPresets: [] };
+      const storage: ConsolidatedStorage = raw
+        ? JSON.parse(raw)
+        : { save: DEFAULT_PERSISTED, highscores: {}, editorPresets: [] };
 
       storage.editorPresets = presets;
       this.backend.setItem(STORAGE_KEY, JSON.stringify(storage));

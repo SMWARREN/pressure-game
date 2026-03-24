@@ -19,18 +19,18 @@ export const CANDY_WORLDS = [
     icon: '❄️',
   },
   {
-    id: 5,
-    name: 'Unlimited',
-    tagline: 'Big combos unfreeze tiles & add time!',
-    color: '#22c55e',
-    icon: '♾️',
-  },
-  {
     id: 6,
     name: 'Tropical',
     tagline: 'Wildcards, bombs & combo chaos!',
     color: '#f59e0b',
     icon: '🌴',
+  },
+  {
+    id: 5,
+    name: 'Unlimited',
+    tagline: 'Big combos unfreeze tiles & add time!',
+    color: '#22c55e',
+    icon: '♾️',
   },
 ];
 

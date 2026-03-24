@@ -11,14 +11,22 @@ import type { GameStatus } from '@/game/types';
 describe('statusColors', () => {
   describe('STATUS_COLORS constant', () => {
     it('should have all required status keys', () => {
-      const statuses: GameStatus[] = ['menu', 'idle', 'playing', 'won', 'lost', 'tutorial', 'paused'];
-      statuses.forEach(status => {
+      const statuses: GameStatus[] = [
+        'menu',
+        'idle',
+        'playing',
+        'won',
+        'lost',
+        'tutorial',
+        'paused',
+      ];
+      statuses.forEach((status) => {
         expect(STATUS_COLORS[status]).toBeDefined();
       });
     });
 
     it('should have all color variants for each status', () => {
-      Object.values(STATUS_COLORS).forEach(colors => {
+      Object.values(STATUS_COLORS).forEach((colors) => {
         expect(colors.bg).toBeDefined();
         expect(colors.border).toBeDefined();
         expect(colors.text).toBeDefined();
@@ -27,7 +35,7 @@ describe('statusColors', () => {
 
     it('should have valid hex color strings', () => {
       const hexRegex = /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i;
-      Object.values(STATUS_COLORS).forEach(colors => {
+      Object.values(STATUS_COLORS).forEach((colors) => {
         expect(hexRegex.test(colors.bg)).toBe(true);
         expect(hexRegex.test(colors.border)).toBe(true);
         expect(hexRegex.test(colors.text)).toBe(true);
@@ -74,11 +82,19 @@ describe('statusColors', () => {
     });
 
     it('should return value for all variant combinations', () => {
-      const statuses: GameStatus[] = ['menu', 'idle', 'playing', 'won', 'lost', 'tutorial', 'paused'];
+      const statuses: GameStatus[] = [
+        'menu',
+        'idle',
+        'playing',
+        'won',
+        'lost',
+        'tutorial',
+        'paused',
+      ];
       const variants = ['bg', 'border', 'text'] as const;
 
-      statuses.forEach(status => {
-        variants.forEach(variant => {
+      statuses.forEach((status) => {
+        variants.forEach((variant) => {
           const color = getStatusColor(status, variant);
           expect(color).toBeDefined();
           expect(typeof color).toBe('string');
@@ -199,15 +215,16 @@ describe('statusColors', () => {
       const firstStatus = allStatuses[0];
       const expectedKeys = Object.keys(STATUS_COLORS[firstStatus]);
 
-      allStatuses.forEach(status => {
+      allStatuses.forEach((status) => {
         const keys = Object.keys(STATUS_COLORS[status]);
         expect(keys).toEqual(expectedKeys);
       });
     });
 
     it('should have different text colors for different statuses', () => {
-      const textColors = ['menu', 'idle', 'playing', 'won', 'lost', 'tutorial', 'paused']
-        .map(status => STATUS_COLORS[status as GameStatus].text);
+      const textColors = ['menu', 'idle', 'playing', 'won', 'lost', 'tutorial', 'paused'].map(
+        (status) => STATUS_COLORS[status as GameStatus].text
+      );
 
       const uniqueTextColors = new Set(textColors);
       // Should have mostly different colors (at least some variation)

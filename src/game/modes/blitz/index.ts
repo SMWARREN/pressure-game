@@ -11,13 +11,13 @@ import { BLITZ_WALKTHROUGH } from './walkthrough';
 import { getModeColorPalette } from '../modeColorFactory';
 
 export const BLITZ_WORLDS = [
-  { id: 1, name: 'Ignite', tagline: 'Warm up', color: '#fb923c', icon: '◈' },
+  { id: 1, name: 'Ignite', tagline: 'Warm up', color: '#fde047', icon: '◈' },
   { id: 2, name: 'Surge', tagline: 'Walls never stop', color: '#f97316', icon: '◆' },
   { id: 3, name: 'Overload', tagline: 'No mercy', color: '#ef4444', icon: '⬟' },
-  { id: 4, name: 'Vector', tagline: 'Pick your angle', color: '#dc2626', icon: '▲' },
-  { id: 5, name: 'Lateral', tagline: 'Sideways burn', color: '#b91c1c', icon: '◀' },
-  { id: 6, name: 'Vise', tagline: 'Closing from both ends', color: '#991b1b', icon: '⬛' },
-  { id: 7, name: 'Channel', tagline: 'Side by side annihilation', color: '#7f1d1d', icon: '▬' },
+  { id: 4, name: 'Vector', tagline: 'Pick your angle', color: '#e11d48', icon: '▲' },
+  { id: 5, name: 'Lateral', tagline: 'Sideways burn', color: '#db2777', icon: '◀' },
+  { id: 6, name: 'Vise', tagline: 'Closing from both ends', color: '#9333ea', icon: '◼' },
+  { id: 7, name: 'Channel', tagline: 'Side by side annihilation', color: '#4f46e5', icon: '▬' },
 ];
 
 export const BlitzMode: GameModeConfig = {

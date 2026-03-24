@@ -14,11 +14,11 @@ import { getModeColorPalette } from '../modeColorFactory';
 export const CLASSIC_WORLDS = [
   { id: 1, name: 'Breathe', tagline: 'Learn the basics', color: '#22c55e', icon: '◈' },
   { id: 2, name: 'Squeeze', tagline: 'Feel the walls', color: '#f59e0b', icon: '◆' },
-  { id: 3, name: 'Crush', tagline: 'Survive or die', color: '#ef4444', icon: '⬟' },
-  { id: 4, name: 'Directional', tagline: 'Walls pick a side', color: '#f97316', icon: '▲' },
-  { id: 5, name: 'Lateral', tagline: 'Horizontal pressure', color: '#dc2626', icon: '◀' },
-  { id: 6, name: 'Squeeze', tagline: 'Top and bottom close in', color: '#b91c1c', icon: '⬛' },
-  { id: 7, name: 'Corridor', tagline: 'Left and right close in', color: '#991b1b', icon: '▬' },
+  { id: 3, name: 'Crush', tagline: 'Survive or die', color: '#06b6d4', icon: '⬟' },
+  { id: 4, name: 'Directional', tagline: 'Walls pick a side', color: '#8b5cf6', icon: '▲' },
+  { id: 5, name: 'Lateral', tagline: 'Horizontal pressure', color: '#f97316', icon: '◀' },
+  { id: 6, name: 'Squeeze', tagline: 'Top and bottom close in', color: '#ef4444', icon: '▬' },
+  { id: 7, name: 'Corridor', tagline: 'Left and right close in', color: '#ec4899', icon: '▬' },
 ];
 
 export const ClassicMode: GameModeConfig = {

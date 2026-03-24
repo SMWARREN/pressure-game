@@ -166,9 +166,7 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
   }
 
   if (showAbout) {
-    return (
-      <AboutScreen onBack={() => setShowAbout(false)} />
-    );
+    return <AboutScreen onBack={() => setShowAbout(false)} />;
   }
 
   return (
@@ -203,29 +201,51 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
           padding: 'max(16px, env(safe-area-inset-top)) 20px 14px',
         }}
       >
-        <div
-          style={{
-            fontSize: 'clamp(2rem, 10vw, 3.5rem)',
-            fontWeight: 900,
-            letterSpacing: '-0.06em',
-            lineHeight: 1,
-            background: 'linear-gradient(135deg, #c4b5fd 0%, #818cf8 40%, #6366f1 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
-          PRESSURE
-        </div>
-        <div
-          style={{
-            fontSize: 10,
-            color: colors.text.tertiary,
-            letterSpacing: '0.25em',
-            marginTop: 4,
-          }}
-        >
-          PIPE PUZZLE
-        </div>
+        {(() => {
+          const isPressureSeries = ['classic', 'blitz', 'zen'].includes(currentModeId);
+          const headerText = isPressureSeries ? 'PRESSURE' : activeMode.name.toUpperCase();
+          const modeColor = activeMode.color ?? '#a78bfa';
+          const gradient = isPressureSeries
+            ? 'linear-gradient(135deg, #c4b5fd 0%, #818cf8 40%, #6366f1 100%)'
+            : (() => {
+                const r = parseInt(modeColor.slice(1, 3), 16),
+                  g = parseInt(modeColor.slice(3, 5), 16),
+                  b = parseInt(modeColor.slice(5, 7), 16);
+                const li = (v: number, a: number) => Math.min(255, Math.round(v + (255 - v) * a));
+                const da = (v: number, a: number) => Math.round(v * (1 - a));
+                const h = (rv: number, gv: number, bv: number) =>
+                  `#${rv.toString(16).padStart(2, '0')}${gv.toString(16).padStart(2, '0')}${bv.toString(16).padStart(2, '0')}`;
+                return `linear-gradient(135deg, ${h(li(r, 0.4), li(g, 0.4), li(b, 0.4))} 0%, ${modeColor} 50%, ${h(da(r, 0.25), da(g, 0.25), da(b, 0.25))} 100%)`;
+              })();
+          return (
+            <>
+              <div
+                style={{
+                  fontSize: 'clamp(2rem, 10vw, 3.5rem)',
+                  fontWeight: 900,
+                  letterSpacing: '-0.06em',
+                  lineHeight: 1,
+                  background: gradient,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                {headerText}
+              </div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: colors.text.tertiary,
+                  letterSpacing: '0.25em',
+                  marginTop: 4,
+                  minHeight: 14,
+                }}
+              >
+                {isPressureSeries ? 'PIPE PUZZLE' : ''}
+              </div>
+            </>
+          );
+        })()}
         <div style={{ marginTop: 10, width: '100%', maxWidth: 260 }}>
           <div
             style={{
@@ -468,6 +488,8 @@ export function MenuScreen({ onLevelSelected }: MenuScreenProps) {
                       <div
                         style={{
                           fontSize: 20,
+                          color: wDef.color,
+                          opacity: active ? 1 : 0.5,
                           filter: worldIconFilter,
                         }}
                       >

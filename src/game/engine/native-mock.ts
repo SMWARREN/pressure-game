@@ -6,51 +6,52 @@
  * Replace with real PressureEngine when ready.
  */
 
-import type { IPressureEngine, EngineContext, PersistedState, WallAdvanceResult, SoundEffect } from './types';
-import type { GameState, Level, Tile } from '../types';
+import type { IPressureEngine, PersistedState, WallAdvanceResult, SoundEffect } from './types';
+import type { GameState, Level, Position, Tile } from '../types';
 
 /**
  * Create a 4x4 sample level for development
  */
 function createSampleLevel(): Level {
   const tiles: Tile[] = [];
-  let id = 0;
+  let idCounter = 0;
 
   // Create 4x4 grid with random rotations
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 4; col++) {
-      const tileTypes = ['straight', 'corner'] as const;
+  for (let y = 0; y < 4; y++) {
+    for (let x = 0; x < 4; x++) {
       const connections: ('up' | 'down' | 'left' | 'right')[] =
         Math.random() > 0.5
-          ? ['up', 'down']  // straight
+          ? ['up', 'down'] // straight
           : ['up', 'right']; // corner
 
       tiles.push({
-        id,
-        row,
-        col,
-        type: tileTypes[Math.floor(Math.random() * 2)],
+        id: String(idCounter),
+        x,
+        y,
+        type: 'path',
         connections,
-        rotation: Math.floor(Math.random() * 4),
-        isGoal: Math.random() < 0.1, // 10% are goals
-        isWall: row === 0, // Top row is walls
-        displayData: {},
+        isGoalNode: Math.random() < 0.1,
         canRotate: true,
       });
-      id++;
+      idCounter++;
     }
   }
 
+  const goalNodes: Position[] = [
+    { x: 1, y: 1 },
+    { x: 1, y: 2 },
+    { x: 1, y: 3 },
+  ];
+
   return {
     id: 1,
-    title: 'Sample Level',
-    width: 4,
-    height: 4,
+    name: 'Sample Level',
+    world: 1,
+    gridSize: 4,
     tiles,
-    wallCompression: 'optional',
     compressionDelay: 10000,
-    maxMoves: null,
-    goalNodes: [0, 5, 10], // Sample goal positions
+    maxMoves: 0,
+    goalNodes,
   };
 }
 
@@ -60,7 +61,7 @@ function createSampleLevel(): Level {
 export class NativeMockPressureEngine implements IPressureEngine {
   private sampleLevel: Level | null = null;
 
-  init(getState: () => GameState, setState: (partial: Partial<GameState>) => void): void {
+  init(_getState: () => GameState, setState: (partial: Partial<GameState>) => void): void {
     // Initialize with sample level
     this.sampleLevel = createSampleLevel();
 
@@ -116,7 +117,7 @@ export class NativeMockPressureEngine implements IPressureEngine {
     };
   }
 
-  persist(state: GameState): void {
+  persist(_state: GameState): void {
     // No-op - don't save in mock mode
   }
 

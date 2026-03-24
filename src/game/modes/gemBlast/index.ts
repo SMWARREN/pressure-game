@@ -225,7 +225,9 @@ const GEM_SYMBOL_COLORS: Record<string, ThemedGemColor> = {
 };
 
 function getGemColors(theme: 'light' | 'dark'): Record<string, TileColors> {
-  return Object.fromEntries(Object.entries(GEM_SYMBOL_COLORS).map(([symbol, colors]) => [symbol, colors[theme]]));
+  return Object.fromEntries(
+    Object.entries(GEM_SYMBOL_COLORS).map(([symbol, colors]) => [symbol, colors[theme]])
+  );
 }
 
 // ── Gravity + refill ──────────────────────────────────────────────────────────

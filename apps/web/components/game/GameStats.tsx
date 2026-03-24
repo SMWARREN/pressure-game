@@ -236,7 +236,7 @@ function ScoreDisplay({
         }}
       >
         <span style={{ color: '#f472b6', fontWeight: 800 }}>SCORE</span>
-        {targetScore !== undefined && (
+        {targetScore !== undefined && targetScore < 99999 && (
           <span style={{ color: colors.text.tertiary }}>TARGET {targetScore}</span>
         )}
       </div>
@@ -254,7 +254,7 @@ function ScoreDisplay({
         >
           {score}
         </div>
-        {targetScore !== undefined && (
+        {targetScore !== undefined && targetScore < 99999 && (
           <div
             style={{
               flex: 1,

@@ -33,17 +33,14 @@ function computeOverlayProps(context: OverlayPropsContext): {
   const winTitle = outOfTaps ? 'OUT OF TAPS' : (mode.overlayText?.win ?? 'CONNECTED');
   const lossTitle = lossReason ?? mode.overlayText?.loss ?? 'CRUSHED';
 
-  // Determine stats text based on mode type
-  let statsText = '';
-  const hasScore = targetScore !== undefined && targetScore > 0;
-  if (hasScore) {
-    statsText = `${score} pts · ${moves} taps`;
-  } else {
-    const mins = Math.floor(elapsedSeconds / 60);
-    const secs = elapsedSeconds % 60;
-    const timeStr = mins > 0 ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}s`;
-    statsText = `${moves} moves · ${timeStr}`;
-  }
+  // Always show moves + score (if any) + time
+  const mins = Math.floor(elapsedSeconds / 60);
+  const secs = elapsedSeconds % 60;
+  const timeStr = mins > 0 ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}s`;
+  const parts: string[] = [`${moves} move${moves === 1 ? '' : 's'}`];
+  if (score > 0) parts.push(`${score} pts`);
+  if (elapsedSeconds > 0) parts.push(timeStr);
+  const statsText = parts.join(' · ');
 
   return { reachedTarget, outOfTaps, winTitle, lossTitle, statsText };
 }

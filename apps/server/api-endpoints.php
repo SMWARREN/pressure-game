@@ -7,12 +7,20 @@
  * Variables available from api.php: $pdo, $method, $routeParts
  */
 
+// ─── SHARED CONSTANTS ───────────────────────────────────────────────────────
+if (!defined('PHP_INPUT')) {
+  define('PHP_INPUT', 'php://input');
+}
+if (!defined('ERR_MISSING_USER_ID')) {
+  define('ERR_MISSING_USER_ID', 'Missing user_id');
+}
+
 
 // ─── USER ENDPOINTS ────────────────────────────────────────────────────────
 
 // POST /api/users - Create or get user
 if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'users') {
-  $data = json_decode(file_get_contents('php://input'), true);
+  $data = json_decode(file_get_contents(PHP_INPUT), true);
   $userId = $data['id'] ?? null;
   $username = $data['username'] ?? null;
 
@@ -80,7 +88,7 @@ if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'users')
 
 // POST /api/games - Record game completion
 if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'games') {
-  $data = json_decode(file_get_contents('php://input'), true);
+  $data = json_decode(file_get_contents(PHP_INPUT), true);
   $userId = $data['user_id'] ?? null;
   $mode = $data['mode'] ?? null;
   $levelId = $data['level_id'] ?? null;
@@ -119,7 +127,7 @@ if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'games')
 
   if (!$userId) {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing user_id']);
+    echo json_encode(['error' => ERR_MISSING_USER_ID]);
     exit;
   }
 
@@ -156,7 +164,7 @@ if ($method === 'POST' && count($routeParts) === 2 && $routeParts[0] === 'achiev
 
   if (!$userId) {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing user_id']);
+    echo json_encode(['error' => ERR_MISSING_USER_ID]);
     exit;
   }
 
@@ -182,7 +190,7 @@ if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'achieve
 
   if (!$userId) {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing user_id']);
+    echo json_encode(['error' => ERR_MISSING_USER_ID]);
     exit;
   }
 
@@ -205,12 +213,12 @@ if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'achieve
 
 // POST /api/stats - Update user stats
 if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'stats') {
-  $data = json_decode(file_get_contents('php://input'), true);
+  $data = json_decode(file_get_contents(PHP_INPUT), true);
   $userId = $data['user_id'] ?? null;
 
   if (!$userId) {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing user_id']);
+    echo json_encode(['error' => ERR_MISSING_USER_ID]);
     exit;
   }
 
@@ -259,7 +267,7 @@ if ($method === 'GET' && count($routeParts) === 1 && $routeParts[0] === 'stats')
 
   if (!$userId) {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing user_id']);
+    echo json_encode(['error' => ERR_MISSING_USER_ID]);
     exit;
   }
 
@@ -303,7 +311,7 @@ if ($method === 'GET' && count($routeParts) === 2 && $routeParts[0] === 'leaderb
 
 // POST /api/replays - Save replay
 if ($method === 'POST' && count($routeParts) === 1 && $routeParts[0] === 'replays') {
-  $data = json_decode(file_get_contents('php://input'), true);
+  $data = json_decode(file_get_contents(PHP_INPUT), true);
   $userId = $data['user_id'] ?? null;
   $mode = $data['mode'] ?? null;
   $levelId = $data['level_id'] ?? null;

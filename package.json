@@ -32,12 +32,23 @@
     "lint": "npm run web:lint",
     "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
     "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
-    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src,apps/web/src,apps/mobile -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqa_e56f52c82739bec98200273e808d261b644332ea -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/dist/**,**/.next/**,**/build/**,**/.expo/**,**/coverage/**,**/cli/**",
+    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src,apps/web/src,apps/mobile -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_016dd3f0d8840fa5b5baef431bbcb44b323362a9 -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/dist/**,**/.next/**,**/build/**,**/.expo/**,**/coverage/**,**/cli/**",
     "sonar:clean": "npm run sonar:stop && npm run sonar:start"
   },
   "devDependencies": {
-    "babel-preset-expo": "~54.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.0",
+    "@vitest/ui": "^2.1.0",
+    "jsdom": "^28.1.0",
     "sonarqube-scanner": "^4.3.4",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "5.4.11",
+    "vitest": "^2.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@babel/plugin-transform-react-jsx": "7.25.9",
+      "@babel/preset-react": "7.25.9"
+    }
   }
 }

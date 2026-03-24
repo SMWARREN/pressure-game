@@ -8,15 +8,17 @@ describe('Gravity Drop Mode', () => {
 
   beforeEach(() => {
     const state = useGameStore.getState();
-    level = state.currentLevel || ({
-      id: 'test_gravity_1',
-      modeId: 'gravity_drop',
-      difficulty: 1,
-      title: 'Test Gravity Level',
-      wallCompression: 'optional',
-      tiles: [],
-      goalNodes: [],
-    } as any);
+    level =
+      state.currentLevel ||
+      ({
+        id: 'test_gravity_1',
+        modeId: 'gravity_drop',
+        difficulty: 1,
+        title: 'Test Gravity Level',
+        wallCompression: 'optional',
+        tiles: [],
+        goalNodes: [],
+      } as any);
   });
 
   describe('mode configuration', () => {
@@ -40,7 +42,10 @@ describe('Gravity Drop Mode', () => {
     });
 
     it('should have tile renderer or use default', () => {
-      expect(GravityDropMode.tileRenderer === undefined || typeof GravityDropMode.tileRenderer === 'object').toBe(true);
+      expect(
+        GravityDropMode.tileRenderer === undefined ||
+          typeof GravityDropMode.tileRenderer === 'object'
+      ).toBe(true);
     });
   });
 

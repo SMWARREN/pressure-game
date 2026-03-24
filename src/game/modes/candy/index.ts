@@ -185,7 +185,9 @@ const CANDY_SYMBOL_COLORS: Record<string, ThemedColor> = {
 };
 
 function getCandyColors(theme: 'light' | 'dark'): Record<string, SymbolColor> {
-  return Object.fromEntries(Object.entries(CANDY_SYMBOL_COLORS).map(([symbol, colors]) => [symbol, colors[theme]]));
+  return Object.fromEntries(
+    Object.entries(CANDY_SYMBOL_COLORS).map(([symbol, colors]) => [symbol, colors[theme]])
+  );
 }
 
 // Color helpers for tile states (extracted to reduce complexity)
@@ -403,7 +405,7 @@ function processCandyIce(
 
 export const CandyMode: GameModeConfig = {
   id: 'candy',
-  name: 'Candy',
+  name: 'Candy Shop',
   description: 'Tap groups of matching candies to clear them and score points.',
   icon: '🍬',
   color: '#f472b6',

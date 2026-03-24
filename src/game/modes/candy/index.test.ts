@@ -8,15 +8,17 @@ describe('Candy Mode', () => {
 
   beforeEach(() => {
     const state = useGameStore.getState();
-    level = state.currentLevel || ({
-      id: 'test_candy_1',
-      modeId: 'candy',
-      difficulty: 1,
-      title: 'Test Candy Level',
-      wallCompression: 'optional',
-      tiles: [],
-      goalNodes: [],
-    } as any);
+    level =
+      state.currentLevel ||
+      ({
+        id: 'test_candy_1',
+        modeId: 'candy',
+        difficulty: 1,
+        title: 'Test Candy Level',
+        wallCompression: 'optional',
+        tiles: [],
+        goalNodes: [],
+      } as any);
   });
 
   describe('mode configuration', () => {
@@ -99,7 +101,9 @@ describe('Candy Mode', () => {
       if (CandyMode.checkLoss) {
         const state = useGameStore.getState();
         const result = CandyMode.checkLoss(state);
-        expect(result === null || typeof result === 'boolean' || typeof result === 'object').toBe(true);
+        expect(result === null || typeof result === 'boolean' || typeof result === 'object').toBe(
+          true
+        );
       }
     });
   });
@@ -120,7 +124,9 @@ describe('Candy Mode', () => {
 
   describe('mode state management', () => {
     it('should provide initial state mechanism', () => {
-      expect(CandyMode.getModeState === undefined || typeof CandyMode.getModeState === 'function').toBe(true);
+      expect(
+        CandyMode.getModeState === undefined || typeof CandyMode.getModeState === 'function'
+      ).toBe(true);
     });
   });
 

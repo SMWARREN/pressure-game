@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '@/game/store';
 import AppHeader from './AppHeader.native';
 
 interface SettingsScreenProps {
   onClose?: () => void;
+  onLogoPuzzle?: () => void;
 }
 
-export default function SettingsScreen({ onClose }: SettingsScreenProps) {
-  const { animationsEnabled, toggleAnimations } = useGameStore((state) => ({
-    animationsEnabled: state.animationsEnabled,
-    toggleAnimations: state.toggleAnimations,
-  }));
+export default function SettingsScreen({ onClose, onLogoPuzzle }: SettingsScreenProps) {
+  const { animationsEnabled, toggleAnimations } = useGameStore(
+    useShallow((state) => ({
+      animationsEnabled: state.animationsEnabled,
+      toggleAnimations: state.toggleAnimations,
+    }))
+  );
 
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [hapticFeedback, setHapticFeedback] = useState(true);
@@ -69,6 +73,21 @@ export default function SettingsScreen({ onClose }: SettingsScreenProps) {
         {/* About Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
+          {onLogoPuzzle && (
+            <Pressable
+              style={styles.settingItem}
+              onPress={() => {
+                onClose?.();
+                onLogoPuzzle();
+              }}
+            >
+              <View style={styles.settingLeft}>
+                <Text style={styles.settingLabel}>Logo Puzzle</Text>
+                <Text style={styles.settingDesc}>Play the logo puzzle</Text>
+              </View>
+              <Text style={{ color: '#6366f1', fontSize: 18 }}>›</Text>
+            </Pressable>
+          )}
           <View style={styles.settingItem}>
             <View style={styles.settingLeft}>
               <Text style={styles.settingLabel}>Version</Text>

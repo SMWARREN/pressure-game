@@ -753,7 +753,7 @@ function processShoppingTap(config: ShoppingTapConfig): TapResult | null {
 
 export const ShoppingSpreeMode: GameModeConfig = {
   id: 'shoppingSpree',
-  name: 'Shopping Spree',
+  name: 'Shopping Center',
   description: 'Match items to shop and earn cash! Different items have different values.',
   icon: '🛍️',
   color: '#ec4899',

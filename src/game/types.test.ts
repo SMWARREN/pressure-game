@@ -30,7 +30,12 @@ describe('Game Types and Utils', () => {
     });
 
     it('should support different tile types', () => {
-      const types: Array<'path' | 'node' | 'wall' | 'crushed'> = ['path', 'node', 'wall', 'crushed'];
+      const types: Array<'path' | 'node' | 'wall' | 'crushed'> = [
+        'path',
+        'node',
+        'wall',
+        'crushed',
+      ];
       expect(types).toHaveLength(4);
     });
   });

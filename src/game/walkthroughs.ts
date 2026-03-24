@@ -1,7 +1,7 @@
 // PRESSURE - Walkthrough Registry
 // Imports walkthrough configurations from each game mode.
 
-import { WalkthroughConfig } from '../components/WalkthroughOverlay';
+import { WalkthroughConfig } from './modes/walkthroughTypes';
 
 // Import walkthroughs from each mode
 import { CLASSIC_WALKTHROUGH } from './modes/classic/walkthrough';

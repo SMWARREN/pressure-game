@@ -99,7 +99,7 @@ export class LocalStorageBackend implements PersistenceBackend {
 
     try {
       const value = localStorage.getItem(key);
-      if (process.env.NODE_ENV !== 'production' && value) {
+      if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production' && value) {
         console.log(`[LocalStorageBackend] Loaded ${key}`);
       }
       return value;
@@ -114,7 +114,7 @@ export class LocalStorageBackend implements PersistenceBackend {
 
     try {
       localStorage.setItem(key, value);
-      if (process.env.NODE_ENV !== 'production') {
+      if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
         console.log(`[LocalStorageBackend] Saved ${key}`);
       }
     } catch (error) {

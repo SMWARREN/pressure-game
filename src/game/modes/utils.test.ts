@@ -127,7 +127,10 @@ describe('Mode Utils', () => {
         createPath(1, 0, ['left', 'right']),
         createNode(2, 0, ['left'], true),
       ];
-      const goals = [{ x: 0, y: 0 }, { x: 2, y: 0 }];
+      const goals = [
+        { x: 0, y: 0 },
+        { x: 2, y: 0 },
+      ];
       expect(checkConnected(tiles, goals)).toBe(true);
     });
 
@@ -137,7 +140,10 @@ describe('Mode Utils', () => {
         createPath(1, 0, ['right']), // Wrong connection
         createNode(2, 0, ['left'], true),
       ];
-      const goals = [{ x: 0, y: 0 }, { x: 2, y: 0 }];
+      const goals = [
+        { x: 0, y: 0 },
+        { x: 2, y: 0 },
+      ];
       expect(checkConnected(tiles, goals)).toBe(false);
     });
 
@@ -147,7 +153,10 @@ describe('Mode Utils', () => {
         createWall(1, 0),
         createNode(2, 0, ['left'], true),
       ];
-      const goals = [{ x: 0, y: 0 }, { x: 2, y: 0 }];
+      const goals = [
+        { x: 0, y: 0 },
+        { x: 2, y: 0 },
+      ];
       expect(checkConnected(tiles, goals)).toBe(false);
     });
 
@@ -157,7 +166,10 @@ describe('Mode Utils', () => {
         createPath(0, 1, ['up', 'right']),
         createNode(1, 1, ['left'], true),
       ];
-      const goals = [{ x: 0, y: 0 }, { x: 1, y: 1 }];
+      const goals = [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ];
       expect(checkConnected(tiles, goals)).toBe(true);
     });
   });
@@ -174,7 +186,10 @@ describe('Mode Utils', () => {
         createPath(1, 0, ['left', 'right']),
         createNode(2, 0, ['left'], true),
       ];
-      const result = getConnectedTiles(tiles, [{ x: 0, y: 0 }, { x: 2, y: 0 }]);
+      const result = getConnectedTiles(tiles, [
+        { x: 0, y: 0 },
+        { x: 2, y: 0 },
+      ]);
       expect(result.has('0,0')).toBe(true);
       expect(result.has('1,0')).toBe(true);
       expect(result.has('2,0')).toBe(true);
@@ -186,7 +201,10 @@ describe('Mode Utils', () => {
         createPath(1, 0, ['left']),
         createNode(3, 0, [], true),
       ];
-      const result = getConnectedTiles(tiles, [{ x: 0, y: 0 }, { x: 3, y: 0 }]);
+      const result = getConnectedTiles(tiles, [
+        { x: 0, y: 0 },
+        { x: 3, y: 0 },
+      ]);
       expect(result.has('3,0')).toBe(false);
     });
   });
@@ -198,7 +216,10 @@ describe('Mode Utils', () => {
         createPath(1, 0, ['left', 'right']),
         createNode(2, 0, ['left'], true),
       ];
-      const goals = [{ x: 0, y: 0 }, { x: 2, y: 0 }];
+      const goals = [
+        { x: 0, y: 0 },
+        { x: 2, y: 0 },
+      ];
       const bfs = getConnectedTiles(tiles, goals);
       const dfs = getConnectedTilesDFS(tiles, goals);
       expect(bfs).toEqual(dfs);
@@ -211,7 +232,10 @@ describe('Mode Utils', () => {
         createPath(0, 1, ['up', 'right']),
         createNode(1, 1, ['up', 'left'], true),
       ];
-      const goals = [{ x: 0, y: 0 }, { x: 1, y: 1 }];
+      const goals = [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ];
       const result = getConnectedTilesDFS(tiles, goals);
       expect(result.size).toBe(4);
     });
@@ -236,10 +260,7 @@ describe('Mode Utils', () => {
     });
 
     it('should clear justRotated on other tiles', () => {
-      const tiles = [
-        { ...createPath(0, 0), justRotated: true },
-        createPath(1, 0),
-      ];
+      const tiles = [{ ...createPath(0, 0), justRotated: true }, createPath(1, 0)];
       const result = rotateTileTap(1, 0, tiles);
       expect(result?.[0].justRotated).toBe(false);
       expect(result?.[1].justRotated).toBe(true);

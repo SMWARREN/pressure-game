@@ -8,15 +8,17 @@ describe('Quantum Chain Mode', () => {
 
   beforeEach(() => {
     const state = useGameStore.getState();
-    level = state.currentLevel || ({
-      id: 'test_quantum_1',
-      modeId: 'quantum_chain',
-      difficulty: 1,
-      title: 'Test Level',
-      wallCompression: 'never',
-      tiles: [],
-      goalNodes: [],
-    } as any);
+    level =
+      state.currentLevel ||
+      ({
+        id: 'test_quantum_1',
+        modeId: 'quantum_chain',
+        difficulty: 1,
+        title: 'Test Level',
+        wallCompression: 'never',
+        tiles: [],
+        goalNodes: [],
+      } as any);
   });
 
   describe('mode configuration', () => {

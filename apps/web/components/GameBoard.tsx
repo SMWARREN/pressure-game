@@ -72,21 +72,6 @@ import {
    ICON BUTTON STYLE
 ═══════════════════════════════════════════════════════════════════════════ */
 
-const iconBtn: React.CSSProperties = {
-  width: 44,
-  height: 44,
-  borderRadius: 12,
-  border: '1px solid #12122a',
-  background: RGBA_COLORS.TRANSPARENT_WHITE_02,
-  color: '#3a3a55',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transition: 'all 0.15s',
-  flexShrink: 0,
-};
-
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN GAME BOARD COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -209,6 +194,21 @@ export default function GameBoard() {
 
   // Get mode early for solution check
   const mode = getModeById(currentModeId);
+
+  const iconBtn: React.CSSProperties = {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    border: `1px solid ${mode.color}40`,
+    background: `${mode.color}10`,
+    color: mode.color,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.15s',
+    flexShrink: 0,
+  };
 
   // Only compute solution for pipe-based modes (classic, blitz, zen, quantum_chain, etc.)
   // Non-pipe modes (gravity, memory, candy, etc.) have their own win conditions
@@ -591,7 +591,12 @@ export default function GameBoard() {
         />
 
         {/* ── FEATURE INDICATORS — shows active features for this level ── */}
-        <FeatureIndicators currentLevel={currentLevel} onShowFeatureInfo={setShowFeatureInfo} />
+        <FeatureIndicators
+          currentLevel={currentLevel}
+          onShowFeatureInfo={setShowFeatureInfo}
+          tiles={tiles}
+          modeState={modeState}
+        />
 
         {/* ── GAME BOARD — centered in flex-1 container ────────────── */}
         <div

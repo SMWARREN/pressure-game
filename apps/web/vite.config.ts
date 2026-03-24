@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
+import path from 'path';
 
 export default defineConfig({
   base: './',
@@ -42,7 +42,11 @@ export default defineConfig({
 
           // Chunk game modes by menu group (from src/game/modes/index.ts MODE_GROUPS)
           // Pressure Series: classic, blitz, zen
-          if (id.includes('game/modes/classic/') || id.includes('game/modes/blitz/') || id.includes('game/modes/zen/')) {
+          if (
+            id.includes('game/modes/classic/') ||
+            id.includes('game/modes/blitz/') ||
+            id.includes('game/modes/zen/')
+          ) {
             return 'modes-pressure';
           }
           // Arcade: candy, shoppingSpree
@@ -62,7 +66,11 @@ export default defineConfig({
             return 'modes-arcade-plus';
           }
           // Experimental: laserRelay, voltage, fuse
-          if (id.includes('game/modes/laserRelay/') || id.includes('game/modes/voltage/') || id.includes('game/modes/fuse/')) {
+          if (
+            id.includes('game/modes/laserRelay/') ||
+            id.includes('game/modes/voltage/') ||
+            id.includes('game/modes/fuse/')
+          ) {
             return 'modes-experimental';
           }
         },
@@ -74,7 +82,7 @@ export default defineConfig({
     host: '0.0.0.0',
     strictPort: false,
     cors: true,
-    hmr: false,  // Disable HMR to prevent reload hangs
+    hmr: false, // Disable HMR to prevent reload hangs
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
@@ -84,4 +92,4 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
   },
-})
+});

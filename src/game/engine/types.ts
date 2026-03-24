@@ -46,6 +46,10 @@ export interface PersistedState {
   bestMoves: Record<string, number>;
   /** Best times (in seconds) per level, keyed by `${modeId}:${levelId}` */
   bestTimes: Record<string, number>;
+  /** Total wins per level, keyed by `${modeId}:${levelId}` */
+  levelWins?: Record<string, number>;
+  /** Total attempts per level, keyed by `${modeId}:${levelId}` */
+  levelAttempts?: Record<string, number>;
   showTutorial: boolean;
   generatedLevels: Level[];
   currentModeId: string;

@@ -201,9 +201,18 @@ export class PressureEngine implements IPressureEngine {
     }
     const currentScore = state.score;
     const targetScore = currentLevel.targetScore ?? Infinity;
-    return currentScore < targetScore
-      ? { ...stateChanges, status: 'lost', lossReason: "Time's up!" }
-      : null;
+    if (currentScore >= targetScore) return null;
+    const lossKey = `${state.currentModeId}:${currentLevel.id}`;
+    const newLevelAttempts = {
+      ...state.levelAttempts,
+      [lossKey]: (state.levelAttempts[lossKey] ?? 0) + 1,
+    };
+    return {
+      ...stateChanges,
+      status: 'lost',
+      lossReason: "Time's up!",
+      levelAttempts: newLevelAttempts,
+    };
   }
 
   private handleCompression(
@@ -266,7 +275,20 @@ export class PressureEngine implements IPressureEngine {
       state,
       stateChanges
     );
-    if (timeLimitResult) return timeLimitResult;
+    if (timeLimitResult) {
+      // For unlimited levels, save the score reached when time runs out
+      if (currentLevel.isUnlimited && state.score > 0) {
+        saveHighscore(
+          state.currentModeId,
+          currentLevel.id,
+          state.moves,
+          newElapsedSeconds,
+          state.score,
+          true
+        ).catch((err) => console.warn('Failed to save unlimited highscore:', err));
+      }
+      return timeLimitResult;
+    }
 
     if (!compressionActive) {
       return stateChanges;
@@ -419,12 +441,18 @@ export class PressureEngine implements IPressureEngine {
     if (result.gameOver) {
       this.stopTimer();
       this.playSound('lose');
+      const lossKey = `${state.currentModeId}:${currentLevel.id}`;
+      const newLevelAttempts = {
+        ...state.levelAttempts,
+        [lossKey]: (state.levelAttempts[lossKey] ?? 0) + 1,
+      };
       this.setState({
         tiles: result.tiles,
         wallOffset: result.newOffset,
         status: 'lost',
         wallsJustAdvanced: true,
         lossReason: result.lossReason,
+        levelAttempts: newLevelAttempts,
       });
     } else if (result.newOffset > wallOffset) {
       // Walls actually advanced — animate and play sound
@@ -517,6 +545,8 @@ export class PressureEngine implements IPressureEngine {
       completedLevels: saved.completedLevels,
       bestMoves: saved.bestMoves,
       bestTimes: saved.bestTimes,
+      levelWins: saved.levelWins ?? {},
+      levelAttempts: saved.levelAttempts ?? {},
       history: [],
       lastRotatedPos: null,
       showTutorial: saved.showTutorial,
@@ -597,6 +627,8 @@ export class PressureEngine implements IPressureEngine {
       const newCompleted = [...new Set([...s.completedLevels, level.id])];
       const newBest = { ...s.bestMoves };
       const newBestTimes = { ...s.bestTimes };
+      const newLevelWins = { ...s.levelWins };
+      const newLevelAttempts = { ...s.levelAttempts };
       const bestKey = `${s.currentModeId}:${level.id}`;
 
       // Update best moves
@@ -609,11 +641,17 @@ export class PressureEngine implements IPressureEngine {
         newBestTimes[bestKey] = s.elapsedSeconds;
       }
 
+      // Update wins and attempts
+      newLevelWins[bestKey] = (newLevelWins[bestKey] ?? 0) + 1;
+      newLevelAttempts[bestKey] = (newLevelAttempts[bestKey] ?? 0) + 1;
+
       this.persist({
         ...s,
         completedLevels: newCompleted,
         bestMoves: newBest,
         bestTimes: newBestTimes,
+        levelWins: newLevelWins,
+        levelAttempts: newLevelAttempts,
         showTutorial: false,
       });
 
@@ -622,15 +660,22 @@ export class PressureEngine implements IPressureEngine {
         completedLevels: newCompleted,
         bestMoves: newBest,
         bestTimes: newBestTimes,
+        levelWins: newLevelWins,
+        levelAttempts: newLevelAttempts,
         _winCheckPending: false,
       });
 
-      // Save highscore to API (in background)
-      // Score is calculated server-side based on mode and level difficulty
-      // Replay will be saved by GameEngineProvider when statsEngine emits the game_end event
-      saveHighscore(s.currentModeId, level.id, s.moves, s.elapsedSeconds).catch((err) =>
-        console.warn('Failed to save highscore to API:', err)
-      );
+      // Save highscore to API (in background).
+      // Pass the actual in-game score so arcade modes (candy, shoppingSpree, etc.)
+      // are stored correctly. Classic/blitz/zen ignore it and calculate server-side.
+      saveHighscore(
+        s.currentModeId,
+        level.id,
+        s.moves,
+        s.elapsedSeconds,
+        s.score > 0 ? s.score : undefined,
+        level.isUnlimited ?? false
+      ).catch((err) => console.warn('Failed to save highscore to API:', err));
 
       // Check achievements after winning
       this.checkAchievementsOnWin(s, level);

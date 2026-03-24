@@ -1,33 +1,60 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Dimensions, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useMemo, useCallback, useEffect } from 'react';
+import { View, Text, Pressable, useWindowDimensions } from 'react-native';
+// Text and Pressable used for idle overlay below
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGameStore } from '@/game/store';
 import { useShallow } from 'zustand/react/shallow';
+import { getModeById } from '@/game/modes';
+import { setUnlimitedHighScore } from '@/game/unlimited';
 import GameGrid from './GameGrid.native';
-import type { Tile } from '@/game/types';
+import WallOverlay from './WallOverlay.native';
+import StarField from './StarField.native';
+import WinOverlay from './WinOverlay.native';
+import LossOverlay from './LossOverlay.native';
+import FeatureIndicators from './FeatureIndicators.native';
+import StatsBar from './StatsBar.native';
+import GameBoardFooter from './GameBoardFooter.native';
+import { styles } from './GameBoardStyles.native';
 
-/**
- * GameBoard (Mobile/React Native)
- * Main container for the game UI on mobile
- * Matches web structure: header > stats > game grid
- * Navigation is handled by MainScreen parent component
- */
+function computeTileSize(availW: number, availH: number, cols: number, rows: number): number {
+  const maxDim = Math.max(cols, rows);
+  const gap = maxDim <= 5 ? 4 : 3;
+  const byW = Math.floor((availW - gap * (cols - 1)) / cols);
+  const byH = Math.floor((availH - gap * (rows - 1)) / rows);
+  return Math.max(20, Math.min(byW, byH));
+}
+
 export default function GameBoard() {
-  const { width, height } = Dimensions.get('window');
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
-  // Get game state
   const {
     tiles,
     currentLevel,
     status,
     moves,
     score,
+    elapsedSeconds,
     wallOffset,
     wallsJustAdvanced,
     compressionActive,
+    connectedTiles,
+    timeUntilCompression,
+    isPaused,
+    history,
     currentModeId,
+    modeState,
+    lossReason,
+    levelWins,
+    levelAttempts,
     tapTile,
+    startGame,
     restartLevel,
-    elapsedSeconds,
+    loadLevel,
+    goToMenu,
+    undoMove,
+    pauseGame,
+    resumeGame,
   } = useGameStore(
     useShallow((state) => ({
       tiles: state.tiles,
@@ -35,174 +62,242 @@ export default function GameBoard() {
       status: state.status,
       moves: state.moves,
       score: state.score,
+      elapsedSeconds: state.elapsedSeconds,
       wallOffset: state.wallOffset,
       wallsJustAdvanced: state.wallsJustAdvanced,
       compressionActive: state.compressionActive,
+      connectedTiles: state.connectedTiles,
+      timeUntilCompression: state.timeUntilCompression,
+      isPaused: state.isPaused,
+      history: state.history,
       currentModeId: state.currentModeId,
+      modeState: state.modeState,
+      lossReason: state.lossReason,
+      levelWins: state.levelWins,
+      levelAttempts: state.levelAttempts,
       tapTile: state.tapTile,
+      startGame: state.startGame,
+      loadLevel: state.loadLevel,
       restartLevel: state.restartLevel,
-      elapsedSeconds: state.elapsedSeconds,
+      goToMenu: state.goToMenu,
+      undoMove: state.undoMove,
+      pauseGame: state.pauseGame,
+      resumeGame: state.resumeGame,
     }))
   );
 
-  // Calculate responsive tile size based on device dimensions
-  const gridSize = useMemo(() => {
-    const gridSize = currentLevel?.gridSize || 5;
-    const cols = gridSize;
-    const rows = gridSize;
-    const maxDim = Math.max(cols, rows);
+  const mode = getModeById(currentModeId);
 
-    // Compute gap and padding based on grid size
-    let gap = 2;
-    let padding = 4;
-    if (maxDim <= 5) {
-      gap = 4;
-      padding = 8;
-    } else if (maxDim <= 7) {
-      gap = 3;
-      padding = 6;
+  // 1-based level number within the current mode's level list
+  const allModeLevels = mode.getLevels?.() ?? [];
+  const levelNumber = currentLevel
+    ? allModeLevels.findIndex((l) => l.id === currentLevel.id) + 1
+    : 0;
+
+  // Countdown seconds from timeUntilCompression (ms)
+  const countdownSec = Math.ceil((timeUntilCompression ?? 0) / 1000);
+
+  // Compression bar fill % — starts full, drains to 0
+  const compressionDelay = currentLevel?.compressionDelay ?? 15000;
+  const compressionPct = Math.max(
+    0,
+    Math.min(100, ((timeUntilCompression ?? 0) / compressionDelay) * 100)
+  );
+
+  const maxMoves = currentLevel?.maxMoves ?? null;
+  const isUnlimited = currentLevel?.isUnlimited ?? false;
+
+  // Track unlimited high scores when game ends
+  useEffect(() => {
+    if (!isUnlimited || !currentLevel) return;
+    if (status === 'lost' || status === 'won') {
+      setUnlimitedHighScore(currentModeId, currentLevel.id, score);
     }
+  }, [status, isUnlimited, currentLevel, currentModeId, score]);
 
-    // Use roughly 80% of available width for the grid
-    const gridWidth = (width * 0.8);
-    const gridHeight = (height * 0.6); // Use 60% of height for grid
+  // Unlimited levels (timeLimit set) override statsDisplay to score + timeleft
+  const hasTimeLimit = currentLevel?.timeLimit != null;
+  const timeLeft = hasTimeLimit
+    ? Math.max(0, currentLevel!.timeLimit! - elapsedSeconds)
+    : undefined;
+  const activeStatsDisplay = hasTimeLimit
+    ? [{ type: 'score' as const }, { type: 'timeleft' as const }]
+    : (mode.statsDisplay ?? []);
 
-    // Calculate tile size to fit available space
-    const tileSizeByW = Math.floor(
-      (gridWidth - padding * 2 - gap * Math.max(0, cols - 1)) / cols
-    );
-    const tileSizeByH = Math.floor(
-      (gridHeight - padding * 2 - gap * Math.max(0, rows - 1)) / rows
-    );
-    const tileSize = Math.max(20, Math.min(tileSizeByW, tileSizeByH));
+  const showMoves = activeStatsDisplay.some((s) => s.type === 'moves');
+  const showScore = activeStatsDisplay.some((s) => s.type === 'score');
+  const showTimeLeft = activeStatsDisplay.some((s) => s.type === 'timeleft');
+  const showStats = activeStatsDisplay.length > 0;
+  const showCompression = activeStatsDisplay.some((s) => s.type === 'compressionBar');
+  const showCountdown = activeStatsDisplay.some((s) => s.type === 'countdown');
+  const showUndo = mode.supportsUndo !== false;
+  const showTimer = showCompression || showCountdown;
 
-    return {
-      tileSize,
-      gap,
-      cols,
-      rows,
-      padding,
-    };
-  }, [width, height, currentLevel]);
+  // Tile size calculation — fill available vertical space
+  const HEADER_H = 64;
+  const STATS_H = showStats ? 64 : 0;
+  const hasFeatures = currentLevel?.features && Object.values(currentLevel.features).some(Boolean);
+  const FEATURES_H = hasFeatures ? 36 : 0;
+  const FOOTER_H = 64;
+  const SAFE_TOP = insets.top;
+  const SAFE_BOT = insets.bottom;
+  const availH = height - HEADER_H - STATS_H - FEATURES_H - FOOTER_H - SAFE_TOP - SAFE_BOT - 32;
+  const availW = width - 24;
 
-  const handleTileTap = useCallback((x: number, y: number) => {
-    tapTile(x, y);
-  }, [tapTile]);
+  const gridCols = currentLevel?.gridCols ?? currentLevel?.gridSize ?? 5;
+  const gridRows = currentLevel?.gridRows ?? currentLevel?.gridSize ?? 5;
 
-  if (!currentLevel) {
-    return null;
-  }
+  const tileSize = useMemo(
+    () => computeTileSize(availW, availH, gridCols, gridRows),
+    [availW, availH, gridCols, gridRows]
+  );
+
+  const gap = Math.max(gridCols, gridRows) <= 5 ? 4 : 3;
+
+  const handleTileTap = useCallback(
+    (x: number, y: number) => {
+      tapTile(x, y);
+    },
+    [tapTile]
+  );
+
+  if (!currentLevel) return null;
 
   return (
-    <View style={styles.container}>
-      {/* Header showing level info */}
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StarField />
+
+      {/* ── HEADER ──────────────────────────────────── */}
       <View style={styles.header}>
-        <Text style={styles.levelTitle}>{currentLevel?.name || 'PRESSURE'}</Text>
-        <Text style={styles.levelSubtitle}>LEVEL {currentLevel?.id || 1}</Text>
+        <Pressable style={styles.iconBtn} onPress={goToMenu} hitSlop={8}>
+          <Text style={styles.iconBtnText}>←</Text>
+        </Pressable>
+
+        <View style={styles.headerCenter}>
+          <Text style={styles.levelName}>{currentLevel.name}</Text>
+          <Text style={styles.levelSub}>
+            LEVEL {levelNumber > 0 ? levelNumber : currentLevel.id}
+          </Text>
+        </View>
+
+        <View style={styles.headerRight}>
+          <Pressable style={styles.iconBtn} onPress={restartLevel} hitSlop={8}>
+            <Text style={styles.iconBtnText}>↺</Text>
+          </Pressable>
+        </View>
       </View>
 
-      {/* Stats row showing moves and score */}
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Moves</Text>
-          <Text style={styles.statValue}>{moves}</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Score</Text>
-          <Text style={styles.statValue}>{score}</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Time</Text>
-          <Text style={styles.statValue}>{Math.floor(elapsedSeconds)}s</Text>
-        </View>
-      </View>
-
-      {/* Game Grid */}
-      <View style={[styles.gridContainer, { padding: gridSize.padding }]}>
-        <GameGrid
-          tiles={tiles}
-          gridSize={gridSize.tileSize}
-          gridCols={gridSize.cols}
-          gridRows={gridSize.rows}
-          gap={gridSize.gap}
-          wallOffset={wallOffset}
-          wallsJustAdvanced={wallsJustAdvanced}
+      {/* ── STATS BAR ───────────────────────────────── */}
+      {showStats && (
+        <StatsBar
+          mode={mode}
+          score={score}
+          moves={moves}
+          maxMoves={maxMoves}
+          countdownSec={countdownSec}
+          compressionPct={compressionPct}
           compressionActive={compressionActive}
-          compressionDirection={currentLevel?.compressionDirection ?? 'all'}
-          onTileTap={handleTileTap}
+          timeLeft={timeLeft}
+          showScore={showScore}
+          showMoves={showMoves}
+          showCompression={showCompression}
+          showCountdown={showCountdown}
+          showTimeLeft={showTimeLeft}
         />
+      )}
+
+      {/* ── FEATURE INDICATORS ──────────────────────────── */}
+      <FeatureIndicators features={currentLevel?.features} tiles={tiles} modeState={modeState} />
+
+      {/* ── GAME GRID ───────────────────────────────── */}
+      <View style={styles.gridWrap}>
+        <View style={styles.boardBorder}>
+          <GameGrid
+            tiles={tiles}
+            gridSize={tileSize}
+            gridCols={gridCols}
+            gridRows={gridRows}
+            gap={gap}
+            wallOffset={wallOffset}
+            wallsJustAdvanced={wallsJustAdvanced}
+            compressionActive={compressionActive}
+            connectedTiles={connectedTiles}
+            compressionDirection={currentLevel.compressionDirection ?? 'all'}
+            onTileTap={handleTileTap}
+            tileRenderer={mode.tileRenderer}
+          />
+          <WallOverlay
+            wallOffset={wallOffset}
+            gridCols={gridCols}
+            gridRows={gridRows}
+            tileSize={tileSize}
+            gap={gap}
+            isPlaying={status === 'playing'}
+            compressionDirection={currentLevel.compressionDirection ?? 'all'}
+          />
+        </View>
       </View>
 
-      {/* Reset button */}
-      <Pressable style={styles.resetButton} onPress={restartLevel}>
-        <Text style={styles.resetButtonText}>↺ Restart</Text>
-      </Pressable>
+      {/* ── FOOTER CONTROLS ─────────────────────────── */}
+      <GameBoardFooter
+        showUndo={showUndo}
+        showTimer={showTimer}
+        isPaused={isPaused}
+        historyLength={history.length}
+        timeUntilCompression={timeUntilCompression}
+        paddingBottom={insets.bottom + 4}
+        onUndo={undoMove}
+        onPause={pauseGame}
+        onResume={resumeGame}
+      />
+
+      {/* ── IDLE OVERLAY (READY TO START) ───────────── */}
+      {status === 'idle' && (
+        <View style={styles.overlay}>
+          <Text style={styles.overlayLabel}>READY</Text>
+          <Text style={styles.overlayTitle}>{currentLevel.name}</Text>
+          <Text style={styles.overlayLevelSub}>
+            LEVEL {levelNumber > 0 ? levelNumber : currentLevel.id}
+          </Text>
+          <Pressable style={[styles.overlayBtn, styles.overlayBtnPrimary]} onPress={startGame}>
+            <Text style={[styles.overlayBtnText, { color: '#fff' }]}>START</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* ── WIN OVERLAY ─────────────────────────────── */}
+      {status === 'won' && (
+        <WinOverlay
+          mode={mode}
+          currentLevel={currentLevel}
+          currentModeId={currentModeId}
+          moves={moves}
+          score={score}
+          elapsedSeconds={elapsedSeconds}
+          levelWins={levelWins}
+          levelAttempts={levelAttempts}
+          restartLevel={restartLevel}
+          goToMenu={goToMenu}
+          loadLevel={loadLevel}
+        />
+      )}
+
+      {/* ── LOSS OVERLAY ─────────────────────────────── */}
+      {status === 'lost' && (
+        <LossOverlay
+          mode={mode}
+          currentLevel={currentLevel}
+          currentModeId={currentModeId}
+          moves={moves}
+          score={score}
+          elapsedSeconds={elapsedSeconds}
+          lossReason={lossReason}
+          levelWins={levelWins}
+          levelAttempts={levelAttempts}
+          restartLevel={restartLevel}
+          goToMenu={goToMenu}
+        />
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#06060f',
-    paddingHorizontal: 12,
-    paddingTop: 12,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  levelTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#fff',
-    letterSpacing: -0.5,
-  },
-  levelSubtitle: {
-    fontSize: 10,
-    color: '#a0aec0',
-    letterSpacing: 1.5,
-    marginTop: 2,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-    paddingHorizontal: 8,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 10,
-    color: '#a0aec0',
-    fontWeight: '600',
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginTop: 2,
-  },
-  gridContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  resetButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#12122a',
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  resetButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#6366f1',
-  },
-});

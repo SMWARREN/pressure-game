@@ -5,12 +5,9 @@ import { StatsEngine } from '@/game/stats/engine';
 import { AchievementEngine } from '@/game/achievements/engine';
 import { LocalStorageStatsBackend } from '@/game/stats/backends/localStorage';
 import { getModeById } from '@/game/modes';
-import type { StatsBackend, GameEndEvent } from '@/game/stats/types';
-import { getUserId } from '@/game/utils/userId';
+import type { StatsBackend } from '@/game/stats/types';
+export { getUserId } from '@/game/utils/userId';
 import { InMemoryBackend } from '@/game/engine/persistence';
-
-// Re-export for backwards compatibility
-export { getUserId };
 
 interface GameEngineContextType {
   readonly pressureEngine: PressureEngine;
@@ -87,11 +84,7 @@ function getOrCreateEngines(statsBackend?: StatsBackend): GameEngineContextType 
 /**
  * Provider component - initializes engines on mount
  */
-export function GameEngineProvider({
-  children,
-  statsBackend,
-  onReady,
-}: GameEngineProviderProps) {
+export function GameEngineProvider({ children, statsBackend, onReady }: GameEngineProviderProps) {
   // Create engines synchronously during first render using useState initializer
   // This ensures the engine is available immediately when children render
   const [engines] = useState<GameEngineContextType>(() => getOrCreateEngines(statsBackend));
@@ -101,11 +94,7 @@ export function GameEngineProvider({
     onReady?.();
   }, [onReady]);
 
-  return (
-    <GameEngineContext.Provider value={engines}>
-      {children}
-    </GameEngineContext.Provider>
-  );
+  return <GameEngineContext.Provider value={engines}>{children}</GameEngineContext.Provider>;
 }
 
 export function useGameEngineContext() {

@@ -1,6 +1,7 @@
 import React, { useMemo, memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Tile, CompressionDirection } from '@/game/types';
+import type { TileRenderer } from '@/game/modes/types';
 import GameTile from './GameTile.native';
 
 interface GameGridProps {
@@ -12,8 +13,10 @@ interface GameGridProps {
   readonly wallOffset: number;
   readonly wallsJustAdvanced: boolean;
   readonly compressionActive: boolean;
+  readonly connectedTiles: Set<string>;
   readonly onTileTap: (x: number, y: number) => void;
   readonly compressionDirection?: CompressionDirection;
+  readonly tileRenderer?: TileRenderer;
 }
 
 /**
@@ -31,8 +34,10 @@ function GameGridComponent({
   wallOffset,
   wallsJustAdvanced,
   compressionActive,
+  connectedTiles,
   onTileTap,
   compressionDirection = 'all',
+  tileRenderer,
 }: GameGridProps) {
   const gridCols = gridColsProp ?? gridSize;
   const gridRows = gridRowsProp ?? gridSize;
@@ -123,18 +128,22 @@ function GameGridComponent({
     return cells;
   }, [gridCols, gridRows, tileMap, compressionActive, wallOffset, compressionDirection]);
 
+  // Explicit width so the grid centers correctly in its parent
+  const containerWidth = gridCols * (gridSize + gap);
+
   return (
-    <View style={styles.container}>
-      {gridCells.map(({ key, x, y, tile }) => (
+    <View style={[styles.container, { width: containerWidth }]}>
+      {gridCells.map(({ key, x, y, tile, inDanger }) => (
         <GameTile
           key={key}
           tile={tile}
           size={gridSize}
           gap={gap}
-          wallOffset={wallOffset}
-          wallsJustAdvanced={wallsJustAdvanced}
           compressionActive={compressionActive}
+          isConnected={tile ? connectedTiles.has(`${tile.x},${tile.y}`) : false}
+          inDanger={inDanger}
           onTap={() => onTileTap(x, y)}
+          tileRenderer={tileRenderer}
         />
       ))}
     </View>

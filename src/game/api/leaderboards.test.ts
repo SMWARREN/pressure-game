@@ -55,7 +55,6 @@ describe('Leaderboards API', () => {
 
       expect(result).toBe(false);
     });
-
   });
 
   describe('unlockAchievement', () => {
@@ -113,9 +112,7 @@ describe('Leaderboards API', () => {
 
       await getLeaderboard('blitz');
 
-      expect(backends.robustFetch).toHaveBeenCalledWith(
-        expect.stringContaining('limit=100')
-      );
+      expect(backends.robustFetch).toHaveBeenCalledWith(expect.stringContaining('limit=100'));
     });
 
     it('should return empty array on failure', async () => {
@@ -147,9 +144,7 @@ describe('Leaderboards API', () => {
 
   describe('getUserAchievements', () => {
     it('should fetch user achievements', async () => {
-      const mockData = [
-        { id: 'first_win', userId: 'test-user-123', unlockedAt: '2025-01-01' },
-      ];
+      const mockData = [{ id: 'first_win', userId: 'test-user-123', unlockedAt: '2025-01-01' }];
       const mockResponse = { ok: true, json: vi.fn().mockResolvedValue(mockData) };
       vi.mocked(backends.robustFetch).mockResolvedValue(mockResponse as any);
 
@@ -200,9 +195,7 @@ describe('Leaderboards API', () => {
       const result = await getAchievementStats(200);
 
       expect(result).toEqual(mockData);
-      expect(backends.robustFetch).toHaveBeenCalledWith(
-        expect.stringContaining('limit=200')
-      );
+      expect(backends.robustFetch).toHaveBeenCalledWith(expect.stringContaining('limit=200'));
     });
 
     it('should use default limit of 100', async () => {
@@ -211,9 +204,7 @@ describe('Leaderboards API', () => {
 
       await getAchievementStats();
 
-      expect(backends.robustFetch).toHaveBeenCalledWith(
-        expect.stringContaining('limit=100')
-      );
+      expect(backends.robustFetch).toHaveBeenCalledWith(expect.stringContaining('limit=100'));
     });
 
     it('should return empty array on failure', async () => {
@@ -351,18 +342,14 @@ describe('Leaderboards API', () => {
 
   describe('getUserWins', () => {
     it('should fetch user wins', async () => {
-      const mockWins = [
-        { user_id: 'test-user-123', mode: 'classic', level_id: 1, score: 1000 },
-      ];
+      const mockWins = [{ user_id: 'test-user-123', mode: 'classic', level_id: 1, score: 1000 }];
       const mockResponse = { ok: true, json: vi.fn().mockResolvedValue(mockWins) };
       vi.mocked(backends.robustFetch).mockResolvedValue(mockResponse as any);
 
       const result = await getUserWins();
 
       expect(result).toEqual(mockWins);
-      expect(backends.robustFetch).toHaveBeenCalledWith(
-        expect.stringContaining('limit=50')
-      );
+      expect(backends.robustFetch).toHaveBeenCalledWith(expect.stringContaining('limit=50'));
     });
 
     it('should use custom limit', async () => {
@@ -371,9 +358,7 @@ describe('Leaderboards API', () => {
 
       await getUserWins(undefined, 100);
 
-      expect(backends.robustFetch).toHaveBeenCalledWith(
-        expect.stringContaining('limit=100')
-      );
+      expect(backends.robustFetch).toHaveBeenCalledWith(expect.stringContaining('limit=100'));
     });
 
     it('should fetch wins for specific user', async () => {

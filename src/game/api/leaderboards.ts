@@ -8,7 +8,7 @@ import { getUserId } from '@/game/utils/userId';
 
 const VITE_API_URL =
   (typeof process !== 'undefined' && process.env.VITE_API_URL) ||
-  ((globalThis as any).__VITE_API_URL) ||
+  (globalThis as any).__VITE_API_URL ||
   '';
 
 /** Leaderboard entry with user and score info */
@@ -154,14 +154,18 @@ async function fetchWithBody(
 }
 
 /**
- * Save a highscore to the API
- * Score is calculated server-side based on mode and level difficulty
+ * Save a highscore to the API.
+ * For arcade modes (candy, shoppingSpree, gemBlast, etc.) pass the actual
+ * in-game score so the server stores it directly.
+ * For classic/blitz/zen the server calculates score from moves+time.
  */
 export async function saveHighscore(
   mode: string,
   levelId: number,
   moves: number,
-  time: number
+  time: number,
+  score?: number,
+  isUnlimited?: boolean
 ): Promise<boolean> {
   if (!API_URL) {
     console.warn('[Leaderboard] API URL not configured');
@@ -170,7 +174,10 @@ export async function saveHighscore(
 
   const userId = getUserId();
   const url = `${API_URL}${API_PATHS.HIGHSCORE(userId, mode, levelId)}`;
-  const success = await fetchWithBody(url, 'POST', { moves, time });
+  const body: Record<string, unknown> = { moves, time };
+  if (score !== undefined && score > 0) body.score = score;
+  if (isUnlimited) body.is_unlimited = true;
+  const success = await fetchWithBody(url, 'POST', body);
   if (success) {
     console.log(`[Leaderboard] Saved highscore for ${mode} level ${levelId}`);
   }

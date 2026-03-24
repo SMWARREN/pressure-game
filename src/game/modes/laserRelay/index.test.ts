@@ -8,15 +8,17 @@ describe('Laser Relay Mode', () => {
 
   beforeEach(() => {
     const state = useGameStore.getState();
-    level = state.currentLevel || ({
-      id: 'test_laser_1',
-      modeId: 'laser_relay',
-      difficulty: 1,
-      title: 'Test Laser Level',
-      wallCompression: 'never',
-      tiles: [],
-      goalNodes: [],
-    } as any);
+    level =
+      state.currentLevel ||
+      ({
+        id: 'test_laser_1',
+        modeId: 'laser_relay',
+        difficulty: 1,
+        title: 'Test Laser Level',
+        wallCompression: 'never',
+        tiles: [],
+        goalNodes: [],
+      } as any);
   });
 
   describe('mode configuration', () => {
@@ -89,7 +91,9 @@ describe('Laser Relay Mode', () => {
     });
 
     it('should support optional features', () => {
-      expect(typeof LaserRelayMode.checkLoss === 'function' || LaserRelayMode.checkLoss === undefined).toBe(true);
+      expect(
+        typeof LaserRelayMode.checkLoss === 'function' || LaserRelayMode.checkLoss === undefined
+      ).toBe(true);
     });
   });
 
