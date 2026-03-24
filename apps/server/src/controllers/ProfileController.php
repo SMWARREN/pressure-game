@@ -6,13 +6,15 @@ use Pressure\Database;
 
 class ProfileController
 {
+    private const ERROR_MISSING_USER_ID = 'Missing userId';
+
     public function __construct(private Database $db) {}
 
     /** GET /api/profile/{userId} */
     public function get(string $userId): never
     {
         if (empty($userId)) {
-            jsonResponse(400, ['error' => 'Missing userId']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_ID]);
         }
 
         $this->db->ensureUserProfile($userId);
@@ -24,7 +26,7 @@ class ProfileController
     public function update(string $userId): never
     {
         if (empty($userId)) {
-            jsonResponse(400, ['error' => 'Missing userId']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_ID]);
         }
 
         $body     = json_decode((string) file_get_contents('php://input'), true);
@@ -44,7 +46,7 @@ class ProfileController
     public function wins(string $userId): never
     {
         if (empty($userId)) {
-            jsonResponse(400, ['error' => 'Missing userId']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_ID]);
         }
 
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 50;
@@ -55,7 +57,7 @@ class ProfileController
     public function updateStats(string $userId): never
     {
         if (empty($userId)) {
-            jsonResponse(400, ['error' => 'Missing userId']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_ID]);
         }
 
         $body = json_decode((string) file_get_contents('php://input'), true);
@@ -80,7 +82,7 @@ class ProfileController
     public function getFull(string $userId): never
     {
         if (empty($userId)) {
-            jsonResponse(400, ['error' => 'Missing userId']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_ID]);
         }
 
         $this->db->ensureUserProfile($userId);

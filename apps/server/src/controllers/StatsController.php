@@ -6,6 +6,8 @@ use Pressure\Database;
 
 class StatsController
 {
+    private const ERROR_PREPARE_FAILED = 'Prepare failed: ';
+
     public function __construct(private Database $db) {}
 
     /** POST /api/stats — upsert user_stats row */
@@ -21,7 +23,7 @@ class StatsController
         // Ensure parent rows exist
         $stmt = $this->db->conn->prepare('INSERT IGNORE INTO users (id) VALUES (?)');
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -29,7 +31,7 @@ class StatsController
 
         $stmt = $this->db->conn->prepare('INSERT IGNORE INTO user_stats (user_id) VALUES (?)');
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -69,7 +71,7 @@ class StatsController
 
         $stmt = $this->db->conn->prepare($sql);
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param($types, ...$params);
         $stmt->execute();
@@ -89,7 +91,7 @@ class StatsController
 
         $stmt = $this->db->conn->prepare('SELECT * FROM user_stats WHERE user_id = ?');
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();

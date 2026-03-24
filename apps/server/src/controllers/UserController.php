@@ -6,6 +6,8 @@ use Pressure\Database;
 
 class UserController
 {
+    private const ERROR_PREPARE_FAILED = 'Prepare failed: ';
+
     public function __construct(private Database $db) {}
 
     /** POST /api/users — create or get user (inserts into `users` table) */
@@ -21,7 +23,7 @@ class UserController
 
         $stmt = $this->db->conn->prepare('INSERT IGNORE INTO users (id, username) VALUES (?, ?)');
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param('ss', $userId, $username);
         $stmt->execute();
@@ -29,7 +31,7 @@ class UserController
 
         $stmt = $this->db->conn->prepare('SELECT id, username, created_at FROM users WHERE id = ?');
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -51,7 +53,7 @@ class UserController
 
         $stmt = $this->db->conn->prepare('SELECT id, username, created_at FROM users WHERE id = ?');
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -65,7 +67,7 @@ class UserController
 
         $stmt = $this->db->conn->prepare('SELECT * FROM user_stats WHERE user_id = ?');
         if (!$stmt) {
-            jsonResponse(500, ['error' => 'Prepare failed: ' . $this->db->conn->error]);
+            jsonResponse(500, ['error' => self::ERROR_PREPARE_FAILED . $this->db->conn->error]);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();

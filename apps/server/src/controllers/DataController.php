@@ -6,13 +6,15 @@ use Pressure\Database;
 
 class DataController
 {
+    private const ERROR_MISSING_USER_KEY = 'Missing userId or key';
+
     public function __construct(private Database $db) {}
 
     /** GET /api/data/{userId}/{key} */
     public function get(string $userId, string $key): never
     {
         if (empty($userId) || empty($key)) {
-            jsonResponse(400, ['error' => 'Missing userId or key']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_KEY]);
         }
 
         $value = $this->db->getItem($userId, $key);
@@ -28,7 +30,7 @@ class DataController
     public function set(string $userId, string $key): never
     {
         if (empty($userId) || empty($key)) {
-            jsonResponse(400, ['error' => 'Missing userId or key']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_KEY]);
         }
 
         $body  = json_decode((string) file_get_contents('php://input'), true);
@@ -49,7 +51,7 @@ class DataController
     public function delete(string $userId, string $key): never
     {
         if (empty($userId) || empty($key)) {
-            jsonResponse(400, ['error' => 'Missing userId or key']);
+            jsonResponse(400, ['error' => self::ERROR_MISSING_USER_KEY]);
         }
 
         if ($this->db->removeItem($userId, $key)) {

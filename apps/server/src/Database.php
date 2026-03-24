@@ -5,6 +5,7 @@ namespace Pressure;
 class Database
 {
     private const INT_DEFAULT_ZERO = 'INT DEFAULT 0';
+    private const PREPARE_FAILED = 'Prepare failed: ';
     public \mysqli $conn;
 
     public function __construct(string $host, int $port, string $user, string $pass, string $name)
@@ -208,7 +209,7 @@ class Database
     {
         $stmt = $this->conn->prepare('SELECT data_value FROM game_data WHERE user_id = ? AND data_key = ?');
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ss', $userId, $key);
         $stmt->execute();
@@ -232,7 +233,7 @@ class Database
              updated_at = CURRENT_TIMESTAMP'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('sss', $userId, $key, $value);
         $success = $stmt->execute();
@@ -244,7 +245,7 @@ class Database
     {
         $stmt = $this->conn->prepare('DELETE FROM game_data WHERE user_id = ? AND data_key = ?');
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ss', $userId, $key);
         $success = $stmt->execute();
@@ -258,7 +259,7 @@ class Database
             'SELECT data_key, data_value FROM game_data WHERE user_id = ? ORDER BY updated_at DESC'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -307,7 +308,7 @@ class Database
 
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ssiiid', $userId, $mode, $levelId, $finalScore, $moves, $time);
         $success = $stmt->execute();
@@ -324,7 +325,7 @@ class Database
             'SELECT score FROM highscores WHERE user_id = ? AND mode = ? AND level_id = ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ssi', $userId, $mode, $levelId);
         $stmt->execute();
@@ -349,7 +350,7 @@ class Database
                  LIMIT ?'
             );
             if (!$stmt) {
-                throw new AppException('Prepare failed: ' . $this->conn->error);
+                throw new AppException(self::PREPARE_FAILED . $this->conn->error);
             }
             $stmt->bind_param('i', $limit);
         } else {
@@ -367,7 +368,7 @@ class Database
                  LIMIT ?'
             );
             if (!$stmt) {
-                throw new AppException('Prepare failed: ' . $this->conn->error);
+                throw new AppException(self::PREPARE_FAILED . $this->conn->error);
             }
             $stmt->bind_param('si', $mode, $limit);
         }
@@ -391,7 +392,7 @@ class Database
              FROM highscores WHERE user_id = ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -405,7 +406,7 @@ class Database
             'SELECT SUM(best_moves) as total_moves FROM highscores WHERE user_id = ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -417,7 +418,7 @@ class Database
             'SELECT COUNT(*) as achievement_count FROM achievements WHERE user_id = ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -432,7 +433,7 @@ class Database
              WHERE user_id = ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('iiiis', $totalScore, $totalMoves, $levelsCompleted, $achievementsCount, $userId);
         $stmt->execute();
@@ -447,7 +448,7 @@ class Database
             'INSERT IGNORE INTO achievements (user_id, achievement_id) VALUES (?, ?)'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ss', $userId, $achievementId);
         $success = $stmt->execute();
@@ -465,7 +466,7 @@ class Database
             'SELECT achievement_id, unlocked_at FROM achievements WHERE user_id = ? ORDER BY unlocked_at DESC'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -527,7 +528,7 @@ class Database
     {
         $stmt = $this->conn->prepare('INSERT IGNORE INTO user_profiles (user_id) VALUES (?)');
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -543,7 +544,7 @@ class Database
              FROM user_profiles WHERE user_id = ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -563,7 +564,7 @@ class Database
             'UPDATE user_profiles SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ss', $username, $userId);
         $success = $stmt->execute();
@@ -583,7 +584,7 @@ class Database
              LIMIT ?'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('si', $userId, $limit);
         $stmt->execute();
@@ -646,7 +647,7 @@ class Database
              recorded_at = CURRENT_TIMESTAMP'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ssisi', $userId, $mode, $levelId, $movesJson, $score);
         $success = $stmt->execute();
@@ -663,7 +664,7 @@ class Database
              ORDER BY recorded_at DESC LIMIT 1'
         );
         if (!$stmt) {
-            throw new AppException('Prepare failed: ' . $this->conn->error);
+            throw new AppException(self::PREPARE_FAILED . $this->conn->error);
         }
         $stmt->bind_param('ssi', $userId, $mode, $levelId);
         $stmt->execute();
