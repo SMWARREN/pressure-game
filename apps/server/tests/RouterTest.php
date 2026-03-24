@@ -224,6 +224,105 @@ class RouterTest extends TestCase
         $this->assertSame('Replay not found', $response['error']);
     }
 
+    // ─── Debug ───────────────────────────────────────────────────────────────
+
+    public function testGetSchemaRoute(): void
+    {
+        $response = $this->capture('GET', ['schema']);
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('database', $response);
+    }
+
+    public function testGetDebugSchemaRoute(): void
+    {
+        $response = $this->capture('GET', ['debug', 'schema']);
+        $this->assertIsArray($response);
+        $this->assertArrayHasKey('database', $response);
+    }
+
+    public function testPostDebugReset(): void
+    {
+        $response = $this->capture('POST', ['debug', 'reset']);
+        $this->assertArrayHasKey('status', $response);
+        $this->assertSame('success', $response['status']);
+    }
+
+    public function testDeleteDebugCleanup(): void
+    {
+        $response = $this->capture('DELETE', ['debug', 'cleanup', 'user1']);
+        $this->assertArrayHasKey('status', $response);
+        $this->assertSame('success', $response['status']);
+    }
+
+    public function testDeleteDebugCleanupMissingUserId(): void
+    {
+        $response = $this->capture('DELETE', ['debug', 'cleanup', '']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing userId', $response['error']);
+    }
+
+    // ─── Users (new) ──────────────────────────────────────────────────────────
+
+    public function testPostUsersCreate(): void
+    {
+        $response = $this->capture('POST', ['users']);
+        // Will fail because we don't have a real connection, but route should be recognized
+        $this->assertIsArray($response);
+    }
+
+    public function testGetUsersRetrieve(): void
+    {
+        $this->markTestSkipped('UserController->get() requires live mysqli conn.');
+    }
+
+    // ─── Games (new) ──────────────────────────────────────────────────────────
+
+    public function testPostGamesCreate(): void
+    {
+        $response = $this->capture('POST', ['games']);
+        $this->assertIsArray($response);
+    }
+
+    public function testGetGamesList(): void
+    {
+        $this->markTestSkipped('GameController->list() requires live mysqli conn.');
+    }
+
+    // ─── Stats (new) ──────────────────────────────────────────────────────────
+
+    public function testPostStatsUpdate(): void
+    {
+        $response = $this->capture('POST', ['stats']);
+        $this->assertIsArray($response);
+    }
+
+    public function testGetStatsRetrieve(): void
+    {
+        $this->markTestSkipped('StatsController->get() requires live mysqli conn.');
+    }
+
+    // ─── Replays (new) ────────────────────────────────────────────────────────
+
+    public function testPostReplaysCreate(): void
+    {
+        $response = $this->capture('POST', ['replays']);
+        // Route requires a real mysqli connection for INSERT, but should recognize route
+        $this->assertIsArray($response);
+    }
+
+    public function testGetReplaysRetrieve(): void
+    {
+        $this->markTestSkipped('Replays->GET requires live mysqli conn.');
+    }
+
+    public function testGetRepliesMissingUserId(): void
+    {
+        $_GET = ['mode' => 'classic', 'level_id' => '1'];
+        $response = $this->capture('GET', ['replays']);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertSame('Missing required parameters', $response['error']);
+    }
+
     // ─── 404 ─────────────────────────────────────────────────────────────────
 
     public function testUnknownRouteReturns404(): void

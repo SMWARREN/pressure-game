@@ -23,7 +23,7 @@
     "enhance": "npx tsx src/cli/level-enhancer.ts",
     "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
     "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
-    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN",
+    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src,../server/src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
