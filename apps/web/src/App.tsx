@@ -4,10 +4,12 @@ import GameBoard from '@/components/GameBoard';
 import TestHarness from '@/components/testing/TestHarness';
 import InstallPrompt from '@/components/InstallPrompt';
 import { AchievementToastContainer } from '@/components/AchievementToast';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 function AppContent() {
   return (
     <>
+      <LoadingScreen />
       <GameBoard />
       <InstallPrompt />
       <AchievementToastContainer />
