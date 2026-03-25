@@ -182,9 +182,28 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
 
             // Pressure Series group: show hub button OR individual mode cards
             if (group.label === PRESSURE_GROUP_LABEL) {
-              // If hubs disabled, skip hub button - will show individual mode cards below
+              // If hubs disabled, show individual mode cards
               if (!shouldShowHubs()) {
-                return null;
+                return (
+                  <div key={group.label}>
+                    <GroupHeader
+                      label={group.label}
+                      tagline={group.tagline}
+                      accentColor={groupAccent(group.modeIds)}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {modesInGroup.map((mode) => (
+                        <ModeCard
+                          key={mode.id}
+                          mode={mode}
+                          active={mode.id === currentModeId}
+                          isNew={!seenTutorials.includes(mode.id) && mode.id !== currentModeId}
+                          onSelect={() => handleModeSelect(mode.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
               }
 
               const pressureActive = PRESSURE_MODE_IDS.has(currentModeId);

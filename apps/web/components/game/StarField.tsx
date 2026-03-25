@@ -12,22 +12,42 @@ export function StarField() {
   );
 
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      {stars.current.map((s) => (
-        <div
-          key={s.id}
-          style={{
-            position: 'absolute',
-            left: `${s.x}%`,
-            top: `${s.y}%`,
-            width: s.size,
-            height: s.size,
-            borderRadius: '50%',
-            background: '#a5b4fc',
-            opacity: s.opacity,
-          }}
-        />
-      ))}
-    </div>
+    <>
+      <style>{`
+        @keyframes starScroll {
+          from {
+            transform: translate(0, 0);
+          }
+          to {
+            transform: translate(-20%, -20%);
+          }
+        }
+      `}</style>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+          animation: 'starScroll 80s linear infinite',
+        }}
+      >
+        {stars.current.map((s) => (
+          <div
+            key={s.id}
+            style={{
+              position: 'absolute',
+              left: `${s.x}%`,
+              top: `${s.y}%`,
+              width: s.size,
+              height: s.size,
+              borderRadius: '50%',
+              background: '#a5b4fc',
+              opacity: s.opacity,
+            }}
+          />
+        ))}
+      </div>
+    </>
   );
 }

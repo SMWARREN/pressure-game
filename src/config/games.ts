@@ -48,8 +48,10 @@ const DOMAIN_CONFIGS: Record<string, GameConfig> = {
     pressureModes: {
       classic: true,
       zen: true,
-      blitz: false,
+      blitz: true,
     },
+    hiddenModes: ['laserRelay', 'candy', 'shoppingSpree', 'gemBlast', 'quantum_chain', 'outbreak', 'memoryMatch', 'gravityDrop', 'mirrorForge', 'voltage', 'fuse'],
+    showHubs: false, // Just show mode cards, no hub button
   },
 };
 
