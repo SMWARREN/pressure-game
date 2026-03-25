@@ -261,11 +261,13 @@ class Router
             $score     = $score !== null ? (int) $score : 0;
 
             $stmt = self::guardPrepare($db->conn->prepare(
-                'INSERT INTO replays (user_id, mode, level_id, moves_json, score)
+                'INSERT INTO replays (user_id, mode, level_id, moves, score)
                  VALUES (?, ?, ?, ?, ?)'
             ), $db);
             $stmt->bind_param('ssisi', $userId, $mode, $levelId, $movesJson, $score);
-            $stmt->execute();
+            if (!$stmt->execute()) {
+                jsonResponse(500, ['error' => 'Failed to save replay: ' . $stmt->error]);
+            }
             $replayId = $db->conn->insert_id;
             $stmt->close();
 
@@ -285,9 +287,9 @@ class Router
             $levelId = (int) $levelId;
 
             $stmt = self::guardPrepare($db->conn->prepare(
-                'SELECT moves_json as moves, score FROM replays
+                'SELECT moves, score FROM replays
                  WHERE user_id = ? AND mode = ? AND level_id = ?
-                 ORDER BY recorded_at DESC LIMIT 1'
+                 ORDER BY created_at DESC LIMIT 1'
             ), $db);
             $stmt->bind_param('ssi', $userId, $mode, $levelId);
             $stmt->execute();
