@@ -8,6 +8,7 @@ import { ensureHubStyles } from './hubs/HubStyles';
 import { PressureModeInfo } from './hubs/HubTypes';
 import { PressureGamePreview } from './pressure/PressureGamePreview';
 import { getModeById } from '@/game/modes';
+import { isPressureModeEnabled } from '@/config/games';
 
 const CLASSIC_INFO: PressureModeInfo = {
   description: 'The original pipe puzzle — connect all nodes before time runs out!',
@@ -88,16 +89,21 @@ export default function PressureHubScreen() {
   const featuredLevel = useGameStore((s) => s.featuredLevel);
   const setFeaturedLevel = useGameStore((s) => s.setFeaturedLevel);
 
+  // Filter modes based on config
+  const enabledModes = PRESSURE_MODES.filter((m) => isPressureModeEnabled(m.id as any));
+
   // Load a featured level on mount
   useEffect(() => {
-    const mode = getModeById('classic');
+    // Use first enabled mode, or fallback to classic
+    const firstEnabledId = enabledModes[0]?.id || 'classic';
+    const mode = getModeById(firstEnabledId);
     if (!mode) return;
 
     const levels = mode.getLevels?.();
     if (levels && levels.length > 20) {
       setFeaturedLevel(levels[20]); // Level 21 - harder level with bigger grid
     }
-  }, [setFeaturedLevel]);
+  }, [setFeaturedLevel, enabledModes]);
 
   function selectMode(id: string) {
     setGameMode(id);
@@ -164,7 +170,7 @@ export default function PressureHubScreen() {
             PRESSURE
           </div>
           <div style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 2 }}>
-            Classic · Blitz · Zen
+            {enabledModes.map((m) => m.id.charAt(0).toUpperCase() + m.id.slice(1)).join(' · ')}
           </div>
         </div>
 
@@ -211,16 +217,17 @@ export default function PressureHubScreen() {
           GAME MODES
         </div>
 
-        {/* ── 3 Compact Buttons ── */}
+        {/* ── Mode Buttons ── */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'center',
             gap: 12,
             padding: '0 16px 20px',
+            flexWrap: 'wrap',
           }}
         >
-          {PRESSURE_MODES.map((def) => (
+          {enabledModes.map((def) => (
             <button
               key={def.id}
               onClick={() => selectMode(def.id)}

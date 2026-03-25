@@ -6,6 +6,7 @@ import { RGBA_COLORS } from '@/utils/constants';
 import TutorialScreen from './TutorialScreen';
 import { useWalkthrough } from './WalkthroughOverlay';
 import { getModeById } from '@/game/modes';
+import { isGameEnabled } from '@/config/games';
 import GameGrid from './game/GameGrid';
 import GameStats from './game/GameStats';
 import type { GameEndEvent } from '@/game/stats/types';
@@ -474,8 +475,8 @@ export default function GameBoard() {
   // Early returns for tutorial and menu screens (must come AFTER all hooks)
   // Guard clauses for special screens (reduces nesting depth)
   if (status === 'tutorial') return <TutorialScreen onComplete={completeTutorial} />;
-  if (showArcadeHub) return <ArcadeHubScreen />;
-  if (showPressureHub) return <PressureHubScreen />;
+  if (showArcadeHub && isGameEnabled('arcade')) return <ArcadeHubScreen />;
+  if (showPressureHub && isGameEnabled('pressure')) return <PressureHubScreen />;
   if (!currentLevel || status === 'menu') return <MenuScreen />;
 
   const gs = currentLevel.gridSize;
