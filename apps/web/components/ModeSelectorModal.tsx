@@ -13,6 +13,7 @@ import { ModeCard } from './modals/ModeCard';
 import { GroupHeader } from './modals/GroupHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { RGBA_COLORS } from '@/utils/constants';
+import { isGameEnabled, getEnabledPressureModes } from '@/config/games';
 
 interface ModeSelectorModalProps {
   readonly visible: boolean;
@@ -242,7 +243,9 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
                         Pressure Hub
                       </div>
                       <div style={{ fontSize: 11, color: colors.text.tertiary, lineHeight: 1.4 }}>
-                        Classic · Blitz · Zen
+                        {getEnabledPressureModes()
+                          .map((m) => m.charAt(0).toUpperCase() + m.slice(1))
+                          .join(' · ')}
                       </div>
                     </div>
                     <span style={{ fontSize: 16, color: colors.text.tertiary }}>›</span>
@@ -251,8 +254,9 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
               );
             }
 
-            // Arcade group: single hub-entry card
+            // Arcade group: single hub-entry card (only show if enabled)
             if (group.label === ARCADE_GROUP_LABEL) {
+              if (!isGameEnabled('arcade')) return null;
               const arcadeActive = ARCADE_MODE_IDS.has(currentModeId);
               const hasNew = modesInGroup.some(
                 (m) => !seenTutorials.includes(m.id) && m.id !== currentModeId
