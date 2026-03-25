@@ -7,7 +7,7 @@ export function LoadingScreen() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#0a0f1c',
+        background: '#020108',
         zIndex: 9999,
         animation: 'fadeOut 0.3s ease-out 1.5s forwards',
       }}
