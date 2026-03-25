@@ -1,4 +1,5 @@
 import { GameModeConfig } from '@/game/types';
+import { useTheme } from '@/hooks/useTheme';
 import { Badge } from './Badge';
 
 export interface ModeCardProps {
@@ -9,6 +10,7 @@ export interface ModeCardProps {
 }
 
 export function ModeCard({ mode, active, isNew, onSelect }: ModeCardProps) {
+  const { colors } = useTheme();
   return (
     <button
       onClick={onSelect}
@@ -18,8 +20,8 @@ export function ModeCard({ mode, active, isNew, onSelect }: ModeCardProps) {
         gap: 12,
         padding: '14px 16px',
         borderRadius: 14,
-        border: `1.5px solid ${active ? mode.color + '70' : '#12122a'}`,
-        background: active ? `${mode.color}14` : '#07070e',
+        border: `1.5px solid ${active ? mode.color + '70' : colors.border.primary}`,
+        background: active ? `${mode.color}14` : colors.bg.tertiary,
         cursor: 'pointer',
         textAlign: 'left',
         transition: 'all 0.2s',
@@ -38,8 +40,8 @@ export function ModeCard({ mode, active, isNew, onSelect }: ModeCardProps) {
             fontSize: 8,
             fontWeight: 900,
             letterSpacing: '0.1em',
-            color: '#fff',
-            background: '#6366f1',
+            color: colors.text.primary,
+            background: colors.status.info,
             padding: '2px 6px',
             borderRadius: 4,
           }}
@@ -64,14 +66,14 @@ export function ModeCard({ mode, active, isNew, onSelect }: ModeCardProps) {
           style={{
             fontSize: 14,
             fontWeight: 800,
-            color: active ? mode.color : '#e4e4f0',
+            color: active ? mode.color : colors.text.primary,
             transition: 'color 0.2s',
             marginBottom: 3,
           }}
         >
           {mode.name}
         </div>
-        <div style={{ fontSize: 11, color: active ? '#a0a0b8' : '#9090a8', lineHeight: 1.4 }}>{mode.description}</div>
+        <div style={{ fontSize: 11, color: colors.text.tertiary, lineHeight: 1.4 }}>{mode.description}</div>
       </div>
 
       {/* Feature badges */}
