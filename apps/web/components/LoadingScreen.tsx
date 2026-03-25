@@ -31,7 +31,7 @@ export function LoadingScreen() {
           maxWidth: '90vw',
           maxHeight: '90vh',
           objectFit: 'contain',
-          transform: 'scale(0.75)',
+          transform: 'scale(0.5)',
         }}
       />
     </div>
