@@ -13,6 +13,10 @@ export interface GameConfig {
     zen: boolean;
     blitz: boolean;
   };
+  // Other modes to hide (not in Pressure series)
+  hiddenModes?: string[]; // e.g., ['laserRelay', 'candy']
+  // Show hub selector or just mode cards?
+  showHubs?: boolean;
 }
 
 /**
@@ -20,7 +24,7 @@ export interface GameConfig {
  * Add new domains here to customize what games/modes are available
  */
 const DOMAIN_CONFIGS: Record<string, GameConfig> = {
-  // pressure.click - Only Pressure game with Zen and Blitz
+  // pressure.click - Only Pressure game with Zen and Blitz, no hubs or other games
   'pressure.click': {
     enabledGames: {
       pressure: true,
@@ -31,18 +35,20 @@ const DOMAIN_CONFIGS: Record<string, GameConfig> = {
       zen: true,
       blitz: true,
     },
+    hiddenModes: ['laserRelay', 'candy', 'shoppingSpree', 'gemBlast', 'quantum_chain', 'outbreak', 'memoryMatch', 'gravityDrop', 'mirrorForge', 'voltage', 'fuse'],
+    showHubs: false, // Just show mode cards, no hub button
   },
 
   // Default config for development/other domains
   default: {
     enabledGames: {
       pressure: true,
-      arcade: true,
+      arcade: false,
     },
     pressureModes: {
       classic: true,
       zen: true,
-      blitz: true,
+      blitz: false,
     },
   },
 };
@@ -94,4 +100,20 @@ export function getEnabledPressureModes(): ('classic' | 'zen' | 'blitz')[] {
   return (Object.entries(config)
     .filter(([, enabled]) => enabled)
     .map(([mode]) => mode) as ('classic' | 'zen' | 'blitz')[]).sort();
+}
+
+/**
+ * Check if a mode is hidden
+ */
+export function isModHidden(modeId: string): boolean {
+  const hidden = getGameConfig().hiddenModes || [];
+  return hidden.includes(modeId);
+}
+
+/**
+ * Check if hubs should be shown in mode selector
+ */
+export function shouldShowHubs(): boolean {
+  const config = getGameConfig();
+  return config.showHubs !== false; // Default to true
 }

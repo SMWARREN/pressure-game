@@ -13,7 +13,7 @@ import { ModeCard } from './modals/ModeCard';
 import { GroupHeader } from './modals/GroupHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { RGBA_COLORS } from '@/utils/constants';
-import { isGameEnabled, getEnabledPressureModes } from '@/config/games';
+import { isGameEnabled, getEnabledPressureModes, shouldShowHubs, isModHidden } from '@/config/games';
 
 interface ModeSelectorModalProps {
   readonly visible: boolean;
@@ -176,12 +176,17 @@ export default function ModeSelectorModal({ visible, onClose }: ModeSelectorModa
           {MODE_GROUPS.map((group) => {
             const modesInGroup = group.modeIds
               .map((id) => modeById.get(id))
-              .filter((m): m is GameModeConfig => m !== undefined);
+              .filter((m): m is GameModeConfig => m !== undefined && !isModHidden(m.id));
 
             if (modesInGroup.length === 0) return null;
 
-            // Pressure Series group: single hub-entry card
+            // Pressure Series group: show hub button OR individual mode cards
             if (group.label === PRESSURE_GROUP_LABEL) {
+              // If hubs disabled, skip hub button - will show individual mode cards below
+              if (!shouldShowHubs()) {
+                return null;
+              }
+
               const pressureActive = PRESSURE_MODE_IDS.has(currentModeId);
               const hasNew = modesInGroup.some(
                 (m) => !seenTutorials.includes(m.id) && m.id !== currentModeId
