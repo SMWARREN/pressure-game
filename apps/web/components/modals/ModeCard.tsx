@@ -64,14 +64,14 @@ export function ModeCard({ mode, active, isNew, onSelect }: ModeCardProps) {
           style={{
             fontSize: 14,
             fontWeight: 800,
-            color: active ? mode.color : '#2a2a3e',
+            color: active ? mode.color : '#e4e4f0',
             transition: 'color 0.2s',
             marginBottom: 3,
           }}
         >
           {mode.name}
         </div>
-        <div style={{ fontSize: 11, color: '#25253a', lineHeight: 1.4 }}>{mode.description}</div>
+        <div style={{ fontSize: 11, color: active ? '#a0a0b8' : '#9090a8', lineHeight: 1.4 }}>{mode.description}</div>
       </div>
 
       {/* Feature badges */}
