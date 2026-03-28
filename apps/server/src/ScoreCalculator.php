@@ -25,6 +25,7 @@ class ScoreCalculator
             default   => 1000,
         };
 
-        return max(0, (int) ($baseScore * $multiplier));
+        // Divide final score by 1000 for more reasonable numbers
+        return max(0, (int) (($baseScore * $multiplier) / 1000));
     }
 }

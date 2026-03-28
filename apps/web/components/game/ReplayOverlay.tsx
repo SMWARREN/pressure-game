@@ -33,6 +33,11 @@ function fmtElapsed(ms: number): string {
   return `${s}s`;
 }
 
+function formatNumber(num: number | undefined): string {
+  if (num === undefined || num === null) return '0';
+  return num.toLocaleString();
+}
+
 // ── Compute replay metadata (extracts from props/engine) ────────────────────
 function computeReplayMetadata(event: GameEndEvent, engine: ReplayEngine, vw: number) {
   const mode = getModeById(event.modeId);
@@ -402,7 +407,7 @@ export default function ReplayOverlay({ event, engine, onClose }: ReplayOverlayP
         )}
         {event.score > 0 && snapshot.score > 0 && (
           <div style={{ fontSize: 11, color: colors.status.warning, fontWeight: 700 }}>
-            {snapshot.score} pts
+            {formatNumber(snapshot.score)} pts
           </div>
         )}
       </div>

@@ -9,6 +9,11 @@ import {
   getTimeleftGlow,
 } from './GameStatsUtils';
 
+function formatNumber(num: number | undefined): string {
+  if (num === undefined || num === null) return '0';
+  return num.toLocaleString();
+}
+
 /**
  * CompressionBar - Visual indicator showing wall compression progress
  */
@@ -237,7 +242,7 @@ function ScoreDisplay({
       >
         <span style={{ color: '#f472b6', fontWeight: 800 }}>SCORE</span>
         {targetScore !== undefined && targetScore < 99999 && (
-          <span style={{ color: colors.text.tertiary }}>TARGET {targetScore}</span>
+          <span style={{ color: colors.text.tertiary }}>TARGET {formatNumber(targetScore)}</span>
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -252,7 +257,7 @@ function ScoreDisplay({
             transition: 'color 0.3s',
           }}
         >
-          {score}
+          {formatNumber(score)}
         </div>
         {targetScore !== undefined && targetScore < 99999 && (
           <div

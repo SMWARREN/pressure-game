@@ -20,6 +20,11 @@ function fmtTime(seconds: number): string {
   return `${m}m`;
 }
 
+function formatNumber(num: number | undefined): string {
+  if (num === undefined || num === null) return '0';
+  return num.toLocaleString();
+}
+
 function fmtDate(ts: number): string {
   const d = new Date(ts);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -325,7 +330,7 @@ export default function StatsScreen({
                             >
                               {e.moves} {e.moves === 1 ? 'move' : 'moves'} ·{' '}
                               {fmtTime(e.elapsedSeconds)}
-                              {e.score > 0 ? ` · ${e.score} pts` : ''}
+                              {e.score > 0 ? ` · ${formatNumber(e.score)} pts` : ''}
                             </div>
                           </div>
                           <div style={{ fontSize: 10, color: colors.text.tertiary, flexShrink: 0 }}>

@@ -419,6 +419,9 @@ class Database
 
     public function unlockAchievement(string $userId, string $achievementId): bool
     {
+        // Ensure user exists in users table (required for foreign key)
+        $this->ensureUser($userId);
+
         $stmt = $this->guardPrepare($this->conn->prepare(
             'INSERT IGNORE INTO achievements (user_id, achievement_id) VALUES (?, ?)'
         ));
@@ -493,8 +496,22 @@ class Database
 
     // ─── User Profiles ───────────────────────────────────────────────────────
 
+    /**
+     * Ensure user exists in users table (required for foreign key constraints)
+     */
+    public function ensureUser(string $userId): void
+    {
+        $stmt = $this->guardPrepare($this->conn->prepare('INSERT IGNORE INTO users (id) VALUES (?)'));
+        $stmt->bind_param('s', $userId);
+        $stmt->execute();
+        $stmt->close();
+    }
+
     public function ensureUserProfile(string $userId): void
     {
+        // Ensure user exists first (required for foreign key)
+        $this->ensureUser($userId);
+
         $stmt = $this->guardPrepare($this->conn->prepare('INSERT IGNORE INTO user_profiles (user_id) VALUES (?)'));
         $stmt->bind_param('s', $userId);
         $stmt->execute();
@@ -594,6 +611,9 @@ class Database
 
     public function saveReplay(string $userId, string $mode, int $levelId, mixed $moves, int $score): bool
     {
+        // Ensure user exists in users table (required for foreign key)
+        $this->ensureUser($userId);
+
         $movesJson = is_string($moves) ? $moves : json_encode($moves);
         $stmt = $this->guardPrepare($this->conn->prepare(
             'INSERT INTO replays (user_id, mode, level_id, moves_json, score)

@@ -47,6 +47,11 @@ function getRankMedal(index: number): string {
   return `#${index + 1}`;
 }
 
+function formatNumber(num: number | undefined): string {
+  if (num === undefined || num === null) return '0';
+  return num.toLocaleString();
+}
+
 function LeaderboardRow({
   entry,
   index,
@@ -148,7 +153,7 @@ function LeaderboardRow({
             color: rankColor,
           }}
         >
-          {isGlobal ? entry.total_score : entry.score}
+          {formatNumber(isGlobal ? entry.total_score : entry.score)}
         </div>
         {isGlobal && (
           <div

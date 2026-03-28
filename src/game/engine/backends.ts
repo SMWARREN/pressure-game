@@ -398,6 +398,12 @@ export class SyncingBackend implements PersistenceBackend {
   }
 
   setItem(key: string, value: string): void {
+    // Check if value actually changed (skip sync if unchanged)
+    const currentValue = this.localBackend.getItem(key);
+    if (currentValue === value) {
+      return; // No change, don't sync
+    }
+
     // 1. Write to local storage immediately (offline-first)
     this.localBackend.setItem(key, value);
 
@@ -409,6 +415,12 @@ export class SyncingBackend implements PersistenceBackend {
   }
 
   removeItem(key: string): void {
+    // Check if item exists (skip sync if already removed)
+    const currentValue = this.localBackend.getItem(key);
+    if (currentValue === null) {
+      return; // Already removed, don't sync
+    }
+
     // 1. Remove from local storage immediately
     this.localBackend.removeItem(key);
 

@@ -7,6 +7,7 @@ import { STORAGE_KEYS } from '@/utils/constants';
  */
 export function getUserId(): string {
   const envUserId =
+    ((import.meta as any).env?.VITE_USER_ID as string | undefined) ||
     (typeof process !== 'undefined' && process.env.VITE_USER_ID) ||
     (globalThis as any).__VITE_USER_ID;
   if (envUserId) {

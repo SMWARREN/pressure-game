@@ -9,6 +9,11 @@ import { useGameStore } from '@/game/store';
 import { getCompleteUserProfile, getReplay } from '@/game/api/leaderboards';
 import { getUserId } from '@/game/contexts/GameEngineProvider';
 
+function formatNumber(num: number | undefined): string {
+  if (num === undefined || num === null) return '0';
+  return num.toLocaleString();
+}
+
 interface UserStats {
   userId: string;
   username?: string;
@@ -489,7 +494,7 @@ export default function ProfileScreen({
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: modeColor }}>
-                        {win.score}
+                        {formatNumber(win.score)}
                       </div>
                       {onWatchReplay && (
                         <div
