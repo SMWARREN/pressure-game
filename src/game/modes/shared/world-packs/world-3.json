@@ -282,6 +282,31 @@
         ],
         "isGoalNode": false,
         "canRotate": true
+      },
+      {
+        "id": "decoy-4-1-0",
+        "x": 4,
+        "y": 1,
+        "type": "path",
+        "connections": [
+          "up",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "decoy-1-2-1",
+        "x": 1,
+        "y": 2,
+        "type": "path",
+        "connections": [
+          "down",
+          "right",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
       }
     ],
     "compressionDelay": 4000,
@@ -634,6 +659,31 @@
         ],
         "isGoalNode": false,
         "canRotate": true
+      },
+      {
+        "id": "decoy-4-4-0",
+        "x": 4,
+        "y": 4,
+        "type": "path",
+        "connections": [
+          "up",
+          "right",
+          "down"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "decoy-2-4-1",
+        "x": 2,
+        "y": 4,
+        "type": "path",
+        "connections": [
+          "up",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
       }
     ],
     "compressionDelay": 4000,
@@ -663,7 +713,7 @@
   },
   {
     "id": 16,
-    "name": "Diagonal Moderate",
+    "name": "Diagonal Hard",
     "world": 3,
     "gridSize": 6,
     "tiles": [
@@ -941,6 +991,32 @@
         "connections": [
           "up",
           "down"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "decoy-4-3-0",
+        "x": 4,
+        "y": 3,
+        "type": "path",
+        "connections": [
+          "up",
+          "right",
+          "down"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "decoy-4-4-1",
+        "x": 4,
+        "y": 4,
+        "type": "path",
+        "connections": [
+          "down",
+          "right",
+          "left"
         ],
         "isGoalNode": false,
         "canRotate": true
