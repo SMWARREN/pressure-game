@@ -17,12 +17,7 @@
 
 import type { Level } from '../../types';
 import pressureLevelsJson from './pressure-levels.json';
-
-// Load world-packs using Vite's glob pattern
-// This automatically discovers all JSON files in world-packs/
-const worldPackModules = (import.meta as any).glob('./world-packs/*.json', {
-  eager: true,
-}) as Record<string, Level[]>;
+import world8PackRaw from './world-packs/world-8.json';
 
 // Cache for lazy loading
 let cachedLevels: Level[] | null = null;
@@ -35,18 +30,14 @@ export function getPressureLevels(): Level[] {
   if (cachedLevels) return cachedLevels;
 
   // Main levels (Worlds 1-7)
-  const mainLevels = pressureLevelsJson as Level[];
+  const mainLevels = pressureLevelsJson as any as Level[];
 
-  // Load all world-packs (Worlds 8+) - auto-discovered from world-packs/*.json
-  const worldPackLevels: Level[] = [];
-  for (const mod of Object.values(worldPackModules)) {
-    if (Array.isArray(mod)) {
-      worldPackLevels.push(...mod);
-    }
-  }
+  // World-packs (Worlds 8+) - cast from JSON raw data
+  // Add new world packs here as they're generated
+  const world8Levels = (world8PackRaw as any as Level[]) || [];
 
   // Merge all levels
-  cachedLevels = [...mainLevels, ...worldPackLevels];
+  cachedLevels = [...mainLevels, ...world8Levels];
   return cachedLevels;
 }
 
