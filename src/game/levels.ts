@@ -351,6 +351,10 @@ function createPathTiles(pathDirs: Map<string, Direction[]>, goalSet: Set<string
     ['right', 'down'],
     ['down', 'left'],
     ['left', 'up'],
+    ['up', 'down', 'left'],
+    ['up', 'down', 'right'],
+    ['up', 'left', 'right'],
+    ['down', 'left', 'right'],
   ];
 
   const pathTiles: Tile[] = [];
@@ -397,6 +401,10 @@ function createDecoyTiles(decoyCount: number, gridSize: number, occupiedKeys: Se
     ['right', 'down'],
     ['down', 'left'],
     ['left', 'up'],
+    ['up', 'down', 'left'],
+    ['up', 'down', 'right'],
+    ['up', 'left', 'right'],
+    ['down', 'left', 'right'],
   ];
 
   const decoyTiles: Tile[] = [];

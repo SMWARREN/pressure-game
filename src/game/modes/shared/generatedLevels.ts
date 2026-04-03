@@ -3,20 +3,26 @@
 // Run: npm run generate:pressure to regenerate the JSON file
 
 import type { Level } from '../../types';
+import { CLASSIC_LEVELS } from '../classic/levels';
 import pressureLevelsJson from './pressure-levels.json';
 
 // Cache for lazy loading
 let cachedLevels: Level[] | null = null;
 
 /**
- * Get all pressure levels - lazy loading from pre-generated JSON.
+ * Get all pressure levels - combines hand-authored Classic levels with procedural levels.
  * Levels are loaded from JSON file on first call, then cached.
  */
 export function getPressureLevels(): Level[] {
   if (cachedLevels) return cachedLevels;
 
-  // Cast the JSON data to Level[] type
-  cachedLevels = pressureLevelsJson as Level[];
+  // Cast the JSON data to Level[] type and combine with hand-authored Classic levels
+  const procedural = pressureLevelsJson as Level[];
+  // Filter out any procedural levels that might conflict with Classic levels (IDs 1-30, 998-999)
+  const filtered = procedural.filter(
+    (l) => (l.id < 1 || l.id > 30) && l.id !== 998 && l.id !== 999
+  );
+  cachedLevels = [...CLASSIC_LEVELS, ...filtered];
   return cachedLevels;
 }
 
