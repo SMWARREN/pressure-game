@@ -1333,7 +1333,7 @@
   },
   {
     "id": 1033,
-    "name": "Stream",
+    "name": "Spiral",
     "world": 8,
     "gridSize": 7,
     "gridCols": 7,
@@ -1921,7 +1921,7 @@
   },
   {
     "id": 1034,
-    "name": "Surge",
+    "name": "Whirlwind",
     "world": 8,
     "gridSize": 7,
     "gridCols": 7,
