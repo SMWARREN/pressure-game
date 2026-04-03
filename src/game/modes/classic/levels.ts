@@ -5254,7 +5254,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 21,
     name: 'T-Junction',
-    world: 4,
+    world: 8,
     gridSize: 7,
     tiles: [
       ...Array.from({ length: 7 }, (_, i) => ({
@@ -5360,7 +5360,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 22,
     name: 'T-Split',
-    world: 4,
+    world: 8,
     gridSize: 7,
     tiles: [
       ...Array.from({ length: 7 }, (_, i) => ({
@@ -5457,7 +5457,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 23,
     name: 'T-Bridge',
-    world: 4,
+    world: 8,
     gridSize: 8,
     tiles: [
       ...Array.from({ length: 8 }, (_, i) => ({
@@ -5562,7 +5562,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 24,
     name: 'T-Maze',
-    world: 4,
+    world: 8,
     gridSize: 8,
     tiles: [
       ...Array.from({ length: 8 }, (_, i) => ({
@@ -5676,7 +5676,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 25,
     name: 'T-Nexus',
-    world: 4,
+    world: 8,
     gridSize: 9,
     tiles: [
       ...Array.from({ length: 9 }, (_, i) => ({
@@ -5738,7 +5738,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 26,
     name: 'T-Web',
-    world: 4,
+    world: 8,
     gridSize: 9,
     tiles: [
       ...Array.from({ length: 9 }, (_, i) => ({
@@ -5799,7 +5799,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 27,
     name: 'T-Complex',
-    world: 4,
+    world: 8,
     gridSize: 9,
     tiles: [
       ...Array.from({ length: 9 }, (_, i) => ({
@@ -5859,7 +5859,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 28,
     name: 'T-Master',
-    world: 4,
+    world: 8,
     gridSize: 10,
     tiles: [
       ...Array.from({ length: 10 }, (_, i) => ({
@@ -5921,7 +5921,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 29,
     name: 'T-Expert',
-    world: 4,
+    world: 8,
     gridSize: 10,
     tiles: [
       ...Array.from({ length: 10 }, (_, i) => ({
@@ -5983,7 +5983,7 @@ export const CLASSIC_LEVELS: Level[] = [
   {
     id: 30,
     name: 'T-Labyrinth',
-    world: 4,
+    world: 8,
     gridSize: 10,
     tiles: [
       ...Array.from({ length: 10 }, (_, i) => ({
