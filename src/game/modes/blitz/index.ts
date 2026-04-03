@@ -18,6 +18,7 @@ export const BLITZ_WORLDS = [
   { id: 5, name: 'Lateral', tagline: 'Sideways burn', color: '#db2777', icon: '◀' },
   { id: 6, name: 'Vise', tagline: 'Closing from both ends', color: '#9333ea', icon: '◼' },
   { id: 7, name: 'Channel', tagline: 'Side by side annihilation', color: '#4f46e5', icon: '▬' },
+  { id: 8, name: 'Torrent', tagline: 'T-shapes unleashed', color: '#a855f7', icon: '⊤' },
 ];
 
 export const BlitzMode: GameModeConfig = {
