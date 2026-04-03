@@ -1,22 +1,52 @@
 // PRESSURE - Pre-generated Procedural Levels
 // This file loads pre-generated levels from JSON to avoid runtime generation blocking.
-// Run: npm run generate:pressure to regenerate the JSON file
+//
+// WORLD PACKS SYSTEM:
+// - Place generated levels in src/game/modes/shared/world-packs/world-N.json
+// - They will be automatically loaded and merged with main levels
+// - Run: npm run generate:pressure to generate new levels
+//
+// TO ADD A NEW WORLD:
+// 1. Run: npm run generate:pressure
+// 2. File creates src/game/modes/shared/world-packs/world-8.json (or world-9, etc.)
+// 3. The level loader auto-merges it - no code changes needed!
+//
+// MAIN LEVELS:
+// - Worlds 1-7: src/game/modes/shared/pressure-levels.json (hand-authored)
+// - World 8+: src/game/modes/shared/world-packs/*.json (auto-generated)
 
 import type { Level } from '../../types';
 import pressureLevelsJson from './pressure-levels.json';
+
+// Load world-packs using Vite's glob pattern
+// This automatically discovers all JSON files in world-packs/
+const worldPackModules = (import.meta as any).glob('./world-packs/*.json', {
+  eager: true,
+}) as Record<string, Level[]>;
 
 // Cache for lazy loading
 let cachedLevels: Level[] | null = null;
 
 /**
- * Get all pressure levels - lazy loading from pre-generated JSON.
+ * Get all pressure levels - combines main levels with world-packs.
  * Levels are loaded from JSON file on first call, then cached.
  */
 export function getPressureLevels(): Level[] {
   if (cachedLevels) return cachedLevels;
 
-  // Cast the JSON data to Level[] type
-  cachedLevels = pressureLevelsJson as Level[];
+  // Main levels (Worlds 1-7)
+  const mainLevels = pressureLevelsJson as Level[];
+
+  // Load all world-packs (Worlds 8+) - auto-discovered from world-packs/*.json
+  const worldPackLevels: Level[] = [];
+  for (const mod of Object.values(worldPackModules)) {
+    if (Array.isArray(mod)) {
+      worldPackLevels.push(...mod);
+    }
+  }
+
+  // Merge all levels
+  cachedLevels = [...mainLevels, ...worldPackLevels];
   return cachedLevels;
 }
 

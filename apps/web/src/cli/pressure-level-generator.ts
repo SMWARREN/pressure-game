@@ -66,12 +66,19 @@ function generateWorld8Only() {
     return rest;
   });
 
-  const outputPath = path.join(__dirname, '../game/modes/shared/world8-levels.json');
+  const outputDir = path.join(__dirname, '../../../../src/game/modes/shared/world-packs');
+  const outputPath = path.join(outputDir, 'world-8.json');
+
+  // Ensure world-packs directory exists
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
   fs.writeFileSync(outputPath, JSON.stringify(cleanedLevels, null, 2));
 
   console.log(`\n${colors.green}✓ Generated ${cleanedLevels.length} World 8 levels${colors.reset}`);
   console.log(`${colors.green}✓ Written to ${outputPath}${colors.reset}`);
-  console.log(`\n${colors.yellow}Review the levels in world8-levels.json, then merge into pressure-levels.json manually${colors.reset}`);
+  console.log(`\n${colors.yellow}World 8 levels will be automatically loaded by the game!${colors.reset}`);
 }
 
 function regenerateAll() {
@@ -170,8 +177,8 @@ function regenerateAll() {
     return rest;
   });
 
-  // Write to JSON file
-  const outputPath = path.join(__dirname, '../game/modes/shared/pressure-levels.json');
+  // Write to JSON file (in root src directory, not apps/web)
+  const outputPath = path.join(__dirname, '../../../../src/game/modes/shared/pressure-levels.json');
   fs.writeFileSync(outputPath, JSON.stringify(cleanedLevels, null, 2));
   console.log(`\n${colors.green}✓ Written ${cleanedLevels.length} levels to ${outputPath}${colors.reset}`);
 
