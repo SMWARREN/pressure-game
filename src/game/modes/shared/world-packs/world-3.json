@@ -260,6 +260,28 @@
         ],
         "isGoalNode": false,
         "canRotate": true
+      },
+      {
+        "x": 2,
+        "y": 3,
+        "type": "straight",
+        "connections": [
+          "left",
+          "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "x": 4,
+        "y": 3,
+        "type": "corner",
+        "connections": [
+          "up",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
       }
     ],
     "compressionDelay": 4000,
@@ -590,6 +612,28 @@
         ],
         "isGoalNode": false,
         "canRotate": true
+      },
+      {
+        "x": 2,
+        "y": 2,
+        "type": "corner",
+        "connections": [
+          "up",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "x": 1,
+        "y": 2,
+        "type": "corner",
+        "connections": [
+          "down",
+          "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
       }
     ],
     "compressionDelay": 4000,
@@ -875,6 +919,28 @@
         "connections": [
           "up",
           "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "x": 1,
+        "y": 2,
+        "type": "corner",
+        "connections": [
+          "down",
+          "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "x": 1,
+        "y": 1,
+        "type": "straight",
+        "connections": [
+          "up",
+          "down"
         ],
         "isGoalNode": false,
         "canRotate": true
