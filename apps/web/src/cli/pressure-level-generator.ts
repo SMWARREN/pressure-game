@@ -104,19 +104,6 @@ async function main() {
       branches: 1,
       names: ['Zenith', 'Ascend', 'Soar', 'Rise', 'Elevate', 'Skyward'],
     },
-    {
-      worldId: 8,
-      levelCount: 10,
-      startId: 1031,
-      gridCols: 7,
-      gridRows: 9,
-      nodeCount: 2,
-      difficulty: 'medium',
-      compressionDirection: 'all',
-      interiorWalls: 0,
-      branches: 2,
-      names: ['Stream', 'Ripple', 'Current', 'Wave', 'Surge', 'Cascade', 'Torrent', 'Maelstrom', 'Whirlpool', 'Tempest'],
-    },
   ];
 
   // Generate each world
@@ -135,8 +122,8 @@ async function main() {
     return rest;
   });
 
-  // Write to JSON file (in root src directory, not apps/web)
-  const outputPath = path.join(__dirname, '../../../../src/game/modes/shared/pressure-levels.json');
+  // Write to JSON file
+  const outputPath = path.join(__dirname, '../game/modes/shared/pressure-levels.json');
   fs.writeFileSync(outputPath, JSON.stringify(cleanedLevels, null, 2));
   console.log(`\n${colors.green}✓ Written ${levels.length} levels to ${outputPath}${colors.reset}`);
 
