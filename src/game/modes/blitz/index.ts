@@ -9,17 +9,9 @@ import { BLITZ_TUTORIAL_STEPS } from './tutorial';
 import { renderBlitzDemo } from './demo';
 import { BLITZ_WALKTHROUGH } from './walkthrough';
 import { getModeColorPalette } from '../modeColorFactory';
+import worldMetadata from './world-metadata.json';
 
-export const BLITZ_WORLDS = [
-  { id: 1, name: 'Ignite', tagline: 'Warm up', color: '#fde047', icon: '◈' },
-  { id: 2, name: 'Surge', tagline: 'Walls never stop', color: '#f97316', icon: '◆' },
-  { id: 3, name: 'Overload', tagline: 'No mercy', color: '#ef4444', icon: '⬟' },
-  { id: 4, name: 'Vector', tagline: 'Pick your angle', color: '#e11d48', icon: '▲' },
-  { id: 5, name: 'Lateral', tagline: 'Sideways burn', color: '#db2777', icon: '◀' },
-  { id: 6, name: 'Vise', tagline: 'Closing from both ends', color: '#9333ea', icon: '◼' },
-  { id: 7, name: 'Channel', tagline: 'Side by side annihilation', color: '#4f46e5', icon: '▬' },
-  { id: 8, name: 'Torrent', tagline: 'T-shapes unleashed', color: '#a855f7', icon: '⊤' },
-];
+export const BLITZ_WORLDS = worldMetadata;
 
 export const BlitzMode: GameModeConfig = {
   id: 'blitz',

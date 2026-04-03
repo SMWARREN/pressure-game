@@ -1,0 +1,10 @@
+[
+  { "id": 1, "name": "Breathe", "tagline": "Learn the basics", "color": "#22c55e", "icon": "◈" },
+  { "id": 2, "name": "Squeeze", "tagline": "Feel the walls", "color": "#f59e0b", "icon": "◆" },
+  { "id": 3, "name": "Crush", "tagline": "Survive or die", "color": "#06b6d4", "icon": "⬟" },
+  { "id": 4, "name": "Directional", "tagline": "Walls pick a side", "color": "#8b5cf6", "icon": "▲" },
+  { "id": 5, "name": "Lateral", "tagline": "Horizontal pressure", "color": "#f97316", "icon": "◀" },
+  { "id": 6, "name": "Squeeze", "tagline": "Top and bottom close in", "color": "#ef4444", "icon": "▬" },
+  { "id": 7, "name": "Corridor", "tagline": "Left and right close in", "color": "#ec4899", "icon": "▬" },
+  { "id": 8, "name": "T-Shaped", "tagline": "Master three-way junctions", "color": "#d946ef", "icon": "⊤" }
+]

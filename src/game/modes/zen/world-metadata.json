@@ -1,0 +1,10 @@
+[
+  { "id": 1, "name": "Breathe", "tagline": "Learn the basics", "color": "#22c55e", "icon": "◈" },
+  { "id": 2, "name": "Flow", "tagline": "Find your rhythm", "color": "#14b8a6", "icon": "◆" },
+  { "id": 3, "name": "Calm", "tagline": "Pure puzzle", "color": "#0ea5e9", "icon": "⬟" },
+  { "id": 4, "name": "Drift", "tagline": "Larger grids, no rush", "color": "#6366f1", "icon": "◇" },
+  { "id": 5, "name": "Current", "tagline": "Winding corridors", "color": "#a855f7", "icon": "⬡" },
+  { "id": 6, "name": "Deep", "tagline": "Complex networks", "color": "#ec4899", "icon": "✧" },
+  { "id": 7, "name": "Peace", "tagline": "Wide open puzzles", "color": "#fbbf24", "icon": "⬢" },
+  { "id": 8, "name": "Meditate", "tagline": "T-shaped tranquility", "color": "#d946ef", "icon": "⊤" }
+]
