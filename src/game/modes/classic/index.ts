@@ -19,7 +19,6 @@ export const CLASSIC_WORLDS = [
   { id: 5, name: 'Lateral', tagline: 'Horizontal pressure', color: '#f97316', icon: '◀' },
   { id: 6, name: 'Squeeze', tagline: 'Top and bottom close in', color: '#ef4444', icon: '▬' },
   { id: 7, name: 'Corridor', tagline: 'Left and right close in', color: '#ec4899', icon: '▬' },
-  { id: 8, name: 'T-Shaped', tagline: 'Master three-way junctions', color: '#d946ef', icon: '⊤' },
 ];
 
 export const ClassicMode: GameModeConfig = {
