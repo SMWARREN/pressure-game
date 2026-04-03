@@ -1,0 +1,1317 @@
+[
+  {
+    "id": 1,
+    "name": "Straight",
+    "world": 1,
+    "gridSize": 5,
+    "tiles": [
+      {
+        "id": "wall-0-0",
+        "type": "wall",
+        "x": 0,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-4",
+        "type": "wall",
+        "x": 0,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-0",
+        "type": "wall",
+        "x": 1,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-4",
+        "type": "wall",
+        "x": 1,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-1",
+        "type": "wall",
+        "x": 0,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-1",
+        "type": "wall",
+        "x": 4,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-0",
+        "type": "wall",
+        "x": 2,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-4",
+        "type": "wall",
+        "x": 2,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-2",
+        "type": "wall",
+        "x": 0,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-2",
+        "type": "wall",
+        "x": 4,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-0",
+        "type": "wall",
+        "x": 3,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-4",
+        "type": "wall",
+        "x": 3,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-3",
+        "type": "wall",
+        "x": 0,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-3",
+        "type": "wall",
+        "x": 4,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-0",
+        "type": "wall",
+        "x": 4,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-4",
+        "type": "wall",
+        "x": 4,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "node-1-2",
+        "type": "node",
+        "x": 1,
+        "y": 2,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "path-2-2",
+        "type": "path",
+        "x": 2,
+        "y": 2,
+        "connections": [
+          "up",
+          "down"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "node-3-2",
+        "type": "node",
+        "x": 3,
+        "y": 2,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      }
+    ],
+    "compressionDelay": 15000,
+    "maxMoves": 2,
+    "goalNodes": [
+      {
+        "x": 1,
+        "y": 2
+      },
+      {
+        "x": 3,
+        "y": 2
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Rise",
+    "world": 1,
+    "gridSize": 5,
+    "tiles": [
+      {
+        "id": "wall-0-0",
+        "type": "wall",
+        "x": 0,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-4",
+        "type": "wall",
+        "x": 0,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-0",
+        "type": "wall",
+        "x": 1,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-4",
+        "type": "wall",
+        "x": 1,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-1",
+        "type": "wall",
+        "x": 0,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-1",
+        "type": "wall",
+        "x": 4,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-0",
+        "type": "wall",
+        "x": 2,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-4",
+        "type": "wall",
+        "x": 2,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-2",
+        "type": "wall",
+        "x": 0,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-2",
+        "type": "wall",
+        "x": 4,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-0",
+        "type": "wall",
+        "x": 3,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-4",
+        "type": "wall",
+        "x": 3,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-3",
+        "type": "wall",
+        "x": 0,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-3",
+        "type": "wall",
+        "x": 4,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-0",
+        "type": "wall",
+        "x": 4,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-4",
+        "type": "wall",
+        "x": 4,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "node-2-1",
+        "type": "node",
+        "x": 2,
+        "y": 1,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "path-2-2",
+        "type": "path",
+        "x": 2,
+        "y": 2,
+        "connections": [
+          "left",
+          "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "node-2-3",
+        "type": "node",
+        "x": 2,
+        "y": 3,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      }
+    ],
+    "compressionDelay": 13000,
+    "maxMoves": 2,
+    "goalNodes": [
+      {
+        "x": 2,
+        "y": 1
+      },
+      {
+        "x": 2,
+        "y": 3
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Corner",
+    "world": 1,
+    "gridSize": 5,
+    "tiles": [
+      {
+        "id": "wall-0-0",
+        "type": "wall",
+        "x": 0,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-4",
+        "type": "wall",
+        "x": 0,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-0",
+        "type": "wall",
+        "x": 1,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-4",
+        "type": "wall",
+        "x": 1,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-1",
+        "type": "wall",
+        "x": 0,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-1",
+        "type": "wall",
+        "x": 4,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-0",
+        "type": "wall",
+        "x": 2,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-4",
+        "type": "wall",
+        "x": 2,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-2",
+        "type": "wall",
+        "x": 0,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-2",
+        "type": "wall",
+        "x": 4,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-0",
+        "type": "wall",
+        "x": 3,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-4",
+        "type": "wall",
+        "x": 3,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-3",
+        "type": "wall",
+        "x": 0,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-3",
+        "type": "wall",
+        "x": 4,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-0",
+        "type": "wall",
+        "x": 4,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-4",
+        "type": "wall",
+        "x": 4,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "node-1-1",
+        "type": "node",
+        "x": 1,
+        "y": 1,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "path-1-2",
+        "type": "path",
+        "x": 1,
+        "y": 2,
+        "connections": [
+          "up",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "node-2-2",
+        "type": "node",
+        "x": 2,
+        "y": 2,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      }
+    ],
+    "compressionDelay": 11000,
+    "maxMoves": 3,
+    "goalNodes": [
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 2,
+        "y": 2
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Detour",
+    "world": 1,
+    "gridSize": 5,
+    "tiles": [
+      {
+        "id": "wall-0-0",
+        "type": "wall",
+        "x": 0,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-4",
+        "type": "wall",
+        "x": 0,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-0",
+        "type": "wall",
+        "x": 1,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-4",
+        "type": "wall",
+        "x": 1,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-1",
+        "type": "wall",
+        "x": 0,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-1",
+        "type": "wall",
+        "x": 4,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-0",
+        "type": "wall",
+        "x": 2,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-4",
+        "type": "wall",
+        "x": 2,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-2",
+        "type": "wall",
+        "x": 0,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-2",
+        "type": "wall",
+        "x": 4,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-0",
+        "type": "wall",
+        "x": 3,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-4",
+        "type": "wall",
+        "x": 3,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-3",
+        "type": "wall",
+        "x": 0,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-3",
+        "type": "wall",
+        "x": 4,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-0",
+        "type": "wall",
+        "x": 4,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-4",
+        "type": "wall",
+        "x": 4,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "node-1-2",
+        "type": "node",
+        "x": 1,
+        "y": 2,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "node-3-2",
+        "type": "node",
+        "x": 3,
+        "y": 2,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "path-2-2",
+        "type": "path",
+        "x": 2,
+        "y": 2,
+        "connections": [
+          "up",
+          "down"
+        ],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "path-1-1",
+        "type": "path",
+        "x": 1,
+        "y": 1,
+        "connections": [
+          "down",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "path-2-1",
+        "type": "path",
+        "x": 2,
+        "y": 1,
+        "connections": [
+          "up",
+          "down"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "path-3-1",
+        "type": "path",
+        "x": 3,
+        "y": 1,
+        "connections": [
+          "left",
+          "up"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      }
+    ],
+    "compressionDelay": 11000,
+    "maxMoves": 9,
+    "goalNodes": [
+      {
+        "x": 1,
+        "y": 2
+      },
+      {
+        "x": 3,
+        "y": 2
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Double",
+    "world": 1,
+    "gridSize": 5,
+    "tiles": [
+      {
+        "id": "wall-0-0",
+        "type": "wall",
+        "x": 0,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-4",
+        "type": "wall",
+        "x": 0,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-0",
+        "type": "wall",
+        "x": 1,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-4",
+        "type": "wall",
+        "x": 1,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-1",
+        "type": "wall",
+        "x": 0,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-1",
+        "type": "wall",
+        "x": 4,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-0",
+        "type": "wall",
+        "x": 2,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-4",
+        "type": "wall",
+        "x": 2,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-2",
+        "type": "wall",
+        "x": 0,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-2",
+        "type": "wall",
+        "x": 4,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-0",
+        "type": "wall",
+        "x": 3,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-4",
+        "type": "wall",
+        "x": 3,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-3",
+        "type": "wall",
+        "x": 0,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-3",
+        "type": "wall",
+        "x": 4,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-0",
+        "type": "wall",
+        "x": 4,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-4",
+        "type": "wall",
+        "x": 4,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "node-1-2",
+        "type": "node",
+        "x": 1,
+        "y": 2,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "path-2-2",
+        "type": "path",
+        "x": 2,
+        "y": 2,
+        "connections": [
+          "up",
+          "down"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "path-3-2",
+        "type": "path",
+        "x": 3,
+        "y": 2,
+        "connections": [
+          "up",
+          "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "node-3-3",
+        "type": "node",
+        "x": 3,
+        "y": 3,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      }
+    ],
+    "compressionDelay": 10000,
+    "maxMoves": 4,
+    "goalNodes": [
+      {
+        "x": 1,
+        "y": 2
+      },
+      {
+        "x": 3,
+        "y": 3
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Fork",
+    "world": 1,
+    "gridSize": 5,
+    "tiles": [
+      {
+        "id": "wall-0-0",
+        "type": "wall",
+        "x": 0,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-4",
+        "type": "wall",
+        "x": 0,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-0",
+        "type": "wall",
+        "x": 1,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-1-4",
+        "type": "wall",
+        "x": 1,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-1",
+        "type": "wall",
+        "x": 0,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-1",
+        "type": "wall",
+        "x": 4,
+        "y": 1,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-0",
+        "type": "wall",
+        "x": 2,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-2-4",
+        "type": "wall",
+        "x": 2,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-2",
+        "type": "wall",
+        "x": 0,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-2",
+        "type": "wall",
+        "x": 4,
+        "y": 2,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-0",
+        "type": "wall",
+        "x": 3,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-3-4",
+        "type": "wall",
+        "x": 3,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-0-3",
+        "type": "wall",
+        "x": 0,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-3",
+        "type": "wall",
+        "x": 4,
+        "y": 3,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-0",
+        "type": "wall",
+        "x": 4,
+        "y": 0,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "wall-4-4",
+        "type": "wall",
+        "x": 4,
+        "y": 4,
+        "connections": [],
+        "isGoalNode": false,
+        "canRotate": false
+      },
+      {
+        "id": "node-2-1",
+        "type": "node",
+        "x": 2,
+        "y": 1,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "node-1-3",
+        "type": "node",
+        "x": 1,
+        "y": 3,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "node-3-3",
+        "type": "node",
+        "x": 3,
+        "y": 3,
+        "connections": [
+          "up",
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": true,
+        "canRotate": false
+      },
+      {
+        "id": "path-2-2",
+        "type": "path",
+        "x": 2,
+        "y": 2,
+        "connections": [
+          "down",
+          "left",
+          "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "path-1-2",
+        "type": "path",
+        "x": 1,
+        "y": 2,
+        "connections": [
+          "down",
+          "left"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      },
+      {
+        "id": "path-3-2",
+        "type": "path",
+        "x": 3,
+        "y": 2,
+        "connections": [
+          "down",
+          "right"
+        ],
+        "isGoalNode": false,
+        "canRotate": true
+      }
+    ],
+    "compressionDelay": 10000,
+    "maxMoves": 6,
+    "goalNodes": [
+      {
+        "x": 2,
+        "y": 1
+      },
+      {
+        "x": 1,
+        "y": 3
+      },
+      {
+        "x": 3,
+        "y": 3
+      }
+    ]
+  }
+]

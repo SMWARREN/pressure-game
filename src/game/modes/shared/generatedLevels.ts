@@ -1,50 +1,48 @@
-// PRESSURE - Pre-generated Procedural Levels
-// This file loads pre-generated levels from JSON to avoid runtime generation blocking.
+// PRESSURE - Pre-generated Levels (Fully Dynamic)
+// This file loads all levels from world-pack JSON files.
 //
 // WORLD PACKS SYSTEM:
-// - Place generated levels in src/game/modes/shared/world-packs/world-N.json
-// - They will be automatically loaded and merged with main levels
-// - Run: npm run generate:pressure to generate new levels
+// - All levels (Worlds 1-8+) live in src/game/modes/shared/world-packs/world-N.json
+// - Files are automatically loaded and merged via Vite glob at build time
+// - No code changes needed when adding worlds!
 //
 // TO ADD A NEW WORLD:
-// 1. Run: npm run generate:pressure
-// 2. File creates src/game/modes/shared/world-packs/world-8.json (or world-9, etc.)
-// 3. The level loader auto-merges it - no code changes needed!
+// 1. Create world-N.json in world-packs/ with your levels
+// 2. Update each mode's world-metadata.json to add the world definition
+// 3. Run: npm run build
+// 4. World appears automatically in all modes
 //
-// MAIN LEVELS:
-// - Worlds 1-7: src/game/modes/shared/pressure-levels.json (hand-authored)
-// - World 8+: src/game/modes/shared/world-packs/*.json (auto-generated)
+// TO REGENERATE WORLDS 1-7:
+// - Edit pressure-levels.json (source file)
+// - Run: npm run split:levels
+// - This splits pressure-levels.json into world-1.json ... world-7.json
 
 import type { Level } from '../../types';
-import pressureLevelsJson from './pressure-levels.json';
 
 // Cache for lazy loading
 let cachedLevels: Level[] | null = null;
 
 /**
- * Get all pressure levels - combines main levels with auto-discovered world-packs.
- * World-packs are auto-loaded from world-packs/*.json via Vite glob.
- * Levels are loaded from JSON files on first call, then cached.
+ * Get all pressure levels from world-packs.
+ * Levels are auto-discovered from world-packs/*.json via Vite glob at build time.
+ * Levels are loaded on first call, then cached.
  *
  * To add a new world: drop world-N.json in world-packs/ and rebuild.
  */
 export function getPressureLevels(): Level[] {
   if (cachedLevels) return cachedLevels;
 
-  // Main levels (Worlds 1-7)
-  const mainLevels = pressureLevelsJson as any as Level[];
-
-  // Auto-discover and load world-packs/*.json
+  // Auto-discover and load all world-packs/*.json
   const worldPackModules = import.meta.glob<any>('./world-packs/*.json', { eager: true });
-  const worldPackLevels: Level[] = [];
+  const allLevels: Level[] = [];
 
   for (const [_path, module] of Object.entries(worldPackModules)) {
     const levels = (module.default as any as Level[]) || [];
-    worldPackLevels.push(...levels);
+    allLevels.push(...levels);
   }
 
-  // Merge all levels
-  cachedLevels = [...mainLevels, ...worldPackLevels];
+  // Sort by world ID, then by level ID to ensure consistent ordering
+  cachedLevels = allLevels.sort((a, b) => a.world - b.world || a.id - b.id);
   return cachedLevels;
 }
 
