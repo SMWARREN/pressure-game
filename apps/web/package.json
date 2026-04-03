@@ -21,6 +21,8 @@
     "solve:json": "npx tsx src/cli/level-solver.ts --json",
     "generate:pressure": "npx tsx src/cli/pressure-level-generator.ts",
     "split:levels": "npx tsx src/cli/split-levels.ts",
+    "analyze:levels": "npx tsx src/cli/level-analyzer.ts",
+    "enhance:trivial": "npx tsx src/cli/enhance-trivial-levels.ts",
     "enhance": "npx tsx src/cli/level-enhancer.ts",
     "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
     "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
