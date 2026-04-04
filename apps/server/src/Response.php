@@ -13,6 +13,9 @@ class Response
     private bool $testMode = false;
     private ?string $testOutput = null;
 
+    /**
+     * Private constructor for singleton pattern
+     */
     private function __construct() {}
 
     public static function getInstance(): self
@@ -52,7 +55,7 @@ class Response
         }
 
         // Always throw to comply with 'never' return type
-        throw new \RuntimeException("exit:" . $code);
+        throw new ResponseException($code);
     }
 
     public static function reset(): void

@@ -3,6 +3,8 @@
  * Control which games and modes are enabled for this domain
  */
 
+export type PressureMode = 'classic' | 'zen' | 'blitz';
+
 export interface GameConfig {
   enabledGames: {
     pressure: boolean;
@@ -90,18 +92,18 @@ export function isGameEnabled(game: 'pressure' | 'arcade'): boolean {
 /**
  * Check if a Pressure mode is enabled
  */
-export function isPressureModeEnabled(mode: 'classic' | 'zen' | 'blitz'): boolean {
+export function isPressureModeEnabled(mode: PressureMode): boolean {
   return getGameConfig().pressureModes[mode];
 }
 
 /**
  * Get enabled Pressure modes
  */
-export function getEnabledPressureModes(): ('classic' | 'zen' | 'blitz')[] {
+export function getEnabledPressureModes(): PressureMode[] {
   const config = getGameConfig().pressureModes;
   return (Object.entries(config)
     .filter(([, enabled]) => enabled)
-    .map(([mode]) => mode) as ('classic' | 'zen' | 'blitz')[]).sort();
+    .map(([mode]) => mode) as PressureMode[]).sort((a, b) => a.localeCompare(b));
 }
 
 /**

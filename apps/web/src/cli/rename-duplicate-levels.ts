@@ -22,10 +22,10 @@ const RENAMES: Record<number, string> = {
   16: 'Diagonal Hard',
   // Rise (World 1) stays, Rise (World 7) → Ascent
   1028: 'Ascent',
-  // Wave (World 4) stays, Wave (World 8) → Surge
-  1034: 'Surge',
-  // Current (World 4) stays, Current (World 8) → Stream
-  1033: 'Stream',
+  // Wave (World 4) stays, Surge (World 8, 1035) stays, this becomes Whirlwind
+  1034: 'Whirlwind',
+  // Current (World 4) stays, Stream (World 8, 1031) stays, this becomes Vortex
+  1033: 'Vortex',
 };
 
 function renameLevel(level: Level): Level {

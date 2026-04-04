@@ -29,9 +29,9 @@
     "test:all": "npm run test && npm run test:web && npm run mobile:test",
     "lint": "npm run web:lint",
     "db:reset": "bash scripts/reset-db.sh",
-    "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)'",
+    "sonar:start": "docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLED=true -p 9000:9000 sonarqube:latest && echo 'SonarQube starting at http://localhost:9000 (login: admin/admin)' && sleep 60 && node scripts/setup-sonar-token.js",
     "sonar:stop": "docker stop sonarqube && docker rm sonarqube",
-    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src,apps/web/src,apps/mobile,apps/server/src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_016dd3f0d8840fa5b5baef431bbcb44b323362a9 -Dsonar.php.coverage.reportPaths=apps/server/coverage.xml -Dsonar.php.tests.reportPath=apps/server/test-report.xml -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/*Test.php,**/dist/**,**/.next/**,**/build/**,**/.expo/**,**/coverage/**,**/cli/**",
+    "sonar:analyze": "node --max-old-space-size=4096 node_modules/sonarqube-scanner/bin/sonar-scanner.js -Dsonar.projectKey=pressure-game -Dsonar.sources=src,apps/web/src,apps/mobile,apps/server/src -Dsonar.host.url=http://localhost:9000 -Dsonar.token=sqa_54d8e1044eea9e4069f069246af02b71045e4a54 -Dsonar.php.coverage.reportPaths=apps/server/coverage.xml -Dsonar.php.tests.reportPath=apps/server/test-report.xml -Dsonar.exclusions=**/node_modules/**,**/*.test.ts,**/*.test.tsx,**/*Test.php,**/dist/**,**/.next/**,**/build/**,**/.expo/**,**/coverage/**,**/cli/**",
     "sonar:clean": "npm run sonar:stop && npm run sonar:start"
   },
   "devDependencies": {

@@ -42,7 +42,8 @@ export function getPressureLevels(): Level[] {
   }
 
   // Sort by world ID, then by level ID to ensure consistent ordering
-  cachedLevels = allLevels.sort((a, b) => a.world - b.world || a.id - b.id);
+  const sorted = allLevels.sort((a, b) => a.world - b.world || a.id - b.id);
+  cachedLevels = sorted;
   return cachedLevels;
 }
 

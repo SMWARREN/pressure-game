@@ -2,13 +2,12 @@
 
 namespace Pressure;
 
-use Pressure\Database;
-
 class HealthController
 {
-    public function __construct(private Database $db) {
-        // Mark that constructor was called for debugging
-        $_ = true;
+    /**
+     * Constructor for health check controller
+     */
+    public function __construct() {
     }
 
     /**
@@ -17,8 +16,6 @@ class HealthController
      */
     public function get(): array
     {
-        // Mark that get was called for debugging
-        $_ = true;
         return [
             'status'   => 'ok',
             'time'     => date('c'),

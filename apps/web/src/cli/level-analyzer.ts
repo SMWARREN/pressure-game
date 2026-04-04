@@ -56,11 +56,11 @@ function analyzeLevels(): void {
 
       // Ensure grid dimensions are present (old formats might be missing them)
       for (const level of levelsArray) {
-        if (!level.gridCols && level.tiles) {
-          // Calculate from grid
-          const gridSize = Math.sqrt(level.tiles.length);
-          level.gridCols = Math.ceil(gridSize);
-          level.gridRows = Math.ceil(gridSize);
+        if ((!level.gridCols || !level.gridRows) && level.tiles) {
+          // Use gridSize if available, otherwise calculate
+          const gridSize = (level as any).gridSize || Math.ceil(Math.sqrt(level.tiles.length));
+          (level as any).gridCols = gridSize;
+          (level as any).gridRows = gridSize;
         }
       }
 
@@ -95,13 +95,17 @@ function analyzeLevels(): void {
     else if (solutionMoves <= 4) difficulty = 'easy';
     else if (solutionMoves >= 8) difficulty = 'hard';
 
+    const gridSize = (level as any).gridSize || 5;
+    const gridCols = (level as any).gridCols || gridSize;
+    const gridRows = (level as any).gridRows || gridSize;
+
     const analysis: LevelAnalysis = {
       id: level.id,
       world: level.world,
       name: level.name,
-      gridCols: level.gridCols,
-      gridRows: level.gridRows,
-      gridSize: level.gridCols * level.gridRows,
+      gridCols,
+      gridRows,
+      gridSize: gridCols * gridRows,
       goalNodes: level.goalNodes.length,
       puzzleTiles,
       solutionMoves,
