@@ -262,9 +262,10 @@
         "canRotate": true
       },
       {
+        "id": "decoy-2-3",
+        "type": "path",
         "x": 2,
         "y": 3,
-        "type": "straight",
         "connections": [
           "left",
           "right"
@@ -273,9 +274,10 @@
         "canRotate": true
       },
       {
+        "id": "decoy-4-3",
+        "type": "path",
         "x": 4,
         "y": 3,
-        "type": "corner",
         "connections": [
           "up",
           "left"
@@ -639,9 +641,10 @@
         "canRotate": true
       },
       {
+        "id": "decoy-2-2",
+        "type": "path",
         "x": 2,
         "y": 2,
-        "type": "corner",
         "connections": [
           "up",
           "left"
@@ -650,9 +653,10 @@
         "canRotate": true
       },
       {
+        "id": "decoy-1-2",
+        "type": "path",
         "x": 1,
         "y": 2,
-        "type": "corner",
         "connections": [
           "down",
           "right"
@@ -974,9 +978,10 @@
         "canRotate": true
       },
       {
+        "id": "decoy-1-2",
+        "type": "path",
         "x": 1,
         "y": 2,
-        "type": "corner",
         "connections": [
           "down",
           "right"
@@ -985,9 +990,10 @@
         "canRotate": true
       },
       {
+        "id": "decoy-1-1",
+        "type": "path",
         "x": 1,
         "y": 1,
-        "type": "straight",
         "connections": [
           "up",
           "down"
