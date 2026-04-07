@@ -6,10 +6,34 @@ A React + TypeScript pipe-puzzle game where players rotate tiles to connect goal
 
 ## 🚀 Quick Start
 
+### Prerequisites
+Before running the development server, ensure you have:
+- **Node.js** (v18+)
+- **PHP** (v8.2+) - for backend
+- **MySQL** (v8.0+) - for data persistence
+
+### Setup (macOS with Homebrew)
+```bash
+# Install PHP and MySQL
+brew install php mysql
+
+# Start MySQL service
+brew services start mysql
+
+# Create database and user
+mysql -u root <<EOF
+CREATE DATABASE IF NOT EXISTS \`saintsea_pressure-engine\`;
+CREATE USER IF NOT EXISTS 'saintsea_pressure'@'localhost' IDENTIFIED BY 'pressurepressure';
+GRANT ALL PRIVILEGES ON \`saintsea_pressure-engine\`.* TO 'saintsea_pressure'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+```
+
 ### Development
 ```bash
 npm install
-npm run dev        # Start dev server at localhost:3000
+npm run dev        # Start full stack (backend + web + mobile)
+npm run web:dev    # Web only at localhost:3000
 npm run build      # Production build
 npm run preview    # Preview production build
 ```
@@ -20,6 +44,7 @@ npm run lint       # Run ESLint
 npm run format     # Format with Prettier
 npm run solve      # Solve a level with BFS algorithm
 npm run generate:pressure   # Generate procedural levels
+npm run test       # Run test suite
 ```
 
 ## 📁 Project Structure
@@ -69,24 +94,17 @@ pressure-game/
 - **[Setup](docs/setup/)** - MySQL, PHP server, mobile dev environment
 - **[Development](docs/development/)** - Adding modes, color system, architecture
 - **[Mobile](docs/mobile/)** - Expo, iOS simulator, React Native setup
-- **[Deployment](docs/deployment/)** - Production deployment, database migration
+- **[Deployment](docs/deployment/)** - Production deployment, database migration, quick start guide
 - **[Testing](docs/testing/)** - API testing, quality assurance
 
 ## 🖥️ Server Setup
 
-The optional backend is in `/server`:
+The backend runs automatically with `npm run dev` on port 8000. For production deployment, see [docs/deployment/QUICK_START_DEPLOY.md](docs/deployment/QUICK_START_DEPLOY.md).
 
-```bash
-# PHP/MySQL (recommended)
-cp server/.env.example .env
-# Edit .env with your MySQL credentials
-php -S localhost:8000 -t server/
-
-# Node.js alternative
-node server/server.example.js
-```
-
-See [docs/SETUP_PHP_SERVER.md](docs/SETUP_PHP_SERVER.md) for detailed instructions.
+**Key server files:**
+- `apps/server/` — PHP backend with MySQL integration
+- `apps/server/src/` — Controllers, database, routing
+- `apps/server/.env.example` — Database configuration template
 
 ## ⚙️ Configuration
 

@@ -24,21 +24,48 @@ let cachedLevels: Level[] | null = null;
 
 /**
  * Get all pressure levels from world-packs.
- * Levels are auto-discovered from world-packs/*.json via Vite glob at build time.
+ * Auto-discovers and loads all *.json files in the world-packs/ folder.
+ * Works on both web (Vite) and mobile (React Native/Expo/Metro) via different mechanisms.
  * Levels are loaded on first call, then cached.
  *
- * To add a new world: drop world-N.json in world-packs/ and rebuild.
+ * To add a new world: Drop any-name.json in world-packs/ and rebuild.
  */
+
 export function getPressureLevels(): Level[] {
   if (cachedLevels) return cachedLevels;
 
-  // Auto-discover and load all world-packs/*.json
-  const worldPackModules = import.meta.glob<any>('./world-packs/*.json', { eager: true });
   const allLevels: Level[] = [];
 
-  for (const [_path, module] of Object.entries(worldPackModules)) {
-    const levels = (module.default as any as Level[]) || [];
-    allLevels.push(...levels);
+  // Try Vite glob for web (import.meta.glob)
+  try {
+    if (typeof import.meta !== 'undefined' && (import.meta as any).glob) {
+      const worldPackModules = (import.meta as any).glob<any>('./world-packs/*.json', { eager: true });
+      for (const [_path, module] of Object.entries(worldPackModules)) {
+        const levels = (module.default as any as Level[]) || [];
+        allLevels.push(...levels);
+      }
+    } else {
+      throw new Error('glob not available, using fallback');
+    }
+  } catch {
+    // Fallback for React Native / Expo / Metro: use require.context to discover all JSON files
+    try {
+      const context = require.context('./world-packs', false, /\.json$/);
+      const keys = context.keys();
+
+      for (const key of keys) {
+        const world = context(key) as any;
+        const levels = (world.default || world) as Level[];
+        if (Array.isArray(levels)) {
+          allLevels.push(...levels);
+        }
+      }
+    } catch {
+      // If require.context fails too, throw a clear error
+      throw new Error(
+        'Failed to load world-packs: neither import.meta.glob (Vite) nor require.context (webpack/Metro) available'
+      );
+    }
   }
 
   // Sort by world ID, then by level ID to ensure consistent ordering
